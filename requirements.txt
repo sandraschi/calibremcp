@@ -1,0 +1,18 @@
+# CalibreMCP Phase 2 Dependencies
+# FastMCP 2.0+ with latest MCP spec compliance
+fastmcp>=2.10.0
+
+# Core HTTP and data dependencies
+httpx>=0.25.0          # Async HTTP client for Calibre API
+pydantic>=2.0.0        # Data validation and serialization
+python-dotenv>=1.0.0   # Environment management
+
+# Console output and logging
+rich>=13.0.0           # Better console output
+
+# Development and testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.0.0

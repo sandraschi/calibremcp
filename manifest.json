@@ -1,0 +1,79 @@
+{
+  "dxt_version": "0.1",
+  "name": "calibremcp",
+  "version": "1.0.0",
+  "description": "MCP server for calibre ebook app integration",
+  "long_description": "CalibreMCP is a comprehensive Model Context Protocol (MCP) server that seamlessly integrates Claude AI with your Calibre ebook library, transforming how you interact with your digital book collection. This powerful extension enables Claude to directly access, search, and manage your ebooks, providing intelligent assistance for reading, research, and library organization.",
+  "author": {
+    "name": "sandraschi"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "server/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": [
+        "${__dirname}/server/server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "server/lib"
+      }
+    }
+  },
+  "tools": [
+    {"name": "list_books"},
+    {"name": "get_book_details"},
+    {"name": "search_books"},
+    {"name": "test_calibre_connection"},
+    {"name": "list_libraries"},
+    {"name": "switch_library"},
+    {"name": "get_library_stats"},
+    {"name": "cross_library_search"},
+    {"name": "get_tag_statistics"},
+    {"name": "find_duplicate_books"},
+    {"name": "get_series_analysis"},
+    {"name": "analyze_library_health"},
+    {"name": "unread_priority_list"},
+    {"name": "update_book_metadata"},
+    {"name": "auto_organize_tags"},
+    {"name": "fix_metadata_issues"},
+    {"name": "reading_statistics"},
+    {"name": "convert_book_format"},
+    {"name": "download_book"},
+    {"name": "bulk_format_operations"},
+    {"name": "japanese_book_organizer"},
+    {"name": "it_book_curator"},
+    {"name": "reading_recommendations"}
+  ],
+  "prompts": [
+    {
+      "name": "what_should_i_read_next",
+      "description": "What should I read next? Show me personalized reading recommendations based on my library, series progress, and reading habits. Use Austrian efficiency to eliminate decision paralysis.",
+      "text": "What should I read next? Analyze my library collection, reading history, and current series progress to provide personalized reading recommendations. Use Austrian efficiency to eliminate decision paralysis - give me specific book suggestions with priority rankings and tell me exactly which book I should read right now. Include any incomplete series I should continue and books that match my interests."
+    }
+  ],
+  "keywords": [
+    "calibre",
+    "ebook",
+    "library",
+    "books",
+    "reading",
+    "management",
+    "fastmcp",
+    "book-search",
+    "metadata",
+    "series",
+    "japanese",
+    "manga",
+    "programming",
+    "it-books",
+    "weeb",
+    "austrian-efficiency",
+    "book-recommendations",
+    "library-health",
+    "duplicates",
+    "formats",
+    "conversion"
+  ],
+  "license": "MIT"
+}
