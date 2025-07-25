@@ -1,0 +1,190 @@
+# CalibreMCP 📚
+
+**FastMCP 2.0 server for comprehensive Calibre e-book library management through Claude Desktop**
+
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.0-blue)](https://github.com/jlowin/fastmcp)
+[![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
+[![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
+
+*Austrian efficiency for Sandra's 1000+ book digital library. Built with realistic AI-assisted development timelines (days, not weeks).*
+
+## 🚀 Quick Start
+
+### **Prerequisites**
+- **Python 3.11+** with pip
+- **Calibre 6.0+** installed and running
+- **Calibre Content Server** enabled on port 8080
+
+### **Installation**
+```bash
+cd d:\dev\repos\calibremcp
+pip install -e .
+```
+
+### **Start Calibre Server**
+```bash
+# Option 1: Through Calibre GUI
+# Calibre → Connect/share → Start Content Server
+
+# Option 2: Command line
+calibre-server --port=8080
+```
+
+### **Test Connection**
+```bash
+python -c "
+from calibre_mcp.calibre_api import quick_library_test
+import asyncio
+print('✅ Working' if asyncio.run(quick_library_test()) else '❌ Failed')
+"
+```
+
+### **Claude Desktop Integration**
+Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "calibre-mcp": {
+      "command": "python",
+      "args": ["-m", "calibre_mcp.server"],
+      "env": {
+        "CALIBRE_SERVER_URL": "http://localhost:8080"
+      }
+    }
+  }
+}
+```
+
+## 📚 Features
+
+### **4 Core MCP Tools** ✅
+- **`list_books()`** - Browse/search library with flexible filtering
+- **`get_book_details()`** - Complete metadata and file information  
+- **`search_books()`** - Advanced search with field targeting
+- **`test_calibre_connection()`** - Connection testing and diagnostics
+
+### **Usage Examples**
+```python
+# Browse recent books
+"Show me the last 20 books I added, sorted by date"
+
+# Search by topic
+"Find all my programming books with 'python' in the title or tags"
+
+# Get book details
+"Tell me everything about book ID 12345 including available formats"
+
+# Check server status
+"Test my Calibre server connection and show library stats"
+```
+
+## 🎯 Austrian Efficiency
+
+- **Real working code** - No stubs, all 4 tools fully functional
+- **45-minute implementation** - Realistic AI-assisted timeline
+- **Sandra's workflow optimized** - Weeb-friendly, academic quality, budget conscious
+- **Direct communication** - Clear error messages, no AI platitudes
+
+## 📖 Documentation
+
+- **[API Reference](docs/API.md)** - Complete tool documentation with examples
+- **[Configuration Guide](docs/Configuration.md)** - Setup and optimization
+- **[Troubleshooting](docs/Troubleshooting.md)** - Common issues and solutions
+- **[Full Documentation](docs/Full_Documentation.md)** - Complete project details
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+python -m pytest tests/test_api.py -v
+
+# Integration tests  
+python -m pytest tests/integration_tests.py -v
+
+# MCP Inspector
+python -m calibre_mcp.server
+# Opens: http://127.0.0.1:6274
+```
+
+## 🔧 Configuration
+
+### **Environment Variables**
+```env
+CALIBRE_SERVER_URL=http://localhost:8080
+CALIBRE_USERNAME=your_username      # If auth enabled
+CALIBRE_PASSWORD=your_password      # If auth enabled
+CALIBRE_TIMEOUT=30
+CALIBRE_DEFAULT_LIMIT=50
+```
+
+### **With Authentication**
+```bash
+# Enable Calibre authentication
+calibre-server --port=8080 --enable-auth --manage-users
+
+# Add user and set environment
+export CALIBRE_USERNAME="sandra"
+export CALIBRE_PASSWORD="your_password"
+```
+
+## 🚨 Troubleshooting
+
+### **Connection Failed**
+```bash
+# Check if Calibre server is running
+netstat -an | findstr 8080  # Windows
+curl http://localhost:8080  # Test in browser
+```
+
+### **No Books Found**
+```bash
+# Verify library has books
+calibredb list --limit=5
+
+# Check library path
+calibre-debug --get-library
+```
+
+### **Authentication Issues**
+```bash
+# Test credentials
+curl -u username:password http://localhost:8080/ajax/interface-data/init
+```
+
+See **[Troubleshooting Guide](docs/Troubleshooting.md)** for comprehensive solutions.
+
+## 🏗 Architecture
+
+```
+calibremcp/
+├── src/calibre_mcp/
+│   ├── server.py           # 4 FastMCP tools
+│   ├── calibre_api.py      # HTTP API client
+│   └── config.py           # Configuration management
+├── config/
+│   ├── settings.yaml       # Server configuration
+│   └── calibre_config.yaml # Calibre-specific settings
+├── tests/
+│   ├── test_api.py         # Unit tests
+│   └── integration_tests.py # Integration tests
+└── docs/                   # Complete documentation
+```
+
+## 💯 Success Metrics
+
+### **Phase 1 Complete** ✅
+- ✅ 4/4 core MCP tools implemented and tested
+- ✅ FastMCP 2.0 compliance with proper structure  
+- ✅ Comprehensive error handling and diagnostics
+- ✅ Austrian efficiency: 45-minute realistic timeline
+- ✅ Production-ready for immediate Claude Desktop use
+
+## 📄 License
+
+MIT License - Austrian efficiency in e-book management.
+
+---
+
+**Built with Austrian efficiency for Sandra's comprehensive e-book workflow.** 
+
+*"Sin temor y sin esperanza" - practical without hype or doom.*
