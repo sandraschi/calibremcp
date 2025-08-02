@@ -19,6 +19,7 @@ This allows flexible deployment while maintaining sane defaults.
 ## 📁 Configuration Files
 
 ### **`config/settings.yaml`**
+
 Main server configuration with performance tuning and feature flags.
 
 ```yaml
@@ -58,6 +59,7 @@ austrian_efficiency:
 ```
 
 ### **`config/calibre_config.yaml`**  
+
 Calibre-specific settings with presets and library management.
 
 ```yaml
@@ -123,12 +125,14 @@ formats:
 ### **Scenario 1: Local Development**
 
 **Calibre Setup:**
+
 ```bash
 # Start Calibre Content Server
 calibre-server --port=8080 --enable-local-write
 ```
 
 **Environment Configuration:**
+
 ```env
 # .env file
 CALIBRE_SERVER_URL=http://localhost:8080
@@ -138,6 +142,7 @@ CALIBRE_DEBUG=1
 ```
 
 **Testing:**
+
 ```bash
 # Test connection
 python -c "
@@ -150,6 +155,7 @@ print(asyncio.run(quick_library_test('http://localhost:8080')))
 ### **Scenario 2: Local Production**
 
 **Calibre Setup:**
+
 ```bash
 # Start with authentication
 calibre-server --port=8080 --enable-auth --manage-users
@@ -157,6 +163,7 @@ calibre-server --port=8080 --enable-auth --manage-users
 ```
 
 **Environment Configuration:**
+
 ```env
 CALIBRE_SERVER_URL=http://localhost:8080
 CALIBRE_USERNAME=sandra
@@ -167,6 +174,7 @@ CALIBRE_DEFAULT_LIMIT=50
 ```
 
 **Claude Desktop Integration:**
+
 ```json
 {
   "mcpServers": {
@@ -186,12 +194,14 @@ CALIBRE_DEFAULT_LIMIT=50
 ### **Scenario 3: Remote Server**
 
 **Calibre Setup:**
+
 ```bash
 # On remote server (192.168.1.100)
 calibre-server --port=8080 --listen-on=0.0.0.0 --enable-auth
 ```
 
 **Environment Configuration:**
+
 ```env
 CALIBRE_SERVER_URL=http://192.168.1.100:8080
 CALIBRE_USERNAME=sandra
@@ -201,6 +211,7 @@ CALIBRE_MAX_RETRIES=3
 ```
 
 **Network Testing:**
+
 ```bash
 # Test network connectivity
 curl http://192.168.1.100:8080/ajax/interface-data/init
@@ -209,6 +220,7 @@ curl http://192.168.1.100:8080/ajax/interface-data/init
 ### **Scenario 4: Cloud/HTTPS Server**
 
 **Calibre Setup:**
+
 ```bash
 # Behind reverse proxy with SSL
 # nginx/apache handles HTTPS termination
@@ -216,6 +228,7 @@ calibre-server --port=8080 --enable-auth
 ```
 
 **Environment Configuration:**
+
 ```env
 CALIBRE_SERVER_URL=https://calibre.yourdomain.com
 CALIBRE_USERNAME=sandra
@@ -253,6 +266,7 @@ config = CalibreConfig.load_config("custom_config.json")
 ### **Performance Tuning**
 
 #### **For Large Libraries (1000+ books)**
+
 ```yaml
 # config/settings.yaml
 performance:
@@ -267,6 +281,7 @@ calibre:
 ```
 
 #### **For Fast Networks**
+
 ```yaml
 performance:
   search_timeout: 10
@@ -278,6 +293,7 @@ calibre:
 ```
 
 #### **For Slow Networks**
+
 ```yaml
 performance:
   search_timeout: 60
@@ -306,6 +322,7 @@ calibre:
 ### **Authentication Setup**
 
 #### **Enable Calibre Authentication**
+
 ```bash
 # Interactive user management
 calibre-server --manage-users
@@ -316,6 +333,7 @@ calibre-server --manage-users
 ```
 
 #### **Environment Variables (Recommended)**
+
 ```env
 # Store credentials securely
 CALIBRE_USERNAME=sandra
@@ -323,6 +341,7 @@ CALIBRE_PASSWORD=secure_password_123
 ```
 
 #### **Config File (Less Secure)**
+
 ```yaml
 # config/calibre_config.yaml
 auth:
@@ -333,12 +352,14 @@ auth:
 ### **Network Security**
 
 #### **Local Network Only**
+
 ```bash
 # Bind to specific interface
 calibre-server --listen-on=192.168.1.100 --port=8080
 ```
 
 #### **HTTPS with Reverse Proxy**
+
 ```nginx
 # nginx configuration
 server {
@@ -363,6 +384,7 @@ server {
 ### **Connection Issues**
 
 #### **"Connection refused"**
+
 ```bash
 # Check if Calibre server is running
 netstat -an | grep 8080
@@ -374,25 +396,30 @@ curl http://localhost:8080/ajax/interface-data/init
 ```
 
 **Solutions:**
+
 1. Start Calibre Content Server
 2. Check port number and URL
 3. Verify firewall settings
 4. Check if another application is using port 8080
 
 #### **"Authentication failed"**
+
 ```bash
 # Test authentication with curl
 curl -u username:password http://localhost:8080/ajax/interface-data/init
 ```
 
 **Solutions:**
+
 1. Verify username/password in environment variables
 2. Check if authentication is enabled in Calibre
 3. Reset user password in Calibre
 4. Ensure user has proper permissions
 
 #### **"Request timeout"**
+
 **Solutions:**
+
 1. Increase `CALIBRE_TIMEOUT` value
 2. Check network connectivity
 3. Verify Calibre server isn't overloaded
@@ -401,6 +428,7 @@ curl -u username:password http://localhost:8080/ajax/interface-data/init
 ### **Performance Issues**
 
 #### **Slow search responses**
+
 ```yaml
 # Optimize settings
 calibre:
@@ -413,6 +441,7 @@ performance:
 ```
 
 #### **High memory usage**
+
 ```yaml
 performance:
   max_cache_size_mb: 25
@@ -425,6 +454,7 @@ calibre:
 ### **Configuration Validation**
 
 #### **Test Configuration Loading**
+
 ```python
 # Test config loading
 from calibre_mcp.config import CalibreConfig
@@ -439,6 +469,7 @@ except Exception as e:
 ```
 
 #### **Test API Connection**
+
 ```python
 # Test API connectivity
 from calibre_mcp.calibre_api import quick_library_test

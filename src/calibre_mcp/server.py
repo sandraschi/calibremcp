@@ -701,46 +701,116 @@ async def list_libraries() -> LibraryListResponse:
         Use to see all available libraries before switching
     """
     try:
-        # Mock implementation - in real version would scan Calibre config
-        # This represents Sandra's actual library setup
-        libraries = [
-            LibraryInfo(
-                name="main",
-                display_name="Main Library",
-                path="D:/Books/Calibre/Main",
-                total_books=750,
-                size_mb=15420.5,
-                last_updated="2025-07-24T10:30:00Z",
-                is_current=(current_library == "main")
-            ),
-            LibraryInfo(
-                name="it",  
-                display_name="IT & Programming",
-                path="D:/Books/Calibre/IT",
-                total_books=380,
-                size_mb=8950.2,
-                last_updated="2025-07-23T16:45:00Z",
-                is_current=(current_library == "it")
-            ),
-            LibraryInfo(
-                name="japanese",
-                display_name="Japanese Collection 🎌",
-                path="D:/Books/Calibre/Japanese", 
-                total_books=125,
-                size_mb=2340.7,
-                last_updated="2025-07-22T20:15:00Z",
-                is_current=(current_library == "japanese")
-            ),
-            LibraryInfo(
-                name="academic",
-                display_name="Academic & Research",
-                path="D:/Books/Calibre/Academic",
-                total_books=95,
-                size_mb=3580.1,
-                last_updated="2025-07-20T14:20:00Z",
-                is_current=(current_library == "academic")
-            )
-        ]
+        from .config import config
+        
+        libraries = []
+        
+        # If library_paths is provided in config, use that
+        if config.library_paths:
+            for lib_name, lib_path in config.library_paths.items():
+                if not os.path.exists(lib_path):
+                    logger.warning(f"Library path not found: {lib_path}")
+                    continue
+                    
+                # Get basic stats for the library
+                total_books = 0
+                size_mb = 0
+                
+                # Try to get metadata.db stats if it exists
+                metadata_db = os.path.join(lib_path, "metadata.db")
+                if os.path.exists(metadata_db):
+                    try:
+                        import sqlite3
+                        import time
+                        
+                        # Get book count
+                        conn = sqlite3.connect(metadata_db)
+                        cursor = conn.cursor()
+                        cursor.execute("SELECT COUNT(*) FROM books")
+                        total_books = cursor.fetchone()[0]
+                        
+                        # Get last modified time
+                        last_modified = os.path.getmtime(metadata_db)
+                        last_updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_modified))
+                        
+                        # Get size in MB
+                        size_mb = round(os.path.getsize(metadata_db) / (1024 * 1024), 2)
+                        
+                        conn.close()
+                    except Exception as e:
+                        logger.warning(f"Could not read metadata.db for {lib_name}: {e}")
+                
+                # Create library info
+                display_name = lib_name.replace('_', ' ').title()
+                if lib_name.lower() == 'japanese':
+                    display_name += ' 🎌'
+                
+                libraries.append(LibraryInfo(
+                    name=lib_name,
+                    display_name=display_name,
+                    path=lib_path,
+                    total_books=total_books,
+                    size_mb=size_mb,
+                    last_updated=last_updated if 'last_updated' in locals() else "1970-01-01T00:00:00Z",
+                    is_current=(current_library == lib_name)
+                ))
+        # If base_library_path is provided, auto-discover libraries as subdirectories
+        elif config.base_library_path and os.path.exists(config.base_library_path):
+            for entry in os.scandir(config.base_library_path):
+                if entry.is_dir():
+                    lib_path = entry.path
+                    lib_name = entry.name
+                    
+                    # Skip hidden directories
+                    if lib_name.startswith('.'):
+                        continue
+                        
+                    # Check if this directory looks like a Calibre library
+                    if os.path.exists(os.path.join(lib_path, "metadata.db")):
+                        # Get stats for the library
+                        try:
+                            import sqlite3
+                            import time
+                            
+                            metadata_db = os.path.join(lib_path, "metadata.db")
+                            conn = sqlite3.connect(metadata_db)
+                            cursor = conn.cursor()
+                            cursor.execute("SELECT COUNT(*) FROM books")
+                            total_books = cursor.fetchone()[0]
+                            
+                            last_modified = os.path.getmtime(metadata_db)
+                            last_updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_modified))
+                            
+                            size_mb = round(os.path.getsize(metadata_db) / (1024 * 1024), 2)
+                            
+                            conn.close()
+                            
+                            display_name = lib_name.replace('_', ' ').title()
+                            if lib_name.lower() == 'japanese':
+                                display_name += ' 🎌'
+                                
+                            libraries.append(LibraryInfo(
+                                name=lib_name,
+                                display_name=display_name,
+                                path=lib_path,
+                                total_books=total_books,
+                                size_mb=size_mb,
+                                last_updated=last_updated,
+                                is_current=(current_library == lib_name)
+                            ))
+                        except Exception as e:
+                            logger.warning(f"Could not process library {lib_name}: {e}")
+        else:
+            # Fallback to default library if no paths configured
+            libraries.append(LibraryInfo(
+                name="default",
+                display_name="Default Library",
+                path=os.path.expanduser("~/Calibre Library"),
+                total_books=0,
+                size_mb=0,
+                last_updated="1970-01-01T00:00:00Z",
+                is_current=True
+            ))
         
         return LibraryListResponse(
             libraries=libraries,
@@ -758,7 +828,7 @@ async def list_libraries() -> LibraryListResponse:
 
 
 @mcp.tool()
-async def switch_library(library_name: str) -> LibraryListResponse:
+async def switch_library(library_name: str):
     """
     Switch to a different Calibre library for subsequent operations.
     
@@ -766,32 +836,43 @@ async def switch_library(library_name: str) -> LibraryListResponse:
     Useful for managing multiple specialized collections.
     
     Args:
-        library_name: Library to switch to (main, it, japanese, academic)
+        library_name: Name of the library to switch to (must exist in configuration)
         
     Returns:
         Updated library list showing new active library
         
     Example:
-        switch_library("japanese") - Switch to weeb mode 🎌
+        switch_library("japanese") - Switch to Japanese library 🎌
     """
+    from .config import config
     global current_library
     
     try:
-        # Validate library exists (in real version would check Calibre config)
-        valid_libraries = ["main", "it", "japanese", "academic"]
+        # Get list of available libraries
+        libraries = await list_libraries()
         
-        if library_name not in valid_libraries:
-            console.print(f"[red]Invalid library: {library_name}[/red]")
-            console.print(f"[yellow]Available libraries: {', '.join(valid_libraries)}[/yellow]")
-            return await list_libraries()
+        # Check if requested library exists
+        library_exists = any(lib.name == library_name for lib in libraries.libraries)
         
-        # Switch library context
+        if not library_exists:
+            available_libs = ", ".join(f'"{lib.name}"' for lib in libraries.libraries)
+            raise ValueError(
+                f"Library '{library_name}' not found. "
+                f"Available libraries: {available_libs}"
+            )
+        
+        # Store the old library name for logging
         old_library = current_library
+        
+        # Update current library
         current_library = library_name
+        
+        # Also update the config's current library name
+        config.library_name = library_name
         
         console.print(f"[green]✅ Switched from '{old_library}' to '{current_library}' library[/green]")
         
-        # Return updated library list
+        # Return updated library list to show the current selection
         return await list_libraries()
         
     except Exception as e:
