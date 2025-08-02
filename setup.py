@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="calibre-mcp",
-    version="0.1.0",
+    version="1.0.0",
     author="Sandra Schi",
     author_email="sandra@example.com",
     description="MCP server for automating Calibre ebook management",
