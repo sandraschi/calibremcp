@@ -33,6 +33,7 @@ print(f'Auth: {config.has_auth}')
 ```
 
 **Expected Output:**
+
 - Server starts without errors
 - Connection test returns `✅ Working`
 - Configuration shows correct server URL
@@ -49,6 +50,7 @@ Calibre Content Server is not running or not accessible.
 **Solutions:**
 
 #### **Step 1: Check if Calibre Server is Running**
+
 ```bash
 # Windows
 netstat -an | findstr 8080
@@ -63,12 +65,14 @@ If no output, Calibre server is not running.
 #### **Step 2: Start Calibre Content Server**
 
 **Option A: Through Calibre GUI**
+
 1. Open Calibre application
 2. Click "Connect/share" → "Start Content Server"
 3. Verify port is set to 8080
 4. Click "Start server"
 
 **Option B: Command Line**
+
 ```bash
 # Basic server
 calibre-server --port=8080
@@ -81,6 +85,7 @@ calibre-server --port=8080 --library-path="C:\Users\Sandra\Calibre Library"
 ```
 
 #### **Step 3: Test Connection**
+
 ```bash
 # Test with browser
 # Navigate to: http://localhost:8080
@@ -90,6 +95,7 @@ curl http://localhost:8080/ajax/interface-data/init
 ```
 
 #### **Step 4: Check Firewall**
+
 ```bash
 # Windows: Allow port 8080 through Windows Defender
 # Add inbound rule for port 8080
@@ -109,6 +115,7 @@ Incorrect server URL or port number.
 **Solutions:**
 
 #### **Check Configuration**
+
 ```python
 from calibre_mcp.config import CalibreConfig
 config = CalibreConfig.load_config()
@@ -116,12 +123,14 @@ print(f"Configured URL: {config.server_url}")
 ```
 
 #### **Common URL Issues**
+
 - **Wrong port**: `http://localhost:8080` not `http://localhost:80`
 - **Missing protocol**: `http://localhost:8080` not `localhost:8080`  
 - **HTTPS vs HTTP**: Check if server uses SSL
 - **IP vs hostname**: Try `127.0.0.1:8080` instead of `localhost:8080`
 
 #### **Test Different URLs**
+
 ```bash
 # Try variations
 curl http://localhost:8080/ajax/interface-data/init
@@ -130,6 +139,7 @@ curl http://[your-ip]:8080/ajax/interface-data/init
 ```
 
 #### **Check Calibre Server Settings**
+
 ```bash
 # Get Calibre server info
 calibre-server --help
@@ -150,6 +160,7 @@ Incorrect credentials or authentication not properly configured.
 **Solutions:**
 
 #### **Step 1: Verify Credentials**
+
 ```bash
 # Test authentication with curl
 curl -u username:password http://localhost:8080/ajax/interface-data/init
@@ -159,6 +170,7 @@ curl -u sandra:mypassword http://localhost:8080/ajax/interface-data/init
 ```
 
 #### **Step 2: Check Environment Variables**
+
 ```bash
 # Windows
 echo %CALIBRE_USERNAME%
@@ -170,6 +182,7 @@ echo $CALIBRE_PASSWORD
 ```
 
 #### **Step 3: Reset Calibre User**
+
 ```bash
 # Manage Calibre users
 calibre-server --manage-users
@@ -182,6 +195,7 @@ calibre-server --manage-users
 ```
 
 #### **Step 4: Test Without Authentication**
+
 ```bash
 # Temporarily disable auth to test connection
 calibre-server --port=8080
@@ -201,6 +215,7 @@ Special characters in password or encoding issues.
 **Solutions:**
 
 #### **Check Password Characters**
+
 ```bash
 # Avoid special characters that need URL encoding
 # Problematic: @, #, %, &, +, =, ?, /
@@ -208,6 +223,7 @@ Special characters in password or encoding issues.
 ```
 
 #### **URL Encode Password**
+
 ```python
 import urllib.parse
 password = "my@password#123"
@@ -216,6 +232,7 @@ print(f"Encoded password: {encoded}")
 ```
 
 #### **Test with Simple Password**
+
 ```bash
 # Create test user with simple password
 calibre-server --manage-users
@@ -238,6 +255,7 @@ Calibre server is slow or overloaded.
 **Solutions:**
 
 #### **Step 1: Increase Timeout**
+
 ```env
 # .env file
 CALIBRE_TIMEOUT=60
@@ -245,6 +263,7 @@ CALIBRE_MAX_RETRIES=5
 ```
 
 #### **Step 2: Check Server Load**
+
 ```bash
 # Check Calibre server CPU/memory usage
 # Windows
@@ -256,6 +275,7 @@ top -p $(pgrep calibre)
 ```
 
 #### **Step 3: Optimize Library**
+
 ```bash
 # Check library size
 calibre-debug --paths
@@ -266,6 +286,7 @@ calibre-debug --run-plugin="Optimize Database"
 ```
 
 #### **Step 4: Reduce Query Complexity**
+
 ```python
 # Use smaller limits
 await list_books(limit=25)  # instead of 100+
@@ -279,6 +300,7 @@ await search_books("python", ["title"])  # instead of all fields
 **Solutions:**
 
 #### **Optimize Search Settings**
+
 ```yaml
 # config/settings.yaml
 calibre:
@@ -291,6 +313,7 @@ performance:
 ```
 
 #### **Use Field-Specific Searches**
+
 ```python
 # Faster: search specific fields
 await search_books("programming", ["tags"])
@@ -300,6 +323,7 @@ await search_books("programming")  # searches title, authors, tags, comments
 ```
 
 #### **Check Library Size Impact**
+
 ```bash
 # Count books in library
 calibre-debug --command "list" | wc -l
@@ -322,6 +346,7 @@ Library path issues or permissions problems.
 **Solutions:**
 
 #### **Step 1: Verify Library Path**
+
 ```bash
 # Check current library
 calibre-debug --get-library
@@ -334,6 +359,7 @@ calibre-server --library-path="C:\Users\Sandra\Calibre Library"
 ```
 
 #### **Step 2: Check Library Permissions**
+
 ```bash
 # Windows: Check folder permissions
 icacls "C:\Users\Sandra\Calibre Library"
@@ -343,6 +369,7 @@ ls -la "/Users/sandra/Calibre Library"
 ```
 
 #### **Step 3: Test Library Directly**
+
 ```bash
 # List books via command line
 calibredb list --library-path="C:\Users\Sandra\Calibre Library"
@@ -352,6 +379,7 @@ calibredb library_info --library-path="C:\Users\Sandra\Calibre Library"
 ```
 
 #### **Step 4: Create Test Library**
+
 ```bash
 # Create new test library
 calibredb create_library test_library
@@ -368,6 +396,7 @@ calibre-server --library-path=test_library --port=8080
 **Solutions:**
 
 #### **Check Book Import Status**
+
 ```bash
 # Re-scan library for metadata
 calibredb list --for-machine | head -5  # Check first 5 books
@@ -379,6 +408,7 @@ calibredb list --for-machine | head -5  # Check first 5 books
 ```
 
 #### **Fix Missing Metadata**
+
 ```bash
 # Add metadata to specific book
 calibredb set_metadata 123 --title="Correct Title" --authors="Author Name"
@@ -399,6 +429,7 @@ Search syntax issues or index problems.
 **Solutions:**
 
 #### **Step 1: Test Basic Search**
+
 ```python
 # Test with exact title
 await list_books("exact book title")
@@ -411,6 +442,7 @@ await list_books()
 ```
 
 #### **Step 2: Check Search Syntax**
+
 ```python
 # Correct syntax
 await search_books("programming", ["title", "tags"], "OR")
@@ -422,6 +454,7 @@ await search_books("programming", ["title", "tags"], "OR")
 ```
 
 #### **Step 3: Debug Search Query**
+
 ```python
 # Enable debug logging
 import logging
@@ -433,6 +466,7 @@ await search_books("test query")
 ```
 
 #### **Step 4: Test Direct Calibre Search**
+
 ```bash
 # Test search via calibredb
 calibredb search "python" --library-path="your-library-path"
@@ -446,6 +480,7 @@ calibredb search "python" --library-path="your-library-path"
 **Solutions:**
 
 #### **Understanding Calibre Search Logic**
+
 ```python
 # OR search: title:python OR tags:python
 await search_books("python", ["title", "tags"], "OR")
@@ -458,6 +493,7 @@ await search_books("python", ["title"])
 ```
 
 #### **Use Exact Matching**
+
 ```python
 # Exact phrase search
 await search_books('"Python Programming"', ["title"])
@@ -475,6 +511,7 @@ await search_books("prog", ["title"])  # matches "Programming"
 **Solutions:**
 
 #### **Step 1: Check MCP Configuration**
+
 ```json
 // claude_desktop_config.json
 {
@@ -491,6 +528,7 @@ await search_books("prog", ["title"])  # matches "Programming"
 ```
 
 #### **Step 2: Verify File Paths**
+
 ```bash
 # Check if module is importable
 python -c "import calibre_mcp.server; print('✅ Module found')"
@@ -501,6 +539,7 @@ python -m calibre_mcp.server
 ```
 
 #### **Step 3: Test MCP Inspector**
+
 ```bash
 # Start MCP Inspector
 python -m calibre_mcp.server
@@ -509,6 +548,7 @@ python -m calibre_mcp.server
 ```
 
 #### **Step 4: Check Claude Desktop Logs**
+
 ```bash
 # Windows: Check Event Viewer or Claude logs
 # macOS: Check Console.app for Claude messages
@@ -520,6 +560,7 @@ python -m calibre_mcp.server
 **Solutions:**
 
 #### **Check Environment Variables in Claude Desktop**
+
 ```json
 // Ensure env vars are passed to Claude Desktop
 {
@@ -539,6 +580,7 @@ python -m calibre_mcp.server
 ```
 
 #### **Test Tools Individually**
+
 ```python
 # Test each tool manually
 from calibre_mcp.server import list_books, get_book_details, search_books, test_calibre_connection
@@ -630,24 +672,28 @@ asyncio.run(profile_search())
 When reporting issues, include this diagnostic information:
 
 ### **System Information**
+
 - [ ] Operating System (Windows 10/11, macOS, Linux)
 - [ ] Python version (`python --version`)
 - [ ] Calibre version (`calibre --version`)
 - [ ] CalibreMCP version
 
 ### **Configuration**
+
 - [ ] Server URL and port
 - [ ] Authentication enabled (yes/no)
 - [ ] Library path and size (number of books)
 - [ ] Environment variables used
 
 ### **Error Details**
+
 - [ ] Exact error message
 - [ ] When error occurs (startup, search, specific tool)
 - [ ] Debug logs (with `CALIBRE_DEBUG=1`)
 - [ ] Network connectivity test results
 
 ### **Reproduction Steps**
+
 - [ ] Minimal steps to reproduce the issue
 - [ ] Expected behavior vs actual behavior
 - [ ] Workarounds attempted
@@ -657,18 +703,21 @@ When reporting issues, include this diagnostic information:
 ## 🆘 Getting Help
 
 ### **Self-Service Debugging**
+
 1. Run the Quick Diagnosis (top of this guide)
 2. Check relevant sections above
 3. Enable debug logging
 4. Test with minimal configuration
 
 ### **Austrian Efficiency Problem-Solving**
+
 - **Speed over perfection**: Start with simple tests
 - **Direct communication**: Provide exact error messages  
 - **Practical solutions**: Test one change at a time
 - **Budget conscious**: Use built-in diagnostic tools
 
 ### **Common Solutions Summary**
+
 - **Connection issues**: Check if Calibre server is running
 - **Authentication issues**: Verify username/password
 - **Performance issues**: Increase timeouts, reduce limits

@@ -1,21 +1,41 @@
 """
 CalibreMCP Configuration Management
 
-Handles configuration from JSON files and environment variables
-for Calibre server connection settings.
+Handles configuration for both local and remote Calibre library access.
 """
 
 import json
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, HttpUrl, validator
 from dotenv import load_dotenv
 
 
+class RemoteServerConfig(BaseModel):
+    """Configuration for a remote Calibre content server"""
+    url: HttpUrl
+    display_name: str = ""
+    username: Optional[str] = None  # Not stored here, only in keyring
+
 class CalibreConfig(BaseModel):
-    """Configuration for Calibre server connection"""
+    """Root configuration for Calibre MCP"""
+    # Local library access
+    local_library_path: Optional[Path] = Field(
+        None,
+        description="Path to local Calibre library (contains metadata.db)"
+    )
+    
+    # Remote server configuration
+    default_remote: Optional[str] = Field(
+        None,
+        description="Default remote server name to use"
+    )
+    remotes: Dict[str, RemoteServerConfig] = Field(
+        default_factory=dict,
+        description="Configured remote servers"
+    )
     
     # Server connection
     server_url: str = Field(default="http://localhost:8080", description="Calibre server URL")
@@ -31,7 +51,17 @@ class CalibreConfig(BaseModel):
     max_limit: int = Field(default=200, description="Maximum search result limit")
     
     # Library settings
-    library_name: str = Field(default="Default Library", description="Primary library name")
+    library_name: str = Field(default="main", description="Primary library name")
+    
+    # Library paths configuration - either specify individual libraries or a base path
+    library_paths: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Mapping of library names to their paths. If empty, will use CALIBRE_BASE_PATH"
+    )
+    base_library_path: Optional[str] = Field(
+        default=None,
+        description="Base path where library subdirectories are located. If set, libraries will be auto-discovered as subdirectories."
+    )
     
     @validator('server_url')
     def validate_server_url(cls, v):
@@ -92,10 +122,32 @@ class CalibreConfig(BaseModel):
             'CALIBRE_MAX_RETRIES': 'max_retries',
             'CALIBRE_DEFAULT_LIMIT': 'default_limit',
             'CALIBRE_MAX_LIMIT': 'max_limit',
-            'CALIBRE_LIBRARY_NAME': 'library_name'
+            'CALIBRE_LIBRARY_NAME': 'library_name',
+            'CALIBRE_BASE_PATH': 'base_library_path',
+            'CALIBRE_LIBRARY_PATHS': 'library_paths'  # JSON-encoded dict of library paths
         }
         
+        # Special handling for library paths
+        if 'CALIBRE_LIBRARY_PATHS' in os.environ:
+            try:
+                lib_paths = json.loads(os.environ['CALIBRE_LIBRARY_PATHS'])
+                if isinstance(lib_paths, dict):
+                    config_data['library_paths'] = lib_paths
+            except json.JSONDecodeError:
+                print(f"Warning: Invalid JSON in CALIBRE_LIBRARY_PATHS environment variable")
+        
+        # Handle base library path
+        if 'CALIBRE_BASE_PATH' in os.environ:
+            base_path = os.environ['CALIBRE_BASE_PATH']
+            if os.path.exists(base_path):
+                config_data['base_library_path'] = base_path
+                
+        # Process other environment variables
         for env_var, config_key in env_mappings.items():
+            # Skip already processed special cases
+            if env_var in ('CALIBRE_LIBRARY_PATHS', 'CALIBRE_BASE_PATH'):
+                continue
+                
             env_value = os.getenv(env_var)
             if env_value is not None:
                 # Convert to appropriate type

@@ -12,7 +12,8 @@ Austrian efficiency for Sandra's 1000+ book digital library. Built with realisti
 
 **Calibre** is the world's most popular open-source e-book library management software, created by Kovid Goyal. It's a complete e-book solution that handles:
 
-### Core Calibre Features:
+### Core Calibre Features
+
 - **Library Management**: Organize thousands of books with metadata, covers, and custom tags
 - **Format Conversion**: Convert between 50+ e-book formats (EPUB, MOBI, PDF, AZW, etc.)
 - **E-book Editing**: Built-in editor for EPUB files with syntax highlighting
@@ -22,7 +23,8 @@ Austrian efficiency for Sandra's 1000+ book digital library. Built with realisti
 - **Metadata Management**: Automatic metadata retrieval from multiple sources
 - **Custom Columns**: Extensible metadata system for specialized cataloging
 
-### Calibre Server REST API:
+### Calibre Server REST API
+
 - **Web Interface**: Full library access through browser at `http://localhost:8080`
 - **OPDS Support**: Standard e-book catalog protocol for reader apps
 - **Authentication**: Optional user management and access control
@@ -37,6 +39,7 @@ Calibre excels at managing large personal libraries (1000+ books) with sophistic
 ## 🚀 CalibreMCP Features
 
 ### **Phase 1 Tools (Production Ready)** ✅
+
 1. **`list_books(query?, limit=50, sort="title")`**
    - Browse/search library with flexible filtering
    - Natural language queries, sorting, result limits
@@ -58,6 +61,7 @@ Calibre excels at managing large personal libraries (1000+ books) with sophistic
    - Performance metrics and capability detection
 
 ### **Planned Phase 2 Tools** 🚧
+
 5. **`add_book(file_path, metadata?)`** - Add new books with metadata
 6. **`update_book_metadata(book_id, updates)`** - Modify existing book data
 7. **`manage_tags(book_id, tags, action)`** - Add/remove/replace book tags
@@ -68,20 +72,24 @@ Calibre excels at managing large personal libraries (1000+ books) with sophistic
 ## 📦 Installation & Setup
 
 ### **Prerequisites**
+
 - **Python 3.11+** with pip
 - **Calibre 6.0+** installed and running
 - **Calibre Content Server** enabled (see configuration below)
 
 ### **Step 1: Install CalibreMCP**
+
 ```powershell
 cd d:\dev\repos\calibremcp
 pip install -e .
 ```
 
 ### **Step 2: Configure Calibre Content Server**
+
 Enable Calibre's built-in web server for API access:
 
 #### Option A: GUI Configuration
+
 1. Open Calibre → Preferences → Sharing over the net
 2. Enable "Start Content Server automatically"
 3. Set port to 8080 (default)
@@ -89,6 +97,7 @@ Enable Calibre's built-in web server for API access:
 5. Apply and restart Calibre
 
 #### Option B: Command Line Server
+
 ```powershell
 # Start Calibre content server
 calibre-server --port=8080 --enable-auth --manage-users
@@ -98,7 +107,9 @@ calibre-server --port=8080
 ```
 
 ### **Step 3: Environment Configuration**
+
 Create `.env` file in the project root:
+
 ```env
 # Calibre server connection
 CALIBRE_SERVER_URL=http://localhost:8080
@@ -112,6 +123,7 @@ CALIBRE_DEFAULT_LIMIT=50
 ```
 
 ### **Step 4: Test Connection**
+
 ```powershell
 # Quick connection test
 python -c "from calibre_mcp.calibre_api import quick_library_test; import asyncio; print(asyncio.run(quick_library_test('http://localhost:8080')))"
@@ -128,6 +140,7 @@ python -m calibre_mcp.server
 Add CalibreMCP to your Claude Desktop configuration:
 
 ### **claude_desktop_config.json**
+
 ```json
 {
   "mcpServers": {
@@ -145,6 +158,7 @@ Add CalibreMCP to your Claude Desktop configuration:
 ```
 
 ### **Alternative: Direct Path**
+
 ```json
 {
   "mcpServers": {
@@ -161,6 +175,7 @@ Add CalibreMCP to your Claude Desktop configuration:
 ## 💡 Usage Examples
 
 ### **Browse Recent Books**
+
 ```python
 # Claude conversation:
 # "Show me the last 20 books I added to my library, sorted by date"
@@ -168,6 +183,7 @@ list_books(limit=20, sort="date")
 ```
 
 ### **Search by Genre/Topic**
+
 ```python
 # "Find all my programming books"
 list_books("programming", limit=50, sort="rating")
@@ -177,6 +193,7 @@ search_books("artificial intelligence", ["title", "tags"], "OR")
 ```
 
 ### **Get Detailed Book Information**
+
 ```python
 # "Tell me everything about book ID 12345"
 get_book_details(12345)
@@ -184,6 +201,7 @@ get_book_details(12345)
 ```
 
 ### **Verify Library Connection**
+
 ```python
 # "Check if my Calibre server is working"
 test_calibre_connection()
@@ -195,6 +213,7 @@ test_calibre_connection()
 ## 🎯 Austrian Efficiency Features
 
 ### **Real Use Cases Prioritized**
+
 - **Fast browsing** - 50 books max by default (no analysis paralysis)
 - **Smart search** - Natural language queries with relevance
 - **Series management** - Automatic series detection and sorting
@@ -202,12 +221,14 @@ test_calibre_connection()
 - **Performance first** - Sub-second responses for 1000+ book libraries
 
 ### **Practical, Not Perfect**
+
 - **No stubs** - All 4 Phase 1 tools are 100% implemented
 - **Error resilience** - Graceful handling of server issues
 - **Diagnostic tools** - Built-in connection testing and troubleshooting
 - **Realistic timelines** - 45 minutes Phase 1 implementation (not weeks)
 
 ### **Sandra's Workflow Optimized**
+
 - **Weeb-friendly** - Handles Japanese characters and metadata
 - **Academic quality** - Comprehensive search across all text fields
 - **Budget conscious** - Efficient API calls, minimal server load
@@ -222,18 +243,22 @@ test_calibre_connection()
 CalibreMCP interacts with these Calibre server endpoints:
 
 #### **Core Endpoints**
+
 - `GET /ajax/interface-data/init` - Server initialization and library info
 - `GET /ajax/search?query={query}&num={limit}` - Library search
 - `GET /ajax/books?ids={book_ids}` - Bulk book metadata  
 - `GET /ajax/book/{book_id}` - Individual book details
 
 #### **Media Endpoints**
+
 - `GET /get/cover/{book_id}` - Book cover image
 - `GET /get/{format}/{book_id}` - Download book in specific format
 - `GET /get/thumb/{book_id}` - Thumbnail cover image
 
 #### **Search Query Syntax**
+
 Calibre supports sophisticated search queries:
+
 - `title:python` - Search in title field
 - `authors:asimov` - Search in authors field  
 - `tag:science AND tag:fiction` - Boolean AND operation
@@ -246,6 +271,7 @@ Calibre supports sophisticated search queries:
 All tools return structured Pydantic models with comprehensive error handling:
 
 #### **LibrarySearchResponse**
+
 ```python
 {
   "results": [BookSearchResult, ...],
@@ -255,7 +281,8 @@ All tools return structured Pydantic models with comprehensive error handling:
 }
 ```
 
-#### **BookDetailResponse** 
+#### **BookDetailResponse**
+
 ```python
 {
   "book_id": int,
@@ -274,6 +301,7 @@ All tools return structured Pydantic models with comprehensive error handling:
 ## 🧪 Testing & Development
 
 ### **MCP Inspector Testing**
+
 ```powershell
 # Start development server with inspector
 python -m calibre_mcp.server
@@ -287,6 +315,7 @@ python -m calibre_mcp.server
 ```
 
 ### **Direct API Testing**
+
 ```powershell
 # Test individual components
 python -c "
@@ -306,6 +335,7 @@ asyncio.run(test())
 ```
 
 ### **Configuration Testing**
+
 ```powershell
 # Test configuration loading
 python -c "
@@ -321,6 +351,7 @@ print(f'Auth configured: {config.has_auth}')
 ## 🔧 Configuration Reference
 
 ### **Environment Variables**
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CALIBRE_SERVER_URL` | Calibre server URL | `http://localhost:8080` |
@@ -333,7 +364,9 @@ print(f'Auth configured: {config.has_auth}')
 | `CALIBRE_LIBRARY_NAME` | Primary library name | `Default Library` |
 
 ### **JSON Configuration**
+
 Create `calibre_config.json`:
+
 ```json
 {
   "server_url": "http://localhost:8080",
@@ -353,41 +386,54 @@ Create `calibre_config.json`:
 ### **Common Issues**
 
 #### **Connection Failed**
+
 ```
 Error: Connection failed: [Errno 10061] No connection could be made
 ```
-**Solution**: 
+
+**Solution**:
+
 1. Verify Calibre Content Server is running
 2. Check server URL and port (default: 8080)
 3. Test with: `http://localhost:8080` in browser
 
-#### **Authentication Failed** 
+#### **Authentication Failed**
+
 ```
 Error: Authentication failed - check username/password
 ```
+
 **Solution**:
+
 1. Verify credentials in `.env` file
 2. Test login via web interface
 3. Check if authentication is actually enabled
 
 #### **No Books Found**
+
 ```
 Results: [], total_found: 0
 ```
+
 **Solution**:
+
 1. Verify library has books imported
 2. Check search query syntax
 3. Test with: `list_books(limit=10)` (no query)
 
 #### **Slow Performance**
+
 **Solutions**:
+
 - Reduce `default_limit` in configuration  
 - Increase `timeout` for large libraries
 - Use more specific search queries
 - Consider Calibre database optimization
 
 ### **Debug Mode**
+
 Enable detailed logging:
+
 ```powershell
 $env:CALIBRE_DEBUG = "1"
 python -m calibre_mcp.server
@@ -398,6 +444,7 @@ python -m calibre_mcp.server
 ## 📈 Performance & Scaling
 
 ### **Optimization for Large Libraries (1000+ books)**
+
 - **Efficient queries**: Use field-specific searches when possible
 - **Result limiting**: Default 50 results prevents UI lag
 - **Async operations**: All API calls are non-blocking
@@ -405,6 +452,7 @@ python -m calibre_mcp.server
 - **Error recovery**: Automatic retries with exponential backoff
 
 ### **Expected Performance**
+
 - **Small library (< 100 books)**: < 100ms response times
 - **Medium library (100-1000 books)**: < 500ms response times  
 - **Large library (1000+ books)**: < 2s response times
@@ -415,12 +463,14 @@ python -m calibre_mcp.server
 ## 🛣️ Development Roadmap
 
 ### **Phase 2: Metadata Management** (Planned)
+
 - Add books from file uploads
 - Update existing book metadata
 - Advanced tag and series management
 - Bulk operations support
 
 ### **Phase 3: Advanced Features** (Future)
+
 - Custom column support
 - News/magazine integration
 - Reading progress tracking
@@ -431,6 +481,7 @@ python -m calibre_mcp.server
 ## 🎉 Success Metrics
 
 ### **Phase 1 Achievement (✅ Complete)**
+
 - ✅ 4/4 core tools implemented and tested
 - ✅ FastMCP 2.0 compliance with proper structure
 - ✅ Comprehensive error handling and diagnostics  
@@ -439,6 +490,7 @@ python -m calibre_mcp.server
 - ✅ Production-ready for immediate Claude Desktop use
 
 ### **Quality Standards Met**
+
 - ✅ Type safety with Pydantic models
 - ✅ Async/await throughout for performance
 - ✅ Robust HTTP client with retries
