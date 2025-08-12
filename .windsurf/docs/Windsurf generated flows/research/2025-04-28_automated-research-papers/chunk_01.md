@@ -1,3 +1,10 @@
+﻿---
+title: chunk_01
+type: note
+created: 2025-08-07T21:55:00
+source: windsurf-generated
+research: 2025-04-28_automated-research-papers
+---
 # How Can We Automatically Write Beautiful Research Papers (with or without External Tools)?
 
 ## Table of Contents
@@ -47,3 +54,4 @@ Several commercial and open-source tools aim to bridge these gaps. Examples incl
 ---
 
 [End of Chunk 1]
+

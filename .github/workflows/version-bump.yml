@@ -1,0 +1,33 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version (e.g., 1.0.0)'
+        required: true
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Bump version
+      run: |
+        # Update setup.py
+        sed -i "s/version=\".*\"/version=\"${{ github.event.inputs.version }}\"/" setup.py
+        
+        # Update __init__.py
+        sed -i "s/__version__ = \".*\"/__version__ = \"${{ github.event.inputs.version }}\"/" src/calibre_mcp/__init__.py
+        
+        # Commit changes
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add .
+        git commit -m "chore: Bump version to ${{ github.event.inputs.version }}"
+        git push
+        
+        # Create and push tag
+        git tag -a v${{ github.event.inputs.version }} -m "Version ${{ github.event.inputs.version }}"
+        git push origin v${{ github.event.inputs.version }}

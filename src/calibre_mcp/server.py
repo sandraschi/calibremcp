@@ -50,8 +50,9 @@ load_dotenv()
 # Initialize console for logging
 console = Console()
 
-# Initialize FastMCP server
-mcp = FastMCP("CalibreMCP Phase 2 📚✨")
+# Initialize FastMCP server  
+# FIXED: Removed emojis from server name to prevent Windows CP1252 encoding errors
+mcp = FastMCP("CalibreMCP Phase 2")
 
 # Global API client and database connections (initialized on startup)
 api_client: Optional[CalibreAPIClient] = None
@@ -2491,14 +2492,15 @@ def main():
     """Main entry point for CalibreMCP Phase 2 server"""
     import sys
     
-    # Redirect console output to stderr to avoid JSON communication issues
-    print("🚀 Starting CalibreMCP Phase 2 - FastMCP 2.0 Server", file=sys.stderr)
-    print("Austrian efficiency for Sandra's 1000+ book collection! 📚✨", file=sys.stderr)
-    print("Now with 23 comprehensive tools including weeb optimization 🎌", file=sys.stderr)
+    # Redirect console output to stderr to avoid JSON communication issues  
+    # FIXED: Removed emojis to prevent Windows CP1252 encoding errors in stdio mode
+    print("Starting CalibreMCP Phase 2 - FastMCP 2.0 Server", file=sys.stderr)
+    print("Austrian efficiency for Sandra's 1000+ book collection!", file=sys.stderr)
+    print("Now with 23 comprehensive tools including weeb optimization", file=sys.stderr)
     
     # Initialize library discovery
-    print("📚 Discovered libraries: Main, IT, Japanese, Academic", file=sys.stderr)
-    print(f"🎯 Current library: {current_library}", file=sys.stderr)
+    print("Discovered libraries: Main, IT, Japanese, Academic", file=sys.stderr)
+    print(f"Current library: {current_library}", file=sys.stderr)
     
     # Run the FastMCP server
     mcp.run()
