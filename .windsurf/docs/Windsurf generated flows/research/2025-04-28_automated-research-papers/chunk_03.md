@@ -1,5 +1,10 @@
+﻿---
+title: chunk_03
+type: note
+created: 2025-08-07T21:35:00
+source: windsurf-generated
+research: 2025-04-28_automated-research-papers
 ---
-
 ## 7. Contrasting Opinions andebates
 
 The automation of research writing is a topic of active debate in both academic and professional circles.
@@ -29,3 +34,4 @@ The automation of research writing is a topic of active debate in both academic 
 ---
 
 [End of Chunk 3]
+

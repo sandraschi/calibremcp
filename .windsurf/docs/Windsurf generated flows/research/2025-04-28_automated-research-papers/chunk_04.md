@@ -1,5 +1,10 @@
+﻿---
+title: chunk_04
+type: note
+created: 2025-08-07T21:35:00
+source: windsurf-generated
+research: 2025-04-28_automated-research-papers
 ---
-
 ## 9. Recommendations & Future Directions
 
 - **Integration:** Push for seamless APIs between AI writing tools, citation managers, and publishing platforms
@@ -26,3 +31,4 @@
 ---
 
 [End of Chunk 4]
+

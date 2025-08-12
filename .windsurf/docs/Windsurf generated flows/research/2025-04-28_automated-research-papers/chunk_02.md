@@ -1,3 +1,10 @@
+﻿---
+title: chunk_02
+type: note
+created: 2025-08-07T21:55:00
+source: windsurf-generated
+research: 2025-04-28_automated-research-papers
+---
 ___
 
 ## 4. Integrating External Tools (e.g., MindStudio)
@@ -49,3 +56,4 @@ Accurate citation is critical for academicredibility. Automated bibliography too
 ---
 
 [End of Chunk 2]
+
