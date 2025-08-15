@@ -1,11 +1,18 @@
 # CalibreMCP Phase 2 Dependencies
 # FastMCP 2.0+ with latest MCP spec compliance
-fastmcp>=2.10.0
+fastmcp>=2.10.1
 
 # Core HTTP and data dependencies
 httpx>=0.25.0          # Async HTTP client for Calibre API
 pydantic>=2.0.0        # Data validation and serialization
 python-dotenv>=1.0.0   # Environment management
+python-multipart>=0.0.6 # For handling file uploads
+python-magic>=0.4.27   # For file type detection
+isbnlib>=3.10.14       # For ISBN validation and metadata lookup
+Pillow>=10.0.0         # For image processing (covers, thumbnails)
+PyMuPDF>=1.22.5        # For PDF and comic book (CBZ) handling
+EbookLib>=0.18         # For EPUB handling
+calibre>=6.0.0         # Calibre Python API
 
 # Console output and logging
 rich>=13.0.0           # Better console output
@@ -13,6 +20,7 @@ rich>=13.0.0           # Better console output
 # Development and testing
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
 black>=23.0.0
 ruff>=0.1.0
 mypy>=1.0.0

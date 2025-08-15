@@ -702,105 +702,58 @@ async def list_libraries() -> LibraryListResponse:
         Use to see all available libraries before switching
     """
     try:
-        from .config import config
+        # Get library path from environment
+        library_path = os.getenv('CALIBRE_LIBRARY_PATH')
         
         libraries = []
         
-        # If library_paths is provided in config, use that
-        if config.library_paths:
-            for lib_name, lib_path in config.library_paths.items():
-                if not os.path.exists(lib_path):
-                    logger.warning(f"Library path not found: {lib_path}")
-                    continue
+        # If we have a library path, create a basic library entry
+        if library_path and os.path.exists(library_path):
                     
-                # Get basic stats for the library
-                total_books = 0
-                size_mb = 0
-                
-                # Try to get metadata.db stats if it exists
-                metadata_db = os.path.join(lib_path, "metadata.db")
-                if os.path.exists(metadata_db):
-                    try:
-                        import sqlite3
-                        import time
-                        
-                        # Get book count
-                        conn = sqlite3.connect(metadata_db)
-                        cursor = conn.cursor()
-                        cursor.execute("SELECT COUNT(*) FROM books")
-                        total_books = cursor.fetchone()[0]
-                        
-                        # Get last modified time
-                        last_modified = os.path.getmtime(metadata_db)
-                        last_updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_modified))
-                        
-                        # Get size in MB
-                        size_mb = round(os.path.getsize(metadata_db) / (1024 * 1024), 2)
-                        
-                        conn.close()
-                    except Exception as e:
-                        logger.warning(f"Could not read metadata.db for {lib_name}: {e}")
-                
-                # Create library info
-                display_name = lib_name.replace('_', ' ').title()
-                if lib_name.lower() == 'japanese':
-                    display_name += ' 🎌'
-                
-                libraries.append(LibraryInfo(
-                    name=lib_name,
-                    display_name=display_name,
-                    path=lib_path,
-                    total_books=total_books,
-                    size_mb=size_mb,
-                    last_updated=last_updated if 'last_updated' in locals() else "1970-01-01T00:00:00Z",
-                    is_current=(current_library == lib_name)
-                ))
-        # If base_library_path is provided, auto-discover libraries as subdirectories
-        elif config.base_library_path and os.path.exists(config.base_library_path):
-            for entry in os.scandir(config.base_library_path):
-                if entry.is_dir():
-                    lib_path = entry.path
-                    lib_name = entry.name
+            # Get basic stats for the library
+            total_books = 0
+            size_mb = 0
+            last_updated = "1970-01-01T00:00:00Z"
+            
+            # Try to get metadata.db stats if it exists
+            metadata_db = os.path.join(library_path, "metadata.db")
+            if os.path.exists(metadata_db):
+                try:
+                    import sqlite3
+                    import time
                     
-                    # Skip hidden directories
-                    if lib_name.startswith('.'):
-                        continue
-                        
-                    # Check if this directory looks like a Calibre library
-                    if os.path.exists(os.path.join(lib_path, "metadata.db")):
-                        # Get stats for the library
-                        try:
-                            import sqlite3
-                            import time
-                            
-                            metadata_db = os.path.join(lib_path, "metadata.db")
-                            conn = sqlite3.connect(metadata_db)
-                            cursor = conn.cursor()
-                            cursor.execute("SELECT COUNT(*) FROM books")
-                            total_books = cursor.fetchone()[0]
-                            
-                            last_modified = os.path.getmtime(metadata_db)
-                            last_updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_modified))
-                            
-                            size_mb = round(os.path.getsize(metadata_db) / (1024 * 1024), 2)
-                            
-                            conn.close()
-                            
-                            display_name = lib_name.replace('_', ' ').title()
-                            if lib_name.lower() == 'japanese':
-                                display_name += ' 🎌'
-                                
-                            libraries.append(LibraryInfo(
-                                name=lib_name,
-                                display_name=display_name,
-                                path=lib_path,
-                                total_books=total_books,
-                                size_mb=size_mb,
-                                last_updated=last_updated,
-                                is_current=(current_library == lib_name)
-                            ))
-                        except Exception as e:
-                            logger.warning(f"Could not process library {lib_name}: {e}")
+                    # Get book count
+                    conn = sqlite3.connect(metadata_db)
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT COUNT(*) FROM books")
+                    total_books = cursor.fetchone()[0]
+                    
+                    # Get last modified time
+                    last_modified = os.path.getmtime(metadata_db)
+                    last_updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_modified))
+                    
+                    # Get size in MB
+                    size_mb = round(os.path.getsize(metadata_db) / (1024 * 1024), 2)
+                    
+                    conn.close()
+                except Exception as e:
+                    console.print(f"[yellow]Could not read metadata.db: {e}[/yellow]")
+            
+            # Create library info
+            lib_name = os.path.basename(library_path)
+            display_name = lib_name.replace('_', ' ').title()
+            if 'japanese' in lib_name.lower():
+                display_name += ' 🎌'
+            
+            libraries.append(LibraryInfo(
+                name=current_library,
+                display_name=display_name,
+                path=library_path,
+                total_books=total_books,
+                size_mb=size_mb,
+                last_updated=last_updated,
+                is_current=True
+            ))
         else:
             # Fallback to default library if no paths configured
             libraries.append(LibraryInfo(
@@ -845,7 +798,6 @@ async def switch_library(library_name: str):
     Example:
         switch_library("japanese") - Switch to Japanese library 🎌
     """
-    from .config import config
     global current_library
     
     try:
@@ -868,8 +820,8 @@ async def switch_library(library_name: str):
         # Update current library
         current_library = library_name
         
-        # Also update the config's current library name
-        config.library_name = library_name
+        # Update environment variable if needed
+        os.environ['CALIBRE_LIBRARY_NAME'] = library_name
         
         console.print(f"[green]✅ Switched from '{old_library}' to '{current_library}' library[/green]")
         

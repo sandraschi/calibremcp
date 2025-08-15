@@ -32,7 +32,7 @@ TEST_LIBRARY_PATH = str(Path.home() / "Calibre Library")
 
 
 class TestFastMCP210Compliance:
-    """Test suite for FastMCP 2.10 compliance."""
+    """Test suite for FastMCP 2.10.1 compliance."""
 
     @pytest.fixture
     def server(self):
@@ -220,7 +220,7 @@ class TestFastMCP210Compliance:
         
         # Check for required dependencies
         requirements = requirements_path.read_text(encoding="utf-8").splitlines()
-        required_deps = ["fastmcp>=2.10.0", "python-dotenv", "pydantic>=2.0.0", "aiohttp"]
+        required_deps = ["fastmcp>=2.10.1", "python-dotenv", "pydantic>=2.0.0", "aiohttp"]
         
         for dep in required_deps:
             assert any(dep in req for req in requirements), f"Missing required dependency: {dep}"

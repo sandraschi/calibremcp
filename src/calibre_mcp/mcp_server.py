@@ -1,5 +1,5 @@
 """
-Calibre MCP Server - FastMCP 2.10 compliant server for Calibre ebook management.
+Calibre MCP Server - FastMCP 2.10.1 compliant server for Calibre ebook management.
 
 This module implements the MCP server interface for interacting with Calibre libraries,
 providing tools for managing ebooks, metadata, and library operations.
@@ -85,53 +85,21 @@ class CalibreMCPServer:
         )
     
     def _setup_tools(self) -> None:
-        """Register all MCP tools."""
-        # Library Management
+        """Register all MCP tools from the tools directory."""
+        # Import the register_tools function from the tools package
+        from .tools import register_tools
+        
+        # Register all tools from the tools package
+        register_tools(self.mcp)
+        
+        # Register any server-specific tools here
         self.mcp.tool(
             name="get_library_info",
             description="Get information about the current Calibre library",
             parameters={},
         )(self.get_library_info)
         
-        # Book Management
-        self.mcp.tool(
-            name="list_books",
-            description="List all books in the library with optional filtering",
-            parameters={
-                "query": {
-                    "type": "string",
-                    "description": "Search query to filter books",
-                    "default": "",
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Maximum number of books to return",
-                    "minimum": 1,
-                    "maximum": 1000,
-                    "default": 50,
-                },
-                "offset": {
-                    "type": "integer",
-                    "description": "Offset for pagination",
-                    "minimum": 0,
-                    "default": 0,
-                },
-            },
-        )(self.list_books)
-        
-        self.mcp.tool(
-            name="get_book",
-            description="Get details for a specific book",
-            parameters={
-                "book_id": {
-                    "type": "integer",
-                    "description": "ID of the book to retrieve",
-                    "required": True,
-                },
-            },
-        )(self.get_book)
-        
-        # Add more tools as needed...
+        logger.info(f"Registered {len(self.mcp.tools)} tools")
     
     async def get_library_info(self) -> Dict[str, Any]:
         """Get information about the current Calibre library.

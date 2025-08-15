@@ -2,7 +2,7 @@
 Tests for the Calibre MCP server implementation.
 
 These tests verify that the MCP server is properly implemented
-and follows FastMCP 2.10 standards.
+and follows FastMCP 2.10.1 standards.
 """
 
 import asyncio
