@@ -2,7 +2,7 @@
 Integration tests for the Calibre MCP server using STDIO interface.
 
 These tests verify that the server is properly set up and can handle requests
-through the standard input/output interface as required by FastMCP 2.10.
+through the standard input/output interface as required by FastMCP 2.10.1.
 """
 
 import asyncio

@@ -16,7 +16,7 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,
     install_requires=[
-        "fastmcp>=2.10.0",
+        "fastmcp>=2.10.1",
         "python-dotenv>=1.0.0",
         "pydantic>=2.0.0",
         "aiohttp>=3.8.0",

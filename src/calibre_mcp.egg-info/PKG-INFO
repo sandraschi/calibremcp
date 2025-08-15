@@ -2,6 +2,8 @@ Metadata-Version: 2.4
 Name: calibre-mcp
 Version: 1.0.0
 Summary: FastMCP 2.0 server for Calibre e-book library management
+Home-page: https://github.com/sandraschi/calibremcp
+Author: Sandra Schi
 Author-email: Sandra <sandra@example.com>
 License: MIT
 Project-URL: Homepage, https://github.com/sandra/calibre-mcp
@@ -14,9 +16,9 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
-Requires-Python: >=3.11
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
-Requires-Dist: fastmcp>=2.10.0
+Requires-Dist: fastmcp>=2.10.1
 Requires-Dist: httpx>=0.25.0
 Requires-Dist: pydantic>=2.0.0
 Requires-Dist: python-dotenv>=1.0.0
@@ -28,6 +30,9 @@ Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
 Requires-Dist: black>=23.0.0; extra == "dev"
 Requires-Dist: ruff>=0.1.0; extra == "dev"
 Requires-Dist: mypy>=1.0.0; extra == "dev"
+Dynamic: author
+Dynamic: home-page
+Dynamic: requires-python
 
 # CalibreMCP 📚
 
