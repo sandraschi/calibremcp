@@ -30,24 +30,14 @@ presets:
     max_retries: 5
     description: "Cloud-hosted Calibre server with HTTPS"
 
-# Library Configurations
+# Library Configuration
 libraries:
-  personal:
-    name: "Personal Library"
-    description: "Sandra's personal e-book collection"
-    default_tags: ["personal", "to-read"]
+  main:
+    name: "Main Library"
+    path: "L:\\Multimedia Files\\Written Word\\Main Library"
+    description: "Main Calibre library"
+    default_tags: ["imported"]
     auto_organize: true
-    
-  academic:
-    name: "Academic Library"
-    description: "Academic and research books"
-    default_tags: ["academic", "research"]
-    auto_organize: false
-    
-  fiction:
-    name: "Fiction Library" 
-    description: "Novels and fiction books"
-    default_tags: ["fiction", "entertainment"]
     auto_organize: true
     
   programming:

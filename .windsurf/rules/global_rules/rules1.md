@@ -1177,3 +1177,35 @@ project/
 - Release notes
 - Communication plan
 - Post-release verification
+
+## Markdown Standards
+
+### Auto-formatting
+- All markdown files must:
+  - Have consistent spacing around headings
+  - Use proper list indentation (2 spaces)
+  - Not have trailing whitespace
+  - Have proper fenced code blocks with language specifiers
+  - Have consistent list numbering
+  - Be wrapped at 120 characters (except code blocks)
+
+### VS Code Setup
+- Install these extensions:
+  - DavidAnson.vscode-markdownlint
+  - yzhang.markdown-all-in-one
+- Enable "Format On Save" for markdown files
+- Set default formatter to markdownlint
+
+### Configuration
+Add [.markdownlint.json](cci:7://file:///d:/Dev/repos/mcp-server-template/.markdownlint.json:0:0-0:0) to project root:
+```json
+{
+  "default": true,
+  "MD013": {
+    "line_length": 120,
+    "code_blocks": false,
+    "tables": false
+  },
+  "MD033": false,
+  "MD041": false
+}
