@@ -21,13 +21,13 @@ class RemoteServerConfig(BaseModel):
 
 class CalibreConfig(BaseModel):
     """Root configuration for Calibre MCP"""
-    # Local library access
+    # Library configuration
     local_library_path: Optional[Path] = Field(
-        None,
+        default=Path("L:/Multimedia Files/Written Word/Main Library"),
         description="Path to local Calibre library (contains metadata.db)"
     )
     
-    # Remote server configuration
+    # Disable remote access by default
     default_remote: Optional[str] = Field(
         None,
         description="Default remote server name to use"
@@ -37,7 +37,8 @@ class CalibreConfig(BaseModel):
         description="Configured remote servers"
     )
     
-    # Server connection
+    # Server connection (disabled by default)
+    use_remote: bool = Field(default=False, description="Set to True to enable remote server access")
     server_url: str = Field(default="http://localhost:8080", description="Calibre server URL")
     username: Optional[str] = Field(default=None, description="Calibre username (if auth enabled)")
     password: Optional[str] = Field(default=None, description="Calibre password (if auth enabled)")
@@ -52,16 +53,6 @@ class CalibreConfig(BaseModel):
     
     # Library settings
     library_name: str = Field(default="main", description="Primary library name")
-    
-    # Library paths configuration - either specify individual libraries or a base path
-    library_paths: Dict[str, str] = Field(
-        default_factory=dict,
-        description="Mapping of library names to their paths. If empty, will use CALIBRE_BASE_PATH"
-    )
-    base_library_path: Optional[str] = Field(
-        default=None,
-        description="Base path where library subdirectories are located. If set, libraries will be auto-discovered as subdirectories."
-    )
     
     @validator('server_url')
     def validate_server_url(cls, v):

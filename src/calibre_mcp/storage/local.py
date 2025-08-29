@@ -24,32 +24,52 @@ class LocalStorage(StorageBackend):
         Args:
             library_path: Path to the Calibre library directory
         """
-        self.library_path = Path(library_path) if library_path else None
+        # Convert string path to Path object if needed
+        if library_path and isinstance(library_path, str):
+            library_path = Path(library_path)
+            
+        self.library_path = library_path
         self.db_path = self._find_metadata_db()
         
         if not self.db_path or not self.db_path.exists():
-            raise FileNotFoundError(
-                f"Could not find metadata.db in {library_path or 'default locations'}"
-            )
+            error_msg = f"Could not find metadata.db in {self.library_path or 'default locations'}"
+            print(f"[ERROR] {error_msg}")
+            raise FileNotFoundError(error_msg)
+            
+        print(f"[INFO] Using Calibre library at: {self.db_path.parent}")
     
     def _find_metadata_db(self) -> Optional[Path]:
         """Locate the metadata.db file"""
+        # First try the explicitly provided path
         if self.library_path:
+            # Check if it's a direct path to metadata.db
+            if self.library_path.name == 'metadata.db' and self.library_path.exists():
+                return self.library_path
+                
+            # Check if it's a library directory containing metadata.db
             db_path = self.library_path / "metadata.db"
             if db_path.exists():
                 return db_path
+                
+            # Check if it's a parent directory containing library subdirectories
+            for subdir in self.library_path.iterdir():
+                if subdir.is_dir():
+                    db_path = subdir / "metadata.db"
+                    if db_path.exists():
+                        return db_path
         
         # Try default locations if not found in specified path
         default_paths = [
+            Path("L:/Multimedia Files/Written Word/Main Library/metadata.db"),
             Path.home() / "Calibre Library/metadata.db",
             Path("C:/Calibre Library/metadata.db"),
-            Path("/var/lib/calibre/metadata.db"),
         ]
         
         for path in default_paths:
             if path.exists():
                 return path
         
+        print("[WARNING] Could not find metadata.db in any default location")
         return None
     
     def _get_connection(self):

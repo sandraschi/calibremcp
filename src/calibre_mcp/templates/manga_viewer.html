@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Manga Reader - CalibreMCP</title>
+    
+    <!-- UI Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --header-height: 50px;
+            --sidebar-width: 250px;
+            --controls-height: 60px;
+            --thumbnail-width: 80px;
+            --transition-speed: 0.3s;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+        
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            height: var(--header-height);
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 100;
+            position: relative;
+        }
+        
+        .title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 1rem;
+            font-weight: 500;
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #252525;
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-speed) ease;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 90;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(calc(-1 * var(--sidebar-width)));
+        }
+        
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid #444;
+        }
+        
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-tab.active {
+            color: #fff;
+            border-bottom-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        
+        /* Thumbnails */
+        .thumbnail-strip {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: var(--thumbnail-width);
+            background-color: rgba(0, 0, 0, 0.8);
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            z-index: 80;
+            transition: transform var(--transition-speed) ease;
+        }
+        
+        .thumbnail-strip.hidden {
+            transform: translateY(100%);
+        }
+        
+        .thumbnail {
+            width: calc(var(--thumbnail-width) * 0.8);
+            height: calc(var(--thumbnail-width) * 1.4);
+            margin-right: 0.5rem;
+            background-color: #333;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .thumbnail:hover {
+            transform: scale(1.05);
+            border-color: #0d6efd;
+        }
+        
+        .thumbnail.active {
+            border-color: #0d6efd;
+            box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+        }
+        
+        /* Viewer */
+        .viewer-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        .page-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 1rem;
+        }
+        
+        .page {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+        
+        .page.loading {
+            opacity: 0.5;
+        }
+        
+        .page.hidden {
+            display: none;
+        }
+        
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #0d6efd;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Controls */
+        .controls {
+            height: var(--controls-height);
+            background-color: #2d2d2d;
+            border-top: 1px solid #444;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 100;
+        }
+        
+        .page-info {
+            min-width: 100px;
+            text-align: center;
+            font-family: monospace;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            margin: 0 1rem;
+        }
+        
+        .zoom-level {
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 80%;
+            }
+            
+            .sidebar {
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            }
+            
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 85;
+                display: none;
+            }
+            
+            .sidebar-overlay.visible {
+                display: block;
+            }
+            
+            .thumbnail {
+                width: 60px;
+                height: 105px;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+        
+        /* Context menu */
+        .context-menu {
+            position: fixed;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            min-width: 200px;
+            display: none;
+        }
+        
+        .context-menu-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .context-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .context-menu-divider {
+            height: 1px;
+            background-color: #444;
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header">
+            <button id="sidebar-toggle" class="btn-icon" title="Toggle Sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <div class="title" id="document-title">Manga Reader</div>
+            
+            <div class="d-flex align-items-center">
+                <div class="btn-group me-2">
+                    <button id="zoom-out" class="btn-icon" title="Zoom Out">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <button id="fit-width" class="btn-icon" title="Fit to Width">
+                        <i class="bi" id="fit-icon">↔️</i>
+                    </button>
+                    <button id="zoom-in" class="btn-icon" title="Zoom In">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                </div>
+                
+                <div class="dropdown">
+                    <button class="btn-icon" id="reading-direction" title="Reading Direction">
+                        <i class="bi bi-text-paragraph"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header">Reading Direction</h6></li>
+                        <li><a class="dropdown-item direction-option" href="#" data-direction="rtl">Right to Left (Manga)</a></li>
+                        <li><a class="dropdown-item direction-option" href="#" data-direction="ltr">Left to Right (Comics)</a></li>
+                        <li><a class="dropdown-item direction-option" href="#" data-direction="vertical">Vertical (Webtoon)</a></li>
+                    </ul>
+                </div>
+                
+                <button id="toggle-thumbnails" class="btn-icon ms-2" title="Toggle Thumbnails">
+                    <i class="bi bi-grid"></i>
+                </button>
+                
+                <button id="fullscreen" class="btn-icon ms-2" title="Toggle Fullscreen">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar Overlay (mobile) -->
+            <div class="sidebar-overlay" id="sidebar-overlay"></div>
+            
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" data-tab="toc">Contents</button>
+                    <button class="sidebar-tab" data-tab="bookmarks">Bookmarks</button>
+                </div>
+                
+                <div class="sidebar-content">
+                    <!-- TOC Panel -->
+                    <div class="tab-pane active" id="toc-panel">
+                        <h5>Table of Contents</h5>
+                        <div id="toc-container" class="list-group">
+                            <!-- TOC items will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Bookmarks Panel -->
+                    <div class="tab-pane" id="bookmarks-panel" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>Bookmarks</h5>
+                            <button id="add-bookmark" class="btn btn-sm btn-primary">
+                                <i class="bi bi-bookmark-plus"></i> Add
+                            </button>
+                        </div>
+                        <div id="bookmarks-container">
+                            <!-- Bookmarks will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Viewer -->
+            <div class="viewer-container" id="viewer-container">
+                <div class="loading-indicator" id="loading-indicator">
+                    <div class="spinner"></div>
+                    <div>Loading...</div>
+                </div>
+                
+                <div class="page-container" id="page-container">
+                    <!-- Pages will be inserted here -->
+                </div>
+                
+                <!-- Navigation areas -->
+                <div class="nav-area nav-prev" id="nav-prev"></div>
+                <div class="nav-area nav-next" id="nav-next"></div>
+            </div>
+        </div>
+        
+        <!-- Thumbnail strip -->
+        <div class="thumbnail-strip" id="thumbnail-strip">
+            <!-- Thumbnails will be inserted here -->
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button id="first-page" class="btn-icon" title="First Page">
+                <i class="bi bi-skip-backward"></i>
+            </button>
+            
+            <button id="prev-page" class="btn-icon" title="Previous Page">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            
+            <div class="page-info">
+                <span id="current-page">0</span> / <span id="total-pages">0</span>
+            </div>
+            
+            <button id="next-page" class="btn-icon" title="Next Page">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            
+            <button id="last-page" class="btn-icon" title="Last Page">
+                <i class="bi bi-skip-forward"></i>
+            </button>
+            
+            <div class="ms-auto d-flex align-items-center">
+                <div class="zoom-controls">
+                    <button id="zoom-out-btn" class="btn-icon" title="Zoom Out">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <div class="zoom-level" id="zoom-level">100%</div>
+                    <button id="zoom-in-btn" class="btn-icon" title="Zoom In">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="dropdown ms-2">
+                    <button class="btn-icon" id="view-options" title="View Options">
+                        <i class="bi bi-gear"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header">Page Layout</h6></li>
+                        <li><a class="dropdown-item layout-option" href="#" data-layout="single">Single Page</a></li>
+                        <li><a class="dropdown-item layout-option" href="#" data-layout="double">Double Page</a></li>
+                        <li><a class="dropdown-item layout-option" href="#" data-layout="webtoon">Webtoon</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Zoom Mode</h6></li>
+                        <li><a class="dropdown-item zoom-option" href="#" data-zoom="fit-width">Fit Width</a></li>
+                        <li><a class="dropdown-item zoom-option" href="#" data-zoom="fit-height">Fit Height</a></li>
+                        <li><a class="dropdown-item zoom-option" href="#" data-zoom="fit-both">Fit Both</a></li>
+                        <li><a class="dropdown-item zoom-option" href="#" data-zoom="original">Original Size</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" id="add-bookmark-ctx">
+            <i class="bi bi-bookmark-plus me-2"></i> Add Bookmark
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" id="go-to-page-ctx">
+            <i class="bi bi-arrow-right-circle me-2"></i> Go to Page...
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" id="copy-image-ctx">
+            <i class="bi bi-clipboard me-2"></i> Copy Image
+        </div>
+        <div class="context-menu-item" id="save-image-ctx">
+            <i class="bi bi-download me-2"></i> Save Image As...
+        </div>
+    </div>
+    
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // MangaViewer class will be implemented in a separate file
+    </script>
+    <script src="/static/js/manga_viewer.js"></script>
+</body>
+</html>

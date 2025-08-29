@@ -306,32 +306,46 @@ class CalibreAPIClient:
                 "ids": ",".join(map(str, book_ids))
             }
             
-            response = await self._make_request("books", params=params)
+            console.print(f"[yellow]Fetching metadata for book IDs: {book_ids}[/yellow]")
+            
+            try:
+                response = await self._make_request("books", params=params)
+                if not response:
+                    console.print("[red]Empty response from server for books endpoint[/red]")
+                    return []
+            except Exception as e:
+                console.print(f"[red]Error fetching book metadata: {str(e)}[/red]")
+                return []
             
             books = []
             for book_id in book_ids:
-                book_data = response.get(str(book_id), {})
-                if book_data:
-                    # Format book data consistently
-                    book = {
-                        "id": book_id,
-                        "title": book_data.get("title", "Unknown"),
-                        "authors": book_data.get("authors", []),
-                        "series": book_data.get("series"),
-                        "series_index": book_data.get("series_index"),
-                        "rating": book_data.get("rating"),
-                        "tags": book_data.get("tags", []),
-                        "languages": book_data.get("languages", ["en"]),
-                        "formats": list(book_data.get("formats", {}).keys()),
-                        "last_modified": book_data.get("last_modified"),
-                        "cover_url": f"{self.config.server_url}/get/cover/{book_id}"
-                    }
-                    books.append(book)
+                book_data = response.get(str(book_id))
+                if not book_data:
+                    console.print(f"[yellow]No data found for book ID: {book_id}[/yellow]")
+                    continue
+                    
+                # Format book data consistently
+                book = {
+                    "id": book_id,
+                    "title": book_data.get("title", "Unknown"),
+                    "authors": book_data.get("authors", []),
+                    "series": book_data.get("series"),
+                    "series_index": book_data.get("series_index"),
+                    "rating": book_data.get("rating"),
+                    "tags": book_data.get("tags", []),
+                    "languages": book_data.get("languages", ["en"]),
+                    "formats": list(book_data.get("formats", {}).keys()),
+                    "last_modified": book_data.get("last_modified"),
+                    "cover_url": f"{self.config.server_url}/get/cover/{book_id}"
+                }
+                books.append(book)
             
+            console.print(f"[green]Successfully retrieved metadata for {len(books)} books[/green]")
             return books
             
         except Exception as e:
-            raise CalibreAPIError(f"Failed to get books metadata: {str(e)}")
+            console.print(f"[red]Unexpected error in _get_books_metadata: {str(e)}[/red]")
+            return []
     
     def _generate_download_links(self, book_id: int, formats: Dict[str, Any]) -> Dict[str, str]:
         """

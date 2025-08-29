@@ -4,19 +4,23 @@ Tools package for Calibre MCP server.
 This package contains all the tools available in the Calibre MCP server,
 organized by functionality into submodules.
 """
-from typing import Dict, Any, Callable, Optional, TypeVar, cast, List
+from typing import Dict, Any, Callable, Optional, TypeVar, cast, List, Type
 from functools import wraps
 import importlib
 import pkgutil
 import inspect
 import sys
 import os
+from pathlib import Path
 
 # Type variable for tool functions
 T = TypeVar('T', bound=Callable[..., Any])
 
 # Global tool registry
 TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {}
+
+# Base directory for Calibre libraries
+CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
 
 def tool(
     name: str,
@@ -84,19 +88,20 @@ def register_tools(mcp: Any) -> None:
         mcp: MCP server instance (FastMCP or similar)
     """
     # Import all tool modules to ensure they're registered
-    tools_pkg = 'calibre_mcp.tools'
-    
-    # Get the package directory
-    pkg_dir = os.path.dirname(__file__)
-    
-    # Import all submodules
-    for _, module_name, _ in pkgutil.iter_modules([pkg_dir]):
-        if module_name == '__pycache__' or module_name.startswith('_'):
-            continue
-            
-        full_module_name = f"{tools_pkg}.{module_name}"
-        if full_module_name not in sys.modules:
-            importlib.import_module(full_module_name)
+    tools_dir = os.path.dirname(__file__)
+    for _, module_name, _ in pkgutil.iter_modules([tools_dir]):
+        if module_name != "__init__":
+            try:
+                module = importlib.import_module(f"calibre_mcp.tools.{module_name}")
+                
+                # Register tools from the module's tools list
+                if hasattr(module, 'tools'):
+                    for tool in module.tools:
+                        mcp.tool()(tool)
+            except Exception as e:
+                import traceback
+                print(f"Error loading module {module_name}: {e}")
+                traceback.print_exc()
     
     # Register each tool with the MCP server
     for tool_name, tool_info in TOOL_REGISTRY.items():

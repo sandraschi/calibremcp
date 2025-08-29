@@ -1,12 +1,30 @@
 # CalibreMCP 📚
 
-**FastMCP 2.0 server for comprehensive Calibre e-book library management through Claude Desktop**
+**FastMCP 2.11.3 server for comprehensive Calibre e-book library management + Academic Research through Claude Desktop**
 
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.0-blue)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.11.3-blue)](https://github.com/jlowin/fastmcp)
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
+[![ArXiv](https://img.shields.io/badge/ArXiv-API-red)](https://arxiv.org)
 
-Austrian efficiency for Sandra's 1000+ book digital library. Built with realistic AI-assisted development timelines (days, not weeks).
+Austrian efficiency for Sandra's 1000+ book digital library + academic research platform. Built with realistic AI-assisted development timelines (days, not weeks).
+
+## 🆕 **MAJOR ENHANCEMENT PLANNED - 2025-08-28**
+
+**CalibreMCP is being transformed from library browser to complete e-reader + academic research platform:**
+
+### **🔥 New Capabilities Coming**
+- **📖 Full File Reading**: EPUB, PDF (sophisticated), CBZ/CBR comic readers
+- **📊 Stateful Features**: Reading progress, recommendations, reading lists (FastMCP 2.11.3)
+- **📚 Library Management**: Book upload, bulk import, format conversion
+- **🌐 External Integration**: Anna's Archive search + download
+- **🎓 Academic Research**: ArXiv integration, citation management, academic PDF reader
+- **🧠 AI Features**: Personalized recommendations, research trend analysis
+
+**Development Timeline**: 18-24 hours (3-4 focused days)
+**Status**: Comprehensive plan complete, ready for implementation
+
+---
 
 ## 📖 About Calibre Software
 
@@ -38,7 +56,7 @@ Calibre excels at managing large personal libraries (1000+ books) with sophistic
 
 ## 🚀 CalibreMCP Features
 
-### **Phase 1 Tools (Production Ready)** ✅
+### **Current Phase 1 Tools (Production Ready)** ✅
 
 1. **`list_books(query?, limit=50, sort="title")`**
    - Browse/search library with flexible filtering
@@ -60,12 +78,76 @@ Calibre excels at managing large personal libraries (1000+ books) with sophistic
    - Server info, library stats, auth verification
    - Performance metrics and capability detection
 
-### **Planned Phase 2 Tools** 🚧
+### **🔥 MAJOR ENHANCEMENTS PLANNED**
 
-5. **`add_book(file_path, metadata?)`** - Add new books with metadata
-6. **`update_book_metadata(book_id, updates)`** - Modify existing book data
-7. **`manage_tags(book_id, tags, action)`** - Add/remove/replace book tags
-8. **`manage_series(book_id, series_name, index?)`** - Series management
+### **Phase 1 Enhanced: File Reading Tools (4 tools)** 🚧
+- **`read_epub(book_id, chapter?, bookmark_id?)`** - Extract EPUB text with navigation
+- **`read_pdf(book_id, page?, section?, use_toc=True)`** - Sophisticated PDF reader with TOC
+- **`read_comic(book_id, page_range?)`** - CBZ/CBR comic reader with image extraction  
+- **`get_book_content_info(book_id)`** - Content structure analysis (chapters, pages, TOC)
+
+### **Phase 2: Stateful Features (FastMCP 2.11.3) (6 tools)** 🚧
+- **`save_reading_progress(book_id, position, notes?)`** - Track reading across sessions
+- **`get_reading_progress(book_id)`** - Retrieve saved reading position
+- **`create_reading_list(name, book_ids[], tags[])`** - Organize reading collections
+- **`manage_reading_lists(action, list_id, book_ids?)`** - Reading list management
+- **`rate_book(book_id, rating, review?)`** - Book rating and review system
+- **`get_reading_recommendations(count=10, genre?)`** - AI-powered suggestions
+
+### **Phase 3: Library Management (4 tools)** 🚧  
+- **`upload_book(file_path, metadata?, auto_detect=True)`** - Add new books to library
+- **`bulk_import_books(directory_path, recursive=True)`** - Mass book import
+- **`convert_book_format(book_id, target_format, quality)`** - Format conversion
+- **`manage_duplicates(action, auto_merge?)`** - Duplicate detection and handling
+
+### **Phase 4: External Integration (3 tools)** 🚧
+- **`search_annas_archive(query, format_filter?, limit=20)`** - Anna's Archive search
+- **`download_from_annas_archive(result_id, target_dir)`** - Automated download
+- **`get_annas_archive_info(url)`** - Metadata extraction
+
+### **Phase 5: Academic Research - ArXiv Integration (7 tools)** 🚧
+- **`search_arxiv(query, subject_class?, max_results=20)`** - Academic paper search
+- **`get_arxiv_paper_info(arxiv_id)`** - Paper metadata extraction
+- **`download_arxiv_paper(arxiv_id, target_dir?)`** - Academic paper download  
+- **`get_arxiv_categories()`** - Available research categories
+- **`read_academic_pdf(paper_id, section?)`** - Academic-optimized PDF reader
+- **`extract_paper_citations(paper_id)`** - Citation extraction and management
+- **`create_research_notes(paper_id, notes, tags[])`** - Research note organization
+
+### **Phase 6: Advanced Features (5 tools)** 🚧
+- **`get_pdf_toc(book_id)`** - Extract PDF table of contents
+- **`navigate_pdf_section(book_id, toc_id)`** - Section-based PDF navigation
+- **`search_book_content(book_id, query, context_lines=2)`** - Full-text search within books
+- **`extract_book_images(book_id)`** - Image extraction from any format
+- **`create_book_summary(book_id)`** - AI-powered content summaries
+
+**Total New Tools**: ~30 additional functions transforming CalibreMCP into complete e-reader + research platform
+
+---
+
+## 🎓 Academic Research Features
+
+### **ArXiv Integration**
+- **Official API**: Respectful integration with ArXiv.org academic repository
+- **Search Capabilities**: Title, author, abstract, subject classification
+- **Format Support**: PDF download with academic metadata
+- **Citation Management**: BibTeX export, reference tracking
+- **Research Workflow**: Seamless integration with general library
+
+### **Academic PDF Reader** 
+- **Structure Detection**: Automatic identification of Abstract, Introduction, Methods, Results, Discussion
+- **Section Navigation**: Jump directly to paper sections
+- **Figure Extraction**: Browse academic figures and tables with captions  
+- **Citation Linking**: Click references to jump to bibliography
+- **Research Notes**: Section-specific note-taking and highlighting
+
+### **Academic Workflow**
+1. **Literature Search** → ArXiv + Anna's Archive for academic books
+2. **Paper Collection** → Auto-import with rich academic metadata
+3. **Structured Reading** → Section-based navigation with progress tracking
+4. **Note Management** → Research notes linked to specific content
+5. **Citation Building** → Automated bibliography generation
+6. **Knowledge Discovery** → Related paper recommendations based on reading history
 
 ---
 
@@ -76,12 +158,16 @@ Calibre excels at managing large personal libraries (1000+ books) with sophistic
 - **Python 3.11+** with pip
 - **Calibre 6.0+** installed and running
 - **Calibre Content Server** enabled (see configuration below)
+- **FastMCP 2.11.3+** for stateful features
 
 ### **Step 1: Install CalibreMCP**
 
 ```powershell
 cd d:\dev\repos\calibremcp
 pip install -e .
+
+# Install enhanced dependencies (when implemented)
+pip install ebooklib PyMuPDF rarfile pytesseract arxiv
 ```
 
 ### **Step 2: Configure Calibre Content Server**
@@ -120,17 +206,15 @@ CALIBRE_PASSWORD=your_password
 CALIBRE_TIMEOUT=30
 CALIBRE_MAX_RETRIES=3
 CALIBRE_DEFAULT_LIMIT=50
-```
 
-### **Step 4: Test Connection**
+# Academic features
+ARXIV_MAX_RESULTS=20
+ARXIV_DEFAULT_CATEGORIES=cs.AI,cs.CL,cs.LG
+ENABLE_ACADEMIC_FEATURES=true
 
-```powershell
-# Quick connection test
-python -c "from calibre_mcp.calibre_api import quick_library_test; import asyncio; print(asyncio.run(quick_library_test('http://localhost:8080')))"
-
-# Or start MCP Inspector
-python -m calibre_mcp.server
-# Opens: http://127.0.0.1:6274
+# External integrations  
+ANNAS_ARCHIVE_ENABLED=true
+ENABLE_OCR=false  # Set true if tesseract installed
 ```
 
 ---
@@ -150,21 +234,10 @@ Add CalibreMCP to your Claude Desktop configuration:
       "env": {
         "CALIBRE_SERVER_URL": "http://localhost:8080",
         "CALIBRE_USERNAME": "your_username",
-        "CALIBRE_PASSWORD": "your_password"
+        "CALIBRE_PASSWORD": "your_password",
+        "ENABLE_ACADEMIC_FEATURES": "true",
+        "ARXIV_MAX_RESULTS": "20"
       }
-    }
-  }
-}
-```
-
-### **Alternative: Direct Path**
-
-```json
-{
-  "mcpServers": {
-    "calibre-mcp": {
-      "command": "python",
-      "args": ["d:/dev/repos/calibremcp/src/calibre_mcp/server.py"]
     }
   }
 }
@@ -172,40 +245,59 @@ Add CalibreMCP to your Claude Desktop configuration:
 
 ---
 
-## 💡 Usage Examples
+## 💡 Enhanced Usage Examples
 
-### **Browse Recent Books**
+### **Current Library Management**
 
 ```python
-# Claude conversation:
 # "Show me the last 20 books I added to my library, sorted by date"
 list_books(limit=20, sort="date")
-```
 
-### **Search by Genre/Topic**
-
-```python
-# "Find all my programming books"
+# "Find all my programming books"  
 list_books("programming", limit=50, sort="rating")
 
-# "Search for AI and machine learning books in titles and tags"
-search_books("artificial intelligence", ["title", "tags"], "OR")
-```
-
-### **Get Detailed Book Information**
-
-```python
 # "Tell me everything about book ID 12345"
 get_book_details(12345)
-# Returns: full metadata, available formats, download links, cover URL
 ```
 
-### **Verify Library Connection**
+### **Enhanced Reading (Planned)**
 
 ```python
-# "Check if my Calibre server is working"
-test_calibre_connection()
-# Returns: server status, library stats, performance metrics
+# "Read chapter 3 of book 12345"
+read_epub(12345, chapter=3)
+
+# "Show me the table of contents for this PDF"
+get_pdf_toc(67890)
+
+# "Continue reading from where I left off"
+progress = get_reading_progress(12345)
+read_epub(12345, bookmark_id=progress.bookmark_id)
+```
+
+### **Academic Research (Planned)**
+
+```python
+# "Search ArXiv for papers about transformer architectures"
+search_arxiv("transformer architecture", subject_class="cs.CL", max_results=10)
+
+# "Download and add this ArXiv paper to my library"
+download_arxiv_paper("2017.01234", target_dir="academic_papers")
+
+# "Read the methodology section of this paper"
+read_academic_pdf("arxiv_2017_01234", section="methodology")
+```
+
+### **Stateful Features (Planned)**
+
+```python
+# "Save my reading progress and add a note"
+save_reading_progress(12345, {"chapter": 5, "page": 120}, notes="Interesting discussion on AI ethics")
+
+# "Create a reading list for machine learning books"
+create_reading_list("ML Reading", book_ids=[12345, 67890], tags=["technical", "priority"])
+
+# "Give me book recommendations based on my reading history"
+get_reading_recommendations(count=5, genre="science_fiction")
 ```
 
 ---
@@ -219,269 +311,167 @@ test_calibre_connection()
 - **Series management** - Automatic series detection and sorting
 - **Format awareness** - Know which books have EPUB, PDF, MOBI
 - **Performance first** - Sub-second responses for 1000+ book libraries
+- **Academic integration** - Seamless research paper + book management
+- **Reading continuity** - Stateful progress tracking across sessions
 
 ### **Practical, Not Perfect**
 
-- **No stubs** - All 4 Phase 1 tools are 100% implemented
+- **No stubs** - All implemented tools are 100% functional
 - **Error resilience** - Graceful handling of server issues
 - **Diagnostic tools** - Built-in connection testing and troubleshooting
-- **Realistic timelines** - 45 minutes Phase 1 implementation (not weeks)
+- **Realistic timelines** - Days not weeks for major enhancements
+- **Educational focus** - Academic features for learning and research
 
-### **Sandra's Workflow Optimized**
+### **Sandra's Enhanced Workflow**
 
 - **Weeb-friendly** - Handles Japanese characters and metadata
-- **Academic quality** - Comprehensive search across all text fields
+- **Academic quality** - Research paper integration with personal library
 - **Budget conscious** - Efficient API calls, minimal server load
 - **Direct communication** - Clear error messages, no AI platitudes
+- **Stateful continuity** - Resume reading sessions, track progress
+- **Research integration** - ArXiv papers alongside general books
 
 ---
 
-## 📚 API Reference
+## 🛣️ Development Roadmap
 
-### **Calibre Server REST API Endpoints**
+### **Enhanced Phases (Planned Implementation)**
 
-CalibreMCP interacts with these Calibre server endpoints:
+**Phase 1: Enhanced Core Reading (4-5 hours)**
+- Sophisticated PDF reader with TOC navigation
+- Enhanced EPUB reader with chapter navigation  
+- Comic reader for CBZ/CBR files
+- Content structure analysis
 
-#### **Core Endpoints**
+**Phase 2: Stateful Features (3-4 hours)**
+- FastMCP 2.11.3 stateful integration
+- Reading progress tracking
+- Reading list management
+- Rating and recommendation system
 
-- `GET /ajax/interface-data/init` - Server initialization and library info
-- `GET /ajax/search?query={query}&num={limit}` - Library search
-- `GET /ajax/books?ids={book_ids}` - Bulk book metadata  
-- `GET /ajax/book/{book_id}` - Individual book details
+**Phase 3: Library Management (2-3 hours)**
+- Book upload and import system
+- Format conversion tools
+- Duplicate detection and management
 
-#### **Media Endpoints**
+**Phase 4: External Integration (3-4 hours)**
+- Anna's Archive search and download
+- Metadata matching and import
+- Progress tracking for downloads
 
-- `GET /get/cover/{book_id}` - Book cover image
-- `GET /get/{format}/{book_id}` - Download book in specific format
-- `GET /get/thumb/{book_id}` - Thumbnail cover image
+**Phase 5: Academic Integration (3-4 hours)**
+- ArXiv API integration
+- Academic PDF reader enhancements
+- Citation management tools
+- Research note organization
 
-#### **Search Query Syntax**
+**Phase 6: Advanced Features (2-3 hours)**
+- AI-powered recommendations
+- Full-text search across library
+- Reading analytics and statistics
+- Performance optimization
 
-Calibre supports sophisticated search queries:
-
-- `title:python` - Search in title field
-- `authors:asimov` - Search in authors field  
-- `tag:science AND tag:fiction` - Boolean AND operation
-- `series:"Foundation"` - Exact phrase matching
-- `rating:>=4` - Numeric comparisons
-- `formats:epub` - Filter by available formats
-
-### **CalibreMCP Tool Responses**
-
-All tools return structured Pydantic models with comprehensive error handling:
-
-#### **LibrarySearchResponse**
-
-```python
-{
-  "results": [BookSearchResult, ...],
-  "total_found": int,
-  "query_used": str,
-  "search_time_ms": int  
-}
-```
-
-#### **BookDetailResponse**
-
-```python
-{
-  "book_id": int,
-  "title": str,
-  "authors": List[str],
-  "series": Optional[str],
-  "formats": List[str],
-  "download_links": Dict[str, str],
-  "cover_url": str,
-  # ... complete metadata
-}
-```
+**Total Development Time**: 18-24 hours (3-4 focused days)
 
 ---
 
 ## 🧪 Testing & Development
 
-### **MCP Inspector Testing**
+### **Enhanced MCP Inspector Testing**
 
 ```powershell
 # Start development server with inspector
 python -m calibre_mcp.server
 
-# Test workflow:
-# 1. Navigate to http://127.0.0.1:6274
-# 2. Click "Connect" to MCP server
-# 3. Go to "Tools" tab
-# 4. Test each function with sample data
-# 5. Verify JSON responses
+# Navigate to: http://127.0.0.1:6274
+# Test all phases systematically:
+# - Phase 1: File reading tools (EPUB, PDF, Comics)
+# - Phase 2: Stateful features (progress, lists, recommendations)  
+# - Phase 3: Library management (upload, convert, organize)
+# - Phase 4: External integration (Anna's Archive)
+# - Phase 5: Academic features (ArXiv, citations, research)
 ```
 
-### **Direct API Testing**
+### **Academic Feature Testing (When Implemented)**
 
 ```powershell
-# Test individual components
+# Test ArXiv integration
 python -c "
-from calibre_mcp.config import CalibreConfig
-from calibre_mcp.calibre_api import CalibreAPIClient
-import asyncio
-
-async def test():
-    config = CalibreConfig.load_config()
-    client = CalibreAPIClient(config)
-    books = await client.search_library('python', limit=5)
-    print(f'Found {len(books)} books')
-    await client.close()
-
-asyncio.run(test())
+import arxiv
+search = arxiv.Search(query='transformer', max_results=5)
+for result in search.results():
+    print(f'{result.title} - {result.entry_id}')
 "
-```
 
-### **Configuration Testing**
-
-```powershell
-# Test configuration loading
+# Test PDF academic structure detection
 python -c "
-from calibre_mcp.config import CalibreConfig
-config = CalibreConfig.load_config()
-print(f'Server: {config.server_url}')
-print(f'Auth configured: {config.has_auth}')
+import fitz
+doc = fitz.open('academic_paper.pdf')
+toc = doc.get_toc()
+print(f'TOC entries: {len(toc)}')
 "
-```
-
----
-
-## 🔧 Configuration Reference
-
-### **Environment Variables**
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `CALIBRE_SERVER_URL` | Calibre server URL | `http://localhost:8080` |
-| `CALIBRE_USERNAME` | Username for authentication | None |
-| `CALIBRE_PASSWORD` | Password for authentication | None |
-| `CALIBRE_TIMEOUT` | Request timeout (seconds) | `30` |
-| `CALIBRE_MAX_RETRIES` | Max request retries | `3` |
-| `CALIBRE_DEFAULT_LIMIT` | Default search results | `50` |
-| `CALIBRE_MAX_LIMIT` | Maximum search results | `200` |
-| `CALIBRE_LIBRARY_NAME` | Primary library name | `Default Library` |
-
-### **JSON Configuration**
-
-Create `calibre_config.json`:
-
-```json
-{
-  "server_url": "http://localhost:8080",
-  "username": "sandra",
-  "timeout": 30,
-  "max_retries": 3,
-  "default_limit": 50,
-  "max_limit": 200,
-  "library_name": "Sandra's Library"
-}
 ```
 
 ---
 
 ## 🚨 Troubleshooting
 
-### **Common Issues**
+### **Current Issues**
 
 #### **Connection Failed**
-
 ```
 Error: Connection failed: [Errno 10061] No connection could be made
 ```
 
 **Solution**:
-
 1. Verify Calibre Content Server is running
 2. Check server URL and port (default: 8080)
 3. Test with: `http://localhost:8080` in browser
 
 #### **Authentication Failed**
-
 ```
 Error: Authentication failed - check username/password
 ```
 
 **Solution**:
-
 1. Verify credentials in `.env` file
 2. Test login via web interface
 3. Check if authentication is actually enabled
 
-#### **No Books Found**
+### **Future Enhancement Troubleshooting**
 
-```
-Results: [], total_found: 0
-```
+#### **Academic Features (When Implemented)**
+- ArXiv API connectivity issues
+- PDF structure detection failures
+- Citation extraction problems
+- Research note synchronization
 
-**Solution**:
-
-1. Verify library has books imported
-2. Check search query syntax
-3. Test with: `list_books(limit=10)` (no query)
-
-#### **Slow Performance**
-
-**Solutions**:
-
-- Reduce `default_limit` in configuration  
-- Increase `timeout` for large libraries
-- Use more specific search queries
-- Consider Calibre database optimization
-
-### **Debug Mode**
-
-Enable detailed logging:
-
-```powershell
-$env:CALIBRE_DEBUG = "1"
-python -m calibre_mcp.server
-```
+#### **Stateful Features (When Implemented)**
+- State persistence failures
+- Reading progress corruption
+- Recommendation algorithm issues
+- Session management problems
 
 ---
 
 ## 📈 Performance & Scaling
 
-### **Optimization for Large Libraries (1000+ books)**
-
-- **Efficient queries**: Use field-specific searches when possible
-- **Result limiting**: Default 50 results prevents UI lag
-- **Async operations**: All API calls are non-blocking
-- **Connection reuse**: HTTP client connection pooling
-- **Error recovery**: Automatic retries with exponential backoff
-
-### **Expected Performance**
-
+### **Current Performance**
 - **Small library (< 100 books)**: < 100ms response times
 - **Medium library (100-1000 books)**: < 500ms response times  
 - **Large library (1000+ books)**: < 2s response times
-- **Network latency**: Add 50-200ms for remote Calibre servers
 
----
-
-## 🛣️ Development Roadmap
-
-### **Phase 2: Metadata Management** (Planned)
-
-- Add books from file uploads
-- Update existing book metadata
-- Advanced tag and series management
-- Bulk operations support
-
-### **Phase 3: Advanced Features** (Future)
-
-- Custom column support
-- News/magazine integration
-- Reading progress tracking
-- Cross-library synchronization
+### **Enhanced Performance Targets**
+- **File reading**: < 5s for EPUB/PDF text extraction
+- **Academic search**: < 3s for ArXiv API queries
+- **Stateful operations**: < 1s for progress saves/loads
+- **Recommendation generation**: < 10s for AI-powered suggestions
 
 ---
 
 ## 🎉 Success Metrics
 
-### **Phase 1 Achievement (✅ Complete)**
-
+### **Current Phase 1 Achievement (✅ Complete)**
 - ✅ 4/4 core tools implemented and tested
 - ✅ FastMCP 2.0 compliance with proper structure
 - ✅ Comprehensive error handling and diagnostics  
@@ -489,17 +479,16 @@ python -m calibre_mcp.server
 - ✅ Real working code - no stubs or placeholders
 - ✅ Production-ready for immediate Claude Desktop use
 
-### **Quality Standards Met**
+### **Enhanced Target Achievements**
+- 🎯 Transform into complete e-reader platform
+- 🎯 Academic research integration
+- 🎯 Stateful user experience with FastMCP 2.11.3
+- 🎯 External content integration (Anna's Archive)
+- 🎯 AI-powered personalized recommendations
+- 🎯 Maintain Austrian efficiency principles
 
-- ✅ Type safety with Pydantic models
-- ✅ Async/await throughout for performance
-- ✅ Robust HTTP client with retries
-- ✅ Comprehensive documentation
-- ✅ Practical configuration management
-- ✅ MCP Inspector integration for testing
-
-**Timeline Delivered**: Complete Phase 1 in realistic AI-assisted timeline (45 minutes vs. weeks of traditional development)
+**Timeline Commitment**: Complete enhancement in realistic AI-assisted timeline (3-4 focused days vs. weeks/months of traditional development)
 
 ---
 
-*Built with Austrian efficiency for Sandra's comprehensive e-book workflow. "Sin temor y sin esperanza" - practical without hype or doom.*
+*Built with Austrian efficiency for Sandra's comprehensive e-book + academic research workflow. Enhanced with stateful features, external integrations, and AI-powered recommendations. "Sin temor y sin esperanza" - practical without hype or doom.*

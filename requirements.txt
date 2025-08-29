@@ -3,6 +3,8 @@
 fastmcp>=2.10.1
 
 # Core HTTP and data dependencies
+fastapi>=0.95.0        # Web framework
+uvicorn>=0.21.0        # ASGI server
 httpx>=0.25.0          # Async HTTP client for Calibre API
 pydantic>=2.0.0        # Data validation and serialization
 python-dotenv>=1.0.0   # Environment management
@@ -12,6 +14,8 @@ isbnlib>=3.10.14       # For ISBN validation and metadata lookup
 Pillow>=10.0.0         # For image processing (covers, thumbnails)
 PyMuPDF>=1.22.5        # For PDF and comic book (CBZ) handling
 EbookLib>=0.18         # For EPUB handling
+beautifulsoup4>=4.12.0  # For HTML/XML parsing in EPUBs
+rarfile>=4.0           # For CBR (RAR) comic book support
 calibre>=6.0.0         # Calibre Python API
 
 # Console output and logging
@@ -24,3 +28,6 @@ pytest-cov>=4.0.0
 black>=23.0.0
 ruff>=0.1.0
 mypy>=1.0.0
+types-beautifulsoup4>=4.12.0  # Type stubs for beautifulsoup4
+types-pillow>=10.0.0          # Type stubs for Pillow
+types-python-dateutil>=2.8.0  # Type stubs for dateutil
