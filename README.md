@@ -61,46 +61,84 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-## 📚 Features
+## Features
 
-### **4 Core MCP Tools** ✅
+### Core Features
+- **Full Library Access** - Search, browse, and manage your entire Calibre collection
+- **Smart Metadata** - Automatic metadata enhancement and validation
+- **Format Conversion** - On-the-fly conversion between formats
+- **Reading Progress** - Track reading progress across devices
+- **Tag Management** - Smart tagging and categorization
+- **Library Statistics** - Detailed insights into your collection
 
-- **`list_books()`** - Browse/search library with flexible filtering
-- **`get_book_details()`** - Complete metadata and file information  
-- **`search_books()`** - Advanced search with field targeting
-- **`test_calibre_connection()`** - Connection testing and diagnostics
+### AI-Powered Tools
+- **Book Recommendations** - Get personalized book suggestions based on content similarity
+- **Content Analysis** - Extract entities, themes, and sentiment from book content
+- **Reading Insights** - Analyze your reading habits and preferences
+- **Metadata Enhancement** - AI-assisted metadata correction and enrichment
 
-### **Usage Examples**
+### Advanced Series Management
+- **Series Analysis** - Identify and fix issues in book series
+- **Metadata Validation** - Ensure consistency across your library
+- **Series Merging** - Combine duplicate or related series
+- **Automatic Organization** - Keep your series properly ordered and managed
 
+## Usage Examples
+
+### AI-Powered Recommendations
 ```python
-# Browse recent books
-"Show me the last 20 books I added, sorted by date"
+# Get book recommendations based on a book
+recommendations = await get_book_recommendations(book_id="123")
 
-# Search by topic
-"Find all my programming books with 'python' in the title or tags"
-
-# Get book details
-"Tell me everything about book ID 12345 including available formats"
-
-# Check server status
-"Test my Calibre server connection and show library stats"
+# Get personalized recommendations based on preferences
+preferences = {
+    "favorite_authors": ["Brandon Sanderson", "N.K. Jemisin"],
+    "favorite_genres": ["Fantasy", "Science Fiction"]
+}
+personalized_recs = await get_book_recommendations(user_preferences=preferences)
 ```
 
-## 🎯 Austrian Efficiency
+### Content Analysis
+```python
+# Analyze book content
+analysis = await analyze_book_content(
+    book_content="...",
+    options={
+        "extract_entities": True,
+        "analyze_sentiment": True,
+        "identify_themes": True
+    }
+)
+```
 
-- **Real working code** - No stubs, all 4 tools fully functional
-- **45-minute implementation** - Realistic AI-assisted timeline
-- **Sandra's workflow optimized** - Weeb-friendly, academic quality, budget conscious
-- **Direct communication** - Clear error messages, no AI platitudes
+### Series Management
+```python
+# Analyze series in your library
+analysis = await analyze_series(
+    library_path="/path/to/calibre/library",
+    update_metadata=True
+)
 
-## 📖 Documentation
+# Fix common series metadata issues
+fix_results = await fix_series_metadata(
+    library_path="/path/to/calibre/library",
+    dry_run=False
+)
 
-- **[API Reference](docs/API.md)** - Complete tool documentation with examples
-- **[Configuration Guide](docs/Configuration.md)** - Setup and optimization
-- **[Troubleshooting](docs/Troubleshooting.md)** - Common issues and solutions
-- **[Full Documentation](docs/Full_Documentation.md)** - Complete project details
+# Merge two series
+merge_results = await merge_series(
+    library_path="/path/to/calibre/library",
+    source_series="The Kingkiller Chronicle",
+    target_series="Kingkiller Chronicle",
+    dry_run=True
+)
+```
 
-## 🧪 Testing
+## Documentation
+
+Full documentation available at [docs/](docs/).
+
+## Testing
 
 ```bash
 # Unit tests
