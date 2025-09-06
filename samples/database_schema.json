@@ -1,0 +1,618 @@
+{
+  "tables": [
+    "_mcs_authors_by_book",
+    "_mcs_authors_concatenate",
+    "_mcs_tags_by_book",
+    "_mcs_tags_concatenate",
+    "_mcs_word_book_index",
+    "annotations",
+    "annotations_dirtied",
+    "annotations_fts",
+    "annotations_fts_config",
+    "annotations_fts_data",
+    "annotations_fts_docsize",
+    "annotations_fts_idx",
+    "annotations_fts_stemmed",
+    "annotations_fts_stemmed_config",
+    "annotations_fts_stemmed_data",
+    "annotations_fts_stemmed_docsize",
+    "annotations_fts_stemmed_idx",
+    "authors",
+    "books",
+    "books_authors_link",
+    "books_languages_link",
+    "books_plugin_data",
+    "books_publishers_link",
+    "books_ratings_link",
+    "books_series_link",
+    "books_tags_link",
+    "comments",
+    "conversion_options",
+    "custom_column_1",
+    "custom_columns",
+    "data",
+    "feeds",
+    "identifiers",
+    "languages",
+    "last_read_positions",
+    "library_id",
+    "metadata_dirtied",
+    "preferences",
+    "publishers",
+    "ratings",
+    "series",
+    "tags"
+  ],
+  "schema": {
+    "_mcs_authors_by_book": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "authorname",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex__mcs_authors_by_book_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            },
+            {
+              "seqno": 1,
+              "cid": 1,
+              "name": "authorname"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "book": 4,
+          "authorname": "Michael Stueben"
+        },
+        {
+          "book": 7,
+          "authorname": "Lillian Pierson"
+        }
+      ]
+    },
+    "_mcs_authors_concatenate": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "authorsconcat",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex__mcs_authors_concatenate_2",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            },
+            {
+              "seqno": 1,
+              "cid": 1,
+              "name": "authorsconcat"
+            }
+          ]
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex__mcs_authors_concatenate_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "book": 4,
+          "authorsconcat": "Michael Stueben"
+        },
+        {
+          "book": 7,
+          "authorsconcat": "Lillian Pierson"
+        }
+      ]
+    },
+    "_mcs_tags_by_book": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "tagname",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex__mcs_tags_by_book_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            },
+            {
+              "seqno": 1,
+              "cid": 1,
+              "name": "tagname"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "book": 4,
+          "tagname": "Programming"
+        },
+        {
+          "book": 4,
+          "tagname": "Computers"
+        }
+      ]
+    },
+    "_mcs_tags_concatenate": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "tagsconcat",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex__mcs_tags_concatenate_2",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            },
+            {
+              "seqno": 1,
+              "cid": 1,
+              "name": "tagsconcat"
+            }
+          ]
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex__mcs_tags_concatenate_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "book": 4,
+          "tagsconcat": "Computers,Programming"
+        },
+        {
+          "book": 7,
+          "tagsconcat": "Books for Dummies,Computers,Information Technology"
+        }
+      ]
+    },
+    "_mcs_word_book_index": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "word",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 2
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "__mcs_word_book_index_by_word",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 1,
+              "name": "word"
+            }
+          ]
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex__mcs_word_book_index_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "book"
+            },
+            {
+              "seqno": 1,
+              "cid": 1,
+              "name": "word"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": []
+    },
+    "annotations": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 2,
+          "name": "format",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 3,
+          "name": "user_type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 4,
+          "name": "user",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 5,
+          "name": "timestamp",
+          "type": "REAL",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 6,
+          "name": "annot_id",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 7,
+          "name": "annot_type",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 8,
+          "name": "annot_data",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        },
+        {
+          "cid": 9,
+          "name": "searchable_text",
+          "type": "TEXT",
+          "notnull": 1,
+          "dflt_value": "\"\"",
+          "pk": 0
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "annot_idx",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 1,
+              "name": "book"
+            }
+          ]
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_annotations_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 1,
+              "name": "book"
+            },
+            {
+              "seqno": 1,
+              "cid": 3,
+              "name": "user_type"
+            },
+            {
+              "seqno": 2,
+              "cid": 4,
+              "name": "user"
+            },
+            {
+              "seqno": 3,
+              "cid": 2,
+              "name": "format"
+            },
+            {
+              "seqno": 4,
+              "cid": 7,
+              "name": "annot_type"
+            },
+            {
+              "seqno": 5,
+              "cid": 6,
+              "name": "annot_id"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "id": 1,
+          "book": 698,
+          "format": "EPUB",
+          "user_type": "local",
+          "user": "viewer",
+          "timestamp": 1685281496.976,
+          "annot_id": "91qW8aOs_fm1Tm6HqtSQ-Q",
+          "annot_type": "highlight",
+          "annot_data": "{\"end_cfi\": \"/2/4/2[book-content]/2[sbo-rt-content]/2/2[dimensionality-reduction-using-feature-extraction]/8/2[reducing-features-using-principal-components]/8/2[idm46064958222320]/4/1:417\", \"highlighted_text\": \"PCA is an unsupervised technique, meaning that it does not use the information from the target vector and instead only considers the feature matrix\", \"spine_index\": 11, \"spine_name\": \"ch09.html\", \"start_cfi\": \"/2/4/2[book-content]/2[sbo-rt-content]/2/2[dimensionality-reduction-using-feature-extraction]/8/2[reducing-features-using-principal-components]/8/2[idm46064958222320]/4/1:270\", \"style\": {\"kind\": \"color\", \"type\": \"builtin\", \"which\": \"yellow\"}, \"timestamp\": \"2023-05-28T13:44:56.976Z\", \"toc_family_titles\": [\"9. Dimensionality Reduction Using Feature Extraction\", \"9.1. Reducing Features Using Principal Components\"], \"type\": \"highlight\", \"uuid\": \"91qW8aOs_fm1Tm6HqtSQ-Q\"}",
+          "searchable_text": "PCA is an unsupervised technique, meaning that it does not use the information from the target vector and instead only considers the feature matrix"
+        }
+      ]
+    },
+    "annotations_dirtied": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "book",
+          "type": "INTEGER",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_annotations_dirtied_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 1,
+              "name": "book"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": []
+    },
+    "annotations_fts": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "searchable_text",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "searchable_text": "PCA is an unsupervised technique, meaning that it does not use the information from the target vector and instead only considers the feature matrix"
+        }
+      ]
+    },
+    "annotations_fts_config": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "k",
+          "type": "",
+          "notnull": 1,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "v",
+          "type": "",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_annotations_fts_config_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            {
+              "seqno": 0,
+              "cid": 0,
+              "name": "k"
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "k": "version",
+          "v": 4
+        }
+      ]
+    },
+    "annotations_fts_data": {
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 1
+        },
+        {
+          "cid": 1,
+          "name": "block",
+          "type": "BLOB",
+          "notnull": 0,
+          "dflt_value": null,
+          "pk": 0
+        }
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "sample_data": [
+        {
+          "id": 1,
+          "block": 

@@ -12,6 +12,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from fastmcp import FastMCP, MCPServerError
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union, Type
+import asyncio
+import logging
+import os
+
+from .db import init_database
+from .tools.book_tools import BookTools
+from .tools.author_tools import AuthorTools
+from .tools.library_tools import LibraryTools
 
 # Set up logging
 logging.basicConfig(
@@ -84,40 +94,58 @@ class CalibreMCPServer:
             "Could not find Calibre library. Please specify the library path."
         )
     
-    def _setup_tools(self) -> None:
-        """Register all MCP tools from the tools directory."""
-        # Import the register_tools function from the tools package
-        from .tools import register_tools
+    def _setup_tools(self):
+        """Register all MCP tools."""
+        # Initialize database connection
+        db_path = str(self.library_path / "metadata.db")
+        init_database(db_path)
         
-        # Register all tools from the tools package
-        register_tools(self.mcp)
+        # Register tool classes
+        tool_classes = [
+            BookTools,
+            AuthorTools,
+            LibraryTools
+        ]
+        
+        # Register each tool class
+        for tool_class in tool_classes:
+            tool_class.register(self.mcp)
+            
+        logger.info(f"Registered {len(tool_classes)} tool classes")
         
         # Register any server-specific tools here
-        self.mcp.tool(
+        @self.mcp.tool(
             name="get_library_info",
-            description="Get information about the current Calibre library",
-            parameters={},
-        )(self.get_library_info)
-        
+            description="Get information about the current Calibre library"
+        )
+        async def get_library_info():
+            return await self.get_library_info()
+            
         logger.info(f"Registered {len(self.mcp.tools)} tools")
     
     async def get_library_info(self) -> Dict[str, Any]:
         """Get information about the current Calibre library.
         
+        This is a legacy method kept for backward compatibility.
+        Prefer using the LibraryTools methods instead.
+        
         Returns:
             Dictionary containing library information.
         """
-        try:
-            # This would be replaced with actual Calibre API calls
-            return {
-                "library_path": str(self.library_path),
-                "book_count": 0,  # Would be populated with actual count
-                "formats": [],    # Would list available formats
-                "last_updated": None,  # Would be actual timestamp
-            }
-        except Exception as e:
-            logger.error(f"Error getting library info: {e}")
-            raise MCPServerError(f"Failed to get library info: {e}")
+        from .tools.library_tools import LibraryTools
+        library_tools = LibraryTools(self.mcp)
+        
+        # Get basic info
+        stats = library_tools.library_service.get_library_stats()
+        
+        return {
+            "path": str(self.library_path),
+            "name": self.library_path.name,
+            "book_count": stats.total_books,
+            "author_count": stats.total_authors,
+            "series_count": stats.total_series,
+            "last_updated": stats.recent_books[0].timestamp.isoformat() if stats.recent_books else None,
+        }
     
     async def list_books(
         self,
@@ -127,79 +155,33 @@ class CalibreMCPServer:
     ) -> Dict[str, Any]:
         """List books in the library with optional filtering.
         
-        Args:
-            query: Search query to filter books.
-            limit: Maximum number of books to return.
-            offset: Offset for pagination.
-            
-        Returns:
-            Dictionary containing book list and pagination info.
+        This is a legacy method kept for backward compatibility.
+        Prefer using the BookTools.list_books method instead.
         """
-        try:
-            # This would be replaced with actual Calibre API calls
-            books = [
-                {
-                    "id": 1,
-                    "title": "Example Book 1",
-                    "authors": ["Author One", "Author Two"],
-                    "formats": ["EPUB", "PDF"],
-                    "tags": ["fiction", "sci-fi"],
-                    "rating": 4.5,
-                    "publisher": "Example Publisher",
-                    "pubdate": "2023-01-01",
-                    "size": 1024000,  # in bytes
-                },
-                # More example books...
-            ]
-            
-            # Apply pagination (would be done by Calibre in real implementation)
-            paginated_books = books[offset : offset + limit]
-            
-            return {
-                "books": paginated_books,
-                "total_count": len(books),
-                "offset": offset,
-                "limit": limit,
-            }
-            
-        except Exception as e:
-            logger.error(f"Error listing books: {e}")
-            raise MCPServerError(f"Failed to list books: {e}")
+        from .tools.book_tools import BookTools
+        book_tools = BookTools(self.mcp)
+        return await book_tools.list_books(
+            query=query,
+            limit=limit,
+            offset=offset
+        )
     
-    async def get_book(self, book_id: int) -> Dict[str, Any]:
+    async def get_book(self, book_id: int) -> Optional[Dict[str, Any]]:
         """Get details for a specific book.
+        
+        This is a legacy method kept for backward compatibility.
+        Prefer using the BookTools.get_book method instead.
         
         Args:
             book_id: ID of the book to retrieve.
             
         Returns:
-            Dictionary containing book details.
+            Dictionary containing book details or None if not found.
         """
         try:
-            # This would be replaced with actual Calibre API calls
-            if book_id == 1:
-                return {
-                    "id": book_id,
-                    "title": "Example Book 1",
-                    "authors": ["Author One", "Author Two"],
-                    "formats": ["EPUB", "PDF"],
-                    "tags": ["fiction", "sci-fi"],
-                    "rating": 4.5,
-                    "publisher": "Example Publisher",
-                    "pubdate": "2023-01-01",
-                    "size": 1024000,  # in bytes
-                    "description": "This is an example book description.",
-                    "series": "Example Series",
-                    "series_index": 1,
-                    "languages": ["English"],
-                    "identifiers": {
-                        "isbn": "1234567890",
-                        "goodreads": "12345678",
-                    },
-                }
-            else:
-                raise MCPServerError(f"Book with ID {book_id} not found")
-                
+            from .tools.book_tools import BookTools
+            book_tools = BookTools(self.mcp)
+            return await book_tools.get_book(book_id=book_id)
         except MCPServerError:
             raise
         except Exception as e:
