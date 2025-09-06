@@ -1,113 +1,105 @@
 """
-Repository for handling author-related database operations using SQLAlchemy ORM.
+Repository for handling author-related database operations.
 """
-from typing import List, Dict, Optional, Any, Tuple
-from sqlalchemy.orm import joinedload, contains_eager
-from sqlalchemy import func, desc, asc, or_
+from typing import List, Dict, Optional, Any
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, desc, asc
 
-from ...db import BaseRepository
-from ...models import Author, Book
+from ...db.base_repository import BaseRepository
+from ...models.author import Author, AuthorCreate, AuthorUpdate, AuthorResponse
+from ...models.book import Book
+from ...models.series import Series
 
 class AuthorRepository(BaseRepository[Author]):
-    """Repository for author-related database operations using SQLAlchemy ORM."""
+    """Repository for author-related database operations."""
     
     def __init__(self, db):
+        """Initialize with database service."""
         super().__init__(db, Author)
     
-    def get_author_by_id(self, author_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get an author by ID with related book count.
-        
-        Args:
-            author_id: The ID of the author to retrieve
-            
-        Returns:
-            Dictionary containing author data or None if not found
-        """
+    def get_by_name(self, name: str) -> Optional[Author]:
+        """Get an author by their exact name."""
         with self._db.session_scope() as session:
-            # Get author with book count using a subquery
-            stmt = (
-                session.query(
-                    Author,
-                    func.count(Book.id).label('book_count')
-                )
-                .outerjoin(Author.books)
-                .group_by(Author.id)
+            return session.query(Author).filter(Author.name == name).first()
+    
+    def search(self, query: str, limit: int = 10) -> List[Author]:
+        """Search for authors by name."""
+        with self._db.session_scope() as session:
+            return (
+                session.query(Author)
+                .filter(Author.name.ilike(f"%{query}%"))
+                .order_by(Author.sort)
+                .limit(limit)
+                .all()
+            )
+    
+    def get_books_count(self, author_id: int) -> int:
+        """Get the number of books by an author."""
+        with self._db.session_scope() as session:
+            return (
+                session.query(func.count(Book.id))
+                .join(Book.authors)
                 .filter(Author.id == author_id)
+                .scalar() or 0
             )
-            
-            result = stmt.first()
-            if not result:
-                return None
-                
-            author, book_count = result
-            return self._format_author(author, book_count)
     
-    def get_authors(
-        self, 
-        query: Optional[str] = None, 
-        sort_by: str = 'name',
-        ascending: bool = True,
-        limit: int = 50,
-        offset: int = 0,
-        with_books: bool = False
-    ) -> Tuple[List[Dict[str, Any]], int]:
-        """
-        Get a list of authors with optional filtering, sorting, and pagination.
-        
-        Args:
-            query: Search term to match against author names
-            sort_by: Field to sort by (name, book_count, sort)
-            ascending: Sort in ascending order if True, descending if False
-            limit: Maximum number of results to return
-            offset: Number of results to skip (for pagination)
-            with_books: If True, include list of book IDs for each author
-            
-        Returns:
-            Tuple of (list of author dictionaries, total count)
-        """
+    def get_books(self, author_id: int, limit: int = 10, offset: int = 0) -> List[Dict]:
+        """Get books by an author with pagination."""
         with self._db.session_scope() as session:
-            # Start with a base query to get authors and their book counts
-            query_obj = (
+            books = (
+                session.query(Book)
+                .join(Book.authors)
+                .filter(Author.id == author_id)
+                .options(joinedload(Book.authors))
+                .order_by(Book.sort)
+                .offset(offset)
+                .limit(limit)
+                .all()
+            )
+            return [{"id": b.id, "title": b.title, "sort": b.sort} for b in books]
+    
+    def get_series(self, author_id: int) -> List[Dict]:
+        """Get all series by an author."""
+        with self._db.session_scope() as session:
+            series = (
+                session.query(Series, func.count(Book.id).label('book_count'))
+                .join(Book.series_rel)
+                .join(Book.authors)
+                .filter(Author.id == author_id)
+                .group_by(Series.id)
+                .order_by(Series.name)
+                .all()
+            )
+            return [{"id": s.id, "name": s.name, "book_count": count} for s, count in series]
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get author statistics."""
+        with self._db.session_scope() as session:
+            stats = {}
+            
+            # Total authors
+            stats['total_authors'] = session.query(func.count(Author.id)).scalar()
+            
+            # Authors by book count
+            top_authors = (
                 session.query(
-                    Author,
+                    Author.id,
+                    Author.name,
                     func.count(Book.id).label('book_count')
                 )
-                .outerjoin(Author.books)
-                .group_by(Author.id)
+                .join(Author.books)
+                .group_by(Author.id, Author.name)
+                .order_by(desc('book_count'))
+                .limit(10)
+                .all()
             )
+            stats['top_authors'] = [
+                {'id': a_id, 'name': name, 'book_count': count} 
+                for a_id, name, count in top_authors
+            ]
             
-            # Apply search filter if provided
-            if query:
-                search = f"%{query}%"
-                query_obj = query_obj.filter(Author.name.ilike(search))
-            
-            # Get total count before pagination
-            total = query_obj.with_entities(func.count(Author.id)).scalar()
-            
-            # Apply sorting
-            sort_field = self._get_sort_field(sort_by)
-            if sort_field is not None:
-                if not ascending:
-                    sort_field = desc(sort_field)
-                query_obj = query_obj.order_by(sort_field)
-            
-            # Apply pagination
-            query_obj = query_obj.offset(offset).limit(limit)
-            
-            # Execute query
-            results = query_obj.all()
-            
-            # Format results
-            authors = []
-            for author, book_count in results:
-                author_data = self._format_author(author, book_count)
-                if with_books:
-                    author_data['books'] = [book.id for book in author.books]
-                authors.append(author_data)
-            
-            return authors, total
-    
+            return stats
+
     def get_author_stats(self) -> Dict[str, Any]:
         """
         Get statistics about authors in the library.

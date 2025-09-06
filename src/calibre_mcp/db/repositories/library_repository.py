@@ -1,190 +1,261 @@
 """
-Repository for handling library-related database operations using SQLAlchemy ORM.
+Repository for handling library-related database operations.
 """
-from typing import Dict, Any, List, Tuple, Optional
-from datetime import datetime, timedelta
-from sqlalchemy import func, desc, and_, or_
-from sqlalchemy.orm import joinedload
+from typing import List, Dict, Optional, Any, Tuple
+from datetime import datetime
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, desc, asc, or_
 
-from ...db import BaseRepository
-from ...models import Book, Author, Series, Tag, Rating, Data, Comment
+from ...db.base_repository import BaseRepository
+from ...models.library import Library, LibraryCreate, LibraryUpdate, LibraryResponse
+from ...models.book import Book
+from ...models.author import Author
+from ...models.series import Series
+from ...models.tag import Tag
+from ...models.rating import Rating
+from ...models.comment import Comment
+from ...models.data import Data
 
-class LibraryRepository(BaseRepository):
-    """Repository for library-related database operations using SQLAlchemy ORM."""
+class LibraryRepository(BaseRepository[Library]):
+    """Repository for library-related database operations."""
     
     def __init__(self, db):
-        super().__init__(db, None)  # No single model for the library
+        """Initialize with database service."""
+        super().__init__(db, Library)
     
-    def get_library_stats(self) -> Dict[str, Any]:
-        """
-        Get comprehensive statistics about the library.
-        
-        Returns:
-            Dictionary containing library statistics
-        """
+    def get_by_name(self, name: str) -> Optional[Library]:
+        """Get a library by its exact name."""
         with self._db.session_scope() as session:
-            # Basic counts
+            return session.query(Library).filter(Library.name == name).first()
+    
+    def get_by_path(self, path: str) -> Optional[Library]:
+        """Get a library by its path."""
+        with self._db.session_scope() as session:
+            return session.query(Library).filter(Library.path == path).first()
+    
+    def get_active_libraries(self) -> List[Library]:
+        """Get all active libraries."""
+        with self._db.session_scope() as session:
+            return (
+                session.query(Library)
+                .filter(Library.is_active == True)
+                .order_by(Library.name)
+                .all()
+            )
+    
+    def get_library_stats(self, library_id: int) -> Dict[str, Any]:
+        """Get statistics for a library."""
+        with self._db.session_scope() as session:
+            library = session.query(Library).get(library_id)
+            if not library:
+                return {}
+            
             stats = {
-                'total_books': session.query(func.count(Book.id)).scalar(),
-                'total_authors': session.query(func.count(Author.id)).scalar(),
-                'total_series': session.query(func.count(Series.id)).scalar(),
-                'total_tags': session.query(func.count(Tag.id)).scalar(),
+                'id': library.id,
+                'name': library.name,
+                'path': library.path,
+                'book_count': 0,
+                'author_count': 0,
+                'newest_book': None,
+                'last_updated': None,
+                'formats': {}
             }
             
-            # Books by format
-            formats = (
-                session.query(
-                    Data.format,
-                    func.count(Data.id).label('count')
-                )
-                .group_by(Data.format)
-                .order_by(desc('count'))
-                .all()
-            )
-            stats['formats'] = [{'format': f, 'count': c} for f, c in formats]
-            
-            # Books added in the last 30 days
-            thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-            stats['recently_added'] = (
-                session.query(func.count(Book.id))
-                .filter(Book.timestamp >= thirty_days_ago)
+            # Get book count
+            book_count = session.query(func.count(Book.id))\
+                .filter(Book.library_id == library_id)\
                 .scalar()
-            )
+            stats['book_count'] = book_count or 0
             
-            # Top tags
-            top_tags = (
-                session.query(
-                    Tag.name,
-                    func.count(Book.id).label('book_count')
-                )
-                .join(Tag.books)
-                .group_by(Tag.id, Tag.name)
-                .order_by(desc('book_count'))
-                .limit(10)
-                .all()
-            )
-            stats['top_tags'] = [{'name': name, 'count': count} for name, count in top_tags]
+            # Get author count
+            author_count = session.query(func.count(func.distinct(Book.author_sort)))\
+                .filter(Book.library_id == library_id)\
+                .scalar()
+            stats['author_count'] = author_count or 0
             
-            # Top series
-            top_series = (
-                session.query(
-                    Series.name,
-                    func.count(Book.id).label('book_count')
-                )
-                .join(Series.books)
-                .group_by(Series.id, Series.name)
-                .order_by(desc('book_count'))
-                .limit(10)
-                .all()
-            )
-            stats['top_series'] = [{'name': name, 'count': count} for name, count in top_series]
+            # Get newest book
+            newest_book = session.query(Book)\
+                .filter(Book.library_id == library_id)\
+                .order_by(Book.timestamp.desc())\
+                .first()
             
-            # Ratings distribution
-            ratings = (
-                session.query(
-                    Rating.rating,
-                    func.count(Book.id).label('book_count')
-                )
-                .join(Rating.books)
-                .group_by(Rating.rating)
-                .order_by(Rating.rating.desc())
-                .all()
-            )
-            stats['ratings'] = [{'rating': r, 'count': c} for r, c in ratings]
+            if newest_book:
+                stats['newest_book'] = {
+                    'id': newest_book.id,
+                    'title': newest_book.title,
+                    'author_sort': newest_book.author_sort,
+                    'timestamp': newest_book.timestamp.isoformat()
+                }
+                stats['last_updated'] = newest_book.timestamp.isoformat()
             
-            # Publication years
-            pub_years = (
-                session.query(
-                    func.strftime('%Y', Book.pubdate).label('year'),
-                    func.count(Book.id).label('count')
-                )
-                .filter(Book.pubdate.isnot(None))
-                .group_by('year')
-                .order_by(desc('count'))
-                .limit(10)
-                .all()
-            )
-            stats['publication_years'] = [{'year': y, 'count': c} for y, c in pub_years]
+            # Get format distribution
+            formats = session.query(
+                Data.format,
+                func.count(Data.id).label('count')
+            ).join(Book)\
+             .filter(Book.library_id == library_id)\
+             .group_by(Data.format)\
+             .all()
+            
+            stats['formats'] = {f: c for f, c in formats}
             
             return stats
     
-    def search_across_library(
+    def get_library_books(
         self,
-        query: str,
-        limit: int = 20
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        library_id: int,
+        limit: int = 50,
+        offset: int = 0,
+        sort_by: str = 'title',
+        ascending: bool = True,
+        query: str = None,
+        author_id: int = None,
+        tag_id: int = None,
+        series_id: int = None,
+        rating_min: int = None,
+        rating_max: int = None
+    ) -> Tuple[List[Dict], int]:
         """
-        Search across books, authors, and series with a single query.
+        Get books in a library with filtering and pagination.
         
         Args:
-            query: Search term
-            limit: Maximum number of results per category
+            library_id: ID of the library
+            limit: Maximum number of results to return
+            offset: Number of results to skip
+            sort_by: Field to sort by (title, author, date_added, pubdate)
+            ascending: Sort in ascending order
+            query: Search term to match against title/author
+            author_id: Filter by author ID
+            tag_id: Filter by tag ID
+            series_id: Filter by series ID
+            rating_min: Minimum rating (1-5)
+            rating_max: Maximum rating (1-5)
             
         Returns:
-            Dictionary with search results grouped by type
+            Tuple of (list of books, total count)
         """
-        if not query:
-            return {'books': [], 'authors': [], 'series': []}
-            
-        search = f"%{query}%"
-        
         with self._db.session_scope() as session:
-            # Search books
-            books = (
-                session.query(Book)
-                .options(joinedload(Book.authors))
-                .filter(Book.title.ilike(search))
-                .order_by(Book.sort)
-                .limit(limit)
-                .all()
-            )
+            # Start building the query
+            query_obj = session.query(Book)\
+                .filter(Book.library_id == library_id)
             
-            # Search authors
-            authors = (
-                session.query(Author)
-                .filter(Author.name.ilike(search))
-                .order_by(Author.sort)
-                .limit(limit)
-                .all()
-            )
+            # Apply filters
+            if query:
+                query_obj = query_obj.filter(
+                    or_(
+                        Book.title.ilike(f'%{query}%'),
+                        Book.author_sort.ilike(f'%{query}%'),
+                        Book.comments.any(Comment.text.ilike(f'%{query}%'))
+                    )
+                )
             
-            # Search series
-            series = (
-                session.query(Series)
-                .filter(Series.name.ilike(search))
-                .order_by(Series.name)
-                .limit(limit)
-                .all()
-            )
+            if author_id:
+                query_obj = query_obj.join(Book.authors)\
+                    .filter(Author.id == author_id)
+            
+            if series_id:
+                query_obj = query_obj.join(Book.series_rel)\
+                    .filter(Series.id == series_id)
+            
+            if tag_id:
+                query_obj = query_obj.join(Book.tags)\
+                    .filter(Tag.id == tag_id)
+            
+            if rating_min is not None or rating_max is not None:
+                query_obj = query_obj.join(Book.ratings)
+                if rating_min is not None:
+                    query_obj = query_obj.filter(Rating.rating >= rating_min)
+                if rating_max is not None:
+                    query_obj = query_obj.filter(Rating.rating <= rating_max)
+            
+            # Get total count before pagination
+            total = query_obj.distinct().count()
+            
+            # Apply sorting
+            sort_field = self._get_sort_field(sort_by)
+            if sort_field is not None:
+                sort_field = sort_field.asc() if ascending else sort_field.desc()
+                query_obj = query_obj.order_by(sort_field)
+            
+            # Apply pagination and load relationships
+            books = query_obj.options(
+                joinedload(Book.authors),
+                joinedload(Book.series_rel),
+                joinedload(Book.tags),
+                joinedload(Book.ratings),
+                joinedload(Book.comments),
+                joinedload(Book.data)
+            ).distinct().offset(offset).limit(limit).all()
             
             # Format results
-            return {
-                'books': [
-                    {
-                        'id': b.id,
-                        'title': b.title,
-                        'authors': [{'id': a.id, 'name': a.name} for a in b.authors],
-                        'has_cover': bool(b.has_cover)
-                    }
-                    for b in books
-                ],
-                'authors': [
-                    {
-                        'id': a.id,
-                        'name': a.name,
-                        'book_count': len(a.books)
-                    }
-                    for a in authors
-                ],
-                'series': [
-                    {
-                        'id': s.id,
-                        'name': s.name,
-                        'book_count': len(s.books)
-                    }
-                    for s in series
-                ]
-            }
+            formatted_books = []
+            for book in books:
+                book_data = {
+                    'id': book.id,
+                    'title': book.title,
+                    'author_sort': book.author_sort,
+                    'has_cover': book.has_cover == 1,
+                    'timestamp': book.timestamp.isoformat(),
+                    'pubdate': book.pubdate.isoformat() if book.pubdate else None,
+                    'series_index': book.series_index,
+                    'authors': [{'id': a.id, 'name': a.name} for a in book.authors],
+                    'series': book.series_rel[0].name if book.series_rel else None,
+                    'series_id': book.series_rel[0].id if book.series_rel else None,
+                    'tags': [{'id': t.id, 'name': t.name} for t in book.tags],
+                    'rating': book.ratings[0].rating if book.ratings else None,
+                    'comment': book.comments[0].text if book.comments else None,
+                    'formats': [d.format for d in book.data]
+                }
+                formatted_books.append(book_data)
+            
+            return formatted_books, total
+    
+    def _get_sort_field(self, sort_by: str):
+        """Get the SQLAlchemy field to sort by."""
+        sort_fields = {
+            'title': Book.sort,
+            'author': Book.author_sort,
+            'date_added': Book.timestamp,
+            'pubdate': Book.pubdate,
+            'series': Series.name,
+            'rating': Rating.rating
+        }
+        return sort_fields.get(sort_by.lower(), Book.sort)
+    
+    def update_library_stats(self, library_id: int) -> bool:
+        """Update the cached statistics for a library."""
+        with self._db.session_scope() as session:
+            library = session.query(Library).get(library_id)
+            if not library:
+                return False
+            
+            # Update book count
+            book_count = session.query(func.count(Book.id))\
+                .filter(Book.library_id == library_id)\
+                .scalar()
+            
+            # Update author count
+            author_count = session.query(func.count(func.distinct(Book.author_sort)))\
+                .filter(Book.library_id == library_id)\
+                .scalar()
+            
+            # Update format counts
+            formats = session.query(
+                Data.format,
+                func.count(Data.id).label('count')
+            ).join(Book)\
+             .filter(Book.library_id == library_id)\
+             .group_by(Data.format)\
+             .all()
+            
+            # Update the library
+            library.book_count = book_count or 0
+            library.author_count = author_count or 0
+            library.format_counts = {f: c for f, c in formats}
+            library.updated_at = datetime.utcnow()
+            
+            session.commit()
+            return True
     
     def get_recently_added(self, limit: int = 10) -> List[Dict[str, Any]]:
         """
