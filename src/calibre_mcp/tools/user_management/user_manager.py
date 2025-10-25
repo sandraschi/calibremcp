@@ -1,12 +1,12 @@
 """Tool for managing CalibreMCP users and permissions."""
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, Optional
 from pydantic import BaseModel, EmailStr, Field, validator
 from datetime import datetime, timedelta
+from pathlib import Path
 import secrets
 import string
-import bcrypt
 import jwt
-from fastmcp import MCPTool, Param
+from fastmcp import MCPTool
 
 # Models
 class UserRole(str):
@@ -114,7 +114,7 @@ class UserManagerTool(MCPTool):
         user = UserCreate(**user_data)
         
         # Hash password
-        hashed = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+        # hashed = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
         
         # In a real implementation, save to database
         # user_id = await self._save_user_to_db({
@@ -137,7 +137,7 @@ class UserManagerTool(MCPTool):
     
     async def handle_update_user(self, user_id: str, update_data: Dict) -> Dict:
         """Update an existing user."""
-        update = UserUpdate(**update_data)
+        # update = UserUpdate(**update_data)
         
         # In a real implementation, update in database
         # if update.password:

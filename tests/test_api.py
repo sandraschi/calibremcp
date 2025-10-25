@@ -5,8 +5,7 @@ Austrian efficiency: comprehensive testing without overthinking
 """
 
 import unittest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 import json
 import sys
 import os

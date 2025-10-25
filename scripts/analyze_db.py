@@ -5,7 +5,7 @@ Analyze Calibre metadata.db structure and generate schema information.
 import sqlite3
 import json
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 def get_table_schema(cursor, table_name: str) -> Dict[str, Any]:
     """Get schema information for a specific table."""

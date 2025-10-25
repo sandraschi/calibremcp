@@ -1,0 +1,105 @@
+# MCPB Ignore File
+# Exclude ALL dependencies and unnecessary files from MCPB package
+
+# Python dependencies
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Dependency files - MCP client handles these
+requirements.txt
+requirements-dev.txt
+pyproject.toml
+setup.py
+uv.lock
+poetry.lock
+Pipfile
+Pipfile.lock
+
+# Development files
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+bandit-report.json
+trivy-results.sarif
+coverage.xml
+coverage-report-*/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Git
+.git/
+.gitignore
+
+# Documentation that's not needed in package
+docs/
+docs-private/
+.github/
+.windsurf/
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Scripts not needed in package
+scripts/
+*.ps1
+*.bat
+*.sh
+
+# Sample data
+samples/
+*.db
+*.sqlite
+
+# Configuration files
+calibre_config.json
+config/
+*.yaml
+*.yml
+
+# Old packaging files
+calibremcp.dxt
+dxt_*
+*.dxt
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Large files that shouldn't be in package
+*.zip
+*.tar.gz
+*.rar
+*.7z

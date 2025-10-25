@@ -1,12 +1,12 @@
 """
 Base service class for all MCP services.
 """
-from typing import Any, Dict, List, Optional, TypeVar, Generic, Type, Tuple, TypeVar, Union, Callable
+from typing import Any, Dict, List, Optional, Generic, Type, Tuple, TypeVar, Union, Callable
 from pydantic import BaseModel, ValidationError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..db.database import Database
+from ..db.database import DatabaseService
 
 T = TypeVar('T', bound=BaseModel)
 ModelType = TypeVar('ModelType')
@@ -26,11 +26,6 @@ class NotFoundError(ServiceError):
     def __init__(self, resource: str = "Resource"):
         super().__init__(f"{resource} not found", status_code=404)
 
-class ValidationError(ServiceError):
-    """Raised when validation fails."""
-    def __init__(self, message: str = "Validation error"):
-        super().__init__(message, status_code=422)
-
 class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, ResponseSchemaType]):
     """
     Base service class providing common CRUD operations and utilities.
@@ -46,7 +41,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
     
     def __init__(
         self, 
-        db: Database, 
+        db: DatabaseService, 
         model: Type[ModelType], 
         response_schema: Type[ResponseSchemaType]
     ):

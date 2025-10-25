@@ -1,0 +1,350 @@
+name: Release Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - prerelease
+      dry_run:
+        description: 'Dry run (no actual release)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: "3.11"
+  UV_VERSION: "0.4.0"
+
+jobs:
+  # Pre-release checks
+  pre-release:
+    name: Pre-Release Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: ${{ env.UV_VERSION }}
+        
+    - name: Set up Python
+      run: uv python install ${{ env.PYTHON_VERSION }}
+      
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+        
+    - name: Run all quality checks
+      run: |
+        echo "Running comprehensive pre-release checks..."
+        
+        # Code quality
+        uv run ruff check . --output-format=github
+        uv run ruff format --check .
+        uv run mypy src/ --ignore-missing-imports
+        
+        # Security
+        uv run bandit -r src/ -f json -o bandit-report.json || true
+        
+        # Tests
+        uv run pytest tests/ -v --cov=src/calibre_mcp --cov-report=xml
+        
+        echo "All pre-release checks passed! ✅"
+        
+    - name: Check version consistency
+      run: |
+        # Check version in pyproject.toml
+        PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)
+        echo "pyproject.toml version: $PYPROJECT_VERSION"
+        
+        # Check version in __init__.py
+        INIT_VERSION=$(grep '__version__' src/calibre_mcp/__init__.py | cut -d'"' -f2)
+        echo "__init__.py version: $INIT_VERSION"
+        
+        # Check if versions match
+        if [ "$PYPROJECT_VERSION" != "$INIT_VERSION" ]; then
+          echo "❌ Version mismatch detected!"
+          echo "pyproject.toml: $PYPROJECT_VERSION"
+          echo "__init__.py: $INIT_VERSION"
+          exit 1
+        fi
+        
+        echo "✅ Version consistency check passed"
+        
+    - name: Check for uncommitted changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ Uncommitted changes detected!"
+          git status
+          exit 1
+        fi
+        echo "✅ No uncommitted changes"
+
+  # Update version
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    needs: pre-release
+    if: github.event.inputs.dry_run != 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: Update version in pyproject.toml
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+        echo "Updated pyproject.toml to version $VERSION"
+        
+    - name: Update version in __init__.py
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" src/calibre_mcp/__init__.py
+        echo "Updated __init__.py to version $VERSION"
+        
+    - name: Update CHANGELOG.md
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        DATE=$(date +%Y-%m-%d)
+        
+        # Create new changelog entry
+        cat > changelog_entry.md << EOF
+        ## [$VERSION] - $DATE
+        
+        ### Added
+        - Release automation improvements
+        
+        ### Changed
+        - Updated to version $VERSION
+        
+        ### Fixed
+        - Various bug fixes and improvements
+        
+        EOF
+        
+        # Prepend to CHANGELOG.md
+        if [ -f "CHANGELOG.md" ]; then
+          cat changelog_entry.md CHANGELOG.md > temp_changelog.md
+          mv temp_changelog.md CHANGELOG.md
+        else
+          mv changelog_entry.md CHANGELOG.md
+        fi
+        
+        echo "Updated CHANGELOG.md with version $VERSION"
+        
+    - name: Commit version updates
+      run: |
+        git add pyproject.toml src/calibre_mcp/__init__.py CHANGELOG.md
+        git commit -m "Bump version to ${{ github.event.inputs.version }}"
+        git push
+
+  # Build and test
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: update-version
+    if: github.event.inputs.dry_run != 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: ${{ env.UV_VERSION }}
+        
+    - name: Set up Python
+      run: uv python install ${{ env.PYTHON_VERSION }}
+      
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+        
+    - name: Build package
+      run: |
+        uv build
+        
+    - name: Test package installation
+      run: |
+        # Test installing the built package
+        pip install dist/*.whl
+        
+        # Test basic functionality
+        python -c "
+        import calibre_mcp
+        print(f'Successfully imported calibre_mcp version {calibre_mcp.__version__}')
+        
+        # Test config creation
+        config = calibre_mcp.CalibreConfig()
+        print(f'Config created successfully: {config.server_url}')
+        "
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-packages
+        path: dist/
+
+  # Create GitHub release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-test
+    if: github.event.inputs.dry_run != 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: release-packages
+        path: dist/
+        
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        
+        # Extract changelog for this version
+        if [ -f "CHANGELOG.md" ]; then
+          # Extract the section for this version
+          awk "/^## \[$VERSION\]/,/^## \[/" CHANGELOG.md | head -n -1 > release_notes.md
+        else
+          echo "## Release $VERSION" > release_notes.md
+          echo "" >> release_notes.md
+          echo "This release includes various improvements and bug fixes." >> release_notes.md
+        fi
+        
+        # Add installation instructions
+        cat >> release_notes.md << EOF
+        
+        ## Installation
+        
+        \`\`\`bash
+        pip install calibre-mcp==$VERSION
+        \`\`\`
+        
+        ## What's New
+        
+        - Improved error handling
+        - Enhanced performance for large libraries
+        - Better documentation
+        - Bug fixes and stability improvements
+        
+        ## Full Changelog
+        
+        See [CHANGELOG.md](CHANGELOG.md) for the complete list of changes.
+        EOF
+        
+        # Set output
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        cat release_notes.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        release_name: Release ${{ github.event.inputs.version }}
+        body: ${{ steps.release_notes.outputs.notes }}
+        draft: false
+        prerelease: ${{ github.event.inputs.release_type == 'prerelease' }}
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/
+        asset_name: calibre-mcp-${{ github.event.inputs.version }}-dist
+        asset_content_type: application/zip
+
+  # Publish to PyPI
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: github.event.inputs.dry_run != 'true' && github.event.inputs.release_type != 'prerelease'
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: release-packages
+        path: dist/
+        
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        pip install twine
+        twine upload dist/*
+
+  # Dry run summary
+  dry-run-summary:
+    name: Dry Run Summary
+    runs-on: ubuntu-latest
+    needs: pre-release
+    if: github.event.inputs.dry_run == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Generate dry run report
+      run: |
+        echo "## 🧪 Dry Run Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Release Type:** ${{ github.event.inputs.release_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Pre-release checks completed successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- Code quality checks passed" >> $GITHUB_STEP_SUMMARY
+        echo "- Security scan completed" >> $GITHUB_STEP_SUMMARY
+        echo "- All tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "- Version consistency verified" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 What would happen in a real release:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Update version in pyproject.toml and __init__.py" >> $GITHUB_STEP_SUMMARY
+        echo "2. Update CHANGELOG.md" >> $GITHUB_STEP_SUMMARY
+        echo "3. Commit and push changes" >> $GITHUB_STEP_SUMMARY
+        echo "4. Build and test package" >> $GITHUB_STEP_SUMMARY
+        echo "5. Create GitHub release with tag v${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "6. Publish to PyPI (if not prerelease)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Ready for release!** 🚀" >> $GITHUB_STEP_SUMMARY

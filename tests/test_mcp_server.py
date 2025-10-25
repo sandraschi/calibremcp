@@ -5,11 +5,9 @@ These tests verify that the MCP server is properly implemented
 and follows FastMCP 2.10.1 standards.
 """
 
-import asyncio
-import json
 import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from fastmcp import FastMCP
 
@@ -19,8 +17,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.calibre_mcp.server import (
     CalibreMCPServer,
-    BookSearchResult,
-    LibraryInfo,
     test_calibre_connection,
 )
 

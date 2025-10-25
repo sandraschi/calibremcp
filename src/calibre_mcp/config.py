@@ -2,6 +2,7 @@
 CalibreMCP Configuration Management
 
 Handles configuration for both local and remote Calibre library access.
+Now includes automatic Calibre library discovery.
 """
 
 import json
@@ -9,8 +10,14 @@ import os
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 from dotenv import load_dotenv
+
+from .logging_config import get_logger, log_operation, log_error
+from .config_discovery import CalibreLibrary, discover_calibre_libraries, get_active_calibre_library
+
+
+logger = get_logger("calibremcp.config")
 
 
 class RemoteServerConfig(BaseModel):
@@ -20,11 +27,28 @@ class RemoteServerConfig(BaseModel):
     username: Optional[str] = None  # Not stored here, only in keyring
 
 class CalibreConfig(BaseModel):
-    """Root configuration for Calibre MCP"""
-    # Library configuration
+    """Root configuration for Calibre MCP with automatic library discovery"""
+    # Library configuration - now auto-discovered
     local_library_path: Optional[Path] = Field(
-        default=Path("L:/Multimedia Files/Written Word/Main Library"),
-        description="Path to local Calibre library (contains metadata.db)"
+        default=None,
+        description="Path to local Calibre library (auto-discovered if not specified)"
+    )
+    
+    # Discovered libraries
+    discovered_libraries: Dict[str, CalibreLibrary] = Field(
+        default_factory=dict,
+        description="Automatically discovered Calibre libraries"
+    )
+    
+    # Library discovery settings
+    auto_discover_libraries: bool = Field(
+        default=True,
+        description="Automatically discover Calibre libraries on startup"
+    )
+    
+    library_discovery_paths: List[Path] = Field(
+        default_factory=list,
+        description="Additional paths to scan for Calibre libraries"
     )
     
     # Disable remote access by default
@@ -54,19 +78,22 @@ class CalibreConfig(BaseModel):
     # Library settings
     library_name: str = Field(default="main", description="Primary library name")
     
-    @validator('server_url')
+    @field_validator('server_url')
+    @classmethod
     def validate_server_url(cls, v):
         """Ensure server URL has proper format"""
         if not v.startswith(('http://', 'https://')):
             return f"http://{v}"
         return v.rstrip('/')
     
-    @validator('timeout')
+    @field_validator('timeout')
+    @classmethod
     def validate_timeout(cls, v):
         """Ensure timeout is reasonable"""
         return max(5, min(300, v))  # 5-300 seconds
     
-    @validator('default_limit', 'max_limit')
+    @field_validator('default_limit', 'max_limit')
+    @classmethod
     def validate_limits(cls, v):
         """Ensure limits are reasonable"""
         return max(1, min(1000, v))
@@ -102,7 +129,8 @@ class CalibreConfig(BaseModel):
                         file_data = json.load(f)
                         config_data.update(file_data)
                 except (json.JSONDecodeError, IOError) as e:
-                    print(f"Warning: Could not load config file {config_file}: {e}")
+                    log_operation(logger, "config_load_warning", level="WARNING", 
+                                 config_file=str(config_file), error=str(e))
         
         # Override with environment variables
         env_mappings = {
@@ -125,7 +153,8 @@ class CalibreConfig(BaseModel):
                 if isinstance(lib_paths, dict):
                     config_data['library_paths'] = lib_paths
             except json.JSONDecodeError:
-                print(f"Warning: Invalid JSON in CALIBRE_LIBRARY_PATHS environment variable")
+                log_operation(logger, "invalid_json_warning", level="WARNING", 
+                             env_var="CALIBRE_LIBRARY_PATHS")
         
         # Handle base library path
         if 'CALIBRE_BASE_PATH' in os.environ:
@@ -146,11 +175,19 @@ class CalibreConfig(BaseModel):
                     try:
                         config_data[config_key] = int(env_value)
                     except ValueError:
-                        print(f"Warning: Invalid integer value for {env_var}: {env_value}")
+                        log_operation(logger, "invalid_integer_warning", level="WARNING", 
+                                     env_var=env_var, value=env_value)
                 else:
                     config_data[config_key] = env_value
         
-        return cls(**config_data)
+        # Create config instance
+        config = cls(**config_data)
+        
+        # Auto-discover libraries if enabled
+        if config.auto_discover_libraries:
+            config.discover_libraries()
+        
+        return config
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to dictionary"""
@@ -178,7 +215,7 @@ class CalibreConfig(BaseModel):
                 json.dump(config_dict, f, indent=2, ensure_ascii=False)
             return True
         except IOError as e:
-            print(f"Error saving config file {config_file}: {e}")
+            log_error(logger, "config_save_error", e, config_file=str(config_file))
             return False
     
     @property
@@ -196,3 +233,127 @@ class CalibreConfig(BaseModel):
         if self.has_auth:
             return (self.username, self.password)
         return None
+    
+    def discover_libraries(self) -> Dict[str, CalibreLibrary]:
+        """
+        Discover all available Calibre libraries.
+        
+        Returns:
+            Dict mapping library names to CalibreLibrary objects
+        """
+        if not self.auto_discover_libraries:
+            return self.discovered_libraries
+        
+        try:
+            # Use the discovery system
+            libraries = discover_calibre_libraries()
+            
+            # Add any additional discovery paths
+            if self.library_discovery_paths:
+                for path in self.library_discovery_paths:
+                    if path.exists() and path.is_dir():
+                        # Scan this path for libraries
+                        for item in path.iterdir():
+                            if item.is_dir() and (item / "metadata.db").exists():
+                                libraries[item.name] = CalibreLibrary(
+                                    name=item.name,
+                                    path=item,
+                                    metadata_db=item / "metadata.db"
+                                )
+            
+            self.discovered_libraries = libraries
+            
+            # Set default library path if not specified
+            if not self.local_library_path and libraries:
+                active_library = get_active_calibre_library()
+                if active_library:
+                    self.local_library_path = active_library.path
+                else:
+                    # Use the first library found
+                    first_library = list(libraries.values())[0]
+                    self.local_library_path = first_library.path
+            
+            log_operation(logger, "libraries_discovered", level="INFO", 
+                         total_libraries=len(libraries),
+                         default_library=str(self.local_library_path))
+            
+            return libraries
+            
+        except Exception as e:
+            log_error(logger, "library_discovery_error", e)
+            return {}
+    
+    def get_library_by_name(self, name: str) -> Optional[CalibreLibrary]:
+        """Get a specific library by name"""
+        if not self.discovered_libraries:
+            self.discover_libraries()
+        return self.discovered_libraries.get(name)
+    
+    def get_active_library(self) -> Optional[CalibreLibrary]:
+        """Get the currently active library"""
+        if not self.discovered_libraries:
+            self.discover_libraries()
+        
+        # Find active library
+        for library in self.discovered_libraries.values():
+            if library.is_active:
+                return library
+        
+        # If no active library, return the one matching local_library_path
+        if self.local_library_path:
+            for library in self.discovered_libraries.values():
+                if library.path == self.local_library_path:
+                    return library
+        
+        # Return first library if available
+        if self.discovered_libraries:
+            return list(self.discovered_libraries.values())[0]
+        
+        return None
+    
+    def list_libraries(self) -> List[Dict[str, Any]]:
+        """Get a list of all discovered libraries with metadata"""
+        if not self.discovered_libraries:
+            self.discover_libraries()
+        
+        libraries = []
+        for name, library in self.discovered_libraries.items():
+            libraries.append({
+                "name": name,
+                "path": str(library.path),
+                "metadata_db": str(library.metadata_db),
+                "is_active": library.is_active,
+                "book_count": library.book_count,
+                "last_modified": library.last_modified
+            })
+        
+        return libraries
+    
+    def set_active_library(self, library_name: str) -> bool:
+        """
+        Set the active library by name.
+        
+        Args:
+            library_name: Name of the library to activate
+            
+        Returns:
+            True if successful, False if library not found
+        """
+        if not self.discovered_libraries:
+            self.discover_libraries()
+        
+        if library_name not in self.discovered_libraries:
+            return False
+        
+        # Update active status
+        for name, library in self.discovered_libraries.items():
+            library.is_active = (name == library_name)
+        
+        # Update local library path
+        active_library = self.discovered_libraries[library_name]
+        self.local_library_path = active_library.path
+        
+        log_operation(logger, "active_library_changed", level="INFO", 
+                     library_name=library_name, library_path=str(active_library.path))
+        
+        return True

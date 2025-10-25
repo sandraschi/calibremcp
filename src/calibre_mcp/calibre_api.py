@@ -7,29 +7,16 @@ Handles authentication, request retries, and response parsing.
 
 import asyncio
 from typing import List, Dict, Any, Optional
-from datetime import datetime
 import json
 
 import httpx
 from rich.console import Console
 
-# Hybrid imports - work both as module and direct script
-try:
-    # Try relative imports first (when running as module)
-    from .config import CalibreConfig
-except ImportError:
-    # Fall back to absolute imports (when running script directly)
-    try:
-        from calibre_mcp.config import CalibreConfig
-    except ImportError:
-        # Last resort - add current directory to path
-        import sys
-        import os
-        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from config import CalibreConfig
-
+from .config import CalibreConfig
+from .logging_config import get_logger, log_operation, log_error
 
 console = Console()
+logger = get_logger("calibremcp.api")
 
 
 class CalibreAPIError(Exception):
@@ -122,7 +109,7 @@ class CalibreAPIClient:
                     # Some endpoints return plain text
                     return {"result": response.text}
                 
-            except httpx.TimeoutException as e:
+            except httpx.TimeoutException:
                 last_error = CalibreAPIError(f"Request timeout after {self.config.timeout}s")
             except httpx.ConnectError as e:
                 last_error = CalibreAPIError(f"Connection failed: {str(e)}")
@@ -306,22 +293,25 @@ class CalibreAPIClient:
                 "ids": ",".join(map(str, book_ids))
             }
             
-            console.print(f"[yellow]Fetching metadata for book IDs: {book_ids}[/yellow]")
+            log_operation(logger, "fetch_book_metadata", level="INFO", 
+                         book_ids=book_ids, count=len(book_ids))
             
             try:
                 response = await self._make_request("books", params=params)
                 if not response:
-                    console.print("[red]Empty response from server for books endpoint[/red]")
+                    log_operation(logger, "empty_response", level="WARNING", 
+                                 endpoint="books", book_ids=book_ids)
                     return []
             except Exception as e:
-                console.print(f"[red]Error fetching book metadata: {str(e)}[/red]")
+                log_error(logger, "fetch_book_metadata", e, book_ids=book_ids)
                 return []
             
             books = []
             for book_id in book_ids:
                 book_data = response.get(str(book_id))
                 if not book_data:
-                    console.print(f"[yellow]No data found for book ID: {book_id}[/yellow]")
+                    log_operation(logger, "book_not_found", level="WARNING", 
+                                 book_id=book_id)
                     continue
                     
                 # Format book data consistently
@@ -340,11 +330,12 @@ class CalibreAPIClient:
                 }
                 books.append(book)
             
-            console.print(f"[green]Successfully retrieved metadata for {len(books)} books[/green]")
+            log_operation(logger, "metadata_retrieval_success", level="INFO", 
+                         books_retrieved=len(books), total_requested=len(book_ids))
             return books
             
         except Exception as e:
-            console.print(f"[red]Unexpected error in _get_books_metadata: {str(e)}[/red]")
+            log_error(logger, "get_books_metadata_unexpected", e, book_ids=book_ids)
             return []
     
     def _generate_download_links(self, book_id: int, formats: Dict[str, Any]) -> Dict[str, str]:
@@ -384,9 +375,10 @@ async def quick_library_test(server_url: str = "http://localhost:8080") -> bool:
         await client.test_connection()
         await client.close()
         
-        console.print(f"[green]✅ Calibre server at {server_url} is accessible[/green]")
+        log_operation(logger, "server_test_success", level="INFO", 
+                     server_url=server_url, status="accessible")
         return True
         
     except Exception as e:
-        console.print(f"[red]❌ Calibre server test failed: {e}[/red]")
+        log_error(logger, "server_test_failed", e, server_url=server_url)
         return False

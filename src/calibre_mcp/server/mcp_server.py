@@ -4,16 +4,15 @@ MCP (Message Control Protocol) Server for Calibre MCP.
 This module implements the stdio-based MCP server that communicates with the host application.
 """
 import asyncio
-import json
 import logging
 import signal
 import sys
-from typing import Any, Dict, Optional, Callable, Awaitable, Union
+from typing import Any, Dict, Optional
 
 from fastmcp import MCPServer, MCPMessage, MCPServerError
 
 from .config import settings
-from .core.exception_handlers import CalibreError, BookNotFoundError, LibraryError
+from .core.exception_handlers import CalibreError, BookNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class CalibreMCPServer(MCPServer):
                 
         except asyncio.CancelledError:
             logger.info("MCP server was cancelled")
-        except Exception as e:
+        except Exception:
             logger.exception("Error in MCP server")
         finally:
             await self.stop()
@@ -88,7 +87,7 @@ class CalibreMCPServer(MCPServer):
         
         try:
             await super().stop()
-        except Exception as e:
+        except Exception:
             logger.exception("Error stopping MCP server")
     
     # Command handlers
@@ -214,7 +213,7 @@ def run_mcp_server(library_path: Optional[str] = None):
         asyncio.run(server.start())
     except KeyboardInterrupt:
         logger.info("Shutting down...")
-    except Exception as e:
+    except Exception:
         logger.exception("Error in MCP server")
         sys.exit(1)
     finally:

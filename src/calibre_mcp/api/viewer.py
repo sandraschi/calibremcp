@@ -1,13 +1,12 @@
 """
 Viewer API endpoints for CalibreMCP.
 """
-from fastapi import APIRouter, HTTPException, Query, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
-from pathlib import Path
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import HTMLResponse
 import os
 from typing import Optional, Dict, Any
 
-from ...viewers import get_viewer, ViewerType
+from ...viewers import get_viewer
 from ...storage import get_storage_backend
 from ...models.book import Book
 

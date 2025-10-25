@@ -5,7 +5,6 @@ These tests verify the basic functionality of the Calibre MCP server.
 """
 
 import pytest
-import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -44,7 +43,7 @@ def test_config_defaults():
     assert config.timeout == 30
     assert config.default_limit == 50
     assert config.max_limit == 200
-    assert config.library_name == "Default Library"
+    assert config.library_name == "main"
 
 
 @patch('calibre_mcp.calibre_api.httpx.AsyncClient')

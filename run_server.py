@@ -5,7 +5,6 @@ Handles Python path setup and launches the FastMCP 2.0 server.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src directory to Python path
@@ -17,16 +16,16 @@ sys.path.insert(0, str(src_path))
 from calibre_mcp.server import main
 
 if __name__ == "__main__":
-    print("🚀 Starting CalibreMCP Phase 2 - FastMCP 2.0 Server")
-    print(f"📂 Repository: {repo_root}")
-    print(f"🐍 Python path: {src_path}")
-    print("📚 Austrian efficiency for Sandra's 1000+ book collection!")
+    print("Starting CalibreMCP Phase 2 - FastMCP 2.0 Server")
+    print(f"Repository: {repo_root}")
+    print(f"Python path: {src_path}")
+    print("Austrian efficiency for Sandra's 1000+ book collection!")
     print()
     
     try:
         main()
     except KeyboardInterrupt:
-        print("\n👋 CalibreMCP server stopped by user")
+        print("\nCalibreMCP server stopped by user")
     except Exception as e:
-        print(f"❌ Server error: {e}")
+        print(f"Server error: {e}")
         sys.exit(1)

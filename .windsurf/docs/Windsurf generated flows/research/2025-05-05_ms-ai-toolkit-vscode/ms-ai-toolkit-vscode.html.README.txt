@@ -1,3 +1,0 @@
-This HTML file is a single-document research summary on the Microsoft AI Toolkit for VS Code, generated on 2025-05-05. It combines all research sections per the Annoyinator rulebook and can be viewed in any browser.
-
-If you need a DOCX version, let me know.

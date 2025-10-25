@@ -2,8 +2,7 @@
 Database service for managing SQLAlchemy connections and sessions.
 """
 import os
-from pathlib import Path
-from typing import Optional, Type, TypeVar, Any
+from typing import TypeVar, Any
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, event
@@ -42,7 +41,8 @@ class DatabaseService:
             
         # Convert path to SQLite URL if it's a file path
         if '://' not in db_url and os.path.exists(db_url):
-            db_url = f"sqlite:///{os.path.abspath(db_url).replace('\\\\', '/')}"
+            abs_path = os.path.abspath(db_url).replace('\\\\', '/')
+            db_url = f"sqlite:///{abs_path}"
         
         self._engine = create_engine(
             db_url,

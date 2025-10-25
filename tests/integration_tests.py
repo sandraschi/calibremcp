@@ -5,9 +5,7 @@ Test complete MCP tool workflows and Claude Desktop integration
 """
 
 import unittest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
-import json
+from unittest.mock import AsyncMock, patch
 import sys
 from pathlib import Path
 
@@ -16,11 +14,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from calibre_mcp.server import (
     list_books, get_book_details, search_books, test_calibre_connection,
-    LibrarySearchResponse, BookDetailResponse, ConnectionTestResponse,
-    BookSearchResult
+    LibrarySearchResponse, BookDetailResponse, ConnectionTestResponse
 )
-from calibre_mcp.calibre_api import CalibreAPIClient, CalibreAPIError
-from calibre_mcp.config import CalibreConfig
+from calibre_mcp.calibre_api import CalibreAPIError
 
 
 class TestMCPToolIntegration(unittest.IsolatedAsyncioTestCase):

@@ -4,7 +4,7 @@ Configuration settings for the Calibre MCP Server.
 import os
 from pathlib import Path
 from typing import List, Optional
-from pydantic import BaseSettings, AnyHttpUrl, validator
+from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     # Server configuration

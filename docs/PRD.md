@@ -3,7 +3,37 @@
 ## Overview
 CalibreMCP is a FastMCP 2.0 server that provides comprehensive e-book library management capabilities through Claude Desktop. This document outlines the requirements for the AI-powered tools and series management features.
 
-## 1. AI-Powered Tools
+## 1. Advanced Search Functionality
+
+### 1.1 Core Search Capabilities
+- **Purpose**: Provide powerful and flexible search across the entire library
+- **Features**:
+  - Full-text search across titles, authors, series, tags, and comments
+  - Case-insensitive and partial matching
+  - Support for special characters and Unicode
+  - Configurable result limits and pagination
+
+### 1.2 Filtering Options
+- **Date Ranges**:
+  - Publication date (pubdate)
+  - Date added to library (timestamp)
+- **File Properties**:
+  - File size ranges (min/max)
+  - File formats (EPUB, PDF, MOBI, etc.)
+- **Content Metadata**:
+  - Empty/non-empty comments
+  - Star ratings (exact, minimum, unrated)
+  - Publisher filtering (single or multiple)
+  - Series information
+  - Tag filtering
+
+### 1.3 Search Performance
+- Optimized database queries for fast response times
+- Indexing of frequently searched fields
+- Caching of common search results
+- Support for large libraries (100,000+ books)
+
+## 2. AI-Powered Tools
 
 ### 1.1 Book Recommendation Engine
 - **Purpose**: Provide personalized book recommendations
@@ -57,9 +87,56 @@ CalibreMCP is a FastMCP 2.0 server that provides comprehensive e-book library ma
   - Handle conflicts
   - Dry-run mode
 
-## 3. Technical Requirements
+## 3. Search API Specification
 
-### 3.1 Dependencies
+### 3.1 Search Parameters
+```typescript
+interface SearchParams {
+  // Basic search
+  query?: string;           // Search term (title, author, series, tags, comments)
+  
+  // Date filters
+  pubdate_start?: string;   // YYYY-MM-DD
+  pubdate_end?: string;     // YYYY-MM-DD
+  added_after?: string;     // YYYY-MM-DD
+  added_before?: string;    // YYYY-MM-DD
+  
+  // Content filters
+  has_empty_comments?: boolean;  // True for empty, False for non-empty
+  rating?: number;         // Exact rating (1-5)
+  min_rating?: number;     // Minimum rating (1-5)
+  unrated?: boolean;       // True for unrated books only
+  
+  // Publisher filters
+  publisher?: string;      // Single publisher (partial match)
+  publishers?: string[];   // Multiple publishers (OR condition)
+  has_publisher?: boolean; // True/False for has publisher
+  
+  // File properties
+  min_size?: number;       // Minimum file size in bytes
+  max_size?: number;       // Maximum file size in bytes
+  formats?: string[];      // File formats to include
+  
+  // Pagination
+  limit?: number;          // Results per page (default: 50, max: 1000)
+  offset?: number;         // Pagination offset (default: 0)
+}
+```
+
+### 3.2 Response Format
+```typescript
+interface SearchResponse {
+  items: Book[];           // Array of matching books
+  total: number;           // Total number of matches
+  page: number;            // Current page number
+  per_page: number;        // Number of items per page
+  total_pages: number;     // Total number of pages
+}
+```
+
+## 4. Technical Requirements
+
+### 4.1 Dependencies
 - Python 3.11+
 - spaCy with English model
 - scikit-learn
@@ -67,11 +144,13 @@ CalibreMCP is a FastMCP 2.0 server that provides comprehensive e-book library ma
 - pydantic
 - fastmcp>=2.0
 
-### 3.2 Performance
+### 4.2 Performance
+- Sub-second response times for typical searches
 - Support for libraries with 100,000+ books
 - Asynchronous processing for long-running operations
-- Caching of analysis results
+- Caching of search results and analysis
 - Background processing for resource-intensive tasks
+- Database indexing for frequently filtered fields
 
 ### 3.3 Security
 - Input validation

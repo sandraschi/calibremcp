@@ -4,7 +4,7 @@ Script to inspect the Calibre metadata.db structure.
 """
 import sqlite3
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, Any
 import json
 
 def get_db_schema(db_path: str) -> Dict[str, Any]:
@@ -79,7 +79,7 @@ def main():
         if table_info['foreign_keys']:
             print("Foreign Keys:")
             for fk in table_info['foreign_keys']:
-                print(f"  {fk['from']} → {fk['table']}.{fk['to']}")
+                print(f"  {fk['from']} -> {fk['table']}.{fk['to']}")
     
     # Save full schema to file
     output_file = Path("calibre_schema.json")

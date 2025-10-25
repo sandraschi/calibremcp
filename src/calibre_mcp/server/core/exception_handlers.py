@@ -1,7 +1,6 @@
 """
 Exception handlers for the Calibre MCP Server.
 """
-from typing import Dict, Any, Callable, Awaitable
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse

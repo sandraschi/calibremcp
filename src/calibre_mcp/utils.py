@@ -2,15 +2,12 @@
 Utility functions for Calibre MCP server.
 """
 import os
-import shutil
 import tempfile
 import mimetypes
 import magic
 import hashlib
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any, Union, BinaryIO
-from urllib.parse import urlparse
-import asyncio
+from typing import Optional, Tuple, Union
 import aiofiles
 import aiofiles.os
 from PIL import Image, ImageOps
@@ -19,7 +16,6 @@ import fitz  # PyMuPDF
 from ebooklib import epub
 from calibre.ebooks.metadata import get_metadata
 from calibre.ebooks.conversion import initialize_converters
-from calibre.ptempfile import PersistentTemporaryDirectory
 
 from .models import BookFormat, BookMetadata, BookIdentifier
 
@@ -201,7 +197,7 @@ async def extract_metadata(file_path: Union[str, Path]) -> BookMetadata:
         # Get file size
         metadata.size = file_path.stat().st_size
         
-    except Exception as e:
+    except Exception:
         # If metadata extraction fails, just use the filename as title
         metadata.title = file_path.stem
         metadata.size = file_path.stat().st_size
@@ -342,7 +338,7 @@ async def convert_book(
         
         # Verify the output file was created
         if not output_path.exists() or output_path.stat().st_size == 0:
-            raise FileProcessingError(f"Conversion failed: output file not created or empty")
+            raise FileProcessingError("Conversion failed: output file not created or empty")
         
         return output_path
         
@@ -351,7 +347,7 @@ async def convert_book(
         if output_path.exists():
             try:
                 output_path.unlink()
-            except:
+            except OSError:
                 pass
         raise FileProcessingError(f"Failed to convert {input_path} to {output_format.value}: {e}")
 

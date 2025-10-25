@@ -1,18 +1,14 @@
 """Extended library operations for CalibreMCP."""
-from typing import Dict, List, Optional, Any, Set, Union, Tuple
+from typing import Dict, List
 import os
 import shutil
-import hashlib
-import json
 import re
 import zipfile
-import tempfile
-from pathlib import Path
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
+from datetime import datetime
+from collections import defaultdict
 
-from fastmcp import MCPTool, Param
-from pydantic import BaseModel, Field, validator, HttpUrl
+from fastmcp import MCPTool
+from pydantic import BaseModel, Field
 
 # Models
 class LibraryStats(BaseModel):
@@ -145,7 +141,6 @@ class ExtendedLibraryOperations(MCPTool):
                             min_similarity: float = 0.9) -> Dict:
         """Find duplicate books in the library."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
-        from difflib import SequenceMatcher
         
         storage = LocalStorage(library_path)
         books = await storage.get_all_books()
@@ -522,7 +517,7 @@ class ExtendedLibraryOperations(MCPTool):
                         try:
                             cursor.close()
                             conn.close()
-                        except:
+                        except OSError:
                             pass
                         
                         # Remove the corrupted database
@@ -561,7 +556,7 @@ class ExtendedLibraryOperations(MCPTool):
             # Remove the backup if everything is OK
             try:
                 os.remove(backup_db)
-            except:
+            except OSError:
                 pass
             
             return {
@@ -575,7 +570,7 @@ class ExtendedLibraryOperations(MCPTool):
             if os.path.exists(backup_db):
                 try:
                     shutil.copy2(backup_db, metadata_db)
-                except:
+                except OSError:
                     pass
             
             return {

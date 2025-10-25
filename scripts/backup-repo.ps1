@@ -4,7 +4,11 @@
     Automated repository backup using Windows native compression
     
 .DESCRIPTION
-    Creates a compressed ZIP backup of the repository excluding:
+    Creates a compressed ZIP backup of the repository and saves to:
+    1. Desktop\repo backup\
+    2. N:\backup\dev\repos\
+    
+    Excludes:
     - .venv/ (virtual environments)
     - __pycache__/ (Python cache)
     - .ruff_cache/, .mypy_cache/, .pytest_cache/
@@ -14,23 +18,19 @@
     - Test artifacts (MagicMock/, sandboxes/, quarantine/)
     - Logs (*.log)
     
-.PARAMETER OutputPath
-    Where to save the backup (default: parent directory)
-    
 .PARAMETER IncludeBuild
     Include dist/ and build/ folders (default: false)
     
 .EXAMPLE
     .\scripts\backup-repo.ps1
-    # Creates backup in parent directory
+    # Creates backup in Desktop\repo backup and N:\backup\dev\repos
     
 .EXAMPLE
-    .\scripts\backup-repo.ps1 -OutputPath "D:\Backups" -IncludeBuild
-    # Creates backup in D:\Backups including build artifacts
+    .\scripts\backup-repo.ps1 -IncludeBuild
+    # Creates backup including build artifacts
 #>
 
 param(
-    [string]$OutputPath = "..",
     [switch]$IncludeBuild = $false
 )
 
@@ -49,22 +49,34 @@ $repoName = (Get-Item .).Name
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 $backupName = "${repoName}_backup_${timestamp}.zip"
 
-# Resolve output path
-if (-not (Test-Path $OutputPath)) {
-    New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
+# Define backup destinations
+$desktopBackup = Join-Path ([Environment]::GetFolderPath("Desktop")) "repo backup"
+$nDriveBackup = "N:\backup\dev\repos"
+
+# Ensure backup directories exist
+if (-not (Test-Path $desktopBackup)) {
+    New-Item -ItemType Directory -Path $desktopBackup -Force | Out-Null
+    Write-Host "✅ Created: $desktopBackup" -ForegroundColor Green
 }
-$OutputPath = Resolve-Path $OutputPath
-$backupPath = Join-Path $OutputPath $backupName
+
+if (-not (Test-Path $nDriveBackup)) {
+    New-Item -ItemType Directory -Path $nDriveBackup -Force | Out-Null
+    Write-Host "✅ Created: $nDriveBackup" -ForegroundColor Green
+}
+
+$backupPath1 = Join-Path $desktopBackup $backupName
+$backupPath2 = Join-Path $nDriveBackup $backupName
 
 Write-Host "📋 Backup Configuration:" -ForegroundColor Cyan
 Write-Host "  Repository:    $repoName" -ForegroundColor White
 Write-Host "  Timestamp:     $timestamp" -ForegroundColor White
-Write-Host "  Output:        $backupPath" -ForegroundColor White
+Write-Host "  Destination 1: $backupPath1" -ForegroundColor White
+Write-Host "  Destination 2: $backupPath2" -ForegroundColor White
 Write-Host "  Include build: $(if($IncludeBuild){'Yes'}else{'No'})" -ForegroundColor White
 Write-Host "  Method:        Windows native (Compress-Archive)" -ForegroundColor Green
 Write-Host ""
 
-# Define exclusions (glob patterns)
+# Define exclusions
 $exclusions = @(
     ".venv",
     "venv",
@@ -95,7 +107,10 @@ $exclusions = @(
     "sandboxes",
     "quarantine",
     "analysis",
-    "backups"
+    "backups",
+    "*.db",        # SQLite databases (test data, caches)
+    "*.dxt",       # Old DXT package format
+    "samples"      # Test/sample data directories
 )
 
 if (-not $IncludeBuild) {
@@ -108,13 +123,13 @@ foreach ($excl in $exclusions) {
 }
 Write-Host ""
 
-# Calculate original size
+# Calculate sizes
 Write-Host "📊 Analyzing repository size..." -ForegroundColor Cyan
 
 $allFiles = Get-ChildItem -Recurse -File -ErrorAction SilentlyContinue
 $totalSize = ($allFiles | Measure-Object -Property Length -Sum).Sum / 1MB
 
-# Calculate what we'll actually backup
+# Filter files to backup
 $backupFiles = $allFiles | Where-Object {
     $file = $_
     $shouldExclude = $false
@@ -138,17 +153,23 @@ Write-Host "  Excluded:      $([math]::Round($excludedSize, 2)) MB" -ForegroundC
 Write-Host "  Backup size:   $([math]::Round($backupSize, 2)) MB" -ForegroundColor Green
 Write-Host "  Reduction:     $([math]::Round(($excludedSize / $totalSize) * 100, 1))%`n" -ForegroundColor Cyan
 
-# Create temporary list of files to backup
-Write-Host "🔄 Creating backup with Windows Compress-Archive..." -ForegroundColor Cyan
+# Create backup
+Write-Host "🔄 Creating backups..." -ForegroundColor Cyan
 
 try {
-    # Compress-Archive with exclusions
     $tempList = $backupFiles | ForEach-Object { $_.FullName }
     
-    # Use Compress-Archive (native Windows PowerShell)
-    Compress-Archive -Path $tempList -DestinationPath $backupPath -CompressionLevel Optimal -Force
+    # Create backup 1 (Desktop)
+    Write-Host "  → Desktop\repo backup..." -ForegroundColor Gray
+    Compress-Archive -Path $tempList -DestinationPath $backupPath1 -CompressionLevel Optimal -Force
+    Write-Host "  ✅ Desktop backup complete" -ForegroundColor Green
     
-    Write-Host "✅ Backup created successfully!`n" -ForegroundColor Green
+    # Create backup 2 (N: drive)
+    Write-Host "  → N:\backup\dev\repos..." -ForegroundColor Gray
+    Compress-Archive -Path $tempList -DestinationPath $backupPath2 -CompressionLevel Optimal -Force
+    Write-Host "  ✅ N: drive backup complete" -ForegroundColor Green
+    
+    Write-Host "`n✅ Both backups created successfully!`n" -ForegroundColor Green
     
 } catch {
     Write-Host "❌ Error creating backup: $_" -ForegroundColor Red
@@ -156,8 +177,8 @@ try {
 }
 
 # Get final backup file info
-if (Test-Path $backupPath) {
-    $finalSize = (Get-Item $backupPath).Length / 1MB
+if ((Test-Path $backupPath1) -and (Test-Path $backupPath2)) {
+    $finalSize = (Get-Item $backupPath1).Length / 1MB
     $compressionRatio = ($finalSize / $backupSize) * 100
     
     Write-Host ""
@@ -166,8 +187,9 @@ if (Test-Path $backupPath) {
     Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
     Write-Host "📊 Backup Statistics:" -ForegroundColor Cyan
-    Write-Host "  File:           $(Split-Path -Leaf $backupPath)" -ForegroundColor White
-    Write-Host "  Location:       $OutputPath" -ForegroundColor White
+    Write-Host "  File:           $backupName" -ForegroundColor White
+    Write-Host "  Location 1:     $desktopBackup" -ForegroundColor White
+    Write-Host "  Location 2:     $nDriveBackup" -ForegroundColor White
     Write-Host "  Size:           $([math]::Round($finalSize, 2)) MB" -ForegroundColor Cyan
     Write-Host "  Original:       $([math]::Round($backupSize, 2)) MB" -ForegroundColor Gray
     Write-Host "  Compression:    $([math]::Round($compressionRatio, 1))%" -ForegroundColor Green
@@ -177,13 +199,12 @@ if (Test-Path $backupPath) {
     
     # Restore instructions
     Write-Host "💡 To restore:" -ForegroundColor Cyan
-    Write-Host "  Expand-Archive -Path `"$backupPath`" -DestinationPath `"destination-folder`"" -ForegroundColor Gray
+    Write-Host "  Expand-Archive -Path `"$backupPath1`" -DestinationPath `"destination-folder`"" -ForegroundColor Gray
     Write-Host ""
     
 } else {
-    Write-Host "❌ Error: Backup file not found at $backupPath" -ForegroundColor Red
+    Write-Host "❌ Error: Backup files not created" -ForegroundColor Red
     exit 1
 }
 
 Write-Host "✅ Done!`n" -ForegroundColor Green
-

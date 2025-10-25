@@ -4,24 +4,19 @@ Integration tests for the Calibre MCP server.
 These tests verify that the server is properly set up and can handle requests.
 """
 
-import asyncio
-import json
 import os
 import sys
-import subprocess
-import platform
 from pathlib import Path
-from typing import Dict, List, Any, Optional, AsyncGenerator, Callable, Awaitable
+from typing import Dict
 
 import pytest
 import pytest_asyncio
-from fastmcp import FastMCP
 
 # Add src to path for local testing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import the server module
-from calibre_mcp.server import mcp, list_books, get_book_details, search_books, test_calibre_connection
+from calibre_mcp.server import mcp
 from calibre_mcp.config import CalibreConfig
 
 

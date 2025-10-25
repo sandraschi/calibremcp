@@ -9,19 +9,13 @@ import asyncio
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from fastmcp import FastMCP, MCPServerError
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Type
-import asyncio
-import logging
-import os
 
-from .db import init_database
-from .tools.book_tools import BookTools
-from .tools.author_tools import AuthorTools
-from .tools.library_tools import LibraryTools
+# Import the tool registration function
+from .tools import register_tools as register_all_tools
+from .db.database import init_database
 
 # Set up logging
 logging.basicConfig(
@@ -100,18 +94,8 @@ class CalibreMCPServer:
         db_path = str(self.library_path / "metadata.db")
         init_database(db_path)
         
-        # Register tool classes
-        tool_classes = [
-            BookTools,
-            AuthorTools,
-            LibraryTools
-        ]
-        
-        # Register each tool class
-        for tool_class in tool_classes:
-            tool_class.register(self.mcp)
-            
-        logger.info(f"Registered {len(tool_classes)} tool classes")
+        # Register all tools using the discovery system
+        register_all_tools(self.mcp)
         
         # Register any server-specific tools here
         @self.mcp.tool(

@@ -1,0 +1,41 @@
+# MCPB Ignore File for mcpb/ folder
+# Exclude unnecessary files from the final package
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Development files
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Large files that shouldn't be in package
+*.zip
+*.tar.gz
+*.rar
+*.7z

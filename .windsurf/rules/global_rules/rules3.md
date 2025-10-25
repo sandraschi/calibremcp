@@ -1,1 +1,0 @@
-D:/Dev/repos/mcp-collection/.windsurf/rules/global_rules/rules3.md

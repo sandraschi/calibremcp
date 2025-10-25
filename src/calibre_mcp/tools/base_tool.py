@@ -1,11 +1,10 @@
 """
 Base classes for MCP tools.
 """
-from typing import Any, Dict, List, Optional, Type, TypeVar, Generic, Callable
-from pydantic import BaseModel, Field
-from fastmcp import FastMCP, MCPTool
-from ...db import init_database, get_database
-from ...services import BookService, AuthorService, LibraryService
+from typing import Optional, Type, TypeVar, Callable
+from pydantic import BaseModel
+from fastmcp import FastMCP
+from ..services import BookService, AuthorService, LibraryService
 
 T = TypeVar('T', bound=BaseModel)
 
@@ -15,10 +14,10 @@ class BaseTool:
     def __init__(self, mcp: FastMCP):
         """Initialize with a FastMCP instance."""
         self.mcp = mcp
-        self.db = get_database()
-        self.book_service = BookService(self.db)
-        self.author_service = AuthorService(self.db)
-        self.library_service = LibraryService(self.db)
+        # Initialize services with connection manager
+        self.book_service = BookService()
+        self.author_service = AuthorService()
+        self.library_service = LibraryService()
     
     @classmethod
     def register(cls, mcp: FastMCP) -> None:

@@ -25,6 +25,16 @@ venv/
 env/
 ENV/
 
+# CI/CD and Testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+bandit-report.json
+trivy-results.sarif
+coverage.xml
+coverage-report-*/
+
 # IDE
 .idea/
 .vscode/
@@ -218,3 +228,10 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Private documentation (internal dev notes, not for public)
+docs-private/
+
+# IDE directories (already in global, but explicit here)
+.windsurf/
+.cursor/

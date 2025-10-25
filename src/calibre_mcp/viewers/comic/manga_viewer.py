@@ -3,17 +3,20 @@ Manga/Comic viewer for CalibreMCP with support for CBZ, CBR, and other formats.
 """
 import os
 import io
-import json
 import zipfile
 import rarfile
 import hashlib
 import sqlite3
 import tempfile
 from pathlib import Path
-from enum import Enum, auto
-from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Any, Generator
+from enum import Enum
+from typing import Dict, List, Optional, Tuple, Union, Any
 from datetime import datetime
-from PIL import Image, ImageOps
+from PIL import Image
+from pydantic import BaseModel
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ReadingDirection(Enum):
     """Reading direction for manga/comics."""
@@ -219,7 +222,7 @@ class MangaViewer:
                         continue
                         
             except Exception as e:
-                print(f"Error processing {filename}: {e}")
+                logger.error(f"Error processing {filename}: {e}")
     
     def _load_rar_pages(self) -> None:
         """Load pages from a RAR archive."""
@@ -250,7 +253,7 @@ class MangaViewer:
                         continue
                         
             except Exception as e:
-                print(f"Error processing {file_info.filename}: {e}")
+                logger.error(f"Error processing {file_info.filename}: {e}")
     
     def _is_image_file(self, filename: str) -> bool:
         """Check if a filename has an image extension."""
@@ -454,7 +457,7 @@ class MangaViewer:
             return img_byte_arr.getvalue()
             
         except Exception as e:
-            print(f"Error processing page {page_number}: {e}")
+            logger.error(f"Error processing page {page_number}: {e}")
             return None
     
     def get_cover_image(self) -> Optional[bytes]:
@@ -537,21 +540,21 @@ class MangaViewer:
         if self._archive:
             try:
                 self._archive.close()
-            except:
+            except OSError:
                 pass
             self._archive = None
             
         if self._temp_dir:
             try:
                 self._temp_dir.cleanup()
-            except:
+            except OSError:
                 pass
             self._temp_dir = None
             
         if self._db_conn:
             try:
                 self._db_conn.close()
-            except:
+            except OSError:
                 pass
             self._db_conn = None
             
@@ -576,6 +579,6 @@ if __name__ == "__main__":
     
     with MangaViewer() as viewer:
         viewer.load(args.file)
-        print(f"Loaded: {viewer.get_metadata().title}")
-        print(f"Pages: {len(viewer._pages)}")
-        print(f"Reading direction: {viewer.get_state().reading_direction}")
+        logger.info(f"Loaded: {viewer.get_metadata().title}")
+        logger.info(f"Pages: {len(viewer._pages)}")
+        logger.info(f"Reading direction: {viewer.get_state().reading_direction}")

@@ -2,16 +2,21 @@
 Tools package for Calibre MCP server.
 
 This package contains all the tools available in the Calibre MCP server,
-organized by functionality into submodules.
+organized by functionality into submodules. Tools are automatically discovered
+and loaded from all subdirectories.
 """
-from typing import Dict, Any, Callable, Optional, TypeVar, cast, List, Type
+from typing import Dict, Any, Callable, Optional, TypeVar, List, Set, Type, cast
 from functools import wraps
 import importlib
 import pkgutil
 import inspect
 import sys
 import os
+import logging
 from pathlib import Path
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Type variable for tool functions
 T = TypeVar('T', bound=Callable[..., Any])
@@ -21,6 +26,12 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
 # Base directory for Calibre libraries
 CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
+
+# Set of directories to ignore when discovering tools
+IGNORE_DIRS = {'__pycache__', '.mypy_cache', '.pytest_cache'}
+
+# Import the base tool class
+from .base_tool import BaseTool, mcp_tool
 
 def tool(
     name: str,
@@ -77,47 +88,75 @@ def get_available_tools() -> List[Dict[str, Any]]:
         for tool_info in TOOL_REGISTRY.values()
     ]
 
+def discover_tools() -> List[Type['BaseTool']]:
+    """
+    Discover and import all tool classes from subdirectories.
+    
+    Returns:
+        List of tool classes that should be registered
+    """
+    tools_dir = Path(__file__).parent
+    tool_classes: List[Type[BaseTool]] = []
+    
+    # Import all modules in the tools directory
+    for finder, name, is_pkg in pkgutil.iter_modules([str(tools_dir)]):
+        if name == "__init__" or name.startswith('_'):
+            continue
+            
+        try:
+            module = importlib.import_module(f"calibre_mcp.tools.{name}")
+            
+            # If it's a package, look for tools in its __init__.py
+            if is_pkg:
+                if hasattr(module, 'tools'):
+                    tool_classes.extend(module.tools)
+            # If it's a module, look for tool classes
+            else:
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if (inspect.isclass(attr) and 
+                        issubclass(attr, BaseTool) and 
+                        attr != BaseTool):
+                        tool_classes.append(attr)
+                            
+        except Exception as e:
+            logger.warning(f"Failed to import tool module {name}: {e}", exc_info=True)
+    
+    return tool_classes
+
 def register_tools(mcp: Any) -> None:
     """
     Register all tools with an MCP server instance.
     
-    This function imports all tool modules to ensure they're registered
-    and then registers each tool with the MCP server.
+    This function registers all FastMCP 2.12 compliant tools from categorized modules.
     
     Args:
         mcp: MCP server instance (FastMCP or similar)
     """
-    # Import all tool modules to ensure they're registered
-    tools_dir = os.path.dirname(__file__)
-    for _, module_name, _ in pkgutil.iter_modules([tools_dir]):
-        if module_name != "__init__":
-            try:
-                module = importlib.import_module(f"calibre_mcp.tools.{module_name}")
-                
-                # Register tools from the module's tools list
-                if hasattr(module, 'tools'):
-                    for tool in module.tools:
-                        mcp.tool()(tool)
-            except Exception as e:
-                import traceback
-                print(f"Error loading module {module_name}: {e}")
-                traceback.print_exc()
+    # Import all tool modules
+    from .core import tools as core_tools
+    from .library import tools as library_tools
+    from .analysis import tools as analysis_tools
+    from .metadata import tools as metadata_tools
+    from .files import tools as file_tools
+    from .specialized import tools as specialized_tools
+    from .system import tools as system_tools
     
-    # Register each tool with the MCP server
-    for tool_name, tool_info in TOOL_REGISTRY.items():
-        tool_func = tool_info['func']
-        
-        # Get the function's docstring for better documentation
-        doc = inspect.getdoc(tool_func) or ''
-        
-        # Register the tool with the MCP server
-        mcp.tool(
-            name=tool_name,
-            description=tool_info['description'],
-            parameters=tool_info.get('parameters', {}),
-            **{k: v for k, v in tool_info.items() 
-               if k not in ('name', 'description', 'parameters', 'func')}
-        )(tool_func)
-        
-        # Log the registered tool
-        print(f"Registered tool: {tool_name} - {tool_info['description']}")
+    # Combine all tools
+    all_tools = (
+        core_tools + 
+        library_tools + 
+        analysis_tools + 
+        metadata_tools + 
+        file_tools + 
+        specialized_tools +
+        system_tools
+    )
+    
+    # Log registration
+    logger.info(f"Registering {len(all_tools)} FastMCP 2.12 compliant tools")
+    
+    # Tools are already registered via @mcp.tool() decorators
+    # No additional registration needed for FastMCP 2.12
+    
+    logger.info(f"Successfully registered {len(all_tools)} tools with MCP server")

@@ -1,14 +1,13 @@
 """AI-powered content analysis for CalibreMCP."""
-from typing import Dict, List, Optional, Any, Set, Union, Tuple
+from typing import Dict, List
 import logging
-import re
-import json
+import hashlib
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 import spacy
 
-from fastmcp import MCPTool, Param
-from pydantic import BaseModel, Field, validator
+from fastmcp import MCPTool
+from pydantic import BaseModel, Field
 
 # Load the English language model for NLP
 try:

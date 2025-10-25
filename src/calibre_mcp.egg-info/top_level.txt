@@ -1,2 +1,1 @@
 calibre_mcp
-calibremcp

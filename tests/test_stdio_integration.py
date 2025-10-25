@@ -7,20 +7,16 @@ through the standard input/output interface as required by FastMCP 2.10.1.
 
 import asyncio
 import json
-import os
 import sys
-import subprocess
 from pathlib import Path
-from typing import Dict, List, Any, Optional, AsyncGenerator
+from typing import Dict
 
 import pytest
-from fastmcp import FastMCP
 
 # Add src to path for local testing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import the server module
-from calibre_mcp import mcp, CalibreConfig, CalibreAPIClient
 
 
 class TestCalibreMCPSTDIO:

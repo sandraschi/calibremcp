@@ -1,19 +1,15 @@
 """
-Calibre MCP Server - FastMCP 2.10 Compliance Tests
+Calibre MCP Server - FastMCP 2.12 Compliance Tests
 
 This test suite verifies that the Calibre MCP server is fully compliant
-with FastMCP 2.10 standards and DXT packaging requirements.
+with FastMCP 2.12 standards and MCPB packaging requirements.
 """
 
-import asyncio
 import json
-import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
 
 import pytest
-from fastmcp import FastMCP
 
 # Add src to path for local testing
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -21,9 +17,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Import the server module
 from src.calibre_mcp.server import (
     CalibreMCPServer,
-    BookSearchResult,
-    LibraryInfo,
-    BookDetailResponse,
     test_calibre_connection,
 )
 
@@ -31,8 +24,8 @@ from src.calibre_mcp.server import (
 TEST_LIBRARY_PATH = str(Path.home() / "Calibre Library")
 
 
-class TestFastMCP210Compliance:
-    """Test suite for FastMCP 2.10.1 compliance."""
+class TestFastMCP212Compliance:
+    """Test suite for FastMCP 2.12 compliance."""
 
     @pytest.fixture
     def server(self):
@@ -44,7 +37,7 @@ class TestFastMCP210Compliance:
         # Check that the server has the required attributes
         server = CalibreMCPServer(library_path=TEST_LIBRARY_PATH)
         
-        # Required FastMCP 2.10 attributes
+        # Required FastMCP 2.12 attributes
         assert hasattr(server, "name")
         assert hasattr(server, "version")
         assert hasattr(server, "description")
@@ -73,47 +66,39 @@ class TestFastMCP210Compliance:
             assert hasattr(server, method), f"Missing required method: {method}"
             assert callable(getattr(server, method)), f"{method} is not callable"
 
-    def test_dxt_manifest_exists(self):
-        """Test that the DXT manifest file exists and is valid JSON."""
-        manifest_path = Path(__file__).parent.parent / "dxt_manifest.json"
-        assert manifest_path.exists(), "dxt_manifest.json not found"
+    def test_mcpb_manifest_exists(self):
+        """Test that the MCPB manifest file exists and is valid JSON."""
+        manifest_path = Path(__file__).parent.parent / "manifest.json"
+        assert manifest_path.exists(), "manifest.json not found"
         
         # Verify it's valid JSON
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
-            pytest.fail(f"Invalid JSON in dxt_manifest.json: {e}")
+            pytest.fail(f"Invalid JSON in manifest.json: {e}")
         
-        # Check required fields
-        required_fields = ["name", "version", "display_name", "description", 
-                         "author", "license", "repository", "categories", "keywords"]
+        # Check required MCPB fields
+        required_fields = ["manifest_version", "name", "version", "server"]
         
         for field in required_fields:
-            assert field in manifest, f"Missing required field in dxt_manifest.json: {field}"
+            assert field in manifest, f"Missing required field in manifest.json: {field}"
         
         # Check server configuration
-        assert "server" in manifest, "Missing server configuration in dxt_manifest.json"
-        assert "command" in manifest["server"], "Missing server command in dxt_manifest.json"
+        assert "type" in manifest["server"], "Missing server type in manifest.json"
+        assert "entry_point" in manifest["server"], "Missing server entry_point in manifest.json"
         
-        # Check dependencies
-        assert "dependencies" in manifest, "Missing dependencies in dxt_manifest.json"
-        assert isinstance(manifest["dependencies"], list), "Dependencies should be a list"
+        # Check MCP configuration
+        assert "mcp_config" in manifest["server"], "Missing mcp_config in manifest.json"
+        assert "command" in manifest["server"]["mcp_config"], "Missing server command in manifest.json"
         
-        # Check configuration
-        assert "configuration" in manifest, "Missing configuration in dxt_manifest.json"
-        assert "CALIBRE_LIBRARY_PATH" in manifest["configuration"], \
-            "Missing CALIBRE_LIBRARY_PATH in configuration"
+        # Check user configuration
+        assert "user_config" in manifest, "Missing user_config in manifest.json"
+        assert isinstance(manifest["user_config"], dict), "user_config should be a dictionary"
         
-        # Check prompts
-        assert "prompts" in manifest, "Missing prompts in dxt_manifest.json"
-        assert isinstance(manifest["prompts"], list), "Prompts should be a list"
-        assert len(manifest["prompts"]) > 0, "No prompts defined in dxt_manifest.json"
-        
-        # Verify each prompt has required fields
-        for prompt in manifest["prompts"]:
-            assert "name" in prompt, "Prompt is missing 'name' field"
-            assert "description" in prompt, f"Prompt '{prompt.get('name')}' is missing 'description' field"
-            assert "template" in prompt, f"Prompt '{prompt.get('name')}' is missing 'template' field"
+        # Check tools
+        assert "tools" in manifest, "Missing tools in manifest.json"
+        assert isinstance(manifest["tools"], list), "Tools should be a list"
+        assert len(manifest["tools"]) > 0, "No tools defined in manifest.json"
 
     @pytest.mark.asyncio
     async def test_server_initialization(self):
@@ -220,7 +205,7 @@ class TestFastMCP210Compliance:
         
         # Check for required dependencies
         requirements = requirements_path.read_text(encoding="utf-8").splitlines()
-        required_deps = ["fastmcp>=2.10.1", "python-dotenv", "pydantic>=2.0.0", "aiohttp"]
+        required_deps = ["fastmcp>=2.12.0", "python-dotenv", "pydantic>=2.0.0", "httpx"]
         
         for dep in required_deps:
             assert any(dep in req for req in requirements), f"Missing required dependency: {dep}"

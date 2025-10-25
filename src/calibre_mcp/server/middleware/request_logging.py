@@ -3,8 +3,7 @@ Request logging middleware for the Calibre MCP Server.
 """
 import time
 import logging
-from typing import Callable, Awaitable
-from fastapi import Request, Response
+from fastapi import Request
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class RequestLoggingMiddleware:
         try:
             response = await self.app(scope, receive, send)
             return response
-        except Exception as e:
+        except Exception:
             logger.exception("Error processing request")
             raise
         finally:

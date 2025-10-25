@@ -23,13 +23,18 @@ Requires-Dist: httpx>=0.25.0
 Requires-Dist: pydantic>=2.0.0
 Requires-Dist: python-dotenv>=1.0.0
 Requires-Dist: rich>=13.0.0
+Requires-Dist: structlog>=23.1.0
 Requires-Dist: asyncio
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
 Requires-Dist: black>=23.0.0; extra == "dev"
 Requires-Dist: ruff>=0.1.0; extra == "dev"
 Requires-Dist: mypy>=1.0.0; extra == "dev"
+Requires-Dist: bandit>=1.7.0; extra == "dev"
+Requires-Dist: twine>=4.0.0; extra == "dev"
+Requires-Dist: build>=0.10.0; extra == "dev"
 Dynamic: author
 Dynamic: home-page
 Dynamic: requires-python
@@ -97,46 +102,140 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-## 📚 Features
+## Features
 
-### **4 Core MCP Tools** ✅
+### Core Features
+- **Advanced Search** - Powerful filtering and search capabilities:
+  - Text search across titles, authors, series, tags, and comments
+  - Filter by publication date and date added
+  - File size and format filtering
+  - Empty/non-empty comments
+  - Star ratings (exact, minimum, or unrated)
+  - Publisher filtering (single or multiple)
+- **Full Library Access** - Browse and manage your entire Calibre collection
+- **Smart Metadata** - Automatic metadata enhancement and validation
+- **Format Conversion** - On-the-fly conversion between formats
+- **Reading Progress** - Track reading progress across devices
+- **Tag Management** - Smart tagging and categorization
+- **Library Statistics** - Detailed insights into your collection
 
-- **`list_books()`** - Browse/search library with flexible filtering
-- **`get_book_details()`** - Complete metadata and file information  
-- **`search_books()`** - Advanced search with field targeting
-- **`test_calibre_connection()`** - Connection testing and diagnostics
+### AI-Powered Tools
+- **Book Recommendations** - Get personalized book suggestions based on content similarity
+- **Content Analysis** - Extract entities, themes, and sentiment from book content
+- **Reading Insights** - Analyze your reading habits and preferences
+- **Metadata Enhancement** - AI-assisted metadata correction and enrichment
 
-### **Usage Examples**
+### Advanced Series Management
+- **Series Analysis** - Identify and fix issues in book series
+- **Metadata Validation** - Ensure consistency across your library
+- **Series Merging** - Combine duplicate or related series
+- **Automatic Organization** - Keep your series properly ordered and managed
+
+## Usage Examples
+
+### Search Examples
 
 ```python
-# Browse recent books
-"Show me the last 20 books I added, sorted by date"
+# Search by title, author, or series
+results = await list_books(query="python programming")
 
-# Search by topic
-"Find all my programming books with 'python' in the title or tags"
+# Filter by date ranges
+from datetime import datetime, timedelta
+last_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+today = datetime.now().strftime("%Y-%m-%d")
+results = await list_books(
+    pubdate_start="2020-01-01",
+    added_after=last_month,
+    added_before=today
+)
 
-# Get book details
-"Tell me everything about book ID 12345 including available formats"
+# Filter by file size and format
+results = await list_books(
+    min_size=1048576,    # 1MB
+    max_size=10485760,   # 10MB
+    formats=["EPUB", "PDF"]
+)
 
-# Check server status
-"Test my Calibre server connection and show library stats"
+# Find books with empty comments or no publisher
+results = await list_books(
+    has_empty_comments=True,
+    has_publisher=False
+)
+
+# Find highly rated books
+results = await list_books(min_rating=4)
+
+# Find unrated books
+results = await list_books(unrated=True)
+
+# Find books by publisher
+results = await list_books(publisher="O'Reilly Media")
+
+# Combined search
+results = await list_books(
+    query="machine learning",
+    min_rating=4,
+    pubdate_start="2020-01-01",
+    formats=["EPUB"],
+    limit=20,
+    offset=0
+)
 ```
 
-## 🎯 Austrian Efficiency
+### AI-Powered Recommendations
+```python
+# Get book recommendations based on a book
+recommendations = await get_book_recommendations(book_id="123")
 
-- **Real working code** - No stubs, all 4 tools fully functional
-- **45-minute implementation** - Realistic AI-assisted timeline
-- **Sandra's workflow optimized** - Weeb-friendly, academic quality, budget conscious
-- **Direct communication** - Clear error messages, no AI platitudes
+# Get personalized recommendations based on preferences
+preferences = {
+    "favorite_authors": ["Brandon Sanderson", "N.K. Jemisin"],
+    "favorite_genres": ["Fantasy", "Science Fiction"]
+}
+personalized_recs = await get_book_recommendations(user_preferences=preferences)
+```
 
-## 📖 Documentation
+### Content Analysis
+```python
+# Analyze book content
+analysis = await analyze_book_content(
+    book_content="...",
+    options={
+        "extract_entities": True,
+        "analyze_sentiment": True,
+        "identify_themes": True
+    }
+)
+```
 
-- **[API Reference](docs/API.md)** - Complete tool documentation with examples
-- **[Configuration Guide](docs/Configuration.md)** - Setup and optimization
-- **[Troubleshooting](docs/Troubleshooting.md)** - Common issues and solutions
-- **[Full Documentation](docs/Full_Documentation.md)** - Complete project details
+### Series Management
+```python
+# Analyze series in your library
+analysis = await analyze_series(
+    library_path="/path/to/calibre/library",
+    update_metadata=True
+)
 
-## 🧪 Testing
+# Fix common series metadata issues
+fix_results = await fix_series_metadata(
+    library_path="/path/to/calibre/library",
+    dry_run=False
+)
+
+# Merge two series
+merge_results = await merge_series(
+    library_path="/path/to/calibre/library",
+    source_series="The Kingkiller Chronicle",
+    target_series="Kingkiller Chronicle",
+    dry_run=True
+)
+```
+
+## Documentation
+
+Full documentation available at [docs/](docs/).
+
+## Testing
 
 ```bash
 # Unit tests

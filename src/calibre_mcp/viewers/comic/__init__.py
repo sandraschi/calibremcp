@@ -7,6 +7,7 @@ import zipfile
 import rarfile
 import io
 import base64
+import re
 from enum import Enum
 import os
 
@@ -177,7 +178,7 @@ class ComicViewer:
         if self._archive:
             try:
                 self._archive.close()
-            except:
+            except OSError:
                 pass
             self._archive = None
         self._file_list = []

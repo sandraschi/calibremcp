@@ -2,7 +2,6 @@
 Quick import test for CalibreMCP
 """
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
@@ -15,30 +14,30 @@ print("Testing CalibreMCP imports...")
 try:
     print("1. Testing FastMCP import...")
     from fastmcp import FastMCP
-    print("   ✅ fastmcp import successful")
+    print("   fastmcp import successful")
     
     print("2. Testing config import...")
     from calibre_mcp.config import CalibreConfig
-    print("   ✅ config import successful")
+    print("   config import successful")
     
     print("3. Testing API client import...")
     from calibre_mcp.calibre_api import CalibreAPIClient, CalibreAPIError
-    print("   ✅ API client import successful")
+    print("   API client import successful")
     
     print("4. Testing server import...")
     from calibre_mcp.server import mcp
-    print("   ✅ server import successful")
+    print("   server import successful")
     
-    print(f"5. Checking server tools...")
-    print(f"   📚 Server name: {mcp.name}")
-    print(f"   🔧 Total tools: {len(mcp.tools)}")
+    print("5. Checking server tools...")
+    print(f"   Server name: {mcp.name}")
+    print(f"   Total tools: {len(mcp.tools)}")
     
-    print("\n🎉 ALL IMPORTS SUCCESSFUL!")
-    print("✅ CalibreMCP Phase 2 is ready to run!")
+    print("\nALL IMPORTS SUCCESSFUL!")
+    print("CalibreMCP Phase 2 is ready to run!")
     
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f"Import error: {e}")
     sys.exit(1)
 except Exception as e:
-    print(f"❌ Other error: {e}")
+    print(f"Other error: {e}")
     sys.exit(1)

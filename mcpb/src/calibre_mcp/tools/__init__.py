@@ -1,0 +1,150 @@
+"""
+Tools package for Calibre MCP server.
+
+This package contains all the tools available in the Calibre MCP server,
+organized by functionality into submodules. Tools are automatically discovered
+and loaded from all subdirectories.
+"""
+from typing import Dict, Any, Callable, Optional, TypeVar, List, Set, Type, cast
+from functools import wraps
+import importlib
+import pkgutil
+import inspect
+import sys
+import os
+import logging
+from pathlib import Path
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Type variable for tool functions
+T = TypeVar('T', bound=Callable[..., Any])
+
+# Global tool registry
+TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {}
+
+# Base directory for Calibre libraries
+CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
+
+# Set of directories to ignore when discovering tools
+IGNORE_DIRS = {'__pycache__', '.mypy_cache', '.pytest_cache'}
+
+# Import the base tool class
+from .base_tool import BaseTool, mcp_tool
+
+def tool(
+    name: str,
+    description: str,
+    parameters: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> Callable[[T], T]:
+    """
+    Decorator to register a function as an MCP tool.
+    
+    Args:
+        name: Unique name of the tool
+        description: Description of what the tool does
+        parameters: Dictionary describing the tool's parameters
+        **kwargs: Additional tool metadata
+        
+    Returns:
+        Decorated function
+    """
+    def decorator(func: T) -> T:
+        # Add tool metadata to the function
+        func._mcp_tool = {  # type: ignore
+            'name': name,
+            'description': description,
+            'parameters': parameters or {},
+            'func': func,
+            **kwargs
+        }
+        
+        # Register the tool
+        TOOL_REGISTRY[name] = func._mcp_tool  # type: ignore
+        
+        @wraps(func)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            return await func(*args, **kwargs)
+            
+        return cast(T, wrapper)
+        
+    return decorator
+
+def get_available_tools() -> List[Dict[str, Any]]:
+    """
+    Get a list of all available tools with their metadata.
+    
+    Returns:
+        List of tool metadata dictionaries
+    """
+    return [
+        {
+            'name': tool_info['name'],
+            'description': tool_info['description'],
+            'parameters': tool_info.get('parameters', {}),
+        }
+        for tool_info in TOOL_REGISTRY.values()
+    ]
+
+def discover_tools() -> List[Type['BaseTool']]:
+    """
+    Discover and import all tool classes from subdirectories.
+    
+    Returns:
+        List of tool classes that should be registered
+    """
+    tools_dir = Path(__file__).parent
+    tool_classes: List[Type[BaseTool]] = []
+    
+    # Import all modules in the tools directory
+    for finder, name, is_pkg in pkgutil.iter_modules([str(tools_dir)]):
+        if name == "__init__" or name.startswith('_'):
+            continue
+            
+        try:
+            module = importlib.import_module(f"calibre_mcp.tools.{name}")
+            
+            # If it's a package, look for tools in its __init__.py
+            if is_pkg:
+                if hasattr(module, 'tools'):
+                    tool_classes.extend(module.tools)
+            # If it's a module, look for tool classes
+            else:
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if (inspect.isclass(attr) and 
+                        issubclass(attr, BaseTool) and 
+                        attr != BaseTool):
+                        tool_classes.append(attr)
+                            
+        except Exception as e:
+            logger.warning(f"Failed to import tool module {name}: {e}", exc_info=True)
+    
+    return tool_classes
+
+def register_tools(mcp: Any) -> None:
+    """
+    Register all tools with an MCP server instance.
+    
+    This function discovers and registers all tools from subdirectories.
+    
+    Args:
+        mcp: MCP server instance (FastMCP or similar)
+    """
+    # Discover all tool classes
+    tool_classes = discover_tools()
+    
+    # Register each tool class
+    for tool_class in tool_classes:
+        try:
+            # Create instance and register
+            tool_instance = tool_class()
+            tool_instance.register(mcp)
+            logger.info(f"Registered tool: {tool_class.__name__}")
+        except Exception as e:
+            logger.error(f"Failed to register tool {tool_class.__name__}: {e}", exc_info=True)
+    
+    # Log registration complete
+    logger.info(f"Registered {len(tool_classes)} tools with MCP server")
