@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-from fastmcp import FastMCP, MCPServerError
+from fastmcp import FastMCP
 
 # Import the tool registration function
 from .tools import register_tools as register_all_tools
@@ -23,6 +23,11 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger("calibremcp")
+
+
+class MCPServerError(Exception):
+    """Custom exception for MCP server errors."""
+    pass
 
 
 class CalibreMCPServer:

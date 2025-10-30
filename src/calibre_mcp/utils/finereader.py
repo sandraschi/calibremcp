@@ -8,7 +8,7 @@ import re
 import logging
 import asyncio
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from enum import Enum
 
 logger = logging.getLogger(__name__)
