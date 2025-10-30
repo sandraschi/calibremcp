@@ -141,6 +141,7 @@ def register_tools(mcp: Any) -> None:
     from .files import tools as file_tools
     from .specialized import tools as specialized_tools
     from .system import tools as system_tools
+    from .ocr import tools as ocr_tools
     
     # Combine all tools
     all_tools = (
@@ -150,13 +151,13 @@ def register_tools(mcp: Any) -> None:
         metadata_tools + 
         file_tools + 
         specialized_tools +
-        system_tools
+        system_tools +
+        ocr_tools
     )
     
+    # Register all tools with MCP instance
+    for tool_class in all_tools:
+        tool_class.register(mcp)
+    
     # Log registration
-    logger.info(f"Registering {len(all_tools)} FastMCP 2.12 compliant tools")
-    
-    # Tools are already registered via @mcp.tool() decorators
-    # No additional registration needed for FastMCP 2.12
-    
-    logger.info(f"Successfully registered {len(all_tools)} tools with MCP server")
+    logger.info(f"Registered {len(all_tools)} FastMCP 2.12 compliant tools")
