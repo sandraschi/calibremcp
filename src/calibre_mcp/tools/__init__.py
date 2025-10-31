@@ -5,13 +5,11 @@ This package contains all the tools available in the Calibre MCP server,
 organized by functionality into submodules. Tools are automatically discovered
 and loaded from all subdirectories.
 """
-from typing import Dict, Any, Callable, Optional, TypeVar, List, Set, Type, cast
+from typing import Dict, Any, Callable, Optional, TypeVar, List, Type, cast
 from functools import wraps
 import importlib
 import pkgutil
 import inspect
-import sys
-import os
 import logging
 from pathlib import Path
 
@@ -30,8 +28,8 @@ CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
 # Set of directories to ignore when discovering tools
 IGNORE_DIRS = {'__pycache__', '.mypy_cache', '.pytest_cache'}
 
-# Import the base tool class
-from .base_tool import BaseTool, mcp_tool
+# Import the base tool class (after type definitions)
+from .base_tool import BaseTool, mcp_tool  # noqa: E402, F401
 
 def tool(
     name: str,
@@ -130,33 +128,37 @@ def register_tools(mcp: Any) -> None:
     
     This function registers all FastMCP 2.12 compliant tools from categorized modules.
     
+    FastMCP 2.12 auto-registers tools decorated with @mcp.tool() when modules are imported.
+    This function only registers BaseTool classes that need explicit registration.
+    
     Args:
         mcp: MCP server instance (FastMCP or similar)
     """
-    # Import all tool modules
-    from .core import tools as core_tools
-    from .library import tools as library_tools
-    from .analysis import tools as analysis_tools
-    from .metadata import tools as metadata_tools
-    from .files import tools as file_tools
-    from .specialized import tools as specialized_tools
-    from .system import tools as system_tools
+    # Import all tool modules to trigger auto-registration of @mcp.tool() decorated functions
+    # These are already registered when imported (FastMCP 2.12 behavior)
+    from .core import tools as _core_tools  # noqa: F401
+    from .library import tools as _library_tools  # noqa: F401
+    from .analysis import tools as _analysis_tools  # noqa: F401
+    from .metadata import tools as _metadata_tools  # noqa: F401
+    from .files import tools as _file_tools  # noqa: F401
+    from .specialized import tools as _specialized_tools  # noqa: F401
+    from .system import tools as _system_tools  # noqa: F401
+    from .ocr import tools as _ocr_tools  # noqa: F401
     
-    # Combine all tools
-    all_tools = (
-        core_tools + 
-        library_tools + 
-        analysis_tools + 
-        metadata_tools + 
-        file_tools + 
-        specialized_tools +
-        system_tools
-    )
+    # Only register BaseTool classes (functions with @mcp.tool() are already auto-registered)
+    tool_classes: List[Type[BaseTool]] = []
+    
+    # Import BaseTool classes that need explicit registration
+    from .book_tools import BookTools
+    from .author_tools import AuthorTools
+    from .viewer_tools import ViewerTools
+    from .ocr.calibre_ocr_tool import OCRTool
+    
+    tool_classes = [BookTools, AuthorTools, ViewerTools, OCRTool]
+    
+    # Register BaseTool classes
+    for tool_class in tool_classes:
+        tool_class.register(mcp)
     
     # Log registration
-    logger.info(f"Registering {len(all_tools)} FastMCP 2.12 compliant tools")
-    
-    # Tools are already registered via @mcp.tool() decorators
-    # No additional registration needed for FastMCP 2.12
-    
-    logger.info(f"Successfully registered {len(all_tools)} tools with MCP server")
+    logger.info(f"Registered {len(tool_classes)} BaseTool classes (functions auto-registered on import)")
