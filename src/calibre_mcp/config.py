@@ -146,6 +146,7 @@ class CalibreConfig(BaseModel):
             "CALIBRE_LIBRARY_NAME": "library_name",
             "CALIBRE_BASE_PATH": "base_library_path",
             "CALIBRE_LIBRARY_PATHS": "library_paths",  # JSON-encoded dict of library paths
+            "user_config.calibre_library_path": "local_library_path",  # MCP user config from Claude Desktop
         }
 
         # Special handling for library paths
@@ -185,6 +186,9 @@ class CalibreConfig(BaseModel):
                             env_var=env_var,
                             value=env_value,
                         )
+                elif config_key == "local_library_path":
+                    # Convert path string to Path object
+                    config_data[config_key] = Path(env_value)
                 else:
                     config_data[config_key] = env_value
 
