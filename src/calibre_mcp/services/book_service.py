@@ -782,14 +782,25 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         book_dict["identifiers"] = {}
 
         # Build formats list with file paths
-        # Calibre stores files as: {library_path}/{book.path}/{data.id}.{format.lower()}
+        # Calibre stores files using either:
+        # 1. Descriptive filename from data.name if available
+        # 2. Numeric format {data.id}.{format.lower()} if data.name is empty
         formats = []
         if hasattr(book, "data") and book.data:
             # Get library base path from database URL
             library_path = self._get_library_base_path()
             for data in book.data:
-                # Construct full file path: library_path/book_path/data_id.format
-                filename = f"{data.id}.{data.format.lower()}"
+                # Use descriptive filename if available, otherwise use numeric format
+                if data.name and data.name.strip():
+                    # Descriptive filename: name may include extension, or we add it
+                    if data.name.lower().endswith(f".{data.format.lower()}"):
+                        filename = data.name
+                    else:
+                        filename = f"{data.name}.{data.format.lower()}"
+                else:
+                    # Numeric filename format
+                    filename = f"{data.id}.{data.format.lower()}"
+
                 relative_path = f"{book.path}/{filename}" if book.path else filename
                 full_path = (
                     str(Path(library_path) / relative_path) if library_path else relative_path
