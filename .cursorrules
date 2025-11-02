@@ -305,22 +305,43 @@ async def tool_name(
 
 ## Error Messages (AI-Friendly Requirements) - MANDATORY FOR ALL TOOLS
 
-### ⚠️ CRITICAL: All Tools MUST Return Structured Error Responses
+### ⚠️ CRITICAL: No Silent Failures - All Tools MUST Have Comprehensive Error Handling
 
-**NEVER raise exceptions** from `@mcp.tool()` decorated functions. **ALWAYS** catch exceptions and return structured error dictionaries using the standardized error handling utilities.
+**ABSOLUTE REQUIREMENTS:**
+1. **NEVER raise exceptions** from `@mcp.tool()` decorated functions
+2. **NEVER fail silently** - Every tool MUST catch ALL exceptions and return structured error dictionaries
+3. **NEVER hang or crash the server** - All operations MUST have timeouts and error recovery
+4. **ALWAYS provide actionable, AI-optimized error messages** with context and solutions
+5. **ALWAYS log errors** using the logging_config utilities for debugging
+
+**Violations of these rules are SEVERE BUGS and will be rejected.**
 
 ### Error Handling Implementation
 
-**USE THE STANDARDIZED ERROR HANDLING UTILITIES:**
+**USE THE STANDARDIZED ERROR HANDLING UTILITIES WITH LOGGING:**
 ```python
 from ..shared.error_handling import handle_tool_error, format_error_response
+from ...logging_config import get_logger, log_operation, log_error
+
+logger = get_logger("calibremcp.tools.my_category")
 
 @mcp.tool()
 async def my_tool(param: str) -> Dict[str, Any]:
     try:
+        # Log operation start (optional but recommended for debugging)
+        log_operation(logger, "my_tool_start", level="INFO", param=param)
+        
         # Tool logic here
-        return {"success": True, "data": result}
+        result = {"success": True, "data": result_data}
+        
+        # Log success
+        log_operation(logger, "my_tool_success", level="INFO", result_count=len(result_data))
+        
+        return result
     except Exception as e:
+        # ALWAYS log errors for debugging
+        log_error(logger, "my_tool_error", e, param=param)
+        
         # ALWAYS catch exceptions and return structured error
         return handle_tool_error(
             exception=e,
@@ -402,11 +423,14 @@ raise FileNotFoundError(
    
 2. **Implement the tool**:
    - Add tool following FastMCP 2.13+ architecture
+   - **MANDATORY**: Wrap ALL logic in try/except with structured error returns
+   - **MANDATORY**: Add logging for operations and errors
    - Ensure security best practices (input validation, no command injection risks)
    - Create Pydantic models if needed
    - Add comprehensive multiline docstring
    - Include detailed, AI-friendly error messages
    - Add input validation and error handling
+   - Test error scenarios (missing files, invalid inputs, network failures)
    
 3. **Code quality checks** (ITERATIVE):
    - Run: `uv run ruff check .`
