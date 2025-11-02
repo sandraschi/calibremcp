@@ -108,7 +108,14 @@ async def wrapper({params_str}):
             "is_async": is_async,
             "typing": typing,
         }
-        exec_globals = {**globals(), "typing": typing}
+        # Variables in both globals and locals for exec to ensure closure capture
+        exec_globals = {
+            **globals(),
+            "method": method,
+            "self": self,
+            "is_async": is_async,
+            "typing": typing,
+        }
         exec(exec_code, exec_globals, local_vars)
         wrapper = local_vars["wrapper"]
 
