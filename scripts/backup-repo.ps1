@@ -123,9 +123,10 @@ $exclusions = @(
 # Large test files that should be excluded (can be regenerated)
 # Note: Use forward slashes or double backslashes for regex compatibility
 $excludeLargeTestFiles = @(
-    "samples/metadata.db",      # Large Calibre test database (3.9 MB)
-    "samples/test_library.db",  # Large test libraries  
-    "test_data/*.db"            # Test data in any test_data directory
+    "samples/metadata.db",           # Large Calibre test database (3.9 MB)
+    "samples/full-text-search.db",   # HUGE full-text search database (727 MB!)
+    "samples/test_library.db",       # Large test libraries  
+    "test_data/*.db"                 # Test data in any test_data directory
 )
 
 # Combine exclusions
