@@ -9,7 +9,11 @@ from sqlalchemy import or_
 
 from ..db.database import DatabaseService
 from ..db.models import Book  # Use db.models.Book for queries (has series relationship)
-from ..models.book import BookCreate, BookUpdate, BookResponse  # Use models.book for Pydantic schemas
+from ..models.book import (
+    BookCreate,
+    BookUpdate,
+    BookResponse,
+)  # Use models.book for Pydantic schemas
 from ..db.models import Author, Series, Tag, Rating, Comment  # Use db.models for query models
 from .base_service import BaseService, NotFoundError, ValidationError
 
@@ -52,20 +56,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
     def _get_library_base_path(self) -> Optional[str]:
         """
         Get the base library path from the database connection URL.
-        
+
         Returns:
             Library base path (directory containing metadata.db) or None if unavailable
         """
         if self._library_path_cache is not None:
             return self._library_path_cache
-        
+
         try:
             # Get database URL from engine
             if self.db._engine is None:
                 return None
-            
+
             url = str(self.db._engine.url)
-            
+
             # Extract path from SQLite URL (sqlite:///path/to/metadata.db)
             if url.startswith("sqlite:///"):
                 db_path = url.replace("sqlite:///", "").replace("\\", "/")
@@ -75,7 +79,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 return library_path
         except Exception:
             pass
-        
+
         return None
 
     def get_by_id(self, book_id: int) -> Dict[str, Any]:
@@ -227,7 +231,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                             limit=10000,  # Get all matches, we'll paginate in SQLAlchemy
                             offset=0,
                         )
-                        
+
                         # If FTS returned results, use them
                         if book_ids:
                             # Filter query to only include FTS-matched book IDs
@@ -681,7 +685,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             return [
                 {
                     "format": data.format.upper(),
-                    "size": data.size,
+                    "size": data.uncompressed_size,
                     "name": data.name,
                     "mtime": data.mtime.isoformat() if data.mtime else None,
                 }
@@ -758,19 +762,25 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             "uuid": book.uuid,
             "last_modified": book.last_modified,
         }
-        
+
         # Handle relationships manually to avoid lazy-loading issues
-        book_dict["authors"] = [{"id": a.id, "name": a.name} for a in (book.authors if hasattr(book, "authors") else [])]
-        book_dict["tags"] = [{"id": t.id, "name": t.name} for t in (book.tags if hasattr(book, "tags") else [])]
+        book_dict["authors"] = [
+            {"id": a.id, "name": a.name} for a in (book.authors if hasattr(book, "authors") else [])
+        ]
+        book_dict["tags"] = [
+            {"id": t.id, "name": t.name} for t in (book.tags if hasattr(book, "tags") else [])
+        ]
         # Handle series - db.models.Book has series as relationship
         if hasattr(book, "series") and book.series:
-            book_dict["series"] = {"id": book.series[0].id, "name": book.series[0].name} if book.series else None
+            book_dict["series"] = (
+                {"id": book.series[0].id, "name": book.series[0].name} if book.series else None
+            )
         else:
             book_dict["series"] = None
-        
+
         # Skip identifiers - relationship has column name mismatch (book vs book_id)
         book_dict["identifiers"] = {}
-        
+
         # Build formats list with file paths
         # Calibre stores files as: {library_path}/{book.path}/{data.id}.{format.lower()}
         formats = []
@@ -781,16 +791,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 # Construct full file path: library_path/book_path/data_id.format
                 filename = f"{data.id}.{data.format.lower()}"
                 relative_path = f"{book.path}/{filename}" if book.path else filename
-                full_path = str(Path(library_path) / relative_path) if library_path else relative_path
-                
-                formats.append({
-                    "format": data.format.upper(),
-                    "filename": filename,
-                    "path": full_path,
-                    "size": data.uncompressed_size if hasattr(data, "uncompressed_size") else 0,
-                })
+                full_path = (
+                    str(Path(library_path) / relative_path) if library_path else relative_path
+                )
+
+                formats.append(
+                    {
+                        "format": data.format.upper(),
+                        "filename": filename,
+                        "path": full_path,
+                        "size": data.uncompressed_size if hasattr(data, "uncompressed_size") else 0,
+                    }
+                )
         book_dict["formats"] = formats
-        
+
         return BookResponse.model_validate(book_dict).model_dump()
 
 
