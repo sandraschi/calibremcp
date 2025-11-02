@@ -5,6 +5,7 @@ MCP tools for book viewing operations.
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 from ..services.viewer_service import viewer_service, ViewerState, ViewerPage, ViewerMetadata
+from ..services import book_service
 from .base_tool import BaseTool, mcp_tool
 from pathlib import Path
 
@@ -516,8 +517,6 @@ class ViewerTools(BaseTool):
         import os
         import platform
         import subprocess
-        from pathlib import Path
-        from ...services.book_service import book_service
 
         try:
             # If file_path is not provided or invalid, try to get it from book formats
