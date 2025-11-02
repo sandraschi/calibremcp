@@ -37,6 +37,17 @@ uv run python -m pytest -v
 - **Zero tolerance**: No commits with ruff errors allowed
 - **Pre-commit hook recommended** (run ruff check automatically)
 
+### Repository Size Protection
+- **NEVER commit large files** (>100MB) - Use Git LFS or external storage
+- **NEVER commit Calibre databases** (*.db files) - Already in .gitignore
+- **Check before committing**: `git diff --cached --stat` shows file sizes
+- **If accidentally committed**: 
+  1. Remove from tracking: `git rm --cached largefile.db`
+  2. Commit removal immediately
+  3. Purge from history: `git filter-branch --force --index-filter "git rm --cached --ignore-unmatch largefile.db" --prune-empty --tag-name-filter cat -- --all`
+  4. Force garbage collection: `git reflog expire --expire=now --all && git gc --prune=now --aggressive`
+- **Backup script excludes** large databases automatically (config in `scripts/backup-repo.ps1`)
+
 ---
 
 ## FastMCP 2.13+ Standard Conformance (STRICT)
