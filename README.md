@@ -1,6 +1,12 @@
 # CalibreMCP 📚
 
-**FastMCP 2.0 server for comprehensive Calibre e-book library management through Claude Desktop**
+**FastMCP 2.13+ server for comprehensive Calibre e-book library management through Claude Desktop**
+
+**Features:**
+- **Portmanteau Tools** - Consolidated tools reducing tool count while maintaining full functionality
+- **Default Library Auto-Loading** - No manual library setup needed
+- **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
+- **Verb Mapping** - Claude automatically maps user queries to correct operations
 
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.0-blue)](https://github.com/jlowin/fastmcp)
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
@@ -42,6 +48,47 @@ import asyncio
 print('✅ Working' if asyncio.run(quick_library_test()) else '❌ Failed')
 "
 ```
+
+### **Verify Server Will Load in Claude** ⚡
+
+Before committing or restarting Claude, verify the server will load:
+
+```bash
+# Quick check (fast, recommended)
+python scripts/quick_check.py
+
+# Comprehensive check (includes linting)
+python scripts/pre_commit_check.py
+
+# Check recent logs for errors
+python scripts/check_logs.py --errors-only
+```
+
+**Standardized Workflow (After "add tool to do x"):**
+
+1. **Add tool** following all standards
+2. **Run ruff iteratively** until zero errors:
+   - `uv run ruff check .` → Fix errors → Run again → Repeat until clean
+   - `uv run ruff format .` (format after linting passes)
+3. **Run pytest**: `uv run python -m pytest -v`
+4. **Run restart script**: `.\scripts\restart_claude_and_check_mcp.ps1`
+
+**Quick Check (Claude Already Running):**
+```powershell
+.\scripts\restart_claude_and_check_mcp.ps1 -NoRestart
+```
+
+**Full Restart & Check:**
+```powershell
+.\scripts\restart_claude_and_check_mcp.ps1
+```
+
+**Note:** 
+- **SOTA Script** - Generic MCP server debugging script (copied from central docs repo)
+- Uses `taskkill` to stop Claude (no UAC needed)
+- Auto-detects server name, log file location, Claude path
+- Checks only the **LAST** startup attempt (ignores older failures)
+- See [MCP Development Workflow](docs/MCP_DEVELOPMENT_WORKFLOW.md) for complete process
 
 ### **Claude Desktop Integration**
 
@@ -94,51 +141,70 @@ Add to your `claude_desktop_config.json`:
 
 ### Search Examples
 
+**Using Portmanteau Tools:** All user queries (search, list, find, query, get) map to `query_books`:
+
 ```python
+# User says: "list books by conan doyle" → query_books with operation="search"
+results = await query_books(
+    operation="search",
+    author="Conan Doyle",
+    format_table=True
+)
+
 # Search by title, author, or series
-results = await list_books(query="python programming")
+results = await query_books(
+    operation="search",
+    text="python programming"
+)
 
 # Filter by date ranges
 from datetime import datetime, timedelta
 last_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 today = datetime.now().strftime("%Y-%m-%d")
-results = await list_books(
+results = await query_books(
+    operation="search",
     pubdate_start="2020-01-01",
     added_after=last_month,
     added_before=today
 )
 
 # Filter by file size and format
-results = await list_books(
+results = await query_books(
+    operation="search",
     min_size=1048576,    # 1MB
     max_size=10485760,   # 10MB
     formats=["EPUB", "PDF"]
 )
 
 # Find books with empty comments or no publisher
-results = await list_books(
+results = await query_books(
+    operation="search",
     has_empty_comments=True,
     has_publisher=False
 )
 
 # Find highly rated books
-results = await list_books(min_rating=4)
+results = await query_books(operation="search", min_rating=4)
 
 # Find unrated books
-results = await list_books(unrated=True)
+results = await query_books(operation="search", unrated=True)
 
 # Find books by publisher
-results = await list_books(publisher="O'Reilly Media")
+results = await query_books(operation="search", publisher="O'Reilly Media")
 
-# Combined search
-results = await list_books(
-    query="machine learning",
+# Combined search with multiple filters
+results = await query_books(
+    operation="search",
+    text="machine learning",
     min_rating=4,
     pubdate_start="2020-01-01",
     formats=["EPUB"],
     limit=20,
     offset=0
 )
+
+# List all books (simple operation, no filters)
+results = await query_books(operation="list", limit=50)
 ```
 
 ### AI-Powered Recommendations

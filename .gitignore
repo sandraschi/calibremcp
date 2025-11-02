@@ -47,6 +47,11 @@ coverage-report-*/
 *.sqlite
 *.sqlite3
 *.db-journal
+# Exception: Allow test fixtures (small test files for CI/CD)
+!tests/fixtures/**/*.db
+!tests/fixtures/**/*.epub
+!tests/fixtures/**/*.pdf
+!tests/fixtures/**/*.cbz
 
 # Logs
 *.log
@@ -235,3 +240,21 @@ docs-private/
 # IDE directories (already in global, but explicit here)
 .windsurf/
 .cursor/
+
+# Test files that should be in tests/ or scripts/ directories
+test_*.py
+!tests/test_*.py
+!scripts/test_*.py
+
+# Scripts that should be in scripts/ directory
+extract_tools.py
+minimal_test.py
+run_server.py
+!scripts/extract_tools.py
+!scripts/minimal_test.py
+!scripts/run_server.py
+
+# Old/backup files
+*_old.py
+*.bak
+*.backup

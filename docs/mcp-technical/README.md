@@ -31,7 +31,26 @@
 
 ---
 
-### **3. FastMCP 2.12 Troubleshooting**
+### **3. FastMCP 2.13 Persistent Storage Pattern** ⭐ NEW
+📄 [FASTMCP_2.13_PERSISTENT_STORAGE_PATTERN.md](FASTMCP_2.13_PERSISTENT_STORAGE_PATTERN.md)
+
+**Complete guide for implementing cross-session persistence in MCP servers**
+- Platform-aware storage directories (Windows/macOS/Linux)
+- Server lifespan integration
+- DiskStore backend setup
+- Common use cases (preferences, state, history, caching)
+- Best practices and troubleshooting
+- Production-ready pattern for database operations and stateful MCP servers
+
+**Key Features:**
+- ✅ Persists across Claude Desktop restarts
+- ✅ Persists across Windows/OS reboots
+- ✅ Simple key-value interface
+- ✅ Automatic platform detection
+
+---
+
+### **4. FastMCP 2.12 Troubleshooting**
 📄 [TROUBLESHOOTING_FASTMCP_2.12.md](TROUBLESHOOTING_FASTMCP_2.12.md)
 
 **FastMCP-specific issues and solutions**
@@ -43,7 +62,7 @@
 
 ---
 
-### **4. Containerization Guidelines**
+### **5. Containerization Guidelines**
 📄 [CONTAINERIZATION_GUIDELINES.md](CONTAINERIZATION_GUIDELINES.md)
 
 **Docker and containerization for MCP servers**
@@ -55,7 +74,7 @@
 
 ---
 
-### **5. Monitoring Stack Deployment**
+### **6. Monitoring Stack Deployment**
 📄 [MONITORING_STACK_DEPLOYMENT.md](MONITORING_STACK_DEPLOYMENT.md)
 
 **Production monitoring and observability**

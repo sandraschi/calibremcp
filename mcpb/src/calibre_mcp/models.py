@@ -1,6 +1,7 @@
 """
 Data models for Calibre MCP server.
 """
+
 from typing import List, Optional, Dict, Any
 from datetime import date, datetime
 from enum import Enum
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 class BookFormat(str, Enum):
     """Supported book formats."""
+
     EPUB = "epub"
     PDF = "pdf"
     MOBI = "mobi"
@@ -35,6 +37,7 @@ class BookFormat(str, Enum):
 
 class BookStatus(str, Enum):
     """Book reading status."""
+
     UNREAD = "unread"
     READING = "reading"
     FINISHED = "finished"
@@ -44,12 +47,14 @@ class BookStatus(str, Enum):
 
 class BookIdentifier(BaseModel):
     """Book identifier (ISBN, Goodreads, etc.)."""
+
     type: str
     value: str
 
 
 class BookMetadata(BaseModel):
     """Book metadata model."""
+
     title: str
     authors: List[str] = []
     identifiers: List[BookIdentifier] = []
@@ -74,7 +79,7 @@ class BookMetadata(BaseModel):
     file_path: Optional[Path] = None
     custom_fields: Dict[str, Any] = {}
 
-    @field_validator('authors', 'tags', 'languages')
+    @field_validator("authors", "tags", "languages")
     @classmethod
     def normalize_list_fields(cls, v):
         """Normalize list fields by removing empty strings and duplicates."""
@@ -82,7 +87,7 @@ class BookMetadata(BaseModel):
             return []
         return list(dict.fromkeys([item.strip() for item in v if item and item.strip()]))
 
-    @field_validator('title', 'publisher', 'series', 'description', 'comments')
+    @field_validator("title", "publisher", "series", "description", "comments")
     @classmethod
     def normalize_string_fields(cls, v):
         """Normalize string fields by stripping whitespace."""
@@ -95,11 +100,13 @@ class BookMetadata(BaseModel):
 
 class Book(BookMetadata):
     """Book model with ID."""
+
     id: int
 
 
 class BookListResponse(BaseModel):
     """Response model for listing books."""
+
     books: List[Book]
     total_count: int
     offset: int
@@ -108,13 +115,14 @@ class BookListResponse(BaseModel):
 
 class BookAddRequest(BaseModel):
     """Request model for adding a new book."""
+
     file_path: Optional[Path] = None
     file_data: Optional[bytes] = None  # For direct file uploads
     format: Optional[BookFormat] = None
     metadata: Optional[BookMetadata] = None
     fetch_metadata: bool = True
 
-    @field_validator('file_path')
+    @field_validator("file_path")
     @classmethod
     def validate_file_path(cls, v):
         """Validate that the file exists and is readable."""
@@ -130,6 +138,7 @@ class BookAddRequest(BaseModel):
 
 class BookUpdateRequest(BaseModel):
     """Request model for updating book metadata."""
+
     metadata: BookMetadata
     update_file: bool = False
     file_path: Optional[Path] = None
@@ -139,6 +148,7 @@ class BookUpdateRequest(BaseModel):
 
 class SearchQuery(BaseModel):
     """Search query model."""
+
     query: Optional[str] = None
     title: Optional[str] = None
     author: Optional[str] = None
@@ -163,6 +173,7 @@ class SearchQuery(BaseModel):
 
 class UserRole(str, Enum):
     """User roles for access control."""
+
     ADMIN = "admin"
     EDITOR = "editor"
     READER = "reader"
@@ -171,6 +182,7 @@ class UserRole(str, Enum):
 
 class User(BaseModel):
     """User model."""
+
     id: int
     username: str
     email: str
@@ -183,6 +195,7 @@ class User(BaseModel):
 
 class Collection(BaseModel):
     """Book collection model."""
+
     id: int
     name: str
     description: Optional[str] = None
@@ -195,6 +208,7 @@ class Collection(BaseModel):
 
 class Annotation(BaseModel):
     """Book annotation model."""
+
     id: int
     book_id: int
     user_id: int

@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 
 # Add src to path for local testing
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import the server module
@@ -37,7 +38,7 @@ def test_mcp_initialization():
 def test_config_defaults():
     """Test that the config has the expected defaults."""
     config = CalibreConfig()
-    
+
     # Check some default values
     assert config.server_url == "http://localhost:8080"
     assert config.timeout == 30
@@ -46,22 +47,22 @@ def test_config_defaults():
     assert config.library_name == "main"
 
 
-@patch('calibre_mcp.calibre_api.httpx.AsyncClient')
+@patch("calibre_mcp.calibre_api.httpx.AsyncClient")
 def test_calibre_api_client(mock_client):
     """Test the Calibre API client initialization."""
     # Create a mock response
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"version": "6.0.0", "title": "Test Library"}
-    
+
     # Configure the mock client
     mock_instance = mock_client.return_value.__aenter__.return_value
     mock_instance.get.return_value = mock_response
-    
+
     # Test the client
     config = CalibreConfig(server_url="http://localhost:8080")
     client = CalibreAPIClient(config)
-    
+
     # Verify the client was created with the correct config
     assert client.config.server_url == "http://localhost:8080"
 

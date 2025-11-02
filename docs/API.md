@@ -6,61 +6,312 @@
 
 ## 🔧 MCP Tools
 
-CalibreMCP provides 4 FastMCP 2.0 tools for comprehensive Calibre library management through Claude Desktop.
+CalibreMCP uses **FastMCP 2.13+** with **portmanteau tools** - consolidated tools that handle multiple related operations through an `operation` parameter. This reduces tool count while maintaining full functionality.
 
-### **Tool 1: `list_books`**
+### **Tool 1: `query_books`** ⭐ **PRIMARY BOOK ACCESS TOOL**
 
-Browse/search library with flexible filtering and sorting.
+**Portmanteau tool** that consolidates all book querying operations: search, list, find, get books by various criteria.
+
+#### **Verb Mapping for Claude**
+
+**IMPORTANT:** Users may use different verbs (search, list, find, query, get) but they all map to the same operation.
+
+ALL of these user requests should use `operation="search"`:
+- "search books by [author]" → `query_books(operation="search", author="...")`
+- "list books by [author]" → `query_books(operation="search", author="...")`
+- "find books by [author]" → `query_books(operation="search", author="...")`
+- "query books by [author]" → `query_books(operation="search", author="...")`
+- "get books by [author]" → `query_books(operation="search", author="...")`
+- "show me books by [author]" → `query_books(operation="search", author="...")`
+
+**Rule:** If the user wants to access/retrieve/discover books with filters (author, tag, publisher, etc.), use `operation="search"` regardless of which verb they use.
 
 #### **Signature**
 
 ```python
-async def list_books(
-    query: Optional[str] = None,
+async def query_books(
+    operation: str,  # "search", "list", "by_author", "by_series"
+    # Search parameters (for operation="search")
+    author: Optional[str] = None,
+    authors: Optional[List[str]] = None,
+    exclude_authors: Optional[List[str]] = None,
+    text: Optional[str] = None,
+    query: Optional[str] = None,  # Alias for text
+    tag: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    exclude_tags: Optional[List[str]] = None,
+    series: Optional[str] = None,
+    exclude_series: Optional[List[str]] = None,
+    publisher: Optional[str] = None,
+    publishers: Optional[List[str]] = None,
+    has_publisher: Optional[bool] = None,
+    rating: Optional[int] = None,
+    min_rating: Optional[int] = None,
+    max_rating: Optional[int] = None,
+    unrated: Optional[bool] = None,
+    pubdate_start: Optional[str] = None,
+    pubdate_end: Optional[str] = None,
+    added_after: Optional[str] = None,
+    added_before: Optional[str] = None,
+    min_size: Optional[int] = None,
+    max_size: Optional[int] = None,
+    formats: Optional[List[str]] = None,
+    comment: Optional[str] = None,
+    has_empty_comments: Optional[bool] = None,
+    format_table: bool = False,
     limit: int = 50,
-    sort: str = "title"
-) -> LibrarySearchResponse
+    offset: int = 0,
+    # For operation="by_author"
+    author_id: Optional[int] = None,
+    # For operation="by_series"
+    series_id: Optional[int] = None,
+    # For operation="list"
+    sort: str = "title",
+) -> Dict[str, Any]
 ```
 
-#### **Parameters**
+#### **Operations**
 
-- **`query`** (optional): Search query (title, author, tags, series)
-- **`limit`** (int): Maximum results to return (1-200, default 50)
-- **`sort`** (str): Sort order - title, author, rating, date, series
+1. **`operation="search"`** ⭐ **PRIMARY OPERATION**
+   - Use for ALL user requests to access books with filters
+   - Works with ANY verb: "search", "list", "find", "query", "get", "show me"
+   - Supports comprehensive filtering (author, publisher, year, tags, rating, etc.)
+   - Example: `query_books(operation="search", author="Conan Doyle")`
 
-#### **Returns**
+2. **`operation="list"`**
+   - Only use when user explicitly wants ALL books without filters
+   - Simple pagination with minimal filtering
+   - Example: `query_books(operation="list", limit=20)`
 
-`LibrarySearchResponse` with:
+3. **`operation="by_author"`**
+   - Get books by numeric author_id (requires `author_id` parameter)
+   - For author names, use `operation="search"` with `author` parameter instead
+   - Example: `query_books(operation="by_author", author_id=42)`
 
-- **`results`**: List of `BookSearchResult` objects
-- **`total_found`**: Total books matching criteria
-- **`query_used`**: Search query that was executed
-- **`search_time_ms`**: Time taken for search in milliseconds
+4. **`operation="by_series"`**
+   - Get books in a series by numeric series_id (requires `series_id` parameter)
+   - For series names, use `operation="search"` with `series` parameter instead
+   - Example: `query_books(operation="by_series", series_id=15)`
+
+#### **Search Parameters** (for `operation="search"`)
+
+**Author Filters:**
+- `author`: Filter by author name (case-insensitive partial match)
+- `authors`: Filter by multiple authors (OR logic)
+- `exclude_authors`: Exclude books by these authors
+
+**Text & Tags:**
+- `text` / `query`: Search in title, author, tags, series, comments
+- `tag`: Filter by single tag
+- `tags`: Filter by multiple tags (OR logic)
+- `exclude_tags`: Exclude books with these tags
+
+**Series:**
+- `series`: Filter by series name
+- `exclude_series`: Exclude books in these series
+
+**Rating:**
+- `rating`: Exact rating (1-5)
+- `min_rating`: Minimum rating (1-5)
+- `max_rating`: Maximum rating (1-5)
+- `unrated`: Filter for unrated books only
+
+**Publisher:**
+- `publisher`: Filter by publisher name
+- `publishers`: Filter by multiple publishers
+- `has_publisher`: Filter books with/without publisher
+
+**Date Filters:**
+- `pubdate_start`: Publication date start (YYYY-MM-DD)
+- `pubdate_end`: Publication date end (YYYY-MM-DD)
+- `added_after`: Date added after (YYYY-MM-DD)
+- `added_before`: Date added before (YYYY-MM-DD)
+
+**File Filters:**
+- `min_size`: Minimum file size in bytes
+- `max_size`: Maximum file size in bytes
+- `formats`: List of formats to include (e.g., ["EPUB", "PDF"])
+
+**Other:**
+- `comment`: Search in book comments only
+- `has_empty_comments`: Filter books with empty/non-empty comments
+- `format_table`: Format results as pretty text table (boolean)
+
+**Pagination:**
+- `limit`: Maximum results to return (default: 50)
+- `offset`: Results offset for pagination (default: 0)
 
 #### **Usage Examples**
 
 ```python
-# Browse recent books
-await list_books(sort="date", limit=20)
+# User says: "list books by conan doyle"
+result = await query_books(
+    operation="search",
+    author="Conan Doyle",
+    format_table=True
+)
 
-# Search for programming books  
-await list_books("programming python", limit=30, sort="rating")
+# Advanced search: author + publisher + year
+result = await query_books(
+    operation="search",
+    author="Conan Doyle",
+    publisher="Penguin",
+    pubdate_start="1900-01-01",
+    pubdate_end="1930-12-31"
+)
 
-# List all books (no query)
-await list_books(limit=100)
+# Search with multiple filters (AND logic)
+result = await query_books(
+    operation="search",
+    author="Agatha Christie",
+    tags=["mystery", "crime"],
+    min_rating=4,
+    exclude_tags=["horror"]
+)
+
+# Search by publisher with year range
+result = await query_books(
+    operation="search",
+    publishers=["O'Reilly Media", "No Starch Press"],
+    pubdate_start="2023-01-01",
+    pubdate_end="2024-12-31"
+)
+
+# Search recently added books with rating
+result = await query_books(
+    operation="search",
+    added_after="2024-01-01",
+    min_rating=4,
+    format_table=True
+)
+
+# List all books (simple operation)
+result = await query_books(operation="list", limit=20)
+
+# Get books by author ID
+result = await query_books(
+    operation="by_author",
+    author_id=42,
+    limit=10
+)
+
+# Get books in a series
+result = await query_books(
+    operation="by_series",
+    series_id=15
+)
 ```
 
-#### **Error Handling**
+#### **Returns**
 
-- Returns empty results on connection failure
-- Validates limit to 1-200 range
-- Graceful degradation on search errors
+Dictionary containing operation-specific results:
+- For `operation="search"`: Paginated search results with total count, books list, optional table
+- For `operation="list"`: Simple book list with pagination
+- For `operation="by_author"`: List of books by author ID
+- For `operation="by_series"`: List of books in series order
 
 ---
 
-### **Tool 2: `get_book_details`**
+### **Tool 2: `manage_books`** ⭐ **BOOK CRUD OPERATIONS**
 
-Get complete metadata and file information for a specific book.
+**Portmanteau tool** that consolidates book management operations: add, get, update, delete.
+
+#### **Signature**
+
+```python
+async def manage_books(
+    operation: str,  # "add", "get", "update", "delete"
+    book_id: Optional[str] = None,
+    file_path: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    # ... additional parameters based on operation
+) -> Dict[str, Any]
+```
+
+#### **Operations**
+
+1. **`operation="add"`**: Add a new book to the library (requires `file_path`)
+2. **`operation="get"`**: Retrieve detailed book information (requires `book_id`)
+3. **`operation="update"`**: Update book metadata and properties (requires `book_id`)
+4. **`operation="delete"`**: Delete a book from the library (requires `book_id`)
+
+#### **Usage Examples**
+
+```python
+# Add a book
+result = await manage_books(
+    operation="add",
+    file_path="/path/to/book.epub",
+    metadata={"title": "My Book", "authors": ["Author Name"]}
+)
+
+# Get book details
+result = await manage_books(
+    operation="get",
+    book_id="123",
+    include_metadata=True,
+    include_formats=True
+)
+
+# Update book metadata
+result = await manage_books(
+    operation="update",
+    book_id="123",
+    metadata={"rating": 5, "tags": ["favorite"]}
+)
+
+# Delete a book
+result = await manage_books(
+    operation="delete",
+    book_id="123",
+    delete_files=True
+)
+```
+
+---
+
+### **Tool 3: `manage_libraries`** ⭐ **LIBRARY MANAGEMENT**
+
+**Portmanteau tool** for managing multiple Calibre libraries.
+
+#### **Operations**
+
+1. **`operation="list"`**: List all available libraries
+2. **`operation="switch"`**: Switch to a different library (requires `library_name`)
+3. **`operation="stats"`**: Get statistics for a library
+4. **`operation="search"`**: Search across multiple libraries
+
+#### **Usage Examples**
+
+```python
+# List all libraries
+result = await manage_libraries(operation="list")
+
+# Switch library
+result = await manage_libraries(
+    operation="switch",
+    library_name="Main Library"
+)
+
+# Get library statistics
+result = await manage_libraries(
+    operation="stats",
+    library_name="Main Library"
+)
+
+# Search across libraries
+result = await manage_libraries(
+    operation="search",
+    query="python programming",
+    libraries=["Main Library", "IT Library"]
+)
+```
+
+---
+
+### **Tool 4: `get_book_details`**
+
+Get complete metadata and file information for a specific book (standalone tool, not portmanteau).
 
 #### **Signature**
 
@@ -75,81 +326,14 @@ async def get_book_details(book_id: int) -> BookDetailResponse
 #### **Returns**
 
 `BookDetailResponse` with complete book information:
-
-- **Basic metadata**: title, authors, series, rating, tags
-- **Publication info**: published date, languages, comments
-- **File information**: available formats, download links
-- **System data**: identifiers, last modified, cover URL
-
-#### **Usage Examples**
-
-```python
-# Get complete book information
-await get_book_details(12345)
-
-# Check available formats
-details = await get_book_details(123)
-if "EPUB" in details.formats:
-    print(f"EPUB available: {details.download_links['EPUB']}")
-```
-
-#### **Error Handling**
-
-- Returns "Book not found" for invalid IDs
-- Graceful handling of missing metadata fields
-- Comprehensive error messages in title field
+- Basic metadata: title, authors, series, rating, tags
+- Publication info: published date, languages, comments
+- File information: available formats, download links
+- System data: identifiers, last modified, cover URL
 
 ---
 
-### **Tool 3: `search_books`**
-
-Advanced search with field targeting and boolean operations.
-
-#### **Signature**
-
-```python
-async def search_books(
-    text: str,
-    fields: Optional[List[str]] = None,
-    operator: str = "AND"
-) -> LibrarySearchResponse
-```
-
-#### **Parameters**
-
-- **`text`** (str): Search text to look for
-- **`fields`** (optional): List of fields to search in
-  - Available: `["title", "authors", "tags", "series", "comments"]`
-  - Default: `["title", "authors", "tags", "comments"]`
-- **`operator`** (str): Boolean operator - "AND" or "OR"
-
-#### **Returns**
-
-`LibrarySearchResponse` with filtered results and relevance scoring.
-
-#### **Usage Examples**
-
-```python
-# Search titles and tags with OR logic
-await search_books("artificial intelligence", ["title", "tags"], "OR")
-
-# Search all fields with AND logic (default)
-await search_books("python programming")
-
-# Search only in series names
-await search_books("Foundation", ["series"])
-```
-
-#### **Search Logic**
-
-- **AND**: All fields must contain the text
-- **OR**: Any field can contain the text
-- **Field targeting**: Limits search to specific metadata fields
-- **Relevance scoring**: Results ordered by match quality
-
----
-
-### **Tool 4: `test_calibre_connection`**
+### **Tool 5: `test_calibre_connection`**
 
 Test connection to Calibre server and get diagnostics.
 
@@ -159,39 +343,24 @@ Test connection to Calibre server and get diagnostics.
 async def test_calibre_connection() -> ConnectionTestResponse
 ```
 
-#### **Parameters**
-
-None
-
 #### **Returns**
 
 `ConnectionTestResponse` with:
+- `connected`: Boolean connection status
+- `server_version`: Calibre server version
+- `library_name`: Primary library name
+- `total_books`: Number of books in library
+- `response_time_ms`: Connection response time
+- `error_message`: Error details if connection failed
+- `server_capabilities`: List of supported features
 
-- **`connected`**: Boolean connection status
-- **`server_version`**: Calibre server version
-- **`library_name`**: Primary library name
-- **`total_books`**: Number of books in library
-- **`response_time_ms`**: Connection response time
-- **`error_message`**: Error details if connection failed
-- **`server_capabilities`**: List of supported features
+---
 
-#### **Usage Examples**
+### **Additional Portmanteau Tools**
 
-```python
-# Test connection and get server info
-result = await test_calibre_connection()
-if result.connected:
-    print(f"Connected to {result.library_name} with {result.total_books} books")
-else:
-    print(f"Connection failed: {result.error_message}")
-```
-
-#### **Diagnostic Information**
-
-- Server version and capabilities
-- Library statistics and accessibility
-- Performance metrics
-- Detailed error messages for troubleshooting
+- **`manage_smart_collections`**: Create, update, delete, query smart collections
+- **`manage_users`**: User management and authentication operations
+- **Export tools**: `export_books_csv`, `export_books_json`, `export_books_html`, `export_books_pandoc`
 
 ---
 
@@ -218,7 +387,7 @@ class BookSearchResult(BaseModel):
 
 ### **LibrarySearchResponse**
 
-Response from `list_books` and `search_books` operations.
+Response from `query_books` search operations.
 
 ```python
 class LibrarySearchResponse(BaseModel):
@@ -268,6 +437,18 @@ class ConnectionTestResponse(BaseModel):
 
 ---
 
+## 🎯 **Default Library Auto-Loading**
+
+**IMPORTANT:** The default library is automatically loaded on server startup. Users don't need to manually load or switch libraries before querying books.
+
+Priority order for auto-loading:
+1. Persisted library (from FastMCP 2.13 storage)
+2. `config.local_library_path` (if set)
+3. Active library from Calibre's config files
+4. First discovered library (fallback)
+
+---
+
 ## 🔍 Calibre Server REST API
 
 CalibreMCP communicates with Calibre's built-in REST API server.
@@ -307,36 +488,50 @@ password: "your_password"
 
 ### **Search Query Patterns**
 
-CalibreMCP supports Calibre's native search syntax:
+CalibreMCP supports Calibre's native search syntax through the `query_books` tool.
 
 #### **Field-Specific Searches**
 
-```
-title:python          # Search in title field
-authors:asimov        # Search in authors field
-tag:science           # Search in tags field
-series:"Foundation"   # Exact phrase matching
-rating:>=4            # Numeric comparisons
-formats:epub          # Filter by available formats
+```python
+# Use query_books with operation="search"
+query_books(operation="search", author="Conan Doyle")  # Author filter
+query_books(operation="search", tag="science")         # Tag filter
+query_books(operation="search", series="Foundation")   # Series filter
+query_books(operation="search", publisher="O'Reilly")  # Publisher filter
+query_books(operation="search", min_rating=4)          # Rating filter
 ```
 
 #### **Boolean Operations**
 
-```
-python AND programming        # Both terms required
-fiction OR fantasy           # Either term acceptable
-programming NOT beginner     # Exclude term
-```
+Filters in `query_books` use AND logic when combined:
+- `author="X"` AND `tag="Y"` AND `min_rating=4` = All conditions must match
+- `tags=["X", "Y"]` = Books with tag X OR tag Y
 
 #### **Advanced Patterns**
 
-```
-date:>2020-01-01             # Published after date
-size:>10MB                   # File size filtering
-language:eng                 # Language filtering
+```python
+# Date range filtering
+query_books(
+    operation="search",
+    pubdate_start="2020-01-01",
+    pubdate_end="2024-12-31"
+)
+
+# File size filtering
+query_books(
+    operation="search",
+    min_size=1048576,  # 1 MB
+    max_size=10485760  # 10 MB
+)
+
+# Format filtering
+query_books(
+    operation="search",
+    formats=["EPUB", "PDF"]
+)
 ```
 
-### **Sort Options**
+### **Sort Options** (for `operation="list"`)
 
 - **`title`** - Alphabetical by title
 - **`authors`** - Alphabetical by author surname
@@ -344,7 +539,6 @@ language:eng                 # Language filtering
 - **`date`** - Most recently added first
 - **`pubdate`** - Most recently published first
 - **`series`** - Series order
-- **`size`** - Largest files first
 
 ---
 
@@ -352,9 +546,9 @@ language:eng                 # Language filtering
 
 ### **Optimal Query Patterns**
 
-- **Field-specific searches** perform faster than full-text
+- **Use specific filters** (author, tag) instead of broad text searches
 - **Limit results** to 50 or fewer for responsive UI
-- **Use specific tags** instead of broad content searches
+- **Use `format_table=True`** for human-readable output
 - **Cache frequent queries** on client side
 
 ### **Rate Limiting**
@@ -393,10 +587,9 @@ language:eng                 # Language filtering
 ### **Graceful Degradation**
 
 All MCP tools return valid responses even on errors:
-
 - Empty result lists for search failures
-- "Error: ..." titles for book detail failures
-- `connected: false` for connection test failures
+- Error dictionaries with `success: false` and actionable error messages
+- Detailed suggestions for fixing issues
 
 ---
 
@@ -433,4 +626,4 @@ print(f"Auth configured: {config.has_auth}")
 
 ---
 
-*Built with Austrian efficiency for Sandra's comprehensive e-book workflow.*
+*Built with Austrian efficiency for comprehensive e-book library management. Uses FastMCP 2.13+ portmanteau tool pattern for optimal Claude Desktop integration.*

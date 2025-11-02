@@ -1,144 +1,268 @@
 """
 MCP tools for book-related operations.
+
+FastMCP 2.12 compliant - all tools self-register using @mcp.tool() decorator.
 """
+
 from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field, validator
-from ..services.book_service import BookSearchResult, BookDetail, book_service
-from .base_tool import BaseTool, mcp_tool
-from ..logging_config import get_logger
+from calibre_mcp.services.book_service import BookSearchResult, book_service
+from calibre_mcp.server import mcp
+from calibre_mcp.logging_config import get_logger
+from calibre_mcp.tools.base_tool import BaseTool, mcp_tool
 import json
 
 logger = get_logger("calibremcp.tools.book_tools")
 
+
+def _format_books_table(
+    items: List[Dict[str, Any]],
+    total: int,
+    page: int,
+    total_pages: int,
+    per_page: int,
+    include_description: bool = True,
+    description_max_length: int = 80,
+) -> str:
+    """
+    Format book search results as a pretty text table with comprehensive columns.
+
+    Includes: ID, Title, Author(s), Year, Rating (stars), Tags, and optionally Description.
+
+    Args:
+        items: List of book dictionaries
+        total: Total number of matching books
+        page: Current page number
+        total_pages: Total number of pages
+        per_page: Items per page
+        include_description: Whether to include description column (default: True)
+        description_max_length: Maximum length for description preview (default: 80)
+
+    Returns:
+        Formatted table string with columns: ID | Title | Author(s) | Year | Rating | Tags | [Description]
+    """
+    if not items:
+        return "\nNo books found.\n"
+
+    # Import re for HTML cleanup and datetime parsing
+    import re
+    from datetime import datetime
+
+    # Calculate column widths
+    id_width = max(4, len(str(max((b.get("id", 0) for b in items), default=0))))
+    title_width = min(40, max(20, max((len(b.get("title", "")) for b in items), default=20)))
+    # Extract author names from dict format
+    author_strings = []
+    for b in items:
+        author_list = b.get("authors", [])
+        if author_list and isinstance(author_list[0], dict):
+            author_names = [a.get("name", "") for a in author_list[:2]]
+            author_strings.append(", ".join(author_names) if author_names else "Unknown")
+        elif author_list:
+            author_strings.append(", ".join(author_list[:2]) if author_list else "Unknown")
+        else:
+            author_strings.append("Unknown")
+    author_width = min(25, max(15, max((len(a) for a in author_strings), default=15)))
+    year_width = 6  # "YYYY" or "-"
+    rating_width = 6  # "★★★★★" or "-"
+    tags_width = 30  # For tags column
+
+    # Build table header
+    if include_description:
+        desc_width = min(description_max_length + 3, 85)  # +3 for ellipsis, max 85 chars
+        header = f"{'ID':<{id_width}} | {'Title':<{title_width}} | {'Author(s)':<{author_width}} | {'Year':<{year_width}} | {'Rating':<{rating_width}} | {'Tags':<{tags_width}} | {'Description':<{desc_width}}"
+    else:
+        header = f"{'ID':<{id_width}} | {'Title':<{title_width}} | {'Author(s)':<{author_width}} | {'Year':<{year_width}} | {'Rating':<{rating_width}} | {'Tags':<{tags_width}}"
+
+    separator = "-" * len(header)
+
+    # Build table rows
+    rows = []
+    for book in items:
+        book_id = str(book.get("id", ""))
+        title = book.get("title", "") or "Untitled"
+        if len(title) > title_width:
+            title = title[: title_width - 3] + "..."
+
+        # Extract author names from dict format [{"id": X, "name": "Name"}]
+        author_list = book.get("authors", [])
+        if author_list and isinstance(author_list[0], dict):
+            authors = ", ".join([a.get("name", "") for a in author_list[:2]]) or "Unknown"
+        elif author_list:
+            authors = ", ".join(author_list[:2]) or "Unknown"
+        else:
+            authors = "Unknown"
+        if len(authors) > author_width:
+            authors = authors[: author_width - 3] + "..."
+
+        # Extract year from pubdate
+        year = "-"
+        pubdate = book.get("pubdate") or book.get("published") or book.get("published_date")
+        if pubdate:
+            try:
+                if isinstance(pubdate, str):
+                    # Try parsing ISO format or date strings
+                    for fmt in ["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y"]:
+                        try:
+                            dt = datetime.strptime(pubdate.split("T")[0] if "T" in pubdate else pubdate, fmt)
+                            year = str(dt.year)
+                            break
+                        except (ValueError, AttributeError):
+                            continue
+                elif isinstance(pubdate, datetime):
+                    year = str(pubdate.year)
+                elif hasattr(pubdate, "year"):
+                    year = str(pubdate.year)
+            except (ValueError, AttributeError, TypeError):
+                year = "-"
+
+        # Rating as stars
+        rating_val = book.get("rating", 0) or 0
+        rating = ("★" * int(rating_val)) if rating_val else "-"
+
+        # Tags - Extract tag names from dict format [{"id": X, "name": "Name"}]
+        tags_list = book.get("tags", [])
+        if isinstance(tags_list, list):
+            # Handle both dict and string tags
+            tag_names = []
+            for tag in tags_list[:5]:  # Show up to 5 tags for table
+                if isinstance(tag, dict):
+                    tag_names.append(tag.get("name", tag.get("tag", str(tag))))
+                else:
+                    tag_names.append(str(tag))
+            tags = ", ".join(tag_names) or "-"
+        else:
+            tags = "-"
+        if len(tags) > tags_width:
+            tags = tags[: tags_width - 3] + "..."
+
+        # Build row
+        if include_description:
+            # Get description from comments or description field
+            description = book.get("description") or book.get("comments", "") or ""
+            # Clean up HTML tags if present
+            description = re.sub(r"<[^>]+>", "", description)
+            # Truncate intelligently (at word boundary)
+            if len(description) > description_max_length:
+                description = description[:description_max_length].rsplit(" ", 1)[0] + "..."
+            elif not description:
+                description = "-"
+            # Ensure it fits in column
+            if len(description) > desc_width:
+                description = description[: desc_width - 3] + "..."
+
+            row = f"{book_id:<{id_width}} | {title:<{title_width}} | {authors:<{author_width}} | {year:<{year_width}} | {rating:<{rating_width}} | {tags:<{tags_width}} | {description:<{desc_width}}"
+        else:
+            row = f"{book_id:<{id_width}} | {title:<{title_width}} | {authors:<{author_width}} | {year:<{year_width}} | {rating:<{rating_width}} | {tags:<{tags_width}}"
+
+        rows.append(row)
+
+    # Combine into table
+    table_lines = [
+        "",
+        separator,
+        header,
+        separator,
+        *rows,
+        separator,
+        f"\nShowing {len(items)} of {total} books (Page {page}/{total_pages})",
+        "",
+    ]
+
+    return "\n".join(table_lines)
+
+
 class BookSearchInput(BaseModel):
     """Input model for advanced book search with fuzzy matching and relevance scoring."""
+
     text: Optional[str] = Field(
         None,
-        description="Search text to look for in the specified fields. Supports quoted phrases for exact matches."
+        description="Search text to look for in the specified fields. Supports quoted phrases for exact matches.",
     )
     fields: Optional[Union[str, List[str]]] = Field(
         ["title^3", "authors^2", "tags^2", "series^1.5", "comments^1", "publisher^1.5"],
         description="""Fields to search in with optional boosting (e.g., "title^3" boosts title matches).
         Available fields: title, authors, tags, series, comments, publisher.
-        Can be a JSON array or comma-separated string."""
+        Can be a JSON array or comma-separated string.""",
     )
     operator: Optional[str] = Field(
-        "OR",
-        description="Search operator (AND, OR, or FUZZY)",
-        regex="^(?i)(AND|OR|FUZZY)$"
+        "OR", description="Search operator (AND, OR, or FUZZY)", pattern="^(?i)(AND|OR|FUZZY)$"
     )
     fuzziness: Optional[Union[int, str]] = Field(
         "AUTO",
         description="""Fuzziness level for fuzzy search. Can be:
         - 'AUTO': automatic fuzziness based on term length
         - 0-2: fixed fuzziness level
-        - '0': exact match only"""
+        - '0': exact match only""",
     )
     min_score: Optional[float] = Field(
-        0.1,
-        description="Minimum relevance score (0-1) for results to be included",
-        ge=0.0,
-        le=1.0
+        0.1, description="Minimum relevance score (0-1) for results to be included", ge=0.0, le=1.0
     )
     highlight: Optional[bool] = Field(
-        False,
-        description="Whether to include highlighted snippets of matching text in results"
+        False, description="Whether to include highlighted snippets of matching text in results"
     )
     suggest: Optional[bool] = Field(
-        False,
-        description="Whether to include search suggestions for misspelled queries"
+        False, description="Whether to include search suggestions for misspelled queries"
     )
     author: Optional[str] = Field(
-        None,
-        description="Filter by author name (case-insensitive partial match)"
+        None, description="Filter by author name (case-insensitive partial match)"
     )
     tag: Optional[str] = Field(
-        None,
-        description="Filter by tag name (case-insensitive partial match)"
+        None, description="Filter by tag name (case-insensitive partial match)"
     )
     series: Optional[str] = Field(
-        None,
-        description="Filter by series name (case-insensitive partial match)"
+        None, description="Filter by series name (case-insensitive partial match)"
     )
     comment: Optional[str] = Field(
-        None,
-        description="Search in book comments (case-insensitive partial match)"
+        None, description="Search in book comments (case-insensitive partial match)"
     )
     has_empty_comments: Optional[bool] = Field(
-        None,
-        description="Filter books with empty (True) or non-empty (False) comments"
+        None, description="Filter books with empty (True) or non-empty (False) comments"
     )
-    rating: Optional[int] = Field(
-        None,
-        description="Filter by exact star rating (1-5)",
-        ge=1,
-        le=5
-    )
+    rating: Optional[int] = Field(None, description="Filter by exact star rating (1-5)", ge=1, le=5)
     min_rating: Optional[int] = Field(
         None,
-        description="Filter by minimum star rating (1-5)",
+        description="Filter by minimum star rating (1-5). Use with max_rating for range filtering.",
         ge=1,
-        le=5
+        le=5,
     )
-    unrated: Optional[bool] = Field(
+    max_rating: Optional[int] = Field(
         None,
-        description="Filter for books with no rating when True"
+        description="Filter by maximum star rating (1-5). Use with min_rating for range filtering.",
+        ge=1,
+        le=5,
     )
+    unrated: Optional[bool] = Field(None, description="Filter for books with no rating when True")
     publisher: Optional[str] = Field(
-        None,
-        description="Filter by publisher name (case-insensitive partial match)"
+        None, description="Filter by publisher name (case-insensitive partial match)"
     )
     publishers: Optional[List[str]] = Field(
-        None,
-        description="Filter by multiple publishers (OR condition)"
+        None, description="Filter by multiple publishers (OR condition)"
     )
     has_publisher: Optional[bool] = Field(
-        None,
-        description="Filter books with (True) or without (False) a publisher"
+        None, description="Filter books with (True) or without (False) a publisher"
     )
     pubdate_start: Optional[str] = Field(
-        None,
-        description="Filter by publication date (YYYY-MM-DD format), inclusive start date"
+        None, description="Filter by publication date (YYYY-MM-DD format), inclusive start date"
     )
     pubdate_end: Optional[str] = Field(
-        None,
-        description="Filter by publication date (YYYY-MM-DD format), inclusive end date"
+        None, description="Filter by publication date (YYYY-MM-DD format), inclusive end date"
     )
     added_after: Optional[str] = Field(
-        None,
-        description="Filter by date added (YYYY-MM-DD format), inclusive start date"
+        None, description="Filter by date added (YYYY-MM-DD format), inclusive start date"
     )
     added_before: Optional[str] = Field(
-        None,
-        description="Filter by date added (YYYY-MM-DD format), inclusive end date"
+        None, description="Filter by date added (YYYY-MM-DD format), inclusive end date"
     )
-    min_size: Optional[int] = Field(
-        None,
-        description="Minimum file size in bytes",
-        ge=0
-    )
-    max_size: Optional[int] = Field(
-        None,
-        description="Maximum file size in bytes",
-        ge=0
-    )
+    min_size: Optional[int] = Field(None, description="Minimum file size in bytes", ge=0)
+    max_size: Optional[int] = Field(None, description="Maximum file size in bytes", ge=0)
     formats: Optional[Union[str, List[str]]] = Field(
-        None,
-        description="Filter by file formats (e.g., 'EPUB,PDF' or ['EPUB', 'PDF'])"
+        None, description="Filter by file formats (e.g., 'EPUB,PDF' or ['EPUB', 'PDF'])"
     )
-    limit: int = Field(
-        50,
-        description="Maximum number of results to return",
-        ge=1,
-        le=1000
-    )
-    offset: int = Field(
-        0,
-        description="Number of results to skip for pagination",
-        ge=0
-    )
-    
-    @validator('fields', pre=True)
+    limit: int = Field(50, description="Maximum number of results to return", ge=1, le=1000)
+    offset: int = Field(0, description="Number of results to skip for pagination", ge=0)
+
+    @validator("fields", pre=True)
     def parse_fields(cls, v):
         if isinstance(v, str):
             try:
@@ -146,10 +270,10 @@ class BookSearchInput(BaseModel):
                 return json.loads(v)
             except json.JSONDecodeError:
                 # If not JSON, split by comma and strip whitespace
-                return [field.strip() for field in v.split(',') if field.strip()]
+                return [field.strip() for field in v.split(",") if field.strip()]
         return v
-        
-    @validator('formats', pre=True)
+
+    @validator("formats", pre=True)
     def parse_formats(cls, v):
         if isinstance(v, str):
             try:
@@ -157,191 +281,395 @@ class BookSearchInput(BaseModel):
                 return json.loads(v)
             except json.JSONDecodeError:
                 # If not JSON, split by comma and strip whitespace, convert to uppercase
-                return [fmt.strip().upper() for fmt in v.split(',') if fmt.strip()]
+                return [fmt.strip().upper() for fmt in v.split(",") if fmt.strip()]
         elif isinstance(v, list):
             # Ensure all formats are uppercase
             return [fmt.upper() if isinstance(fmt, str) else str(fmt).upper() for fmt in v]
         return v
-    
+
     class Config:
-        json_encoders = {
-            'datetime': lambda v: v.isoformat() if v else None
-        }
+        json_encoders = {"datetime": lambda v: v.isoformat() if v else None}
+
 
 class BookSearchResultOutput(BookSearchResult):
     """Output model for book search results."""
+
     class Config:
-        json_encoders = {
-            'datetime': lambda v: v.isoformat() if v else None
-        }
+        json_encoders = {"datetime": lambda v: v.isoformat() if v else None}
+
 
 class BookSearchOutput(BaseModel):
     """Output model for paginated book search results."""
-    items: List[BookSearchResultOutput] = Field(
-        ...,
-        description="List of matching books"
-    )
-    total: int = Field(
-        ...,
-        description="Total number of matching books"
-    )
-    page: int = Field(
-        ...,
-        description="Current page number"
-    )
-    per_page: int = Field(
-        ...,
-        description="Number of items per page"
-    )
-    total_pages: int = Field(
-        ...,
-        description="Total number of pages"
-    )
 
-class BookDetailOutput(BookDetail):
+    items: List[BookSearchResultOutput] = Field(..., description="List of matching books")
+    total: int = Field(..., description="Total number of matching books")
+    page: int = Field(..., description="Current page number")
+    per_page: int = Field(..., description="Number of items per page")
+    total_pages: int = Field(..., description="Total number of pages")
+
+
+class BookDetailOutput(BookSearchResult):
     """Output model for book details."""
+
     class Config:
-        json_encoders = {
-            'datetime': lambda v: v.isoformat() if v else None
+        json_encoders = {"datetime": lambda v: v.isoformat() if v else None}
+
+
+# Helper function - called by query_books portmanteau tool
+# NOT registered as MCP tool (no @mcp.tool() decorator)
+async def search_books_helper(
+    text: Optional[str] = None,
+    fields: Optional[Union[str, List[str]]] = None,
+    operator: str = "OR",
+    fuzziness: Union[int, str] = "AUTO",
+    min_score: float = 0.1,
+    highlight: bool = False,
+    suggest: bool = False,
+    query: Optional[str] = None,  # For backward compatibility
+    author: Optional[str] = None,
+    authors: Optional[List[str]] = None,
+    exclude_authors: Optional[List[str]] = None,
+    tag: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    exclude_tags: Optional[List[str]] = None,
+    series: Optional[str] = None,
+    exclude_series: Optional[List[str]] = None,
+    comment: Optional[str] = None,
+    has_empty_comments: Optional[bool] = None,
+    rating: Optional[int] = None,
+    min_rating: Optional[int] = None,
+    max_rating: Optional[int] = None,
+    unrated: Optional[bool] = None,
+    publisher: Optional[str] = None,
+    publishers: Optional[List[str]] = None,
+    has_publisher: Optional[bool] = None,
+    pubdate_start: Optional[str] = None,
+    pubdate_end: Optional[str] = None,
+    added_after: Optional[str] = None,
+    added_before: Optional[str] = None,
+    min_size: Optional[int] = None,
+    max_size: Optional[int] = None,
+    formats: Optional[List[str]] = None,
+    limit: int = 50,
+    offset: int = 0,
+    format_table: bool = False,
+) -> Dict[str, Any]:
+    """
+    Search and list books with various filters.
+
+    This tool allows searching through the entire library with flexible filtering
+    by title, author, tags, series, dates, file size, and formats. Results are
+    paginated for efficient browsing of large libraries.
+
+    **IMPORTANT: Use explicit filters for best results!**
+
+    To search for books by a specific author, use the `author` parameter:
+    - CORRECT: search_books(author="Mick Herron")
+    - CORRECT: search_books(author="herron")  # Partial match works
+    - WRONG: search_books(text="Mick Herron")  # This searches titles too
+
+    To search for books with a specific title, use the `text` parameter:
+    - CORRECT: search_books(text="python programming")
+    - CORRECT: search_books(query="python")  # Same as text
+
+    To combine filters, use multiple parameters:
+    - search_books(author="Mick Herron", tag="mystery", min_rating=4)
+
+    Examples:
+        # Search for books by a specific author (RECOMMENDED)
+        search_books(author="Mick Herron")
+        search_books(author="Martin Fowler")
+
+        # Search for books by multiple authors (OR logic - any of them)
+        search_books(authors=["Shakespeare", "Homer"])
+        search_books(authors=["Mick Herron", "John le Carré", "Ian Fleming"])
+
+        # Search for books with text in title, author, tags, series (general search)
+        search_books(text="python")
+        search_books(query="machine learning")
+
+        # Search for books containing specific phrases (uses FTS if available)
+        search_books(text="it was the worst of times")  # Searches book content
+        search_books(text="call me Ishmael")  # Searches for phrase in content
+        search_books(text="to be or not to be")  # Searches Shakespeare quotes
+
+        # Search for books by title only (using text parameter)
+        search_books(text="The Lord of the Rings")
+
+        # Search for books in a series
+        search_books(series="Slough House")
+
+        # Search for books with a specific tag
+        search_books(tag="mystery")
+
+        # Search for books with multiple tags (any of them)
+        search_books(tags=["mystery", "crime", "thriller"])
+        search_books(tags=["science fiction", "fantasy"])
+
+        # Search for books by publisher
+        search_books(publisher="O'Reilly Media")
+
+        # Combine filters: author AND tag AND rating
+        search_books(author="Mick Herron", tag="spy", min_rating=4)
+
+        # Search for books published in 2023
+        search_books(pubdate_start="2023-01-01", pubdate_end="2023-12-31")
+
+        # Get books added in the last 30 days
+        from datetime import datetime, timedelta
+        last_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        today = datetime.now().strftime("%Y-%m-%d")
+        search_books(added_after=last_month, added_before=today)
+
+        # Get 5-star books added in the last week
+        week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        today = datetime.now().strftime("%Y-%m-%d")
+        search_books(rating=5, added_after=week_ago, added_before=today)
+
+        # Get highly rated books (4-5 stars) added recently
+        month_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        search_books(min_rating=4, added_after=month_ago, format_table=True)
+
+        # Get books between 1MB and 10MB in size
+        search_books(min_size=1048576, max_size=10485760)  # 1MB to 10MB
+
+        # Get books in specific formats
+        search_books(formats=["EPUB", "PDF"])
+
+        # Find books with empty comments
+        search_books(has_empty_comments=True)
+
+        # Find highly rated books
+        search_books(min_rating=4)
+
+        # Find detective story with minimum 4 stars and locked room mystery
+        search_books(tag="detective", min_rating=4, text="locked room", format_table=True)
+
+        # Find unrated books
+        search_books(unrated=True)
+
+        # Find books by multiple publishers
+        search_books(publishers=["O'Reilly Media", "No Starch Press"])
+
+        # Exclude tags - books by Conan Doyle that are NOT detective
+        search_books(author="Conan Doyle", exclude_tags=["detective"])
+
+        # Exclude authors - mystery books NOT by Stephen King
+        search_books(tag="mystery", exclude_authors=["Stephen King"])
+
+        # Combine inclusions and exclusions
+        search_books(authors=["Shakespeare", "Homer"], exclude_tags=["poetry", "drama"])
+
+        # Format results as a table
+        search_books(author="Conan Doyle", format_table=True)
+
+    Args:
+        text: **FULL-TEXT SEARCH** - Search text to look for in book content, title, author, series, tags, comments.
+              **Use this for phrase searches within book content.**
+
+              **Phrase Search Examples:**
+              - search_books(text="it was the worst of times")  # Searches book content for exact phrase
+              - search_books(text="call me Ishmael")  # Searches for phrase in content
+              - search_books(text="to be or not to be")  # Searches Shakespeare quotes
+
+              **How it works:**
+              1. If Calibre FTS database exists, uses Full-Text Search for content within books
+                 (searches actual book text/content, not just metadata)
+              2. If FTS not available, falls back to LIKE queries on metadata (title, author, tags, series, comments)
+              3. Phrases (multiple words) are automatically quoted for exact phrase matching when FTS is available
+
+              **Use cases:**
+              - Finding books containing specific quotes or phrases: text="it was the best of times"
+              - Searching for content snippets: text="once upon a time"
+              - General metadata search: text="python programming"
+
+              Note: Field boosting and relevance scoring parameters (fields, min_score, etc.)
+              are currently not implemented. FTS uses phrase matching when available.
+
+        query: Alias for `text` parameter (for backward compatibility)
+
+        fields: Currently NOT IMPLEMENTED - Field boosting (e.g., "title^3") is not functional.
+               The search will use simple LIKE matching across all fields regardless.
+
+        operator: Currently NOT IMPLEMENTED - AND/OR/FUZZY operators are not functional.
+                  All searches use OR logic (matches any field).
+
+        fuzziness: Currently NOT IMPLEMENTED - Fuzzy matching is not functional.
+
+        min_score: Currently NOT IMPLEMENTED - Minimum score filtering is not functional.
+
+        highlight: Currently NOT IMPLEMENTED - Result highlighting is not functional.
+
+        suggest: Currently NOT IMPLEMENTED - Search suggestions are not functional.
+
+        author: **EXPLICIT AUTHOR FILTER** - Filter books by author name only
+                Use this when searching for books by a single specific author.
+                Case-insensitive partial match (e.g., "herron" matches "Mick Herron").
+                Example: search_books(author="Mick Herron")
+                Note: Use `authors` parameter for multiple authors (OR logic).
+
+        authors: **MULTIPLE AUTHORS (OR logic)** - Filter books by any of the specified authors
+                 Use this to search for books by Shakespeare OR Homer OR any other authors.
+                 Books matching ANY of the authors in the list will be returned.
+                 Case-insensitive partial matching.
+                 Example: search_books(authors=["Shakespeare", "Homer"])
+                 Example: search_books(authors=["Mick Herron", "John le Carré", "Ian Fleming"])
+                 Note: This uses OR logic within the authors list, but is ANDed with other filters.
+
+        tag: Filter books by tag name (case-insensitive partial match)
+             Use this when searching for books with a single specific tag.
+             Example: search_books(tag="mystery")
+             Note: Use `tags` parameter for multiple tags (OR logic).
+
+        tags: **MULTIPLE TAGS (OR logic)** - Filter books by any of the specified tags
+              Use this to search for books with any of the specified tags.
+              Books matching ANY of the tags in the list will be returned.
+              Case-insensitive partial matching.
+              Example: search_books(tags=["mystery", "crime", "thriller"])
+              Example: search_books(tags=["science fiction", "fantasy"])
+              Note: This uses OR logic within the tags list, but is ANDed with other filters.
+
+        exclude_tags: **EXCLUDE TAGS (NOT logic)** - Exclude books with any of these tags
+                       Use this to exclude books with specific tags.
+                       Books matching ANY of the tags in the list will be excluded.
+                       Case-insensitive partial matching.
+                       Example: search_books(author="Conan Doyle", exclude_tags=["detective"])
+                       Returns books by Conan Doyle that do NOT have the "detective" tag.
+                       Note: Exclusions are applied AFTER inclusions (AND NOT logic).
+
+        exclude_authors: **EXCLUDE AUTHORS (NOT logic)** - Exclude books by any of these authors
+                         Use this to exclude books by specific authors.
+                         Books matching ANY of the authors in the list will be excluded.
+                         Case-insensitive partial matching.
+                         Example: search_books(tag="mystery", exclude_authors=["Stephen King"])
+                         Returns mystery books that are NOT by Stephen King.
+
+        exclude_series: **EXCLUDE SERIES (NOT logic)** - Exclude books in any of these series
+                        Use this to exclude books in specific series.
+                        Example: search_books(tag="fiction", exclude_series=["Harlem Renaissance"])
+
+        series: Filter books by series name (case-insensitive partial match)
+                Example: search_books(series="Slough House")
+
+        comment: Search in book comments only (case-insensitive partial match)
+                 Example: search_books(comment="review")
+
+        has_empty_comments: Filter books with empty (True) or non-empty (False) comments
+                            Example: search_books(has_empty_comments=True)
+
+        rating: Filter by exact star rating (1-5)
+                Example: search_books(rating=5)
+
+        min_rating: Filter by minimum star rating (1-5)
+                    Example: search_books(min_rating=4)  # 4 or 5 stars
+                    Use with max_rating for range: search_books(min_rating=3, max_rating=4)
+
+        max_rating: Filter by maximum star rating (1-5)
+                    Example: search_books(max_rating=2)  # 1 or 2 stars
+                    Use with min_rating for range: search_books(min_rating=3, max_rating=4)
+
+        unrated: Filter for books with no rating when True
+                 Example: search_books(unrated=True)
+
+        publisher: Filter by publisher name (case-insensitive partial match)
+                   Example: search_books(publisher="O'Reilly")
+
+        publishers: Filter by multiple publishers (OR condition)
+                    Example: search_books(publishers=["O'Reilly", "No Starch Press"])
+
+        has_publisher: Filter books with (True) or without (False) a publisher
+                       Example: search_books(has_publisher=False)
+
+        pubdate_start: Filter by publication date (YYYY-MM-DD), inclusive start
+                       Example: search_books(pubdate_start="2023-01-01")
+
+        pubdate_end: Filter by publication date (YYYY-MM-DD), inclusive end
+                     Example: search_books(pubdate_end="2023-12-31")
+
+        added_after: Filter by date added (YYYY-MM-DD), inclusive start
+                     Example: search_books(added_after="2024-01-01")
+
+        added_before: Filter by date added (YYYY-MM-DD), inclusive end
+                      Example: search_books(added_before="2024-12-31")
+
+        min_size: Minimum file size in bytes
+                  Example: search_books(min_size=1048576)  # 1MB
+
+        max_size: Maximum file size in bytes
+                  Example: search_books(max_size=10485760)  # 10MB
+
+        formats: List of file formats to include (e.g., ["EPUB", "PDF"])
+                 Example: search_books(formats=["EPUB", "PDF"])
+
+        limit: Maximum number of results to return (1-1000, default: 50)
+
+        offset: Number of results to skip for pagination (default: 0)
+
+        format_table: If True, format results as a pretty text table with comprehensive columns.
+                      When True, returns a formatted table string in the 'table' field
+                      with columns: ID | Title | Author(s) | Year | Rating (stars) | Tags | Description
+                      Descriptions are truncated to 80 characters for readability.
+                      Example: search_books(author="Conan Doyle", format_table=True)
+
+    Returns:
+        Dictionary containing paginated list of books and metadata:
+        {
+            "items": [book1, book2, ...],  # List of book objects
+            "total": 42,                   # Total number of matching books
+            "page": 1,                     # Current page number
+            "per_page": 10,                # Number of items per page
+            "total_pages": 5,              # Total number of pages
+            "table": "..."                 # Formatted table string (if format_table=True)
         }
 
-class BookTools(BaseTool):
-    """MCP tools for book-related operations."""
-    
-    @mcp_tool(
-        name="search_books",
-        description="""Advanced book search with fuzzy matching, relevance scoring, and faceted filtering.
-        
-        Features:
-        - Field-specific boosting (e.g., title^3 boosts title matches more)
-        - Fuzzy search with configurable fuzziness
-        - Phrase search with quoted terms
-        - Relevance scoring and result highlighting
-        - Search suggestions for misspelled queries
-        - Faceted filtering by author, tag, series, etc.
-        """,
-        input_model=BookSearchInput,
-        output_model=BookSearchOutput
-    )
-    async def search_books(
-        self,
-        text: Optional[str] = None,
-        fields: Optional[Union[str, List[str]]] = None,
-        operator: str = "OR",
-        fuzziness: Union[int, str] = "AUTO",
-        min_score: float = 0.1,
-        highlight: bool = False,
-        suggest: bool = False,
-        query: Optional[str] = None,  # For backward compatibility
-        author: Optional[str] = None,
-        tag: Optional[str] = None,
-        series: Optional[str] = None,
-        comment: Optional[str] = None,
-        has_empty_comments: Optional[bool] = None,
-        rating: Optional[int] = None,
-        min_rating: Optional[int] = None,
-        unrated: Optional[bool] = None,
-        publisher: Optional[str] = None,
-        publishers: Optional[List[str]] = None,
-        has_publisher: Optional[bool] = None,
-        pubdate_start: Optional[str] = None,
-        pubdate_end: Optional[str] = None,
-        added_after: Optional[str] = None,
-        added_before: Optional[str] = None,
-        min_size: Optional[int] = None,
-        max_size: Optional[int] = None,
-        formats: Optional[List[str]] = None,
-        limit: int = 50,
-        offset: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Search and list books with various filters.
-        
-        This tool allows searching through the entire library with flexible filtering
-        by title, author, tags, series, dates, file size, and formats. Results are 
-        paginated for efficient browsing of large libraries.
-        
-        Example:
-            # Search for books about Python
-            list_books(query="python")
-            
-            # Get books by a specific author
-            list_books(author="Martin Fowler")
-            
-            # Get books in a series
-            list_books(series="The Lord of the Rings")
-            
-            # Get books published in 2023
-            list_books(pubdate_start="2023-01-01", pubdate_end="2023-12-31")
-            
-            # Get books added in the last 30 days
-            from datetime import datetime, timedelta
-            last_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-            today = datetime.now().strftime("%Y-%m-%d")
-            list_books(added_after=last_month, added_before=today)
-            
-            # Get books between 1MB and 10MB in size
-            list_books(min_size=1048576, max_size=10485760)  # 1MB to 10MB
-            
-            # Get books in specific formats
-            list_books(formats=["EPUB", "PDF"])
-            
-            # Find books with empty comments
-            list_books(has_empty_comments=True)
-            
-            # Find highly rated books
-            list_books(min_rating=4)
-            
-            # Find unrated books
-            list_books(unrated=True)
-            
-            # Find books by publisher
-            list_books(publisher="O'Reilly Media")
-            
-            # Find books by multiple publishers
-            list_books(publishers=["O'Reilly Media", "No Starch Press"])
-            
-            # Find books without a publisher
-            list_books(has_publisher=False)
-            
-        Args:
-            query: Search term to filter books by title, author, series, or tags
-            author: Filter books by author name (case-insensitive partial match)
-            tag: Filter books by tag name (case-insensitive partial match)
-            series: Filter books by series name (case-insensitive partial match)
-            comment: Search in book comments (case-insensitive partial match)
-            has_empty_comments: Filter books with empty (True) or non-empty (False) comments
-            rating: Filter by exact star rating (1-5)
-            min_rating: Filter by minimum star rating (1-5)
-            unrated: Filter for books with no rating when True
-            publisher: Filter by publisher name (case-insensitive partial match)
-            publishers: Filter by multiple publishers (OR condition)
-            has_publisher: Filter books with (True) or without (False) a publisher
-            pubdate_start: Filter by publication date (YYYY-MM-DD), inclusive start
-            pubdate_end: Filter by publication date (YYYY-MM-DD), inclusive end
-            added_after: Filter by date added (YYYY-MM-DD), inclusive start
-            added_before: Filter by date added (YYYY-MM-DD), inclusive end
-            min_size: Minimum file size in bytes
-            max_size: Maximum file size in bytes
-            formats: List of file formats to include (e.g., ["EPUB", "PDF"])
-            limit: Maximum number of results to return (1-1000)
-            offset: Number of results to skip for pagination
-            
-        Returns:
-            Dictionary containing paginated list of books and metadata:
-            {
-                "items": [book1, book2, ...],  # List of book objects
-                "total": 42,                   # Total number of matching books
-                "page": 1,                     # Current page number
-                "per_page": 10,                # Number of items per page
-                "total_pages": 5               # Total number of pages
-            }
-            
-        Raises:
-            ValueError: If input validation fails
-            Exception: For other unexpected errors
-        """
-        logger.info("Listing books", extra={
+        If format_table=True, the response will also include a 'table' field containing
+        a formatted text table with columns: ID | Title | Author(s) | Year | Rating (stars) | Tags | Description
+
+    Raises:
+        ValueError: If input validation fails
+        Exception: For other unexpected errors
+
+    Best Practices:
+        1. **Always use explicit filters when possible**: Use `author="..."` for author searches,
+           `series="..."` for series searches, `tag="..."` for tag searches, etc.
+
+        2. **Use `text` for general searches**: When you want to search across multiple fields
+           (title, author, tags, series, comments) with relevance scoring.
+
+        3. **All filters use AND logic BETWEEN different filter types**: When you provide multiple
+           filter types, they are combined with AND.
+           Example: search_books(text="crime novels", publisher="shueisha")
+           returns books that match BOTH "crime novels" in title/author/tags AND publisher="shueisha"
+
+        4. **OR logic WITHIN list parameters**: Parameters that accept lists (authors, tags, publishers)
+           use OR logic within those lists.
+           Example: search_books(authors=["Shakespeare", "Homer"]) returns books by Shakespeare OR Homer.
+           Example: search_books(tags=["mystery", "crime"]) returns books with mystery tag OR crime tag.
+
+        5. **Combining list and other filters**: List parameters (OR) are ANDed with other filters.
+           Example: search_books(authors=["Shakespeare", "Homer"], tag="drama")
+           returns books by (Shakespeare OR Homer) AND with tag="drama".
+
+        6. **Exclusion logic (NOT)**: Use `exclude_tags`, `exclude_authors`, `exclude_series` to exclude
+           books matching those criteria. Exclusions are applied with AND NOT logic.
+           Example: search_books(author="Conan Doyle", exclude_tags=["detective"])
+           returns books by Conan Doyle that do NOT have the "detective" tag.
+           Example: search_books(tag="mystery", exclude_authors=["Stephen King"])
+           returns mystery books that are NOT by Stephen King.
+
+        7. **Combine filters for precise results**: You can use multiple filters together
+           (e.g., text + authors + tags + rating + publisher + exclude_tags) to narrow down results.
+           Different filter types are ANDed together, exclusions use AND NOT.
+
+        8. **Author searches**: Always use `author` parameter when searching for books by author.
+           Example: search_books(author="Mick Herron") NOT search_books(text="Mick Herron")
+
+        9. **Title searches**: Use `text` parameter when searching for book titles.
+           Example: search_books(text="The Lord of the Rings")
+    """
+    logger.info(
+        "Listing books",
+        extra={
             "service": "book_tools",
             "action": "list_books",
             "query": query,
@@ -364,391 +692,629 @@ class BookTools(BaseTool):
             "max_size": max_size,
             "formats": formats,
             "limit": limit,
-            "offset": offset
-        })
-        
+            "offset": offset,
+        },
+    )
+
+    try:
+        # Verify database is initialized (that's all we need - it's already connected to the right library)
+        from calibre_mcp.db.database import get_database
+
         try:
-            # Input validation
-            if limit < 1 or limit > 1000:
-                raise ValueError("Limit must be between 1 and 1000")
-            if offset < 0:
-                raise ValueError("Offset cannot be negative")
-                
-            # Convert filters to the format expected by book_service.get_all
-            filters = {}
-        
-            # Process fields and boost factors
-            field_boosts = {}
-            if fields is None:
-                fields = ["title^3", "authors^2", "tags^2", "series^1.5", "comments^1"]
-            elif isinstance(fields, str):
+            db = get_database()
+            # Test database connection with a simple query to ensure it works
+            with db.session_scope() as session:
+                from ..db.models import Book
+
+                session.query(Book).limit(1).first()
+        except RuntimeError as e:
+            # Try to auto-initialize from config
+            from ..config import CalibreConfig
+            from ..config_discovery import get_active_calibre_library
+            from ..db.database import init_database
+
+            config = CalibreConfig()
+            if config.auto_discover_libraries:
+                config.discover_libraries()
+
+            # Try to find and load a library
+            library_to_load = None
+            if config.local_library_path and (config.local_library_path / "metadata.db").exists():
+                library_to_load = config.local_library_path
+            else:
+                active_lib = get_active_calibre_library()
+                if (
+                    active_lib
+                    and active_lib.path.exists()
+                    and (active_lib.path / "metadata.db").exists()
+                ):
+                    library_to_load = active_lib.path
+                elif config.discovered_libraries:
+                    first_discovered = list(config.discovered_libraries.values())[0]
+                    library_to_load = first_discovered.path
+
+            if library_to_load:
+                metadata_db = library_to_load / "metadata.db"
                 try:
-                    fields = json.loads(fields)
-                except json.JSONDecodeError:
-                    fields = [f.strip() for f in fields.split(',') if f.strip()]
-        
-            # Parse field boosts (e.g., "title^3" -> {"title": 3.0})
-            processed_fields = []
-            for field in fields:
-                if '^' in field:
-                    field_name, boost = field.split('^', 1)
-                    try:
-                        field_boosts[field_name] = float(boost)
-                        processed_fields.append(field_name)
-                    except (ValueError, TypeError):
-                        processed_fields.append(field)
-                else:
+                    init_database(str(metadata_db.absolute()), echo=False)
+                    logger.info(f"Auto-initialized database with library: {library_to_load}")
+                except Exception as init_e:
+                    raise ValueError(
+                        f"❌ Database not initialized and auto-initialization failed.\n\n"
+                        f"**Error:** {str(init_e)}\n\n"
+                        f"**Solution:** Use `manage_libraries(operation='list')` to see available libraries,\n"
+                        f"then use `manage_libraries(operation='switch', library_name='Library Name')` to select one.\n\n"
+                        f"**Note:** The default library should auto-load on startup. If this fails, check your Calibre library path."
+                    ) from init_e
+            else:
+                raise ValueError(
+                    "❌ Database not initialized and no libraries found.\n\n"
+                    "**Solution:** Use `manage_libraries(operation='list')` to see available libraries,\n"
+                    "then use `manage_libraries(operation='switch', library_name='Library Name')` to select one.\n\n"
+                    "**Note:** The default library should auto-load on startup. If this fails, check your Calibre library path."
+                ) from e
+        except Exception as e:
+            raise ValueError(
+                f"❌ Database error: {str(e)}\n\n"
+                "**Solution:** The database connection may have failed. Try:\n"
+                "1. Use `manage_libraries(operation='list')` to see available libraries\n"
+                "2. Use `manage_libraries(operation='switch', library_name='Library Name')` to re-initialize\n\n"
+                "**Note:** Search queries the database directly - the correct library should be auto-loaded on startup."
+            ) from e
+
+        # Input validation
+        if limit < 1 or limit > 1000:
+            raise ValueError("Limit must be between 1 and 1000")
+        if offset < 0:
+            raise ValueError("Offset cannot be negative")
+
+        # Convert filters to the format expected by book_service.search
+        filters = {}
+
+        # Process fields and boost factors
+        field_boosts = {}
+        if fields is None:
+            fields = ["title^3", "authors^2", "tags^2", "series^1.5", "comments^1"]
+        elif isinstance(fields, str):
+            try:
+                fields = json.loads(fields)
+            except json.JSONDecodeError:
+                fields = [f.strip() for f in fields.split(",") if f.strip()]
+
+        # Parse field boosts (e.g., "title^3" -> {"title": 3.0})
+        processed_fields = []
+        for field in fields:
+            if "^" in field:
+                field_name, boost = field.split("^", 1)
+                try:
+                    field_boosts[field_name] = float(boost)
+                    processed_fields.append(field_name)
+                except (ValueError, TypeError):
                     processed_fields.append(field)
-                
-            # Handle text search across specified fields
-            search_text = text or query  # Support both text and query parameters
-            search_terms = []
-            phrases = []
-        
-            if search_text:
-                # Extract quoted phrases first
-                import re
-                phrases = re.findall(r'"(.*?)"', search_text)
-                remaining_text = re.sub(r'"(.*?)"', '', search_text)
-            
-                # Get individual terms from remaining text
-                search_terms = [term.strip() for term in remaining_text.split() if term.strip()]
-            
-                # If no fields specified, use all with default boosts
-                if not processed_fields:
-                    processed_fields = ["title", "authors", "tags", "series", "comments"]
-            
-                # Build field-specific queries with boosts
-                search_queries = []
-                
-                # Handle exact phrase matches first
-                for phrase in phrases:
-                    if not phrase:
-                        continue
-                    phrase_queries = []
-                    for field in processed_fields:
-                        field_name = field.split('^')[0]  # Remove boost if present
-                        if field_name in ["authors", "tags"]:
-                            # For multi-value fields, use contains with quoted phrase
-                            phrase_queries.append(f'{field_name}:"{phrase}"')
-                        else:
-                            phrase_queries.append(f'{field_name}:"{phrase}"')
-                    
-                    if phrase_queries:
-                        search_queries.append(f"({' OR '.join(phrase_queries)})")
-                
-                # Handle individual terms with fuzzy matching
-                if operator.upper() == "FUZZY":
-                    fuzz_str = f"~{fuzziness}" if fuzziness != "AUTO" else "~"
-                    for term in search_terms:
-                        term_queries = []
-                        for field in processed_fields:
-                            field_name = field.split('^')[0]  # Remove boost if present
-                            boost = field_boosts.get(field_name, 1.0)
-                            boost_str = f"^{boost}" if boost != 1.0 else ""
-                            term_queries.append(f"{field_name}:{term}{fuzz_str}{boost_str}")
-                        
-                        if term_queries:
-                            search_queries.append(f"({' OR '.join(term_queries)})")
-                
-                elif operator.upper() == "AND":
-                    # Require all terms to match (in any field)
-                    for term in search_terms:
-                        term_queries = []
-                        for field in processed_fields:
-                            field_name = field.split('^')[0]
-                            boost = field_boosts.get(field_name, 1.0)
-                            boost_str = f"^{boost}" if boost != 1.0 else ""
-                            term_queries.append(f"{field_name}:{term}{boost_str}")
-                        
-                        if term_queries:
-                            search_queries.append(f"({' OR '.join(term_queries)})")
-                
-                else:  # OR operator (default)
+            else:
+                processed_fields.append(field)
+
+        # Handle text search across specified fields
+        search_text = text or query  # Support both text and query parameters
+        search_terms = []
+        phrases = []
+
+        if search_text:
+            # Extract quoted phrases first
+            import re
+
+            phrases = re.findall(r'"(.*?)"', search_text)
+            remaining_text = re.sub(r'"(.*?)"', "", search_text)
+
+            # Get individual terms from remaining text
+            search_terms = [term.strip() for term in remaining_text.split() if term.strip()]
+
+            # If no fields specified, use all with default boosts
+            if not processed_fields:
+                processed_fields = ["title", "authors", "tags", "series", "comments"]
+
+            # Build field-specific queries with boosts
+            search_queries = []
+
+            # Handle exact phrase matches first
+            for phrase in phrases:
+                if not phrase:
+                    continue
+                phrase_queries = []
+                for field in processed_fields:
+                    field_name = field.split("^")[0]  # Remove boost if present
+                    if field_name in ["authors", "tags"]:
+                        # For multi-value fields, use contains with quoted phrase
+                        phrase_queries.append(f'{field_name}:"{phrase}"')
+                    else:
+                        phrase_queries.append(f'{field_name}:"{phrase}"')
+
+                if phrase_queries:
+                    search_queries.append(f"({' OR '.join(phrase_queries)})")
+
+            # Handle individual terms with fuzzy matching
+            if operator.upper() == "FUZZY":
+                fuzz_str = f"~{fuzziness}" if fuzziness != "AUTO" else "~"
+                for term in search_terms:
                     term_queries = []
                     for field in processed_fields:
-                        field_name = field.split('^')[0]
+                        field_name = field.split("^")[0]  # Remove boost if present
                         boost = field_boosts.get(field_name, 1.0)
                         boost_str = f"^{boost}" if boost != 1.0 else ""
-                        
-                        # Add each term to this field with OR between them
-                        field_terms = [f"{field_name}:{term}{boost_str}" for term in search_terms]
-                        if field_terms:
-                            term_queries.append(f"({' OR '.join(field_terms)})")
-                    
+                        term_queries.append(f"{field_name}:{term}{fuzz_str}{boost_str}")
+
                     if term_queries:
-                        search_queries.extend(term_queries)
-                
-                # Combine all queries with the appropriate operator
-                if search_queries:
-                    join_operator = " AND " if operator.upper() in ["AND", "FUZZY"] else " OR "
-                    filters['search'] = join_operator.join(search_queries)
-                    
-                    # Add minimum score filter if specified
-                    if min_score > 0:
-                        filters['min_score'] = min_score
-                    
-                    # Add highlighting if requested
-                    if highlight:
-                        filters['highlight'] = {
-                            'fields': {field: {} for field in processed_fields if field not in ['authors', 'tags']},
-                            'pre_tags': ['<mark>'],
-                            'post_tags': ['</mark>']
-                        }
-        
-            # Add other filters
-            if author:
-                filters['author_name'] = author
-            if tag:
-                filters['tag_name'] = tag
-            if series:
-                filters['series_name'] = series
-            if comment is not None:
-                filters['comment'] = comment
-            
-            if has_empty_comments is not None:
-                filters['has_empty_comments'] = has_empty_comments
-            
-            if rating is not None:
-                if rating < 1 or rating > 5:
-                    raise ValueError("Rating must be between 1 and 5")
-                filters['rating'] = rating
-            
-            if min_rating is not None:
-                if min_rating < 1 or min_rating > 5:
-                    raise ValueError("Minimum rating must be between 1 and 5")
-                filters['min_rating'] = min_rating
-            
-            if unrated is not None:
-                filters['unrated'] = unrated
-            
-            if publisher is not None:
-                filters['publisher'] = publisher
-            
-            if publishers is not None:
-                if isinstance(publishers, str):
-                    try:
-                        publishers = json.loads(publishers)
-                    except json.JSONDecodeError:
-                        publishers = [p.strip() for p in publishers.split(',') if p.strip()]
-                if publishers:  # Only add if not empty
-                    filters['publishers'] = publishers
-            
-            if has_publisher is not None:
-                filters['has_publisher'] = has_publisher
-            
-            if pubdate_start:
-                filters['pubdate_start'] = pubdate_start
-            if pubdate_end:
-                filters['pubdate_end'] = pubdate_end
-            
-            if added_after:
-                filters['added_after'] = added_after
-            if added_before:
-                filters['added_before'] = added_before
-            
-            if min_size is not None:
-                filters['min_size'] = min_size
-            if max_size is not None:
-                filters['max_size'] = max_size
-            
-            if formats is not None:
-                if isinstance(formats, str):
-                    try:
-                        formats = json.loads(formats)
-                    except json.JSONDecodeError:
-                        formats = [f.strip().upper() for f in formats.split(',') if f.strip()]
-                if formats:  # Only add if not empty
-                    filters['formats'] = [f.upper() if isinstance(f, str) else str(f).upper() for f in formats]
-            
-            # Add search suggestions if requested and we have a query
-            if suggest and search_text and len(search_terms) > 0:
-                filters['suggest'] = {
-                    'text': search_text,
-                    'term': {
-                        'field': '_all',
-                        'sort': 'score',
-                        'suggest_mode': 'popular'
+                        search_queries.append(f"({' OR '.join(term_queries)})")
+
+            elif operator.upper() == "AND":
+                # Require all terms to match (in any field)
+                for term in search_terms:
+                    term_queries = []
+                    for field in processed_fields:
+                        field_name = field.split("^")[0]
+                        boost = field_boosts.get(field_name, 1.0)
+                        boost_str = f"^{boost}" if boost != 1.0 else ""
+                        term_queries.append(f"{field_name}:{term}{boost_str}")
+
+                    if term_queries:
+                        search_queries.append(f"({' OR '.join(term_queries)})")
+
+            else:  # OR operator (default)
+                term_queries = []
+                for field in processed_fields:
+                    field_name = field.split("^")[0]
+                    boost = field_boosts.get(field_name, 1.0)
+                    boost_str = f"^{boost}" if boost != 1.0 else ""
+
+                    # Add each term to this field with OR between them
+                    field_terms = [f"{field_name}:{term}{boost_str}" for term in search_terms]
+                    if field_terms:
+                        term_queries.append(f"({' OR '.join(field_terms)})")
+
+                if term_queries:
+                    search_queries.extend(term_queries)
+
+            # Combine all queries with the appropriate operator
+            if search_queries:
+                join_operator = " AND " if operator.upper() in ["AND", "FUZZY"] else " OR "
+                filters["search"] = join_operator.join(search_queries)
+
+                # Add minimum score filter if specified
+                if min_score > 0:
+                    filters["min_score"] = min_score
+
+                # Add highlighting if requested
+                if highlight:
+                    filters["highlight"] = {
+                        "fields": {
+                            field: {}
+                            for field in processed_fields
+                            if field not in ["authors", "tags"]
+                        },
+                        "pre_tags": ["<mark>"],
+                        "post_tags": ["</mark>"],
                     }
-                }
-            
-            # Get paginated results with relevance scoring
-            result = book_service.search(
-                query=filters.pop('search', None),
-                filters={k: v for k, v in filters.items() if k != 'search'},
-                offset=offset,
-                limit=limit,
-                highlight=highlight,
-                min_score=min_score
+
+        # Add other filters
+        # Handle author - use authors list if provided, otherwise single author
+        if authors:
+            filters["authors_list"] = authors if isinstance(authors, list) else [authors]
+        elif author:
+            filters["author_name"] = author
+
+        # Handle tags - use tags list if provided, otherwise single tag
+        if tags:
+            filters["tags_list"] = tags if isinstance(tags, list) else [tags]
+        elif tag:
+            filters["tag_name"] = tag
+
+        # Handle tag exclusions (NOT logic)
+        if exclude_tags:
+            filters["exclude_tags_list"] = (
+                exclude_tags if isinstance(exclude_tags, list) else [exclude_tags]
             )
-            
-            # Convert to the expected output format
-            response = {
-                "items": [self._enhance_book_result(book, highlight) for book in result.get("items", [])],
-                "total": result.get("total", 0),
-                "page": (offset // limit) + 1 if limit > 0 else 1,
-                "per_page": limit,
-                "total_pages": (result.get("total", 0) + limit - 1) // limit if limit > 0 else 1,
-                "suggestions": result.get("suggestions", []),
-                "max_score": result.get("max_score", 0)
+
+        # Handle author exclusions (NOT logic)
+        if exclude_authors:
+            filters["exclude_authors_list"] = (
+                exclude_authors if isinstance(exclude_authors, list) else [exclude_authors]
+            )
+
+        if series:
+            filters["series_name"] = series
+
+        # Handle series exclusions (NOT logic)
+        if exclude_series:
+            filters["exclude_series_list"] = (
+                exclude_series if isinstance(exclude_series, list) else [exclude_series]
+            )
+        if comment is not None:
+            filters["comment"] = comment
+
+        if has_empty_comments is not None:
+            filters["has_empty_comments"] = has_empty_comments
+
+        if rating is not None:
+            if rating < 1 or rating > 5:
+                raise ValueError("Rating must be between 1 and 5")
+            filters["rating"] = rating
+
+        if min_rating is not None:
+            if min_rating < 1 or min_rating > 5:
+                raise ValueError("Minimum rating must be between 1 and 5")
+            filters["min_rating"] = min_rating
+
+        if max_rating is not None:
+            if max_rating < 1 or max_rating > 5:
+                raise ValueError("Maximum rating must be between 1 and 5")
+            if min_rating is not None and max_rating < min_rating:
+                raise ValueError("Maximum rating must be >= minimum rating")
+            filters["max_rating"] = max_rating
+
+        if unrated is not None:
+            filters["unrated"] = unrated
+
+        if publisher is not None:
+            filters["publisher"] = publisher
+
+        if publishers is not None:
+            if isinstance(publishers, str):
+                try:
+                    publishers = json.loads(publishers)
+                except json.JSONDecodeError:
+                    publishers = [p.strip() for p in publishers.split(",") if p.strip()]
+            if publishers:  # Only add if not empty
+                filters["publishers"] = publishers
+
+        if has_publisher is not None:
+            filters["has_publisher"] = has_publisher
+
+        if pubdate_start:
+            filters["pubdate_start"] = pubdate_start
+        if pubdate_end:
+            filters["pubdate_end"] = pubdate_end
+
+        if added_after:
+            filters["added_after"] = added_after
+        if added_before:
+            filters["added_before"] = added_before
+
+        if min_size is not None:
+            filters["min_size"] = min_size
+        if max_size is not None:
+            filters["max_size"] = max_size
+
+        if formats is not None:
+            if isinstance(formats, str):
+                try:
+                    formats = json.loads(formats)
+                except json.JSONDecodeError:
+                    formats = [f.strip().upper() for f in formats.split(",") if f.strip()]
+            if formats:  # Only add if not empty
+                filters["formats"] = [
+                    f.upper() if isinstance(f, str) else str(f).upper() for f in formats
+                ]
+
+        # Add search suggestions if requested and we have a query
+        if suggest and search_text and len(search_terms) > 0:
+            filters["suggest"] = {
+                "text": search_text,
+                "term": {"field": "_all", "sort": "score", "suggest_mode": "popular"},
             }
-            
-        except ValueError as ve:
-            logger.error("Invalid input parameters", extra={
+
+        # Get paginated results using get_all() method
+        # Extract search query and author_name from filters
+        search_query = filters.pop("search", None)
+        author_name = filters.pop("author_name", None)
+        authors_list = filters.pop("authors_list", None)
+        exclude_authors_list = filters.pop("exclude_authors_list", None)
+        tag_name = filters.pop("tag_name", None)
+        tags_list = filters.pop("tags_list", None)
+        exclude_tags_list = filters.pop("exclude_tags_list", None)
+        series_name = filters.pop("series_name", None)
+        exclude_series_list = filters.pop("exclude_series_list", None)
+        comment = filters.pop("comment", None)
+        has_empty_comments = filters.pop("has_empty_comments", None)
+        rating = filters.pop("rating", None)
+        min_rating = filters.pop("min_rating", None)
+        max_rating = filters.pop("max_rating", None)
+        unrated = filters.pop("unrated", None)
+        publisher = filters.pop("publisher", None)
+        publishers = filters.pop("publishers", None)
+        has_publisher = filters.pop("has_publisher", None)
+        pubdate_start = filters.pop("pubdate_start", None)
+        pubdate_end = filters.pop("pubdate_end", None)
+        added_after = filters.pop("added_after", None)
+        added_before = filters.pop("added_before", None)
+        min_size = filters.pop("min_size", None)
+        max_size = filters.pop("max_size", None)
+        formats = filters.pop("formats", None)
+
+        # If search query provided, use it for general search
+        # Note: The fancy FTS query syntax (fields, boosting, etc.) built above is IGNORED.
+        # We just extract the raw search text and pass it to book_service.get_all()
+        # which does simple SQL LIKE queries. True FTS would require SQLite FTS5 implementation.
+        if search_query:
+            # For now, just extract the raw search text from the query
+            # The field-specific query building above is not actually used
+            search_text = text or query  # Use original text, ignore parsed query
+        else:
+            search_text = None
+
+        # Build filters dict for get_all()
+        get_all_filters = {}
+        if rating is not None:
+            get_all_filters["rating"] = rating
+        if min_rating is not None:
+            get_all_filters["min_rating"] = min_rating
+        if max_rating is not None:
+            get_all_filters["max_rating"] = max_rating
+        if has_empty_comments is not None:
+            get_all_filters["has_empty_comments"] = has_empty_comments
+        if unrated is not None:
+            get_all_filters["unrated"] = unrated
+        if pubdate_start:
+            get_all_filters["pubdate_start"] = pubdate_start
+        if pubdate_end:
+            get_all_filters["pubdate_end"] = pubdate_end
+        if added_after:
+            get_all_filters["added_after"] = added_after
+        if added_before:
+            get_all_filters["added_before"] = added_before
+        if min_size is not None:
+            get_all_filters["min_size"] = min_size
+        if max_size is not None:
+            get_all_filters["max_size"] = max_size
+        if formats:
+            get_all_filters["formats"] = formats
+
+        # Call get_all with proper parameters
+        result = book_service.get_all(
+            skip=offset,
+            limit=limit,
+            search=search_text,
+            author_name=author_name if not authors_list else None,
+            authors_list=authors_list,
+            exclude_authors_list=exclude_authors_list,
+            tag_name=tag_name if not tags_list else None,
+            tags_list=tags_list,
+            exclude_tags_list=exclude_tags_list,
+            series_name=series_name,
+            exclude_series_list=exclude_series_list,
+            comment=comment,
+            **get_all_filters,
+        )
+
+        # Convert to the expected output format
+        items = result.get("items", [])
+        total = result.get("total", 0)
+        page = (offset // limit) + 1 if limit > 0 else 1
+        total_pages = (total + limit - 1) // limit if limit > 0 else 1
+
+        response = {
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": limit,
+            "total_pages": total_pages,
+            "suggestions": result.get("suggestions", []),
+            "max_score": result.get("max_score", 0),
+        }
+
+        # Format as table if requested
+        if format_table:
+            # Include descriptions in table for better overview
+            table_text = _format_books_table(
+                items,
+                total,
+                page,
+                total_pages,
+                limit,
+                include_description=True,
+                description_max_length=80,
+            )
+            response["table"] = table_text
+            response["format"] = "table"
+
+        return response
+
+    except ValueError as ve:
+        logger.error(
+            "Invalid input parameters",
+            extra={
                 "service": "book_tools",
                 "action": "list_books_error",
                 "error": str(ve),
-                "error_type": "validation_error"
-            })
-            raise
-            
-        except Exception as e:
-            logger.error(f"Error searching books: {str(e)}", exc_info=True)
-            # Return empty results with error information
-            return {
-                "items": [],
-                "total": 0,
-                "page": (offset // limit) + 1 if limit > 0 else 1,
-                "per_page": limit,
-                "total_pages": 0,
-                "error": str(e),
-                "suggestions": []
-            }
-    
-    def _enhance_book_result(self, book: Any, highlight: bool = False) -> Dict[str, Any]:
-        """Convert a book model to a dictionary with enhanced search results."""
-        if not book:
-            return {}
-            
-        result = {
-            "id": book.id,
-            "title": book.title,
-            "authors": [a.name for a in book.authors] if hasattr(book, 'authors') else [],
-            "series": book.series.name if hasattr(book, 'series') and book.series else None,
-            "series_index": book.series_index if hasattr(book, 'series_index') else None,
-            "publisher": book.publisher if hasattr(book, 'publisher') else None,
-            "rating": book.rating if hasattr(book, 'rating') else None,
-            "formats": [f.format for f in book.data] if hasattr(book, 'data') else [],
-            "tags": [t.name for t in book.tags] if hasattr(book, 'tags') else [],
-            "comments": book.comments[0].text if hasattr(book, 'comments') and book.comments else None,
-            "pubdate": book.pubdate.isoformat() if hasattr(book, 'pubdate') and book.pubdate else None,
-            "added_at": book.timestamp.isoformat() if hasattr(book, 'timestamp') and book.timestamp else None,
-            "size": sum(d.size for d in book.data) if hasattr(book, 'data') and book.data else 0,
-            "score": getattr(book, '_score', None)  # Add relevance score if available
-        }
-        
-        # Add highlighted snippets if available
-        if highlight and hasattr(book, '_highlight'):
-            result['highlight'] = book._highlight
-            
-        return result
-    
+                "error_type": "validation_error",
+            },
+        )
+        raise
+
+    except ValueError as ve:
+        # Re-raise ValueError with helpful error messages (already formatted above)
+        logger.error(f"Search validation error: {str(ve)}")
+        raise
+    except Exception as e:
+        logger.error(f"Error searching books: {str(e)}", exc_info=True)
+        # Raise with helpful error message instead of returning empty results
+        raise ValueError(
+            f"❌ Search failed: {str(e)}\n\n"
+            "**Possible solutions:**\n"
+            "1. Use `list_libraries()` to see available libraries\n"
+            "2. Use `switch_library(library_name)` to select a library\n"
+            "3. Verify the library path exists and contains metadata.db\n\n"
+            "**Important:** This is a LOCAL library search - do NOT try to connect to a Calibre server.\n"
+            "Do NOT try to configure or rewrite JSON config files."
+        ) from e
+
+
+class BookTools(BaseTool):
+    """MCP tools for book-related operations using BaseTool pattern."""
+
     @mcp_tool(
         name="get_book",
         description="Get detailed information about a book by ID",
-        output_model=BookDetailOutput
+        output_model=BookDetailOutput,
     )
-    async def get_book(self, book_id: int) -> Optional[Dict[str, Any]]:
+    async def get_book(self, book_id: int, format_output: bool = False) -> Optional[Dict[str, Any]]:
         """
-        Get detailed information about a specific book.
-        
-        This tool retrieves comprehensive information about a book, including
-        all metadata, formats, and related entities like authors, series, and tags.
-        
+        Get comprehensive detailed information about a specific book by its ID.
+
+        Retrieves complete book metadata including title, authors, series information,
+        publication details, formats available, cover information, tags, ratings, comments,
+        identifiers (ISBN, etc.), and all related entities. This is the most complete
+        book information available in the system.
+
         Args:
-            book_id: The unique identifier of the book
-            
+            book_id: The unique identifier of the book in the Calibre library
+            format_output: If True, includes a 'formatted' field with nicely formatted text output
+                          showing all metadata in flowing text format with full description
+
         Returns:
-            Detailed book information or None if not found
-            
+            Dictionary containing complete book information or None if book not found.
+            The dictionary includes:
+            {
+                "id": int - Book identifier
+                "title": str - Book title
+                "authors": list - List of author names
+                "series": str - Series name (if part of a series)
+                "series_index": float - Position in series (if applicable)
+                "rating": float - Star rating (0-5)
+                "tags": list - List of tag names
+                "comments": str - Book description/comments (full text)
+                "published": str - Publication date
+                "languages": list - List of language codes
+                "formats": list - Available file formats (EPUB, PDF, etc.)
+                "identifiers": dict - ISBN, ASIN, and other identifiers
+                "cover_path": str - Path to cover image
+                "last_modified": str - Last modification timestamp
+                "formatted": str - (if format_output=True) Pretty formatted text with full description
+                ... (other metadata fields)
+            }
+
         Example:
-            # Get details for book with ID 123
-            get_book(book_id=123)
+            # Get complete details for a book with formatted output
+            book = get_book(book_id=123, format_output=True)
+            if book:
+                print(book['formatted'])  # Pretty formatted text
+                print(f"Title: {book['title']}")
+                # Extract author names from dict format
+                author_list = book.get("authors", [])
+                if author_list and isinstance(author_list[0], dict):
+                    author_names = [a.get("name", "") for a in author_list]
+                    print(f"Authors: {', '.join(author_names)}")
+                else:
+                    print(f"Authors: {', '.join(author_list) if author_list else 'Unknown'}")
+            else:
+                print("Book not found")
         """
-        book = self.book_service.get_book(book_id)
-        return book.dict() if book else None
-    
-    @mcp_tool(
-        name="get_recent_books",
-        description="Get recently added books",
-        output_model=List[BookSearchResultOutput]
-    )
-    async def get_recent_books(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """
-        Get a list of the most recently added books.
-        
-        This is useful for displaying a "recently added" section in the UI.
-        
-        Args:
-            limit: Maximum number of recent books to return (default: 10)
-            
-        Returns:
-            List of recently added books
-            
-        Example:
-            # Get 5 most recently added books
-            get_recent_books(limit=5)
-        """
-        books = self.book_service.get_recent_books(limit=limit)
-        return [book.dict() for book in books]
-    
-    @mcp_tool(
-        name="get_books_by_series",
-        description="Get all books in a series",
-        output_model=List[BookSearchResultOutput]
-    )
-    async def get_books_by_series(self, series_id: int) -> List[Dict[str, Any]]:
-        """
-        Get all books that belong to a specific series.
-        
-        Books are returned in series order (based on series_index).
-        
-        Args:
-            series_id: The ID of the series
-            
-        Returns:
-            List of books in the series, ordered by series index
-            
-        Example:
-            # Get all books in series with ID 42
-            get_books_by_series(series_id=42)
-        """
-        books = self.book_service.get_books_by_series(series_id)
-        return [book.dict() for book in books]
-    
-    @mcp_tool(
-        name="get_books_by_author",
-        description="Get all books by a specific author",
-        output_model=List[BookSearchResultOutput]
-    )
-    async def get_books_by_author(
-        self, 
-        author_id: int, 
-        limit: int = 50, 
-        offset: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Get all books written by a specific author.
-        
-        Results are paginated for efficient browsing of large collections.
-        
-        Args:
-            author_id: The ID of the author
-            limit: Maximum number of results to return (default: 50)
-            offset: Number of results to skip (for pagination)
-            
-        Returns:
-            Paginated list of books by the author
-            
-        Example:
-            # Get first page of books by author with ID 42
-            get_books_by_author(author_id=42, limit=10, offset=0)
-            
-            # Get next page
-            get_books_by_author(author_id=42, limit=10, offset=10)
-        """
-        return self.author_service.get_books_by_author(
-            author_id=author_id,
-            limit=limit,
-            offset=offset
-        )
+        from calibre_mcp.utils.book_formatter import format_book_details
+
+        book = book_service.get_book(book_id)
+        if not book:
+            return None
+
+        result = book.dict()
+
+        # Add formatted output if requested
+        if format_output:
+            result["formatted"] = format_book_details(result)
+
+        return result
+
+
+@mcp.tool()
+async def get_recent_books(limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Get a list of the most recently added books in the library.
+
+    Retrieves books sorted by their addition date, with the most recently added
+    books first. This is useful for displaying a "recently added" section in the UI,
+    tracking new acquisitions, or monitoring library growth.
+
+    Args:
+        limit: Maximum number of recent books to return (default: 10, range: 1-1000)
+
+    Returns:
+        List of dictionaries, each containing book information for recently added books.
+        Books are ordered by addition date (most recent first). Each book dictionary
+        includes standard book metadata fields (title, authors, formats, etc.).
+
+    Example:
+        # Get 5 most recently added books
+        recent = get_recent_books(limit=5)
+        for book in recent:
+            print(f"{book['title']} - Added recently")
+
+        # Get last 20 additions for a feed
+        recent = get_recent_books(limit=20)
+    """
+    books = book_service.get_recent_books(limit=limit)
+    return [book.dict() for book in books]
+
+
+# Helper function - called by query_books portmanteau tool
+# NOT registered as MCP tool (no @mcp.tool() decorator)
+async def get_books_by_series_helper(series_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all books that belong to a specific series, ordered by series position.
+
+    Retrieves all books in a series, sorted by their series_index (position in the series).
+    This is useful for displaying series in reading order, checking series completion,
+    or getting all volumes of a multi-book series.
+
+    Args:
+        series_id: The unique identifier of the series in the Calibre library
+
+    Returns:
+        List of dictionaries containing book information, ordered by series_index.
+        Each book dictionary includes standard metadata plus:
+        {
+            "series": str - Series name
+            "series_index": float - Position in series (1.0 = first book, 2.0 = second, etc.)
+            ... (other standard book fields)
+        }
+
+    Example:
+        # Get all books in "The Lord of the Rings" series
+        series_books = get_books_by_series(series_id=42)
+        print(f"Series has {len(series_books)} books")
+        for book in series_books:
+            print(f"  {book['series_index']}: {book['title']}")
+
+        # Check if series is complete (assuming you know expected count)
+        if len(series_books) < 6:
+            print("Series appears incomplete")
+    """
+    books = book_service.get_books_by_series(series_id)
+    return [book.dict() for book in books]
+
+
+# Helper function - called by query_books portmanteau tool
+# NOT registered as MCP tool (no @mcp.tool() decorator)
+async def get_books_by_author_helper(
+    author_id: int, limit: int = 50, offset: int = 0
+) -> Dict[str, Any]:
+    """
+    Get all books written by a specific author.
+
+    Results are paginated for efficient browsing of large collections.
+
+    Args:
+        author_id: The ID of the author
+        limit: Maximum number of results to return (default: 50)
+        offset: Number of results to skip (for pagination)
+
+    Returns:
+        Paginated list of books by the author
+
+    Example:
+        # Get first page of books by author with ID 42
+        get_books_by_author(author_id=42, limit=10, offset=0)
+
+        # Get next page
+        get_books_by_author(author_id=42, limit=10, offset=10)
+    """
+    from calibre_mcp.services.author_service import author_service
+
+    return author_service.get_books_by_author(author_id=author_id, limit=limit, offset=offset)

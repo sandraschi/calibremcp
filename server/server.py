@@ -17,10 +17,11 @@ sys.path.insert(0, str(src_path))
 from calibre_mcp.logging_config import setup_logging, get_logger, log_operation
 
 # Setup logging
+# CRITICAL: Disable console for stdio transport (JSON-RPC on stdout)
 setup_logging(
     level="INFO",
     log_file=Path("logs/calibremcp.log"),
-    enable_console=True
+    enable_console=False,  # Must be False for stdio transport
 )
 
 logger = get_logger("calibremcp.mcpb")
@@ -29,10 +30,16 @@ logger = get_logger("calibremcp.mcpb")
 from calibre_mcp.server import main
 
 if __name__ == "__main__":
-    log_operation(logger, "mcpb_startup", level="INFO",
-                 repo_root=str(repo_root), src_path=str(src_path),
-                 version="MCPB", collection_size="1000+ books")
-    
+    log_operation(
+        logger,
+        "mcpb_startup",
+        level="INFO",
+        repo_root=str(repo_root),
+        src_path=str(src_path),
+        version="MCPB",
+        collection_size="1000+ books",
+    )
+
     try:
         main()
     except KeyboardInterrupt:

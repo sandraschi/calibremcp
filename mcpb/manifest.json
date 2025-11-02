@@ -43,14 +43,12 @@
     }
   },
   "tools": [
-    {"name": "list_books"},
+    {"name": "query_books"},
+    {"name": "manage_books"},
     {"name": "get_book_details"},
-    {"name": "search_books"},
+    {"name": "get_recent_books"},
     {"name": "test_calibre_connection"},
-    {"name": "list_libraries"},
-    {"name": "switch_library"},
-    {"name": "get_library_stats"},
-    {"name": "cross_library_search"},
+    {"name": "manage_libraries"},
     {"name": "get_tag_statistics"},
     {"name": "find_duplicate_books"},
     {"name": "get_series_analysis"},
@@ -65,7 +63,13 @@
     {"name": "bulk_format_operations"},
     {"name": "japanese_book_organizer"},
     {"name": "it_book_curator"},
-    {"name": "reading_recommendations"}
+    {"name": "reading_recommendations"},
+    {"name": "manage_smart_collections"},
+    {"name": "manage_users"},
+    {"name": "export_books_csv"},
+    {"name": "export_books_json"},
+    {"name": "export_books_html"},
+    {"name": "export_books_pandoc"}
   ],
   "prompts": [
     {

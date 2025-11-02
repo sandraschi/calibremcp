@@ -15,7 +15,7 @@ except Exception as e:
     print(f"Error listing directory: {e}")
 
 # Try to access the database
-db_path = os.path.join('samples', 'metadata.db')
+db_path = os.path.join("samples", "metadata.db")
 try:
     if os.path.exists(db_path):
         print(f"\nDatabase exists at: {os.path.abspath(db_path)}")

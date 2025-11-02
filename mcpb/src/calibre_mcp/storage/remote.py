@@ -3,9 +3,17 @@ Remote storage backend for Calibre MCP.
 
 Provides access to Calibre content server via HTTP API.
 """
+
 import aiohttp
 import logging
 from typing import List, Optional, Dict, Any, Union
+
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
@@ -14,142 +22,178 @@ from . import StorageBackend
 
 logger = logging.getLogger(__name__)
 
+
 class RemoteStorage(StorageBackend):
     """Remote storage backend using Calibre Content Server API"""
-    
+
     def __init__(self, server_name: str, base_url: str, auth: Optional[AuthManager] = None):
         """
         Initialize remote storage backend.
-        
+
         Args:
             server_name: Unique name of the remote server
             base_url: Base URL of the Calibre content server
             auth: Optional AuthManager instance
         """
         self.server_name = server_name
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.auth = auth or AuthManager()
         self.session = None
-    
+
     async def _ensure_session(self):
         """Ensure we have an active aiohttp session"""
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession()
-    
+
     async def _get_auth_headers(self) -> Dict[str, str]:
         """Get authentication headers"""
         creds = self.auth.get_credentials(self.server_name)
         if not creds:
             raise ValueError(f"No credentials found for server: {self.server_name}")
-        return {
-            "X-Username": creds[0],
-            "X-Password": creds[1]
-        }
-    
+        return {"X-Username": creds[0], "X-Password": creds[1]}
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(
+            (aiohttp.ClientConnectionError, aiohttp.ServerTimeoutError, aiohttp.ClientError)
+        ),
+        reraise=True,
+    )
     async def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
-        """Make an authenticated request to the Calibre server"""
+        """
+        Make an authenticated request to the Calibre server with automatic retry logic.
+
+        Uses tenacity to automatically retry transient network errors (connection errors,
+        timeouts) with exponential backoff. HTTP 4xx/5xx errors are not retried as they
+        indicate permanent failures (authentication, validation, etc.).
+
+        Args:
+            method: HTTP method (GET, POST, PUT, DELETE, etc.)
+            endpoint: API endpoint (relative to base URL)
+            **kwargs: Additional arguments passed to aiohttp.ClientSession.request()
+
+        Returns:
+            Response data (JSON dict or text depending on content-type)
+
+        Raises:
+            aiohttp.ClientError: On network errors after all retries exhausted
+            aiohttp.ClientResponseError: On HTTP 4xx/5xx errors (not retried)
+        """
         await self._ensure_session()
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
-        
+
         # Add auth headers if not already provided
-        if 'headers' not in kwargs:
-            kwargs['headers'] = await self._get_auth_headers()
-        
+        if "headers" not in kwargs:
+            kwargs["headers"] = await self._get_auth_headers()
+
         try:
             async with self.session.request(method, url, **kwargs) as response:
+                # raise_for_status() will raise ClientResponseError for 4xx/5xx
+                # These are NOT retried (they indicate permanent failures)
                 response.raise_for_status()
-                if response.content_type == 'application/json':
+
+                if response.content_type == "application/json":
                     return await response.json()
                 return await response.text()
-        except aiohttp.ClientError as e:
-            logger.error(f"Request failed: {e}")
+        except aiohttp.ClientResponseError:
+            # Don't retry HTTP errors (4xx/5xx) - they're permanent failures
             raise
-    
+        except (aiohttp.ClientConnectionError, aiohttp.ServerTimeoutError) as e:
+            # These will be retried by tenacity
+            logger.error(f"Remote storage request failed (will retry): {method} {endpoint} - {e}")
+            raise
+        except aiohttp.ClientError as e:
+            # Other client errors will be retried
+            logger.error(f"Remote storage request error (will retry): {method} {endpoint} - {e}")
+            raise
+
     async def list_books(self, **filters) -> List[Book]:
         """List books with optional filtering"""
         params = {}
-        
+
         # Map filters to API parameters
-        if 'author' in filters:
-            params['author'] = filters['author']
-        if 'title' in filters:
-            params['query'] = f'title:"{filters["title"]}"'
-        if 'limit' in filters:
-            params['num'] = filters['limit']
-        
+        if "author" in filters:
+            params["author"] = filters["author"]
+        if "title" in filters:
+            params["query"] = f'title:"{filters["title"]}"'
+        if "limit" in filters:
+            params["num"] = filters["limit"]
+
         try:
-            data = await self._make_request('GET', '/ajax/books', params=params)
+            data = await self._make_request("GET", "/ajax/books", params=params)
             return [
                 Book(
-                    id=book['id'],
-                    title=book['title'],
-                    authors=book['authors'],
-                    timestamp=book['timestamp'],
-                    pubdate=book['pubdate'],
-                    series_index=book.get('series_index', 0),
-                    path=book.get('path', ''),
-                    has_cover=book.get('has_cover', False),
-                    last_modified=book.get('last_modified', ''),
-                    uuid=book.get('uuid', '')
+                    id=book["id"],
+                    title=book["title"],
+                    authors=book["authors"],
+                    timestamp=book["timestamp"],
+                    pubdate=book["pubdate"],
+                    series_index=book.get("series_index", 0),
+                    path=book.get("path", ""),
+                    has_cover=book.get("has_cover", False),
+                    last_modified=book.get("last_modified", ""),
+                    uuid=book.get("uuid", ""),
                 )
                 for book in data
             ]
         except Exception as e:
             logger.error(f"Failed to list books: {e}")
             raise
-    
+
     async def get_book(self, book_id: Union[int, str]) -> Optional[Book]:
         """Get a book by ID"""
         try:
-            data = await self._make_request('GET', f'/ajax/book/{book_id}')
+            data = await self._make_request("GET", f"/ajax/book/{book_id}")
             if not data:
                 return None
-                
+
             return Book(
-                id=data['id'],
-                title=data['title'],
-                authors=data.get('authors', []),
-                timestamp=data.get('timestamp', ''),
-                pubdate=data.get('pubdate', ''),
-                series_index=data.get('series_index', 0),
-                path=data.get('path', ''),
-                has_cover=data.get('has_cover', False),
-                last_modified=data.get('last_modified', ''),
-                uuid=data.get('uuid', '')
+                id=data["id"],
+                title=data["title"],
+                authors=data.get("authors", []),
+                timestamp=data.get("timestamp", ""),
+                pubdate=data.get("pubdate", ""),
+                series_index=data.get("series_index", 0),
+                path=data.get("path", ""),
+                has_cover=data.get("has_cover", False),
+                last_modified=data.get("last_modified", ""),
+                uuid=data.get("uuid", ""),
             )
         except Exception as e:
             logger.error(f"Failed to get book {book_id}: {e}")
             raise
-    
+
     async def get_library_info(self) -> LibraryInfo:
         """Get library metadata"""
         try:
             # Get library name from server info
-            server_info = await self._make_request('GET', '/ajax/site')
-            
+            server_info = await self._make_request("GET", "/ajax/site")
+
             # Get book count
-            books = await self._make_request('GET', '/ajax/books', params={'num': 1})
-            
+            books = await self._make_request("GET", "/ajax/books", params={"num": 1})
+
             return LibraryInfo(
-                name=server_info.get('library_name', 'Remote Library'),
+                name=server_info.get("library_name", "Remote Library"),
                 path=self.base_url,
                 book_count=len(books) if books else 0,
                 total_size=0,  # Not available via standard API
-                is_local=False
+                is_local=False,
             )
         except Exception as e:
             logger.error(f"Failed to get library info: {e}")
             raise
-    
+
     async def close(self):
         """Close the HTTP session"""
         if self.session and not self.session.closed:
             await self.session.close()
-    
+
     def __del__(self):
         """Ensure session is closed on garbage collection"""
-        if hasattr(self, 'session') and self.session and not self.session.closed:
+        if hasattr(self, "session") and self.session and not self.session.closed:
             import asyncio
+
             if asyncio.iscoroutinefunction(self.session.close):
                 asyncio.create_task(self.session.close())
             else:

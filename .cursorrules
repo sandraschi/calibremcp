@@ -24,11 +24,405 @@
 - **Async**: MCP tools must be async
 
 ### Commands
-```bash
+```powershell
 uv run ruff check .
 uv run ruff format .
 uv run python -m pytest -v
 ```
+
+### Periodic Code Quality Checks
+- **ALWAYS run ruff check before committing**: `uv run ruff check .`
+- **Run ruff check after every tool addition/modification**
+- **Run ruff format after linting passes**: `uv run ruff format .`
+- **Zero tolerance**: No commits with ruff errors allowed
+- **Pre-commit hook recommended** (run ruff check automatically)
+
+---
+
+## FastMCP 2.13+ Standard Conformance (STRICT)
+
+### Version Requirements
+- **FastMCP 2.13.0+ mandatory** (released Nov 2025)
+  - **Security fixes**: CVE-2025-62801 (command injection), CVE-2025-62800 (XSS)
+  - **New features**: Persistent storage backends, server lifespan support
+  - Always use latest 2.13.x version for security patches
+  - Pin in `pyproject.toml`: `fastmcp>=2.13.0,<2.14.0`
+
+### Architecture Requirements
+- **FastMCP 2.13+ framework mandatory**:
+  - Use `from fastmcp import FastMCP` (not older imports)
+  - Proper MCP and FastAPI app initialization
+  - Unified tool registration system
+  - **Server lifespan support** (required for persistent storage):
+    ```python
+    @asynccontextmanager
+    async def server_lifespan(mcp_instance: FastMCP):
+        # Startup initialization
+        yield
+        # Cleanup
+    mcp = FastMCP("app-name", lifespan=server_lifespan)
+    ```
+
+### Persistent Storage (FastMCP 2.13+)
+- **Use FastMCP storage backends** for cross-session persistence:
+  - Data survives Claude Desktop restarts
+  - Data survives OS reboots (Windows/macOS/Linux)
+  - Platform-appropriate storage directories automatically used
+  - Implementation pattern documented in: `docs/mcp-technical/FASTMCP_2.13_PERSISTENT_STORAGE_PATTERN.md`
+- **Storage wrapper required** for stateful applications:
+  - Create `storage/persistence.py` with storage wrapper class
+  - Use DiskStore backend for guaranteed persistence
+  - Initialize in `server_lifespan` startup
+  - Store user preferences, current state, caches, etc.
+
+### Modular Architecture (ANTI-MONSTER SERVER.PY)
+  - **Thin server.py** < 150 lines (only FastMCP init + tool imports)
+  - **NO monster server.py** with hundreds of tool implementations
+  - **Proper tools/ directory structure**:
+    ```
+    src/calibre_mcp/
+    ├── server.py          # THIN - only imports & registration
+    └── tools/             # ALL LOGIC GOES HERE
+        ├── __init__.py
+        ├── category1/     # Tool categories
+        │   ├── __init__.py
+        │   ├── models.py  # Pydantic models
+        │   └── tools.py   # Tool implementations
+        └── shared/        # Common utilities
+    ```
+  - **Category-based tool organization** (not all tools in one file)
+  - **Clean tool registration pattern**: `mcp.add_tools(category_tools)`
+  - **Model separation**: Pydantic models in separate `models.py` files
+
+### Tool Registration
+- **Proper `@mcp.tool()` multiline decorators** (REQUIRED)
+- **NO `"""` inside `"""` delimited decorators** (use single quotes or escape)
+- **Self-documenting tool descriptions** present
+- All tools properly categorized and organized
+
+### Security Requirements (FastMCP 2.13+)
+- **Command Injection Prevention** (CVE-2025-62801 fixed in 2.13.0):
+  - **NEVER** use `subprocess.call()`, `os.system()`, or `eval()` with user input
+  - **ALWAYS** validate and sanitize all user inputs before processing
+  - Use parameterized queries for database operations
+  - Use `shlex.quote()` for shell arguments if absolutely necessary
+  - Prefer library APIs over shell commands
+- **XSS Prevention** (CVE-2025-62800 fixed in 2.13.0):
+  - **NEVER** return raw HTML/JavaScript from tool responses
+  - Sanitize all user-generated content before displaying
+  - Use proper escaping for HTML/JSON content
+  - Validate all input data types and formats
+- **Input Validation**:
+  - Validate all tool parameters against expected types and ranges
+  - Reject suspicious patterns (script tags, command injection attempts)
+  - Use Pydantic models for automatic validation
+  - Implement rate limiting for user-facing operations
+
+### FastAPI Standard Conformance (REQUIRED)
+- `/api/docs` endpoint with OpenAPI documentation accessible
+- `/health` endpoint returning JSON status (200 OK)
+- `/api/v1/` versioned API endpoints structure
+- Proper HTTP status codes (200, 400, 404, 500)
+- JSON request/response format throughout
+- CORS properly configured for web access
+
+---
+
+## Tool Expansion Rules
+
+### When Adding New Tools
+1. **Check if functionality exists** in existing tools first
+2. **Use portmanteau pattern** when related operations belong together (see Portmanteau Rules below)
+3. **Follow FastMCP 2.13+ architecture**: Add to appropriate category in `tools/` directory
+4. **Create Pydantic models** in `category/models.py` if needed
+5. **Add comprehensive multiline docstring** (see Docstring Requirements below)
+6. **Include detailed error messages** useful to AI (see Error Messages below)
+7. **Write tests** before or immediately after implementation
+8. **Run ruff check** after adding tool (zero errors required)
+9. **Verify server loads** in Claude Desktop after changes
+
+### Tool Organization
+- **Group related tools** in category subdirectories
+- **Keep tools focused** on single responsibility (but use portmanteau for related operations)
+- **Share common utilities** via `tools/shared/` directory
+- **Maintain clear module boundaries** and responsibilities
+
+---
+
+## Portmanteau Tool Rules
+
+### When to Use Portmanteau Pattern
+Use portmanteau tools (single tool with `operation` parameter) when:
+- **Multiple related operations** belong to the same domain
+- **Shared state or context** between operations
+- **Consistent interface** improves user experience
+- **Reduces tool count** without losing functionality
+- **Operations are part of a cohesive workflow**
+
+### Portmanteau Structure
+```python
+@mcp.tool()
+async def tool_name(
+    operation: str,  # "operation1", "operation2", "operation3"
+    # ... shared parameters
+    # ... operation-specific parameters
+) -> Dict[str, Any]:
+    """
+    Brief description covering all operations.
+    
+    Operations:
+    - operation1: Description of first operation
+    - operation2: Description of second operation
+    - operation3: Description of third operation
+    
+    [Detailed docstring following standard format]
+    """
+```
+
+### Examples
+- **OCR operations**: `process`, `batch_process`, `detect_language`, `get_status` → `calibre_ocr()`
+- **Metadata operations**: `update`, `validate`, `enrich`, `merge` → `manage_metadata()`
+- **Collection operations**: `create`, `update`, `delete`, `list` → `manage_collections()`
+
+### Benefits
+- Reduces MCP tool count (important for Claude Desktop tool limit)
+- Better user experience (single interface for related operations)
+- Easier to maintain and extend
+- Follows CalibreMCP's architecture pattern
+
+---
+
+## Multiline Docstring Requirements (MANDATORY)
+
+### Required Format
+Every tool MUST have comprehensive multiline docstrings following this structure:
+
+```python
+@mcp.tool()
+async def tool_name(
+    param1: str,
+    param2: int = 10,
+    param3: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """Brief one-line description with key constraints.
+    
+    Detailed description providing context, use cases, and important notes
+    about the tool's behavior. This should help users understand when and
+    how to use it.
+    
+    Prerequisites:
+        - Requirement 1 that must be true before calling
+        - Requirement 2 (if applicable)
+        - State or configuration needed
+    
+    Parameters:
+        param1: Description of the first parameter
+            - Required/Optional status
+            - Valid values or constraints
+            - Examples of acceptable values
+        
+        param2: Description of second parameter (default: 10)
+            - Mention defaults in description
+            - Explain acceptable ranges or constraints
+        
+        param3: Description of third parameter (default: None)
+            - Explain None behavior
+            - Describe list element types or structure
+    
+    Returns:
+        Dictionary containing:
+            - success: Boolean indicating operation success
+            - data: The actual data returned (structure described)
+            - metadata: Additional information about the operation
+            - error: Error message if success is False
+    
+    Usage:
+        This tool is used when you need to [explain use case]. It works by
+        [explain mechanism]. Best practices include [list recommendations].
+        
+        Common scenarios:
+        - Scenario 1: When to use this tool
+        - Scenario 2: Another use case
+        - Scenario 3: Special considerations
+    
+    Examples:
+        Basic usage:
+            result = await tool_name("value1", 20)
+            # Returns: {'success': True, 'data': [...]}
+        
+        With optional parameters:
+            result = await tool_name(
+                "value1",
+                param2=50,
+                param3=["option1", "option2"]
+            )
+            # Returns: {'success': True, 'data': [...], 'metadata': {...}}
+        
+        Error handling:
+            result = await tool_name("invalid_value")
+            # Returns: {'success': False, 'error': 'Clear error message'}
+    
+    Errors:
+        Common errors and solutions:
+        - Error condition 1: Solution/explanation
+        - Error condition 2: Solution/explanation
+        - Error condition 3: Solution/explanation
+    
+    See Also:
+        - Related tool 1: When to use instead
+        - Related tool 2: Complementary functionality
+    """
+```
+
+### Docstring Rules
+- **MANDATORY**: All tools must have multiline docstrings
+- **Use triple double-quotes (`"""`)** to delimit docstrings
+- **Start immediately** after function definition
+- **Brief description on first line** with key constraints
+- **Blank line** after brief description
+- **Include Prerequisites section** if applicable
+- **Include Examples section** with at least 2-3 realistic examples
+- **Include Errors section** with common errors and solutions
+- **NO `"""` inside docstrings** - Use single quotes or escape sequences
+
+### Why This Matters
+- **90%+ first-call success rate** for well-documented tools vs 30-50% for poorly documented
+- **Reduces user frustration** and wasted API tokens
+- **Enables AI to succeed on first try**, not after multiple attempts
+
+---
+
+## Error Messages (AI-Friendly Requirements) - MANDATORY FOR ALL TOOLS
+
+### ⚠️ CRITICAL: All Tools MUST Return Structured Error Responses
+
+**NEVER raise exceptions** from `@mcp.tool()` decorated functions. **ALWAYS** catch exceptions and return structured error dictionaries using the standardized error handling utilities.
+
+### Error Handling Implementation
+
+**USE THE STANDARDIZED ERROR HANDLING UTILITIES:**
+```python
+from ..shared.error_handling import handle_tool_error, format_error_response
+
+@mcp.tool()
+async def my_tool(param: str) -> Dict[str, Any]:
+    try:
+        # Tool logic here
+        return {"success": True, "data": result}
+    except Exception as e:
+        # ALWAYS catch exceptions and return structured error
+        return handle_tool_error(
+            exception=e,
+            operation=None,  # For portmanteau tools, specify operation
+            parameters={"param": param},
+            tool_name="my_tool",
+            context="What the tool was doing when it failed",
+        )
+```
+
+### Error Message Standards
+All error messages MUST be:
+- **Actionable**: Tell the AI what to do, not just what went wrong
+- **Contextual**: Include relevant information (file paths, values, states)
+- **Diagnostic**: Help identify the root cause
+- **Solution-oriented**: Provide steps to fix or work around
+
+### Error Message Format
+```python
+# ❌ BAD
+raise ValueError("Invalid input")
+
+# ✅ GOOD
+raise ValueError(
+    "Invalid book_id: 'abc' (expected integer). "
+    "Use list_books() to find valid book IDs, or use search_books() "
+    "to search by title/author and get the book_id from results."
+)
+
+# ❌ BAD
+raise FileNotFoundError("File not found")
+
+# ✅ GOOD
+raise FileNotFoundError(
+    "Calibre library not found at: 'C:/Users/User/Library'. "
+    "Possible causes: "
+    "1. Library path in config is incorrect - check CALIBRE_LIBRARY_PATH env var "
+    "2. Library hasn't been created yet - run 'calibre-server --initialize-library' "
+    "3. Permissions issue - ensure user has read/write access to directory. "
+    "Fix: Update configuration with correct path or create new library."
+)
+```
+
+### Error Message Guidelines
+- **Include the actual value** that caused the error
+- **Explain what was expected** vs what was received
+- **Provide next steps** or related tools to use
+- **Include troubleshooting hints** for common issues
+- **Reference related tools** that might help
+- **Use structured format** when returning errors in responses:
+  ```python
+  {
+      "success": False,
+      "error": "Clear error message",
+      "error_code": "SPECIFIC_ERROR_CODE",
+      "suggestions": [
+          "Suggestion 1: How to fix",
+          "Suggestion 2: Alternative approach"
+      ],
+      "related_tools": ["tool1", "tool2"]
+  }
+  ```
+
+### Why This Matters
+- **AI assistants need context** to understand and fix errors
+- **Actionable messages** reduce back-and-forth with user
+- **Diagnostic information** helps AI make better decisions
+- **Solution-oriented errors** enable self-healing behavior
+
+---
+
+## Development Workflow
+
+### When User Says "add tool to do x"
+1. **Plan the tool**:
+   - Check if functionality exists in existing tools
+   - Determine if portmanteau pattern applies
+   - Choose appropriate category/directory
+   
+2. **Implement the tool**:
+   - Add tool following FastMCP 2.13+ architecture
+   - Ensure security best practices (input validation, no command injection risks)
+   - Create Pydantic models if needed
+   - Add comprehensive multiline docstring
+   - Include detailed, AI-friendly error messages
+   - Add input validation and error handling
+   
+3. **Code quality checks** (ITERATIVE):
+   - Run: `uv run ruff check .`
+   - Fix ALL errors reported
+   - Run: `uv run ruff check .` again
+   - Repeat until **ZERO errors**
+   
+4. **Format code**:
+   - Run: `uv run ruff format .`
+   
+5. **Testing**:
+   - Run: `uv run python -m pytest -v`
+   - Add tests for new tool if not covered
+   
+6. **Verify server loads**:
+   - Run: `.\scripts\restart_claude_and_check_mcp.ps1`
+   - Ensure no errors in Claude Desktop
+   
+7. **Documentation**:
+   - Update API.md if needed
+   - Update README.md if new feature category
+   - Update CHANGELOG.md
+
+### Before Every Commit
+- **ALWAYS run**: `uv run ruff check .` (zero errors required)
+- **ALWAYS run**: `uv run ruff format .`
+- **Verify**: Server loads in Claude Desktop (if server code changed)
 
 ---
 
@@ -52,4 +446,4 @@ git push origin v1.0.0b1
 - Central Standards: D:\Dev\repos\mcp-central-docs\STANDARDS.md
 - Workflow Strategy: mcp-central-docs/docs-private/CURSOR_WORKFLOW_STRATEGY.md
 
-**Last Updated**: 2025-10-21 (Triple Initiatives Day 1)
+**Last Updated**: 2025-11-02 (Updated to FastMCP 2.13+, added security requirements, persistent storage guidelines)
