@@ -86,18 +86,11 @@ class BaseTool:
         # Create function code dynamically
         params_str = ", ".join(param_defs)
 
-        # Store input_model outside exec so it's available in closure
-        input_model = tool_info.get("input_model")
-
+        # Create wrapper function without Pydantic validation (FastMCP handles validation)
         exec_code = f"""
 async def wrapper({params_str}):
     # Build kwargs dict
     call_kwargs = {{{", ".join([f'"{name}": {name}' for name in param_names])}}}
-    
-    # If there's an input_model, validate against it
-    if input_model:
-        validated_input = input_model(**call_kwargs)
-        call_kwargs = validated_input.dict()
     
     # Call method (handle both sync and async)
     if is_async:
@@ -113,7 +106,6 @@ async def wrapper({params_str}):
             "method": method,
             "self": self,
             "is_async": is_async,
-            "input_model": input_model,  # Capture input_model directly
             "typing": typing,
         }
         exec_globals = {**globals(), "typing": typing}
