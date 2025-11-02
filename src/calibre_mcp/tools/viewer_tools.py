@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 from ..services.viewer_service import viewer_service, ViewerState, ViewerPage, ViewerMetadata
 from .base_tool import BaseTool, mcp_tool
+from pathlib import Path
 
 
 class OpenBookInput(BaseModel):
@@ -84,18 +85,48 @@ class ViewerTools(BaseTool):
             print(f"Opened book with {book_data['pages']['total']} pages")
             print(f"Starting on page {book_data['state']['current_page'] + 1}")
         """
-        # This will initialize the viewer if it doesn't exist
-        metadata = viewer_service.get_metadata(book_id, file_path)
-        state = viewer_service.get_state(book_id, file_path)
+        try:
+            # Validate file_path exists
+            file_path_obj = Path(file_path)
+            if not file_path_obj.exists():
+                return {
+                    "success": False,
+                    "error": f"Book file not found: {file_path}. Verify the file exists and the path is correct. Use query_books to get valid format paths.",
+                    "message": f"Cannot open book {book_id}: file not found at {file_path}",
+                }
 
-        return {
-            "metadata": metadata.dict(),
-            "state": state.dict(),
-            "pages": {
-                "total": metadata.page_count,
-                "first_page": viewer_service.get_page(book_id, file_path, 0).dict(),
-            },
-        }
+            # This will initialize the viewer if it doesn't exist
+            metadata = viewer_service.get_metadata(book_id, file_path)
+            state = viewer_service.get_state(book_id, file_path)
+
+            return {
+                "success": True,
+                "metadata": metadata.dict(),
+                "state": state.dict(),
+                "pages": {
+                    "total": metadata.page_count,
+                    "first_page": viewer_service.get_page(book_id, file_path, 0).dict(),
+                },
+            }
+        except ValueError as e:
+            # No viewer available for file format
+            return {
+                "success": False,
+                "error": f"No viewer available for file: {file_path}. Supported formats: PDF, EPUB, CBZ, CBR. Check file extension and try again.",
+                "message": str(e),
+            }
+        except FileNotFoundError as e:
+            return {
+                "success": False,
+                "error": f"Book file not found: {file_path}. File may have been moved or deleted. Use query_books to refresh the book path.",
+                "message": str(e),
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to open book {book_id}: {str(e)}. Check that the file is accessible and not corrupted.",
+                "message": f"Unexpected error: {str(e)}",
+            }
 
     @mcp_tool(
         name="get_page",
@@ -145,7 +176,31 @@ class ViewerTools(BaseTool):
                 page_number=49
             )
         """
-        return viewer_service.get_page(book_id, file_path, page_number).dict()
+        try:
+            file_path_obj = Path(file_path)
+            if not file_path_obj.exists():
+                return {
+                    "success": False,
+                    "error": f"Book file not found: {file_path}. Verify the file exists and the path is correct.",
+                    "message": f"Cannot get page {page_number} from book {book_id}: file not found",
+                }
+
+            return {
+                "success": True,
+                **viewer_service.get_page(book_id, file_path, page_number).dict(),
+            }
+        except IndexError as e:
+            return {
+                "success": False,
+                "error": f"Page {page_number} is out of range for book {book_id}. Page numbers are 0-based (first page is 0).",
+                "message": str(e),
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to get page {page_number} from book {book_id}: {str(e)}",
+                "message": f"Unexpected error: {str(e)}",
+            }
 
     @mcp_tool(
         name="get_metadata",
@@ -186,7 +241,25 @@ class ViewerTools(BaseTool):
             )
             print(f"Book has {metadata['page_count']} pages")
         """
-        return viewer_service.get_metadata(book_id, file_path).dict()
+        try:
+            file_path_obj = Path(file_path)
+            if not file_path_obj.exists():
+                return {
+                    "success": False,
+                    "error": f"Book file not found: {file_path}. Verify the file exists.",
+                    "message": f"Cannot get metadata for book {book_id}: file not found",
+                }
+
+            return {
+                "success": True,
+                **viewer_service.get_metadata(book_id, file_path).dict(),
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to get metadata for book {book_id}: {str(e)}",
+                "message": f"Unexpected error: {str(e)}",
+            }
 
     @mcp_tool(
         name="get_state",
@@ -228,7 +301,17 @@ class ViewerTools(BaseTool):
             print(f"Currently on page {state['current_page'] + 1} of {state['total_pages']}")
             print(f"Zoom level: {state['zoom_level'] * 100}%")
         """
-        return viewer_service.get_state(book_id, file_path).dict()
+        try:
+            return {
+                "success": True,
+                **viewer_service.get_state(book_id, file_path).dict(),
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to get state for book {book_id}: {str(e)}",
+                "message": f"Unexpected error: {str(e)}",
+            }
 
     @mcp_tool(
         name="update_state",
@@ -304,19 +387,35 @@ class ViewerTools(BaseTool):
                 reading_direction="ltr"
             )
         """
-        state_updates = {}
-        if current_page is not None:
-            state_updates["current_page"] = current_page
-        if reading_direction is not None:
-            state_updates["reading_direction"] = reading_direction
-        if page_layout is not None:
-            state_updates["page_layout"] = page_layout
-        if zoom_mode is not None:
-            state_updates["zoom_mode"] = zoom_mode
-        if zoom_level is not None:
-            state_updates["zoom_level"] = zoom_level
+        try:
+            state_updates = {}
+            if current_page is not None:
+                state_updates["current_page"] = current_page
+            if reading_direction is not None:
+                state_updates["reading_direction"] = reading_direction
+            if page_layout is not None:
+                state_updates["page_layout"] = page_layout
+            if zoom_mode is not None:
+                state_updates["zoom_mode"] = zoom_mode
+            if zoom_level is not None:
+                state_updates["zoom_level"] = zoom_level
 
-        return viewer_service.update_state(book_id, file_path, **state_updates).dict()
+            return {
+                "success": True,
+                **viewer_service.update_state(book_id, file_path, **state_updates).dict(),
+            }
+        except ValueError as e:
+            return {
+                "success": False,
+                "error": f"Invalid viewer state parameter: {str(e)}. Check parameter values and ranges.",
+                "message": str(e),
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to update state for book {book_id}: {str(e)}",
+                "message": f"Unexpected error: {str(e)}",
+            }
 
     @mcp_tool(
         name="close_viewer",
@@ -356,8 +455,15 @@ class ViewerTools(BaseTool):
             if result["success"]:
                 print("Viewer closed successfully")
         """
-        viewer_service.close_viewer(book_id)
-        return {"success": True}
+        try:
+            viewer_service.close_viewer(book_id)
+            return {"success": True}
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to close viewer for book {book_id}: {str(e)}",
+                "message": f"Unexpected error: {str(e)}",
+            }
 
     @mcp_tool(
         name="open_book_file",
@@ -429,11 +535,11 @@ class ViewerTools(BaseTool):
                                         break
                             if file_path and Path(file_path).exists():
                                 break
-                        
+
                         # If still no valid path, use first format
                         if (not file_path or not Path(file_path).exists()) and book["formats"]:
                             file_path = book["formats"][0].get("path")
-                except Exception as e:
+                except Exception:
                     # If we can't get book info, continue with original file_path
                     pass
 
