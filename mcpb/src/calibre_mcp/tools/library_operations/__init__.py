@@ -5,12 +5,11 @@ This module provides tools for working with the library as a whole,
 including searching, filtering, and managing library settings.
 """
 
-from typing import Any, Dict, List, Optional, Union, Tuple
-from pathlib import Path
+from typing import Dict
 
 # Import all library operation tools to register them
 from .list_books import list_books  # noqa: F401
-from .series_manager import SeriesManager, SeriesInfo, SeriesMergeOptions
+from .series_manager import SeriesManager, SeriesInfo, SeriesMergeOptions  # noqa: F401
 from .. import tool
 
 # Re-export models for convenience

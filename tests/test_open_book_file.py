@@ -1,7 +1,7 @@
 """Test the open_book_file tool with fixture books."""
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch
 from pathlib import Path
 
 from calibre_mcp.tools.viewer_tools import ViewerTools

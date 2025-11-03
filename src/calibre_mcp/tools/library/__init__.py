@@ -13,11 +13,11 @@ from .manage_libraries import manage_libraries
 # Import helper functions (NOT registered - used internally by portmanteau tool)
 # These are NOT visible to Claude, only used as helpers
 from .library_management import (
-    list_libraries_helper,
-    switch_library_helper,
-    get_library_stats_helper,
-    cross_library_search_helper,
-)  # noqa: F401 - Imported for use as helpers, not registered
+    list_libraries_helper,  # noqa: F401
+    switch_library_helper,  # noqa: F401
+    get_library_stats_helper,  # noqa: F401
+    cross_library_search_helper,  # noqa: F401
+)
 
 # List of tools to register - ONLY portmanteau tools are registered
 # Helper functions are imported above but NOT in this list (they have no @mcp.tool() decorator)

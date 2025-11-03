@@ -2,11 +2,10 @@
 Comic viewer module for CalibreMCP - Handles CBZ and CBR formats.
 """
 
-from typing import List, Dict, Any, Optional, Union, BinaryIO
+from typing import Dict, Any
 from pathlib import Path
 import zipfile
 import rarfile
-import io
 import base64
 import re
 from enum import Enum

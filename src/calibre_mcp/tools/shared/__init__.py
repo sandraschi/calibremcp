@@ -10,4 +10,3 @@ __all__ = [
     "handle_tool_error",
     "format_error_response",
 ]
-

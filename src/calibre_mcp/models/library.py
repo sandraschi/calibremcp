@@ -3,15 +3,15 @@ SQLAlchemy and Pydantic models for Library in Calibre MCP.
 """
 
 from datetime import datetime
-from typing import Optional, Dict, List, TYPE_CHECKING
+from typing import Optional, Dict, TYPE_CHECKING
 from sqlalchemy import Integer, Text, Boolean, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from pydantic import BaseModel, Field
 
 from .base import Base, BaseMixin
 
 if TYPE_CHECKING:
-    from .book import Book
+    pass
 
 
 class Library(Base, BaseMixin):
@@ -33,10 +33,10 @@ class Library(Base, BaseMixin):
     # Therefore, we CANNOT define a SQLAlchemy relationship here - it will fail because
     # there's no foreign key to join on. The Library model is for application-level
     # library management, not for Calibre's actual database schema.
-    # 
+    #
     # If you need to get books for a library, query the books table directly - all books
     # in a metadata.db file belong to that library.
-    # 
+    #
     # books relationship removed - use direct queries instead
     # books: Mapped[List["Book"]] = relationship(...)  # REMOVED - no FK in Calibre schema
 

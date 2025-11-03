@@ -2,11 +2,9 @@
 EPUB viewer module for CalibreMCP.
 """
 
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any
 from pathlib import Path
-import io
 import zipfile
-import re
 from bs4 import BeautifulSoup
 
 

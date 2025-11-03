@@ -10,7 +10,6 @@ from .finereader import FineReaderCLI, safe_ocr_process
 
 # Re-export functions from parent utils.py module (file utilities)
 # This allows importing from calibre_mcp.utils package
-import sys
 from pathlib import Path
 
 # Import from the parent utils.py file (not the package)
@@ -19,11 +18,12 @@ _utils_module_path = _parent_dir / "utils.py"
 
 if _utils_module_path.exists():
     import importlib.util
+
     spec = importlib.util.spec_from_file_location("calibre_mcp._utils_module", _utils_module_path)
     if spec and spec.loader:
         _utils_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_utils_module)
-        
+
         # Re-export needed functions
         get_book_format_from_extension = _utils_module.get_book_format_from_extension
         extract_metadata = _utils_module.extract_metadata

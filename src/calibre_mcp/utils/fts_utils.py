@@ -183,7 +183,9 @@ def query_fts(
 
         except sqlite3.Error as fts_error:
             # FTS virtual table query failed (likely custom tokenizer not available)
-            logger.debug(f"FTS virtual table query failed: {fts_error}, falling back to content table")
+            logger.debug(
+                f"FTS virtual table query failed: {fts_error}, falling back to content table"
+            )
 
         # Fallback: Query the underlying books_text content table directly
         # This works without the custom tokenizer, but is slower

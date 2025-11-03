@@ -5,9 +5,8 @@ All tools MUST use these functions to return AI-friendly error responses
 that follow the .cursorrules Error Messages requirements.
 """
 
-from typing import Dict, Any, Optional, List, Type
+from typing import Dict, Any, Optional, List
 import logging
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +23,13 @@ def format_error_response(
 ) -> Dict[str, Any]:
     """
     Format a standardized error response for MCP tools.
-    
+
     Follows .cursorrules Error Messages (AI-Friendly Requirements):
     - Actionable: Tells AI what to do
     - Contextual: Includes relevant information
     - Diagnostic: Helps identify root cause
     - Solution-oriented: Provides steps to fix
-    
+
     Args:
         error_msg: Clear error message (actionable, contextual, diagnostic)
         error_code: Specific error code (e.g., "VALIDATION_ERROR", "BOOK_NOT_FOUND")
@@ -40,7 +39,7 @@ def format_error_response(
         suggestions: List of actionable suggestions
         related_tools: List of related tools to try
         diagnostic_info: Additional diagnostic information
-    
+
     Returns:
         Standardized error response dictionary:
         {
@@ -60,26 +59,26 @@ def format_error_response(
         "error_code": error_code,
         "error_type": error_type,
     }
-    
+
     if operation:
         response["operation"] = operation
-    
+
     if parameters:
         response["parameters"] = parameters
-    
+
     if suggestions:
         response["suggestions"] = suggestions
     else:
         response["suggestions"] = []
-    
+
     if related_tools:
         response["related_tools"] = related_tools
     else:
         response["related_tools"] = []
-    
+
     if diagnostic_info:
         response["diagnostic"] = diagnostic_info
-    
+
     return response
 
 
@@ -92,22 +91,22 @@ def handle_tool_error(
 ) -> Dict[str, Any]:
     """
     Handle exceptions in tools and return standardized error response.
-    
+
     This is the main function tools should use in try/except blocks.
-    
+
     Args:
         exception: The exception that was raised
         operation: Operation that failed (for portmanteau tools)
         parameters: Parameters that were used
         tool_name: Name of the tool (for logging)
         context: Additional context about what was happening
-    
+
     Returns:
         Standardized error response dictionary
     """
     error_type = type(exception).__name__
     error_msg = str(exception)
-    
+
     # Log the error with full traceback
     logger.error(
         f"Error in {tool_name}",
@@ -121,7 +120,7 @@ def handle_tool_error(
         },
         exc_info=True,
     )
-    
+
     # Determine error code based on exception type
     if isinstance(exception, ValueError):
         error_code = "VALIDATION_ERROR"
@@ -166,7 +165,7 @@ def handle_tool_error(
             "Check server logs for more detailed error information",
         ]
         default_tools = ["manage_libraries", "query_books"]
-    
+
     # Build diagnostic information
     diagnostic: Dict[str, Any] = {
         "error_type": error_type,
@@ -178,11 +177,10 @@ def handle_tool_error(
         diagnostic["parameters_used"] = parameters
     if context:
         diagnostic["context"] = context
-    
+
     # Format comprehensive error message
     formatted_msg = (
-        f"❌ {tool_name} failed with {error_type}: {error_msg}\n\n"
-        f"**Diagnostic Information:**\n"
+        f"❌ {tool_name} failed with {error_type}: {error_msg}\n\n**Diagnostic Information:**\n"
     )
     if operation:
         formatted_msg += f"- Operation: {operation}\n"
@@ -194,11 +192,15 @@ def handle_tool_error(
     formatted_msg += "**Possible Solutions:**\n"
     for i, suggestion in enumerate(default_suggestions[:4], 1):
         formatted_msg += f"{i}. {suggestion}\n"
-    
+
     if isinstance(exception, FileNotFoundError):
-        formatted_msg += "\n**Important:** This is LOCAL library access using direct SQLite database.\n"
-        formatted_msg += "Do NOT try to connect to a Calibre HTTP server or configure remote access."
-    
+        formatted_msg += (
+            "\n**Important:** This is LOCAL library access using direct SQLite database.\n"
+        )
+        formatted_msg += (
+            "Do NOT try to connect to a Calibre HTTP server or configure remote access."
+        )
+
     return format_error_response(
         error_msg=formatted_msg,
         error_code=error_code,
@@ -209,4 +211,3 @@ def handle_tool_error(
         related_tools=default_tools,
         diagnostic_info=diagnostic,
     )
-

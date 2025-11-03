@@ -242,8 +242,8 @@ async def manage_books(
             if not file_path:
                 return format_error_response(
                     error_msg=(
-                        f"file_path is required for operation='add'. "
-                        f"Provide the path to the book file you want to add to the library."
+                        "file_path is required for operation='add'. "
+                        "Provide the path to the book file you want to add to the library."
                     ),
                     error_code="MISSING_FILE_PATH",
                     error_type="ValueError",
@@ -277,8 +277,8 @@ async def manage_books(
             if not book_id:
                 return format_error_response(
                     error_msg=(
-                        f"book_id is required for operation='get'. "
-                        f"Use query_books() to find books and get their book_id values."
+                        "book_id is required for operation='get'. "
+                        "Use query_books() to find books and get their book_id values."
                     ),
                     error_code="MISSING_BOOK_ID",
                     error_type="ValueError",
@@ -311,8 +311,8 @@ async def manage_books(
             if not book_id:
                 return format_error_response(
                     error_msg=(
-                        f"book_id is required for operation='update'. "
-                        f"Use query_books() to find books and get their book_id values."
+                        "book_id is required for operation='update'. "
+                        "Use query_books() to find books and get their book_id values."
                     ),
                     error_code="MISSING_BOOK_ID",
                     error_type="ValueError",
@@ -346,8 +346,8 @@ async def manage_books(
             if not book_id:
                 return format_error_response(
                     error_msg=(
-                        f"book_id is required for operation='delete'. "
-                        f"Use query_books() to find books and get their book_id values."
+                        "book_id is required for operation='delete'. "
+                        "Use query_books() to find books and get their book_id values."
                     ),
                     error_code="MISSING_BOOK_ID",
                     error_type="ValueError",
@@ -392,7 +392,7 @@ async def manage_books(
                 ],
                 related_tools=["manage_books"],
             )
-    
+
     except Exception as e:
         # Catch any unexpected errors at the top level
         return handle_tool_error(

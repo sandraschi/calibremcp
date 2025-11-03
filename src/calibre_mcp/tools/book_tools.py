@@ -104,7 +104,9 @@ def _format_books_table(
                     # Try parsing ISO format or date strings
                     for fmt in ["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y"]:
                         try:
-                            dt = datetime.strptime(pubdate.split("T")[0] if "T" in pubdate else pubdate, fmt)
+                            dt = datetime.strptime(
+                                pubdate.split("T")[0] if "T" in pubdate else pubdate, fmt
+                            )
                             year = str(dt.year)
                             break
                         except (ValueError, AttributeError):

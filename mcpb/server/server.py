@@ -14,7 +14,7 @@ src_path = repo_root / "src"
 sys.path.insert(0, str(src_path))
 
 # Initialize structured logging
-from calibre_mcp.logging_config import setup_logging, get_logger, log_operation
+from calibre_mcp.logging_config import setup_logging, get_logger, log_operation  # noqa: E402
 
 # Setup logging
 # CRITICAL: Disable console for stdio transport (JSON-RPC on stdout)
@@ -27,7 +27,7 @@ setup_logging(
 logger = get_logger("calibremcp.mcpb")
 
 # Now import and run the server
-from calibre_mcp.server import main
+from calibre_mcp.server import main  # noqa: E402
 
 if __name__ == "__main__":
     log_operation(

@@ -4,10 +4,9 @@ Create a minimal test Calibre database for testing.
 This creates a small, reproducible test library with a few sample books
 that can be committed to GitHub and used in CI/CD workflows.
 """
+
 import sqlite3
 from pathlib import Path
-from datetime import datetime
-import json
 
 TEST_LIBRARY_DIR = Path(__file__).parent.parent / "tests" / "fixtures" / "test_library"
 TEST_DB_PATH = TEST_LIBRARY_DIR / "metadata.db"
@@ -17,20 +16,20 @@ def create_test_database():
     """Create a minimal test Calibre database with sample books."""
     # Create directory
     TEST_LIBRARY_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     # Remove existing database
     if TEST_DB_PATH.exists():
         TEST_DB_PATH.unlink()
-    
+
     conn = sqlite3.connect(str(TEST_DB_PATH))
     cursor = conn.cursor()
-    
+
     # Enable foreign keys
     cursor.execute("PRAGMA foreign_keys = ON")
-    
+
     # Create minimal schema (only tables we actually use)
     print("Creating database schema...")
-    
+
     # Books table
     cursor.execute("""
         CREATE TABLE books (
@@ -50,7 +49,7 @@ def create_test_database():
             last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     # Authors table
     cursor.execute("""
         CREATE TABLE authors (
@@ -60,7 +59,7 @@ def create_test_database():
             link TEXT DEFAULT ''
         )
     """)
-    
+
     # Tags table
     cursor.execute("""
         CREATE TABLE tags (
@@ -68,7 +67,7 @@ def create_test_database():
             name TEXT NOT NULL
         )
     """)
-    
+
     # Series table
     cursor.execute("""
         CREATE TABLE series (
@@ -77,7 +76,7 @@ def create_test_database():
             sort TEXT
         )
     """)
-    
+
     # Comments table
     cursor.execute("""
         CREATE TABLE comments (
@@ -86,7 +85,7 @@ def create_test_database():
             text TEXT NOT NULL DEFAULT ''
         )
     """)
-    
+
     # Data table (book formats)
     cursor.execute("""
         CREATE TABLE data (
@@ -98,7 +97,7 @@ def create_test_database():
             UNIQUE(book, format)
         )
     """)
-    
+
     # Link tables
     cursor.execute("""
         CREATE TABLE books_authors_link (
@@ -108,7 +107,7 @@ def create_test_database():
             UNIQUE(book, author)
         )
     """)
-    
+
     cursor.execute("""
         CREATE TABLE books_tags_link (
             id INTEGER PRIMARY KEY,
@@ -117,7 +116,7 @@ def create_test_database():
             UNIQUE(book, tag)
         )
     """)
-    
+
     cursor.execute("""
         CREATE TABLE books_series_link (
             id INTEGER PRIMARY KEY,
@@ -126,7 +125,7 @@ def create_test_database():
             UNIQUE(book, series)
         )
     """)
-    
+
     # Foreign keys
     cursor.execute("""
         CREATE INDEX idx_books_authors_book ON books_authors_link(book)
@@ -149,9 +148,9 @@ def create_test_database():
     cursor.execute("""
         CREATE INDEX idx_comments_book ON comments(book)
     """)
-    
+
     print("Inserting test data...")
-    
+
     # Insert sample authors
     authors = [
         (1, "Arthur Conan Doyle", "Doyle, Arthur Conan"),
@@ -159,7 +158,7 @@ def create_test_database():
         (3, "Mark Twain", "Twain, Mark"),
     ]
     cursor.executemany("INSERT INTO authors (id, name, sort) VALUES (?, ?, ?)", authors)
-    
+
     # Insert sample tags
     tags = [
         (1, "mystery"),
@@ -169,25 +168,80 @@ def create_test_database():
         (5, "adventure"),
     ]
     cursor.executemany("INSERT INTO tags (id, name) VALUES (?, ?)", tags)
-    
+
     # Insert sample series
     series = [
         (1, "Sherlock Holmes", "Holmes, Sherlock"),
     ]
     cursor.executemany("INSERT INTO series (id, name, sort) VALUES (?, ?, ?)", series)
-    
+
     # Insert sample books
     books = [
-        (1, "A Study in Scarlet", "Study in Scarlet, A", "Sherlock Holmes (1)", 1.0, "Doyle, Arthur Conan", None, None, "Arthur Conan Doyle/A Study in Scarlet (1)", 1, "test-uuid-1", 0),
-        (2, "The Sign of the Four", "Sign of the Four, The", "Sherlock Holmes (2)", 2.0, "Doyle, Arthur Conan", None, None, "Arthur Conan Doyle/The Sign of the Four (2)", 1, "test-uuid-2", 0),
-        (3, "Pride and Prejudice", "Pride and Prejudice", None, 1.0, "Austen, Jane", None, None, "Jane Austen/Pride and Prejudice (3)", 1, "test-uuid-3", 0),
-        (4, "The Adventures of Tom Sawyer", "Adventures of Tom Sawyer, The", None, 1.0, "Twain, Mark", None, None, "Mark Twain/The Adventures of Tom Sawyer (4)", 1, "test-uuid-4", 0),
+        (
+            1,
+            "A Study in Scarlet",
+            "Study in Scarlet, A",
+            "Sherlock Holmes (1)",
+            1.0,
+            "Doyle, Arthur Conan",
+            None,
+            None,
+            "Arthur Conan Doyle/A Study in Scarlet (1)",
+            1,
+            "test-uuid-1",
+            0,
+        ),
+        (
+            2,
+            "The Sign of the Four",
+            "Sign of the Four, The",
+            "Sherlock Holmes (2)",
+            2.0,
+            "Doyle, Arthur Conan",
+            None,
+            None,
+            "Arthur Conan Doyle/The Sign of the Four (2)",
+            1,
+            "test-uuid-2",
+            0,
+        ),
+        (
+            3,
+            "Pride and Prejudice",
+            "Pride and Prejudice",
+            None,
+            1.0,
+            "Austen, Jane",
+            None,
+            None,
+            "Jane Austen/Pride and Prejudice (3)",
+            1,
+            "test-uuid-3",
+            0,
+        ),
+        (
+            4,
+            "The Adventures of Tom Sawyer",
+            "Adventures of Tom Sawyer, The",
+            None,
+            1.0,
+            "Twain, Mark",
+            None,
+            None,
+            "Mark Twain/The Adventures of Tom Sawyer (4)",
+            1,
+            "test-uuid-4",
+            0,
+        ),
     ]
-    cursor.executemany("""
+    cursor.executemany(
+        """
         INSERT INTO books (id, title, sort, author_sort, series_index, isbn, lccn, path, flags, uuid, has_cover)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, books)
-    
+    """,
+        books,
+    )
+
     # Link books to authors
     book_authors = [
         (1, 1, 1),  # A Study in Scarlet -> Arthur Conan Doyle
@@ -195,8 +249,10 @@ def create_test_database():
         (3, 2, 2),  # Pride and Prejudice -> Jane Austen
         (4, 3, 3),  # Tom Sawyer -> Mark Twain
     ]
-    cursor.executemany("INSERT INTO books_authors_link (id, book, author) VALUES (?, ?, ?)", book_authors)
-    
+    cursor.executemany(
+        "INSERT INTO books_authors_link (id, book, author) VALUES (?, ?, ?)", book_authors
+    )
+
     # Link books to tags
     book_tags = [
         (1, 1, 1),  # A Study in Scarlet -> mystery
@@ -211,14 +267,16 @@ def create_test_database():
         (4, 4, 5),  # Tom Sawyer -> adventure
     ]
     cursor.executemany("INSERT INTO books_tags_link (id, book, tag) VALUES (?, ?, ?)", book_tags)
-    
+
     # Link books to series
     book_series = [
         (1, 1, 1),  # A Study in Scarlet -> Sherlock Holmes
         (2, 2, 1),  # The Sign of the Four -> Sherlock Holmes
     ]
-    cursor.executemany("INSERT INTO books_series_link (id, book, series) VALUES (?, ?, ?)", book_series)
-    
+    cursor.executemany(
+        "INSERT INTO books_series_link (id, book, series) VALUES (?, ?, ?)", book_series
+    )
+
     # Insert comments
     comments = [
         (1, 1, "The first Sherlock Holmes novel, introducing the detective and Dr. Watson."),
@@ -227,36 +285,40 @@ def create_test_database():
         (4, 4, "A novel about a young boy growing up along the Mississippi River."),
     ]
     cursor.executemany("INSERT INTO comments (id, book, text) VALUES (?, ?, ?)", comments)
-    
+
     # Insert format data (will match actual test files created by create_test_files.py)
     format_data = [
         (1, 1, "EPUB", 2456, ""),  # Minimal EPUB ~2KB
-        (2, 1, "PDF", 656, ""),    # Minimal PDF ~0.6KB
+        (2, 1, "PDF", 656, ""),  # Minimal PDF ~0.6KB
         (3, 2, "EPUB", 2456, ""),  # Minimal EPUB ~2KB
         (4, 3, "EPUB", 2456, ""),  # Minimal EPUB ~2KB
         (5, 4, "EPUB", 2456, ""),  # Minimal EPUB ~2KB
-        (6, 4, "CBZ", 512, ""),    # Minimal CBZ ~0.5KB (comic format)
+        (6, 4, "CBZ", 512, ""),  # Minimal CBZ ~0.5KB (comic format)
     ]
-    cursor.executemany("""
+    cursor.executemany(
+        """
         INSERT INTO data (id, book, format, uncompressed_size, name)
         VALUES (?, ?, ?, ?, ?)
-    """, format_data)
-    
+    """,
+        format_data,
+    )
+
     conn.commit()
     conn.close()
-    
+
     print(f"\n✓ Test database created: {TEST_DB_PATH}")
-    print(f"  - 4 books")
-    print(f"  - 3 authors")
-    print(f"  - 5 tags")
-    print(f"  - 1 series")
+    print("  - 4 books")
+    print("  - 3 authors")
+    print("  - 5 tags")
+    print("  - 1 series")
     print(f"  - Size: {TEST_DB_PATH.stat().st_size / 1024:.1f} KB")
-    
+
     print(f"\n✓ Test library structure created: {TEST_LIBRARY_DIR}")
-    print("\n⚠️  Note: Run 'python scripts/create_test_files.py' to create actual book files (EPUB, PDF, CBZ)")
+    print(
+        "\n⚠️  Note: Run 'python scripts/create_test_files.py' to create actual book files (EPUB, PDF, CBZ)"
+    )
     print("   The database is ready, but book files need to be created separately.")
 
 
 if __name__ == "__main__":
     create_test_database()
-

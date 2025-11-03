@@ -399,17 +399,17 @@ class ReadingRecommendations(BaseModel):
 async def get_api_client() -> Optional[CalibreAPIClient]:
     """
     Get or create API client instance for remote Calibre Content Server access.
-    
+
     Only creates HTTP client if use_remote=True in config.
     For local libraries, this returns None and tools should use direct SQLite access.
     """
     global api_client
     config = CalibreConfig()
-    
+
     # Only create HTTP client if remote access is enabled
     if not config.use_remote:
         return None
-    
+
     if api_client is None:
         api_client = CalibreAPIClient(config)
         await api_client.initialize()

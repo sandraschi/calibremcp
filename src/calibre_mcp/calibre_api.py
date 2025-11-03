@@ -59,7 +59,7 @@ class CalibreAPIClient:
     async def initialize(self) -> None:
         """
         Initialize the HTTP client eagerly.
-        
+
         This is optional - the client uses lazy initialization by default.
         Calling this method pre-creates the HTTP client for early validation.
         """

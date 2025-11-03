@@ -67,7 +67,7 @@ async def query_books(
     **IMPORTANT FOR CLAUDE - VERB MAPPING:**
     Users may use different verbs (search, list, find, query, get) but they all map to the same operation.
     ALL of these user requests should use operation="search":
-    
+
     - "search books by [author]" → query_books(operation="search", author="...")
     - "list books by [author]" → query_books(operation="search", author="...")
     - "find books by [author]" → query_books(operation="search", author="...")
@@ -75,12 +75,12 @@ async def query_books(
     - "get books by [author]" → query_books(operation="search", author="...")
     - "show me books by [author]" → query_books(operation="search", author="...")
     - "books by [author]" → query_books(operation="search", author="...")
-    
+
     **Rule:** If the user wants to access/retrieve/discover books with filters (author, tag, publisher, etc.),
     use operation="search" regardless of which verb they use. The "search" operation handles all filtering.
-    
+
     Only use operation="list" when the user explicitly wants a simple list of ALL books without any filtering.
-    
+
     Example: "list books by conan doyle" → query_books(operation="search", author="Conan Doyle")
     This searches the currently loaded library (auto-loaded on startup)
 
@@ -413,7 +413,7 @@ async def query_books(
                 ],
                 "related_tools": ["query_books"],
             }
-    
+
     except Exception as e:
         # Use standardized error handling
         return handle_tool_error(

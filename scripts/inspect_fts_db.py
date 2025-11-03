@@ -1,4 +1,5 @@
 """Inspect Calibre FTS database structure to understand tokenizer usage."""
+
 import sqlite3
 from pathlib import Path
 
@@ -36,14 +37,14 @@ cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='books
 content_table = cursor.fetchone()
 if content_table:
     print(f"Content table SQL: {content_table[0]}")
-    
+
     # Check columns
     cursor.execute("PRAGMA table_info(books_text)")
     columns = cursor.fetchall()
-    print(f"\nColumns in books_text:")
+    print("\nColumns in books_text:")
     for col in columns:
         print(f"  - {col[1]} ({col[2]})")
-    
+
     # Try searching content table directly
     print("\n=== DIRECT CONTENT TABLE SEARCH ===")
     try:

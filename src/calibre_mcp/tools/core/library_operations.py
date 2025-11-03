@@ -141,7 +141,7 @@ async def test_calibre_connection() -> ConnectionTestResponse:
 
     Verifies server connectivity, authentication, and retrieves
     basic server information for troubleshooting purposes.
-    
+
     **Note:** This tool is for testing REMOTE Calibre Content Server connections.
     For LOCAL libraries (direct SQLite access), this tool will return connection
     status indicating local mode is active.
@@ -158,22 +158,24 @@ async def test_calibre_connection() -> ConnectionTestResponse:
             # Local library mode - check database connection instead
             from calibre_mcp.db.database import get_database
             from calibre_mcp.config import CalibreConfig
-            
+
             config = CalibreConfig()
             db = get_database()
-            
+
             # Test local database connection
             try:
                 with db.session_scope() as session:
                     from calibre_mcp.db.models import Book
+
                     book_count = session.query(Book).count()
-                
+
                 end_time = asyncio.get_event_loop().time()
                 response_time_ms = int((end_time - start_time) * 1000)
-                
+
                 return ConnectionTestResponse(
                     connected=True,
-                    server_url="local://" + (str(config.local_library_path) if config.local_library_path else "local"),
+                    server_url="local://"
+                    + (str(config.local_library_path) if config.local_library_path else "local"),
                     server_version="Local SQLite",
                     library_count=1,
                     total_books=book_count,

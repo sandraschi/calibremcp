@@ -2,11 +2,10 @@
 PDF viewer module for CalibreMCP.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any
 from pathlib import Path
 import fitz  # PyMuPDF
 import base64
-import io
 
 
 class PdfViewer:
