@@ -10,6 +10,7 @@ from datetime import datetime
 
 from ...server import mcp
 from ...logging_config import get_logger
+from ..shared.error_handling import handle_tool_error, format_error_response
 from .smart_collections import (
     SmartCollection,
     CollectionRule,
@@ -41,15 +42,20 @@ async def manage_smart_collections(
     """
     Manage smart collections with multiple operations in a single unified interface.
 
-    This portmanteau tool consolidates all smart collection operations (creating,
-    retrieving, updating, deleting, listing, and querying collections) into a single
-    interface. Use the `operation` parameter to select which operation to perform.
+    PORTMANTEAU PATTERN RATIONALE:
+    Instead of creating 10 separate tools (one per operation), this tool consolidates related
+    smart collection operations into a single interface. This design:
+    - Prevents tool explosion (10 tools → 1 tool) while maintaining full functionality
+    - Improves discoverability by grouping related operations together
+    - Reduces cognitive load when working with collection management tasks
+    - Enables consistent collection interface across all operations
+    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
 
     Smart collections automatically filter books based on rules (e.g., "all books
     with tag 'scifi' and rating >= 4"). Collections are dynamically updated as
     books are added or modified.
 
-    Operations:
+    SUPPORTED OPERATIONS:
     - create: Create a new smart collection with rules
     - create_series: Create a collection for all books in a specific series
     - create_recently_added: Create a collection for books added recently
@@ -60,6 +66,58 @@ async def manage_smart_collections(
     - delete: Delete a smart collection
     - list: List all smart collections
     - query: Query books that match a collection's rules
+
+    OPERATIONS DETAIL:
+
+    create: Create a new smart collection
+    - Creates a collection with custom rules for filtering books
+    - Parameters: collection_data (required) with name and rules
+    - Returns: Created collection with ID
+
+    create_series: Create collection for a series
+    - Automatically creates collection for all books in a specific series
+    - Parameters: name (required), series_name (required)
+    - Returns: Created collection
+
+    create_recently_added: Create collection for recently added books
+    - Creates collection for books added within specified days
+    - Parameters: name (optional), days (optional, default: 30)
+    - Returns: Created collection
+
+    create_unread: Create collection for unread books
+    - Creates collection for all unread books
+    - Parameters: name (optional)
+    - Returns: Created collection
+
+    create_ai_recommended: Create collection with AI recommendations
+    - Creates collection with AI-recommended books
+    - Parameters: name (optional)
+    - Returns: Created collection
+
+    get: Retrieve collection by ID
+    - Gets collection details including rules and metadata
+    - Parameters: collection_id (required)
+    - Returns: Collection data
+
+    update: Update collection
+    - Updates collection rules, name, or metadata
+    - Parameters: collection_id (required), updates (required)
+    - Returns: Updated collection
+
+    delete: Delete collection
+    - Removes collection from system
+    - Parameters: collection_id (required)
+    - Returns: Deletion confirmation
+
+    list: List all collections
+    - Returns all smart collections in the system
+    - No parameters required
+    - Returns: List of collections
+
+    query: Query books matching collection rules
+    - Returns books that match a collection's rules
+    - Parameters: collection_id (required), limit (optional), offset (optional)
+    - Returns: Paginated list of matching books
 
     Prerequisites:
         - For 'create': Provide collection_data with name and rules
@@ -233,119 +291,196 @@ async def manage_smart_collections(
     """
     global _collections_storage
 
-    if operation == "create":
-        if not collection_data:
-            return {
-                "success": False,
-                "error": "collection_data is required for operation='create'.",
-                "suggestions": [
-                    "Provide collection_data with 'name' and 'rules' fields",
-                    "Example: collection_data={'name': 'My Collection', 'rules': [...]}",
+    try:
+        if operation == "create":
+            if not collection_data:
+                return format_error_response(
+                    error_msg="collection_data is required for operation='create'.",
+                    error_code="MISSING_COLLECTION_DATA",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=[
+                        "Provide collection_data with 'name' and 'rules' fields",
+                        "Example: collection_data={'name': 'My Collection', 'rules': [...]}",
+                    ],
+                    related_tools=["manage_smart_collections"],
+                )
+            return await _handle_create(collection_data)
+
+        elif operation == "create_series":
+            if not name or not series_name:
+                return format_error_response(
+                    error_msg="name and series_name are required for operation='create_series'.",
+                    error_code="MISSING_PARAMETERS",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=[
+                        "Provide name and series_name parameters",
+                        "Example: operation='create_series', name='Sherlock Holmes Collection', series_name='Sherlock Holmes'",
+                    ],
+                    related_tools=["manage_smart_collections"],
+                )
+            try:
+                legacy_tool = SmartCollectionsTool()
+                return await legacy_tool.collection_create_series(
+                    name=name, series_name=series_name, library_path=library_path
+                )
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"name": name, "series_name": series_name},
+                    tool_name="manage_smart_collections",
+                    context=f"Creating series collection '{name}' for series '{series_name}'",
+                )
+
+        elif operation == "create_recently_added":
+            if not name:
+                name = "Recently Added"
+            if days is None:
+                days = 30
+            try:
+                legacy_tool = SmartCollectionsTool()
+                return await legacy_tool.collection_create_recently_added(
+                    name=name, days=days, library_path=library_path
+                )
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"name": name, "days": days},
+                    tool_name="manage_smart_collections",
+                    context=f"Creating recently added collection '{name}'",
+                )
+
+        elif operation == "create_unread":
+            if not name:
+                name = "Unread"
+            try:
+                legacy_tool = SmartCollectionsTool()
+                return await legacy_tool.collection_create_unread(name=name, library_path=library_path)
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"name": name},
+                    tool_name="manage_smart_collections",
+                    context=f"Creating unread collection '{name}'",
+                )
+
+        elif operation == "create_ai_recommended":
+            if not name:
+                name = "AI Recommendations"
+            try:
+                legacy_tool = SmartCollectionsTool()
+                return await legacy_tool.collection_create_ai_recommended(
+                    name=name, library_path=library_path
+                )
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"name": name},
+                    tool_name="manage_smart_collections",
+                    context=f"Creating AI recommended collection '{name}'",
+                )
+
+        elif operation == "get":
+            if not collection_id:
+                return format_error_response(
+                    error_msg="collection_id is required for operation='get'.",
+                    error_code="MISSING_COLLECTION_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list' to see all available collection IDs"],
+                    related_tools=["manage_smart_collections"],
+                )
+            return await _handle_get(collection_id)
+
+        elif operation == "update":
+            if not collection_id:
+                return format_error_response(
+                    error_msg="collection_id is required for operation='update'.",
+                    error_code="MISSING_COLLECTION_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list' to see all available collection IDs"],
+                    related_tools=["manage_smart_collections"],
+                )
+            if not updates:
+                return format_error_response(
+                    error_msg="updates is required for operation='update'.",
+                    error_code="MISSING_UPDATES",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Provide updates dictionary with fields to update"],
+                    related_tools=["manage_smart_collections"],
+                )
+            return await _handle_update(collection_id, updates)
+
+        elif operation == "delete":
+            if not collection_id:
+                return format_error_response(
+                    error_msg="collection_id is required for operation='delete'.",
+                    error_code="MISSING_COLLECTION_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list' to see all available collection IDs"],
+                    related_tools=["manage_smart_collections"],
+                )
+            return await _handle_delete(collection_id)
+
+        elif operation == "list":
+            return await _handle_list()
+
+        elif operation == "query":
+            if not collection_id:
+                return format_error_response(
+                    error_msg="collection_id is required for operation='query'.",
+                    error_code="MISSING_COLLECTION_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list' to see all available collection IDs"],
+                    related_tools=["manage_smart_collections"],
+                )
+            return await _handle_query(collection_id, library_path, limit, offset)
+
+        else:
+            return format_error_response(
+                error_msg=(
+                    f"Invalid operation: '{operation}'. Must be one of: "
+                    "'create', 'create_series', 'create_recently_added', 'create_unread', "
+                    "'create_ai_recommended', 'get', 'update', 'delete', 'list', 'query'"
+                ),
+                error_code="INVALID_OPERATION",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Use operation='create' to create a new smart collection with custom rules",
+                    "Use operation='create_series' to create a collection for a series",
+                    "Use operation='create_recently_added' to create a collection for recently added books",
+                    "Use operation='create_unread' to create a collection for unread books",
+                    "Use operation='create_ai_recommended' to create a collection with AI recommendations",
+                    "Use operation='get' to retrieve a collection",
+                    "Use operation='update' to update collection rules",
+                    "Use operation='delete' to delete a collection",
+                    "Use operation='list' to list all collections",
+                    "Use operation='query' to query books matching collection rules",
                 ],
-            }
-        return await _handle_create(collection_data)
-
-    elif operation == "create_series":
-        if not name or not series_name:
-            return {
-                "success": False,
-                "error": "name and series_name are required for operation='create_series'.",
-                "suggestions": [
-                    "Provide name and series_name parameters",
-                    "Example: operation='create_series', name='Sherlock Holmes Collection', series_name='Sherlock Holmes'",
-                ],
-            }
-        legacy_tool = SmartCollectionsTool()
-        return await legacy_tool.collection_create_series(
-            name=name, series_name=series_name, library_path=library_path
+                related_tools=["manage_smart_collections"],
+            )
+    except Exception as e:
+        return handle_tool_error(
+            exception=e,
+            operation=operation,
+            parameters={
+                "operation": operation,
+                "collection_id": collection_id,
+                "collection_data": collection_data,
+            },
+            tool_name="manage_smart_collections",
+            context="Smart collection management operation",
         )
-
-    elif operation == "create_recently_added":
-        if not name:
-            name = "Recently Added"
-        if days is None:
-            days = 30
-        legacy_tool = SmartCollectionsTool()
-        return await legacy_tool.collection_create_recently_added(
-            name=name, days=days, library_path=library_path
-        )
-
-    elif operation == "create_unread":
-        if not name:
-            name = "Unread"
-        legacy_tool = SmartCollectionsTool()
-        return await legacy_tool.collection_create_unread(name=name, library_path=library_path)
-
-    elif operation == "create_ai_recommended":
-        if not name:
-            name = "AI Recommendations"
-        legacy_tool = SmartCollectionsTool()
-        return await legacy_tool.collection_create_ai_recommended(
-            name=name, library_path=library_path
-        )
-
-    elif operation == "get":
-        if not collection_id:
-            return {
-                "success": False,
-                "error": "collection_id is required for operation='get'.",
-                "suggestions": ["Use operation='list' to see all available collection IDs"],
-            }
-        return await _handle_get(collection_id)
-
-    elif operation == "update":
-        if not collection_id:
-            return {
-                "success": False,
-                "error": "collection_id is required for operation='update'.",
-                "suggestions": ["Use operation='list' to see all available collection IDs"],
-            }
-        if not updates:
-            return {
-                "success": False,
-                "error": "updates is required for operation='update'.",
-                "suggestions": ["Provide updates dictionary with fields to update"],
-            }
-        return await _handle_update(collection_id, updates)
-
-    elif operation == "delete":
-        if not collection_id:
-            return {
-                "success": False,
-                "error": "collection_id is required for operation='delete'.",
-                "suggestions": ["Use operation='list' to see all available collection IDs"],
-            }
-        return await _handle_delete(collection_id)
-
-    elif operation == "list":
-        return await _handle_list()
-
-    elif operation == "query":
-        if not collection_id:
-            return {
-                "success": False,
-                "error": "collection_id is required for operation='query'.",
-                "suggestions": ["Use operation='list' to see all available collection IDs"],
-            }
-        return await _handle_query(collection_id, library_path, limit, offset)
-
-    else:
-        return {
-            "success": False,
-            "error": f"Invalid operation: '{operation}'. Must be one of: 'create', 'create_series', 'create_recently_added', 'create_unread', 'create_ai_recommended', 'get', 'update', 'delete', 'list', 'query'",
-            "suggestions": [
-                "Use operation='create' to create a new smart collection with custom rules",
-                "Use operation='create_series' to create a collection for a series",
-                "Use operation='create_recently_added' to create a collection for recently added books",
-                "Use operation='create_unread' to create a collection for unread books",
-                "Use operation='create_ai_recommended' to create a collection with AI recommendations",
-                "Use operation='get' to retrieve a collection",
-                "Use operation='update' to update collection rules",
-                "Use operation='delete' to delete a collection",
-                "Use operation='list' to list all collections",
-                "Use operation='query' to query books matching collection rules",
-            ],
-        }
 
 
 async def _handle_create(collection_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -367,8 +502,13 @@ async def _handle_create(collection_data: Dict[str, Any]) -> Dict[str, Any]:
         _collections_storage[collection.id] = collection
         return {"success": True, "collection": collection.to_dict()}
     except Exception as e:
-        logger.error(f"Error creating collection: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to create collection: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="create",
+            parameters={"collection_data": collection_data},
+            tool_name="manage_smart_collections",
+            context="Creating smart collection",
+        )
 
 
 async def _handle_get(collection_id: str) -> Dict[str, Any]:
@@ -376,15 +516,23 @@ async def _handle_get(collection_id: str) -> Dict[str, Any]:
     try:
         global _collections_storage
         if collection_id not in _collections_storage:
-            return {
-                "success": False,
-                "error": f"Collection {collection_id} not found",
-                "suggestions": ["Use operation='list' to see all available collections"],
-            }
+            return format_error_response(
+                error_msg=f"Collection {collection_id} not found",
+                error_code="COLLECTION_NOT_FOUND",
+                error_type="KeyError",
+                operation="get",
+                suggestions=["Use operation='list' to see all available collections"],
+                related_tools=["manage_smart_collections"],
+            )
         return {"success": True, "collection": _collections_storage[collection_id].to_dict()}
     except Exception as e:
-        logger.error(f"Error getting collection: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to get collection: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="get",
+            parameters={"collection_id": collection_id},
+            tool_name="manage_smart_collections",
+            context=f"Getting collection {collection_id}",
+        )
 
 
 async def _handle_update(collection_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
@@ -392,11 +540,14 @@ async def _handle_update(collection_id: str, updates: Dict[str, Any]) -> Dict[st
     try:
         global _collections_storage
         if collection_id not in _collections_storage:
-            return {
-                "success": False,
-                "error": f"Collection {collection_id} not found",
-                "suggestions": ["Use operation='list' to see all available collections"],
-            }
+            return format_error_response(
+                error_msg=f"Collection {collection_id} not found",
+                error_code="COLLECTION_NOT_FOUND",
+                error_type="KeyError",
+                operation="update",
+                suggestions=["Use operation='list' to see all available collections"],
+                related_tools=["manage_smart_collections"],
+            )
 
         collection = _collections_storage[collection_id]
 
@@ -415,8 +566,13 @@ async def _handle_update(collection_id: str, updates: Dict[str, Any]) -> Dict[st
         collection.updated_at = datetime.utcnow()
         return {"success": True, "collection": collection.to_dict()}
     except Exception as e:
-        logger.error(f"Error updating collection: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to update collection: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="update",
+            parameters={"collection_id": collection_id, "updates": updates},
+            tool_name="manage_smart_collections",
+            context=f"Updating collection {collection_id}",
+        )
 
 
 async def _handle_delete(collection_id: str) -> Dict[str, Any]:
@@ -424,17 +580,25 @@ async def _handle_delete(collection_id: str) -> Dict[str, Any]:
     try:
         global _collections_storage
         if collection_id not in _collections_storage:
-            return {
-                "success": False,
-                "error": f"Collection {collection_id} not found",
-                "suggestions": ["Use operation='list' to see all available collections"],
-            }
+            return format_error_response(
+                error_msg=f"Collection {collection_id} not found",
+                error_code="COLLECTION_NOT_FOUND",
+                error_type="KeyError",
+                operation="delete",
+                suggestions=["Use operation='list' to see all available collections"],
+                related_tools=["manage_smart_collections"],
+            )
 
         del _collections_storage[collection_id]
         return {"success": True}
     except Exception as e:
-        logger.error(f"Error deleting collection: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to delete collection: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="delete",
+            parameters={"collection_id": collection_id},
+            tool_name="manage_smart_collections",
+            context=f"Deleting collection {collection_id}",
+        )
 
 
 async def _handle_list() -> Dict[str, Any]:
@@ -446,12 +610,13 @@ async def _handle_list() -> Dict[str, Any]:
             "collections": [col.to_dict() for col in _collections_storage.values()],
         }
     except Exception as e:
-        logger.error(f"Error listing collections: {e}", exc_info=True)
-        return {
-            "success": False,
-            "error": f"Failed to list collections: {str(e)}",
-            "collections": [],
-        }
+        return handle_tool_error(
+            exception=e,
+            operation="list",
+            parameters={},
+            tool_name="manage_smart_collections",
+            context="Listing smart collections",
+        )
 
 
 async def _handle_query(
@@ -461,11 +626,14 @@ async def _handle_query(
     try:
         global _collections_storage
         if collection_id not in _collections_storage:
-            return {
-                "success": False,
-                "error": f"Collection {collection_id} not found",
-                "suggestions": ["Use operation='list' to see all available collections"],
-            }
+            return format_error_response(
+                error_msg=f"Collection {collection_id} not found",
+                error_code="COLLECTION_NOT_FOUND",
+                error_type="KeyError",
+                operation="query",
+                suggestions=["Use operation='list' to see all available collections"],
+                related_tools=["manage_smart_collections"],
+            )
 
         # Use legacy tool's query logic for now
         # TODO: Migrate to use book_service directly
@@ -475,5 +643,10 @@ async def _handle_query(
         )
         return result
     except Exception as e:
-        logger.error(f"Error querying collection: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to query collection: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="query",
+            parameters={"collection_id": collection_id, "limit": limit, "offset": offset},
+            tool_name="manage_smart_collections",
+            context=f"Querying collection {collection_id}",
+        )

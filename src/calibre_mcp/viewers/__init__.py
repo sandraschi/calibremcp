@@ -61,9 +61,9 @@ def get_viewer(file_path: str) -> Optional[BookViewer]:
         An instance of the appropriate viewer, or None if no viewer supports the format
     """
     # Lazy imports to avoid circular dependencies
-    from .epub.viewer import EpubViewer
-    from .pdf.viewer import PdfViewer
-    from .comic.viewer import ComicViewer
+    from .epub import EpubViewer
+    from .pdf import PdfViewer
+    from .comic import ComicViewer
 
     path = Path(file_path)
     if not path.exists():
@@ -75,6 +75,9 @@ def get_viewer(file_path: str) -> Optional[BookViewer]:
     viewers = [EpubViewer, PdfViewer, ComicViewer]
     for viewer_cls in viewers:
         if hasattr(viewer_cls, "supports_format") and viewer_cls.supports_format(ext):
-            return viewer_cls()
+            viewer = viewer_cls()
+            # Load the file into the viewer
+            viewer.load(file_path)
+            return viewer
 
     return None

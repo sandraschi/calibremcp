@@ -66,37 +66,38 @@ class TestCalibreMCPSTDIO:
         return send_request
 
     @pytest.mark.asyncio
-    async def test_list_books(self, client):
-        """Test the list_books method via STDIO."""
-        response = await client("list_books", {"limit": 5})
+    async def test_query_books_list(self, client):
+        """Test the query_books list operation via STDIO."""
+        response = await client("query_books", {"operation": "list", "limit": 5})
         assert "result" in response
-        assert isinstance(response["result"], list)
+        assert "items" in response["result"] or "results" in response["result"]
 
     @pytest.mark.asyncio
-    async def test_get_book_details(self, client):
-        """Test the get_book_details method via STDIO."""
+    async def test_manage_books_details(self, client):
+        """Test the manage_books details operation via STDIO."""
         # First, get a list of books to get a valid book ID
-        list_response = await client("list_books", {"limit": 1})
+        list_response = await client("query_books", {"operation": "list", "limit": 1})
 
-        if not list_response.get("result"):
+        if not list_response.get("result") or not list_response["result"].get("items"):
             pytest.skip("No books found in the library to test with")
 
-        book_id = list_response["result"][0].get("book_id")
+        book_id = list_response["result"]["items"][0].get("id")
 
         if not book_id:
             pytest.skip("Could not get a valid book ID from the server")
 
-        # Now test getting book details
-        response = await client("get_book_details", {"book_id": book_id})
+        # Now test getting book details using manage_books portmanteau tool
+        response = await client("manage_books", {"operation": "details", "book_id": str(book_id)})
         assert "result" in response
-        assert response["result"].get("book_id") == book_id
+        assert response["result"].get("success") is True
+        assert "book" in response["result"]
 
     @pytest.mark.asyncio
-    async def test_search_books(self, client):
-        """Test the search_books method via STDIO."""
-        response = await client("search_books", {"text": "test"})
+    async def test_query_books_search(self, client):
+        """Test the query_books search operation via STDIO."""
+        response = await client("query_books", {"operation": "search", "text": "test"})
         assert "result" in response
-        assert isinstance(response["result"], list)
+        assert "results" in response["result"] or "items" in response["result"]
 
     @pytest.mark.asyncio
     async def test_list_libraries(self, client):

@@ -69,8 +69,9 @@ async def list_books_helper(
         )
 
 
-@mcp.tool()
-async def get_book_details(book_id: int) -> BookDetailResponse:
+# get_book_details removed - migrated to manage_books(operation="details")
+# Use manage_books(operation="details", book_id=...) instead
+async def get_book_details_helper(book_id: int) -> BookDetailResponse:
     """
     Get complete metadata and file information for a specific book.
 

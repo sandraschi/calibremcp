@@ -1,5 +1,16 @@
 """
 MCP tools for author-related operations.
+
+DEPRECATED: This module is deprecated in favor of the manage_authors portmanteau tool
+(see tools/authors/manage_authors.py). The AuthorTools BaseTool class is kept for
+backward compatibility but is no longer registered with FastMCP 2.13+.
+
+Use manage_authors(operation="...") instead of individual tools:
+- list_authors() → manage_authors(operation="list", ...)
+- get_author() → manage_authors(operation="get", author_id=...)
+- get_author_books() → manage_authors(operation="get_books", author_id=...)
+- get_author_stats() → manage_authors(operation="stats")
+- get_authors_by_letter() → manage_authors(operation="by_letter", letter=...)
 """
 
 from typing import List, Optional, Dict, Any

@@ -8,6 +8,10 @@ on:
   release:
     types: [created]
 
+env:
+  PYTHON_VERSION: "3.11"
+  UV_VERSION: "0.5.0"
+
 jobs:
   test:
     name: Test with Python ${{ matrix.python-version }}
@@ -20,20 +24,21 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
       with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip'
+        version: ${{ env.UV_VERSION }}
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        uv sync --dev
     
     - name: Run tests
       run: |
-        python -m pytest tests/ -v --cov=calibre_mcp --cov-report=xml
+        uv run pytest tests/ -v --cov=src/calibre_mcp --cov-report=xml --cov-report=term-missing
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
@@ -51,27 +56,28 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
       with:
-        python-version: '3.11'
+        version: ${{ env.UV_VERSION }}
+    
+    - name: Set up Python
+      run: uv python install ${{ env.PYTHON_VERSION }}
     
     - name: Install build dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install build twine
+        uv sync --dev
     
     - name: Build package
       run: |
-        python -m build
+        uv build
     
     - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
-        skip_existing: true
-        verbose: true
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        uv run twine upload dist/*
 
   release:
     name: Create GitHub Release

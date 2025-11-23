@@ -1,9 +1,13 @@
 """
 Import/Export tools for Calibre MCP server.
 
-This module provides tools for importing and exporting books and metadata
-in various formats.
+This module provides the export_books portmanteau tool for comprehensive book export.
 """
 
-# This file will be populated with import/export tools
-# Each tool will be defined as a separate function with the @tool decorator
+# Import portmanteau tool (this is registered with @mcp.tool() and visible to Claude)
+from .export_books_portmanteau import export_books  # noqa: F401
+
+# Helper functions are imported but NOT registered (they have no @mcp.tool() decorator)
+# They are used internally by the portmanteau tool
+
+__all__ = ["export_books"]

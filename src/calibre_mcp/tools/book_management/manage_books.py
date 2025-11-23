@@ -42,15 +42,53 @@ async def manage_books(
     """
     Manage books in the Calibre library with multiple operations in a single unified interface.
 
-    This portmanteau tool consolidates all book management operations (adding, retrieving,
-    updating, and deleting books) into a single interface. Use the `operation` parameter
-    to select which operation to perform.
+    PORTMANTEAU PATTERN RATIONALE:
+    Instead of creating 4 separate tools (one per operation), this tool consolidates related
+    book management operations into a single interface. This design:
+    - Prevents tool explosion (4 tools → 1 tool) while maintaining full functionality
+    - Improves discoverability by grouping related operations together
+    - Reduces cognitive load when working with book management tasks
+    - Enables consistent book interface across all operations
+    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
 
-    Operations:
+    SUPPORTED OPERATIONS:
     - add: Add a new book to the library from a file or URL
     - get: Retrieve detailed information about a specific book
+    - details: Get complete metadata and file information for a specific book (enhanced version of get)
     - update: Update a book's metadata and properties
     - delete: Delete a book from the library
+
+    OPERATIONS DETAIL:
+
+    add: Add a new book
+    - Adds a book file to the library with optional metadata override
+    - Supports fetching metadata from online sources
+    - Can convert book format before adding
+    - Parameters: file_path (required), metadata (optional), fetch_metadata (default: True), convert_to (optional)
+    - Returns: Book information with ID, title, authors, formats, etc.
+
+    get: Retrieve book information
+    - Gets detailed information about a specific book
+    - Can include full metadata, format information, and cover image
+    - Parameters: book_id (required), include_metadata (default: True), include_formats (default: True), include_cover (default: False)
+    - Returns: Complete book information
+
+    details: Get complete metadata and file information
+    - Enhanced version of get with all available information including formats, cover URLs, publication details, and file paths
+    - Parameters: book_id (required)
+    - Returns: BookDetailResponse with complete metadata and file information
+
+    update: Update book metadata
+    - Updates book metadata, reading status, progress, and cover
+    - All update fields are optional - only provided values are updated
+    - Parameters: book_id (required), metadata (optional), status (optional), progress (optional), cover_path (optional)
+    - Returns: Update confirmation with updated fields list
+
+    delete: Delete a book
+    - Removes book from library and optionally deletes files from disk
+    - Can skip dependency checks with force=True
+    - Parameters: book_id (required), delete_files (default: True), force (default: False)
+    - Returns: Deletion confirmation with status
 
     Prerequisites:
         - For 'add': Book file must exist and be accessible
@@ -58,11 +96,12 @@ async def manage_books(
         - Library must be accessible (library_path will be auto-detected if not provided)
 
     Parameters:
-        operation: The operation to perform. Must be one of: "add", "get", "update", "delete"
-            - "add": Add a new book. Requires `file_path` parameter.
-            - "get": Retrieve book information. Requires `book_id` parameter.
-            - "update": Update book metadata. Requires `book_id` parameter, `metadata` optional.
-            - "delete": Delete a book. Requires `book_id` parameter.
+        operation: The operation to perform. Must be one of: "add", "get", "details", "update", "delete"
+            - "add": Add a new book to the library. Requires `file_path` parameter.
+            - "get": Retrieve detailed information about a specific book. Requires `book_id` parameter.
+            - "details": Get complete metadata and file information (enhanced version of get). Requires `book_id` parameter.
+            - "update": Update a book's metadata and properties. Requires `book_id` parameter, `metadata` optional.
+            - "delete": Delete a book from the library. Requires `book_id` parameter.
 
         book_id: ID of the book (required for 'get', 'update', 'delete')
             - Can be numeric ID or UUID
@@ -207,6 +246,12 @@ async def manage_books(
             include_cover=True
         )
 
+        # Get complete book details (enhanced version with all metadata)
+        book_details = await manage_books(
+            operation="details",
+            book_id="123"
+        )
+
         # Update reading progress
         update_result = await manage_books(
             operation="update",
@@ -224,16 +269,17 @@ async def manage_books(
 
     Errors:
         Common errors and solutions:
-        - Invalid operation: Use one of "add", "get", "update", "delete"
+        - Invalid operation: Use one of "add", "get", "details", "update", "delete"
         - Missing book_id (get/update/delete): Provide book_id parameter
         - Missing file_path (add): Provide file_path parameter for adding books
-        - Book not found: Verify book_id is correct using search_books()
+        - Book not found: Verify book_id is correct using query_books(operation="search")
         - File not found (add): Verify file_path exists and is accessible
         - Unsupported format: Use supported formats (epub, pdf, mobi, azw3, txt, html)
 
     See Also:
-        - search_books(): Find books by query to get book_id
-        - list_books(): List all books in the library
+        - query_books(): Find books by query to get book_id
+        - manage_comments(): For dedicated comment CRUD operations
+        - manage_metadata(): For bulk metadata updates
         - For individual operations: See add_book, get_book, update_book, delete_book
           (these are deprecated in favor of this portmanteau tool)
     """
@@ -307,6 +353,66 @@ async def manage_books(
                     context=f"Retrieving book details for book_id={book_id}",
                 )
 
+        elif operation == "details":
+            if not book_id:
+                return format_error_response(
+                    error_msg=(
+                        "book_id is required for operation='details'. "
+                        "Use query_books() to find books and get their book_id values."
+                    ),
+                    error_code="MISSING_BOOK_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=[
+                        "Provide the book_id parameter (e.g., book_id='123')",
+                        "Use query_books(operation='search', author='Author Name') to find books",
+                        "Use query_books(operation='list', limit=10) to see available books",
+                    ],
+                    related_tools=["query_books", "manage_books"],
+                )
+            try:
+                from ...server import get_api_client, current_library
+                from ...server import BookDetailResponse
+                client = await get_api_client()
+                book_data = await client.get_book_details(int(book_id))
+
+                if not book_data:
+                    return {
+                        "success": False,
+                        "error": f"Book with id {book_id} not found",
+                        "book_id": book_id,
+                    }
+
+                return {
+                    "success": True,
+                    "book": BookDetailResponse(
+                        book_id=int(book_id),
+                        title=book_data.get("title", "Unknown"),
+                        authors=book_data.get("authors", []),
+                        series=book_data.get("series"),
+                        series_index=book_data.get("series_index"),
+                        rating=book_data.get("rating"),
+                        tags=book_data.get("tags", []),
+                        comments=book_data.get("comments"),
+                        published=book_data.get("published"),
+                        languages=book_data.get("languages", ["en"]),
+                        formats=book_data.get("formats", []),
+                        identifiers=book_data.get("identifiers", {}),
+                        last_modified=book_data.get("last_modified"),
+                        cover_url=book_data.get("cover_url"),
+                        download_links=book_data.get("download_links", {}),
+                        library_name=current_library,
+                    ).dict(),
+                }
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"book_id": book_id},
+                    tool_name="manage_books",
+                    context=f"Retrieving complete book details for book_id={book_id}",
+                )
+
         elif operation == "update":
             if not book_id:
                 return format_error_response(
@@ -378,7 +484,7 @@ async def manage_books(
         else:
             return format_error_response(
                 error_msg=(
-                    f"Invalid operation: '{operation}'. Must be one of: 'add', 'get', 'update', 'delete'. "
+                    f"Invalid operation: '{operation}'. Must be one of: 'add', 'get', 'details', 'update', 'delete'. "
                     f"Received: '{operation}'"
                 ),
                 error_code="INVALID_OPERATION",
@@ -387,6 +493,7 @@ async def manage_books(
                 suggestions=[
                     "Use operation='add' to add a new book to the library",
                     "Use operation='get' to retrieve book information",
+                    "Use operation='details' to get complete metadata and file information",
                     "Use operation='update' to update book metadata",
                     "Use operation='delete' to delete a book from the library",
                 ],

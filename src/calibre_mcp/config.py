@@ -260,16 +260,26 @@ class CalibreConfig(BaseModel):
             # Use the discovery system
             libraries = discover_calibre_libraries()
 
-            # Add any additional discovery paths
+            # Add any additional discovery paths (user-specified only)
+            # Note: Common location scanning is disabled - only use explicit paths
             if self.library_discovery_paths:
                 for path in self.library_discovery_paths:
                     if path.exists() and path.is_dir():
+                        # Check if this path itself is a library
+                        if (path / "metadata.db").exists():
+                            lib_name = path.name if path.name != "Written Word" else "main"
+                            libraries[lib_name] = CalibreLibrary(
+                                name=lib_name, path=path, metadata_db=path / "metadata.db"
+                            )
                         # Scan this path for libraries
-                        for item in path.iterdir():
-                            if item.is_dir() and (item / "metadata.db").exists():
-                                libraries[item.name] = CalibreLibrary(
-                                    name=item.name, path=item, metadata_db=item / "metadata.db"
-                                )
+                        try:
+                            for item in path.iterdir():
+                                if item.is_dir() and (item / "metadata.db").exists():
+                                    libraries[item.name] = CalibreLibrary(
+                                        name=item.name, path=item, metadata_db=item / "metadata.db"
+                                    )
+                        except (PermissionError, OSError) as e:
+                            logger.warning(f"Could not scan {path}: {e}")
 
             self.discovered_libraries = libraries
 
@@ -279,9 +289,27 @@ class CalibreConfig(BaseModel):
                 if active_library:
                     self.local_library_path = active_library.path
                 else:
-                    # Use the first library found
-                    first_library = list(libraries.values())[0]
-                    self.local_library_path = first_library.path
+                    # Prioritize libraries from L:\Multimedia Files\Written Word
+                    user_library_path = Path("L:/Multimedia Files/Written Word")
+                    preferred_library = None
+                    for lib_name, lib_info in libraries.items():
+                        # Check if library is in the user's preferred location
+                        try:
+                            if lib_info.path.is_relative_to(user_library_path) or str(lib_info.path).startswith(str(user_library_path)):
+                                preferred_library = lib_info
+                                break
+                        except (ValueError, AttributeError):
+                            # Path comparison failed, try string comparison
+                            if str(lib_info.path).startswith(str(user_library_path)):
+                                preferred_library = lib_info
+                                break
+                    
+                    # Use preferred library if found, otherwise use first library
+                    if preferred_library:
+                        self.local_library_path = preferred_library.path
+                    else:
+                        first_library = list(libraries.values())[0]
+                        self.local_library_path = first_library.path
 
             log_operation(
                 logger,

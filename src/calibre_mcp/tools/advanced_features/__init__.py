@@ -22,10 +22,14 @@ from .social_features import SocialFeaturesTool
 
 # Import portmanteau tools
 from .manage_smart_collections import manage_smart_collections
+from .manage_bulk_operations import manage_bulk_operations
+from .manage_content_sync import manage_content_sync
 
 # List of all available tools
 __all__ = [
     "manage_smart_collections",  # Portmanteau tool (recommended)
+    "manage_bulk_operations",  # Portmanteau tool
+    "manage_content_sync",  # Portmanteau tool
     "AIEnhancementsTool",
     "AdvancedSearchTool",
     "BulkOperationsTool",
@@ -38,6 +42,8 @@ __all__ = [
 # Expose tools list for automatic registration
 tools = [
     manage_smart_collections,  # Portmanteau tool (recommended)
+    manage_bulk_operations,  # Portmanteau tool
+    manage_content_sync,  # Portmanteau tool
     AIEnhancementsTool(),  # TODO: Migrate to portmanteau
     AdvancedSearchTool(),  # TODO: Migrate to portmanteau
     BulkOperationsTool(),  # TODO: Migrate to portmanteau

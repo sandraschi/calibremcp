@@ -1,177 +1,186 @@
-# 💻 Development Documentation
+# 💻 CalibreMCP Development Documentation
 
-**Guides, best practices, and lessons learned for developing notepadpp-mcp**
+> **Guides, best practices, and development information for CalibreMCP**
 
 ---
 
 ## 📚 **Documentation Index**
 
-### **1. AI Development Rules**
-📄 [AI_DEVELOPMENT_RULES.md](AI_DEVELOPMENT_RULES.md)
+### **1. Portmanteau Tool Refactoring** ✅ COMPLETE
 
-**Guidelines for AI-assisted development**
-- Best practices for working with AI
-- Code quality standards
-- Testing requirements
-- Documentation expectations
+> 📄 **[PORTMANTEAU_REFACTORING_SUMMARY.md](PORTMANTEAU_REFACTORING_SUMMARY.md)**
 
----
-
-### **2. AI Development Tools Comparison**
-📄 [AI_DEVELOPMENT_TOOLS_COMPARISON.md](AI_DEVELOPMENT_TOOLS_COMPARISON.md)
-
-**Comparison of AI coding assistants**
-- Windsurf vs Cursor vs Claude Code
-- Feature comparisons
-- Strengths and weaknesses
-- Use case recommendations
+**Complete portmanteau tool refactoring summary**
+- ✅ 18 consolidated tools (57% reduction)
+- ✅ Standardized docstrings
+- ✅ Migration from individual tools to portmanteau pattern
 
 ---
 
-### **3. Debugging Lessons Learned**
-📄 [DEBUGGING_LESSONS_LEARNED.md](DEBUGGING_LESSONS_LEARNED.md)
+### **2. Phase 3: Docstring Standardization** ✅ COMPLETE
 
-**Real-world debugging experiences**
-- Common issues encountered
-- Solutions that worked
-- Debugging strategies
-- Troubleshooting tips
+> 📄 **[PHASE_3_DOCSTRING_PLAN.md](PHASE_3_DOCSTRING_PLAN.md)**  
+> 📄 **[PHASE_3_DOCSTRING_COMPLETION.md](PHASE_3_DOCSTRING_COMPLETION.md)**
 
----
-
-### **4. Development Pain Points**
-📄 [DEVELOPMENT_PAIN_POINTS.md](DEVELOPMENT_PAIN_POINTS.md)
-
-**Challenges and how we overcame them**
-- Technical challenges
-- Solutions implemented
-- Lessons learned
-- Best practices evolved
+**Docstring standardization for all portmanteau tools**
+- ✅ Standardization plan and checklist
+- ✅ Completion report with validation results
+- ✅ 100% compliance with TOOL_DOCSTRING_STANDARD.md
 
 ---
 
-### **5. Python Snippets Usage Guide**
-📄 [PYTHON_SNIPPETS_USAGE_GUIDE.md](PYTHON_SNIPPETS_USAGE_GUIDE.md)
+### **3. Portmanteau Tool Migration Plan**
 
-**Reusable Python code patterns**
-- Common code snippets
-- FastMCP patterns
-- Windows API integration
-- Error handling patterns
+> 📄 **[../mcp-technical/PORTMANTEAU_TOOL_MIGRATION_PLAN.md](../mcp-technical/PORTMANTEAU_TOOL_MIGRATION_PLAN.md)**
 
----
-
-### **6. Systematic Project Updates**
-📄 [SYSTEMATIC_PROJECT_UPDATES.md](SYSTEMATIC_PROJECT_UPDATES.md)
-
-**Structured approach to project maintenance**
-- Update procedures
-- Version management
-- Dependency updates
-- Documentation synchronization
+**Migration strategy and implementation**
+- 📋 Phase-by-phase migration plan
+- 📋 Standard portmanteau pattern template
+- 📋 Success metrics and benefits
 
 ---
 
-### **7. Python Dependency Hell Fix** ⚠️ **CRITICAL**
-📄 [PYTHON_DEPENDENCY_HELL_FIX.md](PYTHON_DEPENDENCY_HELL_FIX.md)
+## 🎯 **Key Achievements**
 
-**The Great Python 3.13 Catastrophe of October 2025**
-- How Python 3.13 broke all MCP servers
-- The fix (version constraints)
-- Quick reference card
-- "Dependency hell was not invented on a whim!"
+### 🎨 **Portmanteau Tool Refactoring** ✅
 
----
+| Metric | Status |
+|--------|--------|
+| **Portmanteau Tools** | **18** created and standardized |
+| **Tool Reduction** | **57%** (from ~40+ to 18 tools) |
+| **Docstring Compliance** | **100%** with TOOL_DOCSTRING_STANDARD.md |
+| **Linting Errors** | **Zero** in all portmanteau tools |
+| **Backward Compatibility** | ✅ Helper functions maintained |
 
-## 🎯 **Purpose**
+### 📖 **Documentation Quality** ✅
 
-This directory contains **development-focused documentation** including:
-
-✅ **Best Practices** - How to develop quality MCP servers  
-✅ **AI Collaboration** - Working effectively with AI assistants  
-✅ **Debugging** - Real-world problem solving  
-✅ **Code Patterns** - Reusable Python snippets  
-✅ **Lessons Learned** - Avoiding common pitfalls  
-✅ **Project Management** - Systematic updates and maintenance  
+- ✅ All tools have **PORTMANTEAU PATTERN RATIONALE** sections
+- ✅ All tools have **OPERATIONS DETAIL** sections
+- ✅ Comprehensive parameter documentation
+- ✅ Operation-specific return structures
+- ✅ Usage examples for each operation
 
 ---
 
-## 👥 **Target Audience**
+## 🛠️ **Portmanteau Tools (18 total)**
 
-- **MCP Server Developers** - Building similar servers
-- **AI-Assisted Developers** - Using AI for coding
-- **Python Developers** - FastMCP applications
-- **Contributors** - Want to contribute to this project
-- **Learners** - Understanding development practices
+### 📚 **Core Library Management**
+1. **`manage_libraries`** - Library operations
+2. **`manage_books`** - Book CRUD operations
+3. **`query_books`** - Book search and query
 
----
+### 📝 **Content Management**
+4. **`manage_tags`** - Tag management
+5. **`manage_authors`** - Author management
+6. **`manage_metadata`** - Metadata operations
+7. **`manage_files`** - File operations
+8. **`manage_comments`** - Comment CRUD operations
 
-## 🔧 **Key Topics Covered**
+### 🔧 **System & Analysis**
+9. **`manage_system`** - System tools
+10. **`manage_analysis`** - Analysis operations
+11. **`analyze_library`** - Library analysis
 
-### **AI-Assisted Development**
-- Rules for effective AI collaboration
-- Tool comparisons (Windsurf, Cursor, Claude)
-- Best practices for prompts
-- Code review with AI
+### 🚀 **Advanced Features**
+12. **`manage_bulk_operations`** - Bulk operations
+13. **`manage_content_sync`** - Content synchronization
+14. **`manage_smart_collections`** - Smart collections
 
-### **Python & FastMCP**
-- FastMCP 2.12+ patterns
-- Windows API integration
-- Async/await best practices
-- Error handling decorators
+### 👥 **User Management**
+15. **`manage_users`** - User management
 
-### **Quality & Testing**
-- Test-driven development
-- Mocking Windows API
-- CI/CD integration
-- Coverage reporting
+### 📤 **Import/Export**
+16. **`export_books`** - Book export
 
-### **Project Management**
-- Systematic updates
-- Version control
-- Documentation maintenance
-- Dependency management
+### 👁️ **Viewer & Specialized**
+17. **`manage_viewer`** - Book viewer
+18. **`manage_specialized`** - Specialized tools
 
 ---
 
-## 📋 **Quick Reference**
+## 📋 **Development Standards**
 
-| Need | Document | Time |
-|------|----------|------|
-| **AI guidelines** | [AI Development Rules](AI_DEVELOPMENT_RULES.md) | 10 min |
-| **Tool choice** | [Tools Comparison](AI_DEVELOPMENT_TOOLS_COMPARISON.md) | 15 min |
-| **Debug help** | [Debugging Lessons](DEBUGGING_LESSONS_LEARNED.md) | 10 min |
-| **Python patterns** | [Python Snippets](PYTHON_SNIPPETS_USAGE_GUIDE.md) | 15 min |
-| **Update process** | [Project Updates](SYSTEMATIC_PROJECT_UPDATES.md) | 10 min |
-| **Dependency fix** | [Dependency Hell Fix](PYTHON_DEPENDENCY_HELL_FIX.md) | 5 min |
+### 🎨 **Portmanteau Tool Pattern**
+
+> All portmanteau tools follow this standard structure:
+
+```python
+@mcp.tool()
+async def manage_xxx(
+    operation: str,
+    # Common parameters
+    # Operation-specific parameters (all Optional)
+) -> Dict[str, Any]:
+    """
+    Brief description.
+
+    PORTMANTEAU PATTERN RATIONALE:
+    [Explains why operations are consolidated]
+
+    SUPPORTED OPERATIONS:
+    - operation1: Description
+    - operation2: Description
+
+    OPERATIONS DETAIL:
+    [Per-operation descriptions]
+
+    Parameters:
+    [All parameters documented]
+
+    Returns:
+    [Operation-specific return structures]
+
+    Usage:
+    [Usage examples]
+
+    Examples:
+    [Code examples]
+
+    Errors:
+    [Common errors and solutions]
+    """
+```
+
+### ✅ **Docstring Requirements**
+
+| Requirement | Status |
+|-------------|--------|
+| **PORTMANTEAU PATTERN RATIONALE** section | ✅ Required |
+| **SUPPORTED OPERATIONS** section | ✅ Required |
+| **OPERATIONS DETAIL** section | ✅ Required |
+| Comprehensive parameter documentation | ✅ Required |
+| Operation-specific return structures | ✅ Required |
+| Usage examples | ✅ Required |
+| Error handling documentation | ✅ Required |
 
 ---
 
-## 🏆 **Development Quality**
+### **4. CI/CD and Pre-commit Hooks** ✅ NEW
 
-**This documentation reflects**:
-- ✅ Real-world experience from building notepadpp-mcp
-- ✅ Lessons learned achieving Gold Status (85/100 → 90/100)
-- ✅ Best practices for MCP server development
-- ✅ Effective AI collaboration techniques
-- ✅ Production-ready code patterns
+> 📄 **[CI_CD_STATUS.md](CI_CD_STATUS.md)**  
+> 📄 **[PRE_COMMIT_SETUP.md](PRE_COMMIT_SETUP.md)**
+
+**Modern CI/CD and code quality automation**
+- 🔧 Pre-commit hooks configuration (ruff, mypy, bandit)
+- ⚙️ GitHub Actions workflows (uv-based)
+- 🧪 Automated testing and coverage
+- 🔒 Security scanning
 
 ---
 
 ## 🔗 **Related Documentation**
 
-- [Repository Protection](../repository-protection/README.md) - Safe development workflow
-- [MCP Technical](../mcp-technical/README.md) - MCP server specifics
-- [MCPB Packaging](../mcpb-packaging/README.md) - Distribution
-- [Main Documentation Index](../DOCUMENTATION_INDEX.md) - All docs
+| Document | Description |
+|----------|-------------|
+| 📄 [Tool Docstring Standard](../TOOL_DOCSTRING_STANDARD.md) | Docstring format requirements |
+| 📄 [Portmanteau Migration Plan](../mcp-technical/PORTMANTEAU_TOOL_MIGRATION_PLAN.md) | Migration strategy |
+| 📄 [CI/CD Status](CI_CD_STATUS.md) | CI/CD setup and status |
+| 📄 [Pre-commit Setup](PRE_COMMIT_SETUP.md) | Pre-commit hooks guide |
+| 📄 [Status Report](../STATUS_REPORT.md) | Current project status |
+| 📄 [Main README](../../README.md) | Project overview |
 
 ---
 
-*Development Documentation*  
-*Location: `docs/development/`*  
-*Files: 7*  
-*Focus: Best practices & lessons learned*  
-*Target: Developers & Contributors*
-
-**Learn from our development journey!** 💻✨
-
+> **CalibreMCP Development Documentation**  
+> 📍 **Location:** `docs/development/`  
+> 🎯 **Focus:** Portmanteau tools, docstring standards, CI/CD, development practices

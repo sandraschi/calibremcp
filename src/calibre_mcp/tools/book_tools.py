@@ -5,11 +5,11 @@ FastMCP 2.12 compliant - all tools self-register using @mcp.tool() decorator.
 """
 
 from typing import List, Optional, Dict, Any, Union
+from pathlib import Path
 from pydantic import BaseModel, Field, validator
 from calibre_mcp.services.book_service import BookSearchResult, book_service
-from calibre_mcp.server import mcp
 from calibre_mcp.logging_config import get_logger
-from calibre_mcp.tools.base_tool import BaseTool, mcp_tool
+from .shared.query_parsing import parse_intelligent_query
 import json
 
 logger = get_logger("calibremcp.tools.book_tools")
@@ -710,7 +710,7 @@ async def search_books_helper(
 
                 session.query(Book).limit(1).first()
         except RuntimeError as e:
-            # Try to auto-initialize from config
+            # Try to auto-initialize from config - use same priority as server startup
             from ..config import CalibreConfig
             from ..config_discovery import get_active_calibre_library
             from ..db.database import init_database
@@ -719,28 +719,87 @@ async def search_books_helper(
             if config.auto_discover_libraries:
                 config.discover_libraries()
 
-            # Try to find and load a library
+            # Try to find and load a library - SAME PRIORITY AS SERVER STARTUP
             library_to_load = None
-            if config.local_library_path and (config.local_library_path / "metadata.db").exists():
-                library_to_load = config.local_library_path
-            else:
+            library_name = None
+            
+            # 1. Try persisted library from storage (if available)
+            try:
+                from ..server import storage as server_storage
+                if server_storage:
+                    # Check if storage has get_current_library method (it's async)
+                    if hasattr(server_storage, 'get_current_library'):
+                        try:
+                            persisted_library = await server_storage.get_current_library()
+                            if persisted_library and config.discovered_libraries:
+                                persisted_lib_info = config.discovered_libraries.get(persisted_library)
+                                if persisted_lib_info and persisted_lib_info.path.exists() and (persisted_lib_info.path / "metadata.db").exists():
+                                    library_to_load = persisted_lib_info.path
+                                    library_name = persisted_library
+                                    logger.info(f"Auto-initializing with persisted library: {persisted_library}")
+                        except Exception as storage_e:
+                            logger.debug(f"Could not get persisted library from storage: {storage_e}")
+            except (ImportError, AttributeError):
+                pass  # Storage might not be available, continue with other options
+            
+            # 2. Try config.local_library_path
+            if not library_to_load and config.local_library_path:
+                lib_path = Path(config.local_library_path)
+                metadata_db = lib_path / "metadata.db"
+                if lib_path.exists() and lib_path.is_dir() and metadata_db.exists() and metadata_db.is_file():
+                    library_to_load = lib_path
+                    # Find library name from discovered libraries
+                    if config.discovered_libraries:
+                        for name, lib_info in config.discovered_libraries.items():
+                            if Path(lib_info.path) == library_to_load:
+                                library_name = name
+                                break
+                    if not library_name:
+                        library_name = library_to_load.name
+                    logger.info(f"Auto-initializing with config library: {library_to_load}")
+            
+            # 3. Try active library from Calibre config
+            if not library_to_load:
                 active_lib = get_active_calibre_library()
                 if (
                     active_lib
                     and active_lib.path.exists()
+                    and active_lib.path.is_dir()
                     and (active_lib.path / "metadata.db").exists()
                 ):
                     library_to_load = active_lib.path
-                elif config.discovered_libraries:
-                    first_discovered = list(config.discovered_libraries.values())[0]
-                    library_to_load = first_discovered.path
+                    library_name = active_lib.name
+                    logger.info(f"Auto-initializing with active Calibre library: {active_lib.name}")
+            
+            # 4. Fallback to first discovered library
+            if not library_to_load and config.discovered_libraries:
+                for lib_name, lib_info in config.discovered_libraries.items():
+                    if (
+                        lib_info.path.exists()
+                        and lib_info.path.is_dir()
+                        and (lib_info.path / "metadata.db").exists()
+                    ):
+                        library_to_load = lib_info.path
+                        library_name = lib_name
+                        logger.info(f"Auto-initializing with first discovered library: {lib_name}")
+                        break
 
             if library_to_load:
                 metadata_db = library_to_load / "metadata.db"
                 try:
                     init_database(str(metadata_db.absolute()), echo=False)
-                    logger.info(f"Auto-initialized database with library: {library_to_load}")
+                    # Update config to use this library
+                    config.local_library_path = library_to_load
+                    # Persist to storage if available
+                    try:
+                        from ..server import storage as server_storage
+                        if server_storage and library_name and hasattr(server_storage, 'set_current_library'):
+                            await server_storage.set_current_library(library_name)
+                    except (ImportError, AttributeError, Exception):
+                        pass  # Storage might not be available
+                    logger.info(f"Auto-initialized database with library: {library_name or library_to_load.name} at {library_to_load}")
                 except Exception as init_e:
+                    logger.error(f"Auto-initialization failed: {init_e}", exc_info=True)
                     raise ValueError(
                         f"❌ Database not initialized and auto-initialization failed.\n\n"
                         f"**Error:** {str(init_e)}\n\n"
@@ -749,6 +808,7 @@ async def search_books_helper(
                         f"**Note:** The default library should auto-load on startup. If this fails, check your Calibre library path."
                     ) from init_e
             else:
+                logger.error("No libraries found for auto-initialization")
                 raise ValueError(
                     "❌ Database not initialized and no libraries found.\n\n"
                     "**Solution:** Use `manage_libraries(operation='list')` to see available libraries,\n"
@@ -796,8 +856,28 @@ async def search_books_helper(
             else:
                 processed_fields.append(field)
 
-        # Handle text search across specified fields
+        # Intelligently parse query to extract author, tag, pubdate, etc.
         search_text = text or query  # Support both text and query parameters
+        parsed = parse_intelligent_query(search_text) if search_text else {"text": "", "author": None, "tag": None, "pubdate": None, "rating": None, "series": None}
+        
+        # Use parsed values if no explicit parameters provided
+        if parsed["author"] and not author:
+            author = parsed["author"]
+        if parsed["tag"] and not tag:
+            tag = parsed["tag"]
+        if parsed["series"] and not series:
+            series = parsed["series"]
+        if parsed["pubdate"] and not pubdate_start and not pubdate_end:
+            pubdate_start = f"{parsed['pubdate']}-01-01"
+            pubdate_end = f"{parsed['pubdate']}-12-31"
+        if parsed["rating"] and not rating:
+            rating = parsed["rating"]
+        
+        # Use remaining query text (after removing structured params) for text search
+        if parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"]:
+            search_text = parsed["text"] if parsed["text"] else None
+        
+        # Handle text search across specified fields
         search_terms = []
         phrases = []
 
@@ -1150,83 +1230,12 @@ async def search_books_helper(
         ) from e
 
 
-class BookTools(BaseTool):
-    """MCP tools for book-related operations using BaseTool pattern."""
+# BookTools class removed - functionality migrated to manage_books portmanteau tool
+# Use manage_books(operation="get") instead of BookTools.get_book()
+# Use query_books(operation="recent") instead of get_recent_books()
 
-    @mcp_tool(
-        name="get_book",
-        description="Get detailed information about a book by ID",
-        output_model=BookDetailOutput,
-    )
-    async def get_book(self, book_id: int, format_output: bool = False) -> Optional[Dict[str, Any]]:
-        """
-        Get comprehensive detailed information about a specific book by its ID.
-
-        Retrieves complete book metadata including title, authors, series information,
-        publication details, formats available, cover information, tags, ratings, comments,
-        identifiers (ISBN, etc.), and all related entities. This is the most complete
-        book information available in the system.
-
-        Args:
-            book_id: The unique identifier of the book in the Calibre library
-            format_output: If True, includes a 'formatted' field with nicely formatted text output
-                          showing all metadata in flowing text format with full description
-
-        Returns:
-            Dictionary containing complete book information or None if book not found.
-            The dictionary includes:
-            {
-                "id": int - Book identifier
-                "title": str - Book title
-                "authors": list - List of author names
-                "series": str - Series name (if part of a series)
-                "series_index": float - Position in series (if applicable)
-                "rating": float - Star rating (0-5)
-                "tags": list - List of tag names
-                "comments": str - Book description/comments (full text)
-                "published": str - Publication date
-                "languages": list - List of language codes
-                "formats": list - Available file formats (EPUB, PDF, etc.)
-                "identifiers": dict - ISBN, ASIN, and other identifiers
-                "cover_path": str - Path to cover image
-                "last_modified": str - Last modification timestamp
-                "formatted": str - (if format_output=True) Pretty formatted text with full description
-                ... (other metadata fields)
-            }
-
-        Example:
-            # Get complete details for a book with formatted output
-            book = get_book(book_id=123, format_output=True)
-            if book:
-                print(book['formatted'])  # Pretty formatted text
-                print(f"Title: {book['title']}")
-                # Extract author names from dict format
-                author_list = book.get("authors", [])
-                if author_list and isinstance(author_list[0], dict):
-                    author_names = [a.get("name", "") for a in author_list]
-                    print(f"Authors: {', '.join(author_names)}")
-                else:
-                    print(f"Authors: {', '.join(author_list) if author_list else 'Unknown'}")
-            else:
-                print("Book not found")
-        """
-        from calibre_mcp.utils.book_formatter import format_book_details
-
-        book = book_service.get_book(book_id)
-        if not book:
-            return None
-
-        result = book.dict()
-
-        # Add formatted output if requested
-        if format_output:
-            result["formatted"] = format_book_details(result)
-
-        return result
-
-
-@mcp.tool()
-async def get_recent_books(limit: int = 10) -> List[Dict[str, Any]]:
+# get_recent_books removed - migrated to query_books(operation="recent")
+# Use query_books(operation="recent", limit=10) instead
     """
     Get a list of the most recently added books in the library.
 

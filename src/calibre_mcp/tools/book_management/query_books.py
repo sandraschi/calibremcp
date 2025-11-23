@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 from ...server import mcp
 from ...logging_config import get_logger
 from ..shared.error_handling import handle_tool_error
+from ..shared.query_parsing import parse_intelligent_query
 
 # Import helper functions (NOT registered as MCP tools)
 from ..book_tools import search_books_helper as _search_books_helper
@@ -60,9 +61,14 @@ async def query_books(
     """
     Query and search books in the Calibre library with multiple operations in a single unified interface.
 
-    This portmanteau tool consolidates all book query operations (searching, listing,
-    filtering by author/series) into a single interface. Use the `operation` parameter
-    to select which operation to perform.
+    PORTMANTEAU PATTERN RATIONALE:
+    Instead of creating 4 separate tools (one per operation), this tool consolidates related
+    book query operations into a single interface. This design:
+    - Prevents tool explosion (4 tools → 1 tool) while maintaining full functionality
+    - Improves discoverability by grouping related operations together
+    - Reduces cognitive load when working with book query tasks
+    - Enables consistent query interface across all operations
+    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
 
     **IMPORTANT FOR CLAUDE - VERB MAPPING:**
     Users may use different verbs (search, list, find, query, get) but they all map to the same operation.
@@ -84,7 +90,7 @@ async def query_books(
     Example: "list books by conan doyle" → query_books(operation="search", author="Conan Doyle")
     This searches the currently loaded library (auto-loaded on startup)
 
-    Operations:
+    SUPPORTED OPERATIONS:
     - search: Search/find/list/get/query books with flexible filters (author, tag, text, publisher, year, etc.)
               **This is the PRIMARY operation - use for ALL user requests to access books with filters.**
               **Works for ANY verb: "search books", "list books", "find books", "query books", "get books"**
@@ -92,12 +98,45 @@ async def query_books(
     - list: List ALL books in the library (simple pagination, minimal filtering)
               **Only use when user explicitly wants to see ALL books without filters**
               Example: "show me all books" or "list everything in the library"
+    - recent: Get recently added books (sorted by addition date, most recent first)
+              **Use for "recently added", "new books", "latest additions" queries**
+              Example: "show me recent books" or "what books were added recently"
     - by_author: Get books by a specific author using author_id (requires numeric author_id)
               **Use only when user provides a numeric author ID**
               **For author names, use operation="search" with author parameter instead**
     - by_series: Get books in a specific series using series_id (requires numeric series_id)
               **Use only when user provides a numeric series ID**
               **For series names, use operation="search" with series parameter instead**
+
+    OPERATIONS DETAIL:
+
+    search: Search books with flexible filters
+    - Primary operation for finding books with any combination of filters
+    - Supports author, tag, text, publisher, year, rating, format, and more
+    - Works with ANY verb: "search", "list", "find", "query", "get"
+    - Most parameters apply to this operation
+    - Returns: Paginated list of matching books
+
+    list: List all books
+    - Simple pagination without complex filtering
+    - Only use when user explicitly wants ALL books
+    - Supports basic author and tag filters
+    - Returns: Paginated list of all books
+
+    by_author: Get books by author ID
+    - Requires numeric author_id (not author name)
+    - For author names, use operation="search" with author parameter
+    - Returns: List of books by the specified author
+
+    recent: Get recently added books
+    - Returns books sorted by addition date (most recent first)
+    - Parameters: limit (optional, default: 10, range: 1-1000)
+    - Returns: List of recently added books
+
+    by_series: Get books by series ID
+    - Requires numeric series_id (not series name)
+    - For series names, use operation="search" with series parameter
+    - Returns: List of books in the specified series
 
     Prerequisites:
         - **Default library is auto-loaded on server startup** - no manual library loading needed!
@@ -107,9 +146,10 @@ async def query_books(
         - Library must be accessible (automatically handled on startup)
 
     Parameters:
-        operation: The operation to perform. Must be one of: "search", "list", "by_author", "by_series"
+        operation: The operation to perform. Must be one of: "search", "list", "recent", "by_author", "by_series"
             - "search": Search books with flexible filters. Most parameters apply.
             - "list": List all books with basic filters. Supports author, tag, limit, offset.
+            - "recent": Get recently added books (sorted by addition date, most recent first). Parameters: limit (optional, default: 10).
             - "by_author": Get books by author_id. Requires author_id parameter.
             - "by_series": Get books by series_id. Requires series_id parameter.
 
@@ -231,6 +271,12 @@ async def query_books(
             author_id=42
         )
 
+        # Get recently added books
+        result = await query_books(
+            operation="recent",
+            limit=10
+        )
+
     Examples:
         # Claude says: "list books by conan doyle"
         result = await query_books(
@@ -307,7 +353,7 @@ async def query_books(
 
     Errors:
         Common errors and solutions:
-        - Invalid operation: Use one of "search", "list", "by_author", "by_series"
+        - Invalid operation: Use one of "search", "list", "recent", "by_author", "by_series"
         - Missing author_id: Provide author_id for 'by_author' operation
         - Missing series_id: Provide series_id for 'by_series' operation
 
@@ -317,36 +363,71 @@ async def query_books(
     """
     try:
         if operation == "search":
+            # Intelligently parse query to extract author, tag, pubdate, etc.
+            search_text = text or query
+            parsed = parse_intelligent_query(search_text) if search_text else {
+                "text": "", "author": None, "tag": None, "pubdate": None, 
+                "rating": None, "series": None, "content_type": None,
+                "added_after": None, "added_before": None,
+            }
+            
+            # Use parsed values if no explicit parameters provided
+            final_author = author or parsed["author"]
+            final_tag = tag or parsed["tag"]
+            final_series = series or parsed["series"]
+            final_text = parsed["text"] if (parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"] or parsed["added_after"]) else search_text
+            
+            # Parse pubdate if found
+            final_pubdate_start = pubdate_start
+            final_pubdate_end = pubdate_end
+            if parsed["pubdate"] and not pubdate_start and not pubdate_end:
+                final_pubdate_start = f"{parsed['pubdate']}-01-01"
+                final_pubdate_end = f"{parsed['pubdate']}-12-31"
+            
+            # Use parsed rating if found
+            final_rating = rating or parsed["rating"]
+            
+            # Use parsed date filters if found
+            final_added_after = added_after or parsed["added_after"]
+            final_added_before = added_before or parsed["added_before"]
+            
+            # Handle content_type hint for library selection
+            # If content_type is "manga", "comic", or "paper", we could filter by library
+            # For now, we'll just log it - library selection happens at a higher level
+            if parsed["content_type"]:
+                logger.info(f"Content type hint detected: {parsed['content_type']}", extra={"content_type": parsed["content_type"]})
+            
             # Use search_books helper - pass ALL search parameters
             return await _search_books_helper(
-                # Text/search
-                text=text or query,
+                # Text/search (after removing structured params if parsed)
+                text=final_text if final_text else None,
                 query=None,  # Already handled via text
-                # Authors
-                author=author,
+                # Authors (use parsed author if "by" was in query)
+                author=final_author,
                 authors=authors,
                 exclude_authors=exclude_authors,
-                # Series
-                series=series,
-                exclude_series=exclude_series,
-                # Tags
-                tag=tag,
+                # Tags (use parsed tag if "tagged as" was in query)
+                tag=final_tag,
                 tags=tags,
                 exclude_tags=exclude_tags,
+                # Series (use parsed series if "series" was in query)
+                series=final_series,
+                exclude_series=exclude_series,
+                # Publication date (use parsed year if "published" was in query)
+                pubdate_start=final_pubdate_start,
+                pubdate_end=final_pubdate_end,
+                # Rating (use parsed rating if "rating" was in query)
+                rating=final_rating,
+                min_rating=min_rating,
+                max_rating=max_rating,
+                unrated=unrated,
                 # Publisher
                 publisher=publisher,
                 publishers=publishers,
                 has_publisher=has_publisher,
-                # Rating
-                rating=rating,
-                min_rating=min_rating,
-                max_rating=max_rating,
-                unrated=unrated,
                 # Dates
-                pubdate_start=pubdate_start,
-                pubdate_end=pubdate_end,
-                added_after=added_after,
-                added_before=added_before,
+                added_after=final_added_after,
+                added_before=final_added_before,
                 # Size
                 min_size=min_size,
                 max_size=max_size,
@@ -367,6 +448,17 @@ async def query_books(
                 query=author or tag or text or query,
                 limit=limit,
             )
+
+        elif operation == "recent":
+            # Get recently added books
+            from calibre_mcp.services.book_service import book_service
+            books = book_service.get_recent_books(limit=limit)
+            return {
+                "success": True,
+                "books": [book.dict() for book in books],
+                "total": len(books),
+                "limit": limit,
+            }
 
         elif operation == "by_author":
             if author_id is None:
@@ -403,11 +495,12 @@ async def query_books(
         else:
             return {
                 "success": False,
-                "error": f"Invalid operation: '{operation}'. Must be one of: 'search', 'list', 'by_author', 'by_series'",
+                "error": f"Invalid operation: '{operation}'. Must be one of: 'search', 'list', 'recent', 'by_author', 'by_series'",
                 "error_code": "INVALID_OPERATION",
                 "suggestions": [
                     "Use operation='search' to search books with filters (author, tag, text, etc.)",
                     "Use operation='list' to list all books",
+                    "Use operation='recent' to get recently added books",
                     "Use operation='by_author' to get books by author_id",
                     "Use operation='by_series' to get books by series_id",
                 ],

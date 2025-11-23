@@ -140,57 +140,87 @@ def register_tools(mcp: Any) -> None:
     from .core import tools as _core_tools  # noqa: F401
     from .library import tools as _library_tools  # noqa: F401 - Includes manage_libraries portmanteau
     from .analysis import tools as _analysis_tools  # noqa: F401
+    from .analysis import manage_analysis  # noqa: F401 - Portmanteau tool
     from .metadata import tools as _metadata_tools  # noqa: F401
     from .files import tools as _file_tools  # noqa: F401
     from .specialized import tools as _specialized_tools  # noqa: F401
     from .system import tools as _system_tools  # noqa: F401
 
-    # Explicitly import system_tools to ensure tools are registered
-    from .system.system_tools import (  # noqa: F401
-        help,
-        status,
-        health_check,
-        tool_help,
-        list_tools,
-        hello_world,
-    )
+    # NOTE: Individual system tools (help, status, etc.) are deprecated
+    # They are now accessed via manage_system portmanteau tool
+    # Helper functions (help_helper, status_helper, etc.) are imported by manage_system
+    # No need to import them here - they don't have @mcp.tool() decorators
 
-    # Import export tools to register them
-    from .import_export.export_books import (  # noqa: F401
-        export_books_csv,
-        export_books_json,
-        export_books_html,
-        export_books_pandoc,
-    )
+    # NOTE: Individual export tools (export_books_csv, etc.) are deprecated
+    # They are now accessed via export_books portmanteau tool
+    # Helper functions are imported by export_books_portmanteau
+    # No need to import them here - they don't have @mcp.tool() decorators
     from .ocr import tools as _ocr_tools  # noqa: F401
 
-    # Import tag tools to register them (CRUD and weeding)
-    from .tag_tools import (  # noqa: F401
-        list_tags,
-        get_tag,
-        create_tag,
-        update_tag,
-        delete_tag,
-        find_duplicate_tags,
-        merge_tags,
-        get_unused_tags,
-        delete_unused_tags,
-        # get_tag_statistics removed - use the one from analysis.library_analysis instead
-    )
+    # DEPRECATED: Individual tag tools removed - use manage_tags portmanteau tool instead
+    # from .tag_tools import (
+    #     list_tags,
+    #     get_tag,
+    #     create_tag,
+    #     update_tag,
+    #     delete_tag,
+    #     find_duplicate_tags,
+    #     merge_tags,
+    #     get_unused_tags,
+    #     delete_unused_tags,
+    # )
 
     # Import book_management to register portmanteau tools
     from .book_management import query_books, manage_books  # noqa: F401 - Portmanteau tools
+
+    # Import authors portmanteau tool
+    from .authors import manage_authors  # noqa: F401 - Portmanteau tool
+
+    # Import tags portmanteau tool
+    from .tags import manage_tags  # noqa: F401 - Portmanteau tool
+
+    # Import comments portmanteau tool
+    from .comments import manage_comments  # noqa: F401 - Portmanteau tool
+
+    # Import viewer portmanteau tool
+    from .viewer import manage_viewer  # noqa: F401 - Portmanteau tool
+
+    # Import specialized portmanteau tool
+    from .specialized import manage_specialized  # noqa: F401 - Portmanteau tool
+
+    # Import metadata portmanteau tool
+    from .metadata import manage_metadata  # noqa: F401 - Portmanteau tool
+
+    # Import files portmanteau tool
+    from .files import manage_files  # noqa: F401 - Portmanteau tool
+
+    # Import system portmanteau tool
+    from .system import manage_system  # noqa: F401 - Portmanteau tool
+
+    # Import analysis portmanteau tools
+    from .analysis import analyze_library  # noqa: F401 - Portmanteau tool
+
+    # Import advanced features portmanteau tools
+    from .advanced_features import manage_bulk_operations  # noqa: F401 - Portmanteau tool
+    from .advanced_features import manage_content_sync  # noqa: F401 - Portmanteau tool
+
+    # Import user management portmanteau tool
+    from .user_management import manage_users  # noqa: F401 - Portmanteau tool
+
+    # Import export portmanteau tool
+    from .import_export import export_books  # noqa: F401 - Portmanteau tool
 
     # Only register BaseTool classes (functions with @mcp.tool() are already auto-registered)
     tool_classes: List[Type[BaseTool]] = []
 
     # Import BaseTool classes that need explicit registration
-    from .book_tools import BookTools
-    from .author_tools import AuthorTools
-    from .viewer_tools import ViewerTools
+    # BookTools removed - use manage_books portmanteau tool instead
+    # ViewerTools removed - use manage_viewer portmanteau tool instead
+    # AuthorTools removed - use manage_authors portmanteau tool instead
     from .ocr.calibre_ocr_tool import OCRTool
 
-    tool_classes = [BookTools, AuthorTools, ViewerTools, OCRTool]
+    tool_classes = [OCRTool]
+    # Only OCRTool remains - specialized tool that doesn't fit portmanteau pattern
 
     # Register BaseTool classes
     for tool_class in tool_classes:

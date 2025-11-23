@@ -15,6 +15,23 @@ Phase 2 adds 19 additional tools:
 - Austrian Efficiency Specials (3 tools)
 """
 
+# CRITICAL: Suppress all warnings before any imports
+# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
+import warnings
+import sys
+
+# Suppress all warnings immediately and aggressively
+warnings.filterwarnings("ignore")
+warnings.simplefilter("ignore")
+# Suppress specific warning categories
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
+# For MCP stdio transport, we need to prevent ANY output to stderr
+# Warnings are printed to stderr, which breaks JSON-RPC protocol
+# Note: This is handled in __main__.py before imports
+
 from typing import Optional, List, Dict, Any, AsyncContextManager
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -143,7 +160,10 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                     # Update config to use this library
                     config.local_library_path = library_to_load
                     # Persist to storage
-                    await storage.set_current_library(current_library)
+                    try:
+                        await storage.set_current_library(current_library)
+                    except Exception as storage_e:
+                        logger.warning(f"Could not persist library to storage: {storage_e}")
                     logger.info(
                         f"✅ Database initialized with library: {current_library} at {library_to_load}"
                     )
@@ -167,7 +187,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                         config.local_library_path = library_to_load
                         await storage.set_current_library(current_library)
                         logger.info(
-                            f"✅ Database initialized with discovered library: {current_library} at {library_to_load}"
+                            f"Database initialized with discovered library: {current_library} at {library_to_load}"
                         )
                     except Exception as e:
                         logger.error(f"Failed to initialize database: {e}", exc_info=True)
@@ -175,13 +195,13 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                             f"Cannot initialize database at {metadata_db}: {e}"
                         ) from e
                 else:
-                    logger.warning(
-                        "⚠️ No Calibre libraries found. Server starting without library - use 'manage_libraries(operation=\"list\")' to see available libraries"
-                    )
+                    error_msg = f"metadata.db not found at {metadata_db.absolute()}"
+                    logger.error(error_msg)
+                    raise FileNotFoundError(error_msg)
             else:
-                logger.warning(
-                    "⚠️ No Calibre libraries found. Server starting without library - use 'manage_libraries(operation=\"list\")' to see available libraries"
-                )
+                error_msg = "No libraries discovered, cannot initialize database"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
 
         log_operation(logger, "server_lifespan_ready", level="INFO")
 
@@ -212,6 +232,10 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
 # macOS: ~/Library/Application Support/calibre-mcp
 # Linux: ~/.local/share/calibre-mcp
 mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
+
+# Register prompt templates
+from .prompts import register_prompts
+register_prompts(mcp)
 
 
 # ==================== RESPONSE MODELS ====================
@@ -488,7 +512,9 @@ def main():
         mcp.run(show_banner=False)
 
     except Exception as e:
+        # Log error to file only (no stdout/stderr output for MCP stdio protocol)
         log_error(logger, "server_startup_error", e)
+        # Re-raise to let FastMCP handle it properly
         raise
 
 

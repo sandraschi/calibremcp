@@ -31,7 +31,7 @@ if __name__ == "__main__":
     print()
 
     print("=" * 60)
-    print("✓ Test fixtures setup complete!")
+    print("[OK] Test fixtures setup complete!")
     print("=" * 60)
     print()
     print("You can now run tests with:")

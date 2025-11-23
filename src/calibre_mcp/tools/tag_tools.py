@@ -1,11 +1,24 @@
 """
-MCP tools for tag-related operations including CRUD and tag weeding.
+DEPRECATED: Individual tag tools are deprecated in favor of the manage_tags
+portmanteau tool (see tools/tags/manage_tags.py). These functions are kept
+as legacy helpers but are no longer registered with FastMCP 2.13+.
+
+Use manage_tags(operation="...") instead:
+- list_tags() → manage_tags(operation="list", ...)
+- get_tag() → manage_tags(operation="get", ...)
+- create_tag() → manage_tags(operation="create", ...)
+- update_tag() → manage_tags(operation="update", ...)
+- delete_tag() → manage_tags(operation="delete", ...)
+- find_duplicate_tags() → manage_tags(operation="find_duplicates", ...)
+- merge_tags() → manage_tags(operation="merge", ...)
+- get_unused_tags() → manage_tags(operation="get_unused")
+- delete_unused_tags() → manage_tags(operation="delete_unused")
+- get_simple_tag_statistics() → manage_tags(operation="statistics")
 """
 
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
-from ..server import mcp
 from ..logging_config import get_logger
 from ..services.tag_service import tag_service
 from ..services.base_service import NotFoundError, ValidationError
@@ -94,7 +107,7 @@ class TagStatsOutput(BaseModel):
     average_books_per_tag: float = Field(..., description="Average books per tag")
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def list_tags(
     search: Optional[str] = None,
     limit: int = 100,
@@ -180,7 +193,7 @@ async def list_tags(
         }
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def get_tag(tag_id: Optional[int] = None, tag_name: Optional[str] = None) -> Dict[str, Any]:
     """
     Get details for a specific tag by ID or name.
@@ -231,7 +244,7 @@ async def get_tag(tag_id: Optional[int] = None, tag_name: Optional[str] = None) 
         return {"error": str(e)}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def create_tag(name: str) -> Dict[str, Any]:
     """
     Create a new tag.
@@ -267,7 +280,7 @@ async def create_tag(name: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def update_tag(tag_id: int, name: str) -> Dict[str, Any]:
     """
     Update (rename) an existing tag.
@@ -305,7 +318,7 @@ async def update_tag(tag_id: int, name: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def delete_tag(tag_id: int, force: bool = False) -> Dict[str, Any]:
     """
     Delete a tag.
@@ -340,7 +353,7 @@ async def delete_tag(tag_id: int, force: bool = False) -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def find_duplicate_tags(similarity_threshold: float = 0.8) -> Dict[str, Any]:
     """
     Find duplicate or similar tags that should be merged (tag weeding).
@@ -408,7 +421,7 @@ async def find_duplicate_tags(similarity_threshold: float = 0.8) -> Dict[str, An
         }
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def merge_tags(source_tag_ids: List[int], target_tag_id: int) -> Dict[str, Any]:
     """
     Merge multiple source tags into a target tag (tag weeding).
@@ -456,7 +469,7 @@ async def merge_tags(source_tag_ids: List[int], target_tag_id: int) -> Dict[str,
         return {"success": False, "error": str(e)}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def get_unused_tags() -> Dict[str, Any]:
     """
     Get all tags that are not assigned to any books.
@@ -493,7 +506,7 @@ async def get_unused_tags() -> Dict[str, Any]:
         return {"error": str(e), "unused_tags": [], "count": 0}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def delete_unused_tags() -> Dict[str, Any]:
     """
     Delete all tags that are not assigned to any books.
@@ -534,7 +547,7 @@ async def delete_unused_tags() -> Dict[str, Any]:
         return {"success": False, "error": str(e), "deleted_count": 0, "deleted_tags": []}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def get_simple_tag_statistics() -> Dict[str, Any]:
     """
     Get comprehensive statistics about tags in the library.
@@ -575,3 +588,4 @@ async def get_simple_tag_statistics() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting tag statistics: {e}", exc_info=True)
         return {"error": str(e)}
+

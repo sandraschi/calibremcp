@@ -4,8 +4,12 @@ PDF viewer module for CalibreMCP.
 
 from typing import List, Dict, Any
 from pathlib import Path
-import fitz  # PyMuPDF
 import base64
+
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    fitz = None  # Optional dependency
 
 
 class PdfViewer:
@@ -26,6 +30,8 @@ class PdfViewer:
 
     def load(self, file_path: str) -> None:
         """Load a PDF file."""
+        if fitz is None:
+            raise ImportError("PyMuPDF (fitz) is required for PDF viewing. Install it with: pip install PyMuPDF")
         self._file_path = Path(file_path)
         self._doc = fitz.open(file_path)
         self._extract_metadata()

@@ -43,7 +43,24 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
    uv sync --dev
    ```
 
-3. **Set Up Environment**
+3. **Install Pre-commit Hooks** (Recommended)
+   ```bash
+   # Install Git hooks for automatic code quality checks
+   pre-commit install
+   
+   # Run hooks on all files (first time)
+   pre-commit run --all-files
+   ```
+   
+   Pre-commit hooks automatically run code quality checks before each commit:
+   - Ruff linting and formatting
+   - MyPy type checking
+   - Security scanning (bandit)
+   - File quality checks
+   
+   See [Pre-commit Setup Guide](docs/development/PRE_COMMIT_SETUP.md) for details.
+
+4. **Set Up Environment**
    ```bash
    # Copy example environment file
    cp .env.example .env
@@ -54,7 +71,7 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
    CALIBRE_PASSWORD=your_password
    ```
 
-4. **Verify Setup**
+5. **Verify Setup**
    ```bash
    # Run tests
    uv run pytest tests/ -v

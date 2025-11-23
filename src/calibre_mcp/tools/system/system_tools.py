@@ -1,8 +1,15 @@
 """
-System tools for CalibreMCP - Help and Status functionality.
+DEPRECATED: Individual system tools are deprecated in favor of the manage_system
+portmanteau tool (see tools/system/manage_system.py). These functions are kept
+as helpers but are no longer registered with FastMCP 2.13+.
 
-These tools provide comprehensive help system and system status monitoring
-following MCP production standards.
+Use manage_system(operation="...") instead:
+- help() → manage_system(operation="help", level=..., topic=...)
+- status() → manage_system(operation="status", status_level=..., focus=...)
+- tool_help() → manage_system(operation="tool_help", tool_name=..., tool_help_level=...)
+- list_tools() → manage_system(operation="list_tools", category=...)
+- hello_world() → manage_system(operation="hello_world")
+- health_check() → manage_system(operation="health_check")
 """
 
 import os
@@ -75,7 +82,7 @@ HELP_DOCS = {
                 "advanced": "Comprehensive library operations with filtering and sorting",
                 "expert": "Low-level library access with performance optimization",
             },
-            "tools": ["list_books", "get_book_details", "search_books", "test_calibre_connection"],
+            "tools": ["query_books", "manage_books", "test_calibre_connection"],
         },
         "library": {
             "title": "Library Management",
@@ -146,14 +153,17 @@ HELP_DOCS = {
             "list_books()",
             "",
             "# Search for a specific book",
-            'search_books(text="python programming")',
+            'query_books(operation="search", text="python programming")',
             "",
             "# Get details for a specific book",
-            "get_book_details(book_id=123)",
+            "manage_books(operation='get', book_id=123)",
+            "",
+            "# Get complete book details",
+            "manage_books(operation='details', book_id=123)",
         ],
         "intermediate": [
             "# Advanced search with filters",
-            'search_books(text="machine learning", fields=["title", "tags"], operator="AND")',
+            'query_books(operation="search", text="machine learning", tags=["programming", "ai"])',
             "",
             "# Get library statistics",
             "get_library_stats()",
@@ -194,8 +204,8 @@ HELP_DOCS = {
 }
 
 
-@mcp.tool()
-async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
+# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
+async def help_helper(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
     """
     Comprehensive help system with multiple detail levels.
 
@@ -292,8 +302,8 @@ async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) 
         return f"Error generating help: {str(e)}"
 
 
-@mcp.tool()
-async def status(level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None) -> str:
+# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
+async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None) -> str:
     """
     Comprehensive system status and diagnostic information.
 
@@ -552,8 +562,8 @@ def _get_tool_by_name(tool_name: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-@mcp.tool()
-async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
+# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
+async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
     """
     Get detailed help for a specific tool.
 
@@ -692,21 +702,22 @@ def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
 
     # Tool-specific examples
     tool_examples = {
-        "list_books": [
-            "# Basic usage",
-            "result = list_books()",
+        "query_books": [
+            "# Search for books",
+            "result = query_books(operation='search', text='python programming')",
             "",
-            "# With filters",
-            "result = list_books(author='Tolkien', limit=10)",
-        ],
-        "search_books": [
-            "# Simple search",
-            "result = search_books(query='python programming')",
+            "# Get recently added books",
+            "result = query_books(operation='recent', limit=10)",
             "",
-            "# Advanced search",
-            "result = search_books(query='machine learning', fields=['title', 'tags'])",
+            "# List all books",
+            "result = query_books(operation='list', limit=50)",
         ],
-        "get_book_details": ["# Get book by ID", "book = get_book_details(book_id=123)"],
+        "manage_books": [
+            "# Get book by ID",
+            "book = manage_books(operation='get', book_id=123)",
+            "# Get complete book details",
+            "book = manage_books(operation='details', book_id=123)",
+        ],
         "list_libraries": ["# List all libraries", "libraries = list_libraries()"],
         "switch_library": [
             "# Switch to a different library",
@@ -734,13 +745,12 @@ def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
 def _get_related_tools(tool_name: str) -> List[str]:
     """Get related tools based on functionality."""
     related_map = {
-        "list_books": ["search_books", "get_book_details"],
-        "search_books": ["list_books", "get_book_details"],
-        "get_book_details": ["list_books", "search_books", "update_book_metadata"],
+        "query_books": ["manage_books", "manage_metadata"],
+        "manage_books": ["query_books", "manage_metadata", "manage_files"],
+        "manage_metadata": ["manage_books", "query_books"],
+        "manage_files": ["manage_books", "query_books"],
         "list_libraries": ["switch_library", "get_library_stats"],
         "switch_library": ["list_libraries", "get_library_stats"],
-        "update_book_metadata": ["get_book_details", "download_book"],
-        "download_book": ["get_book_details", "update_book_metadata"],
     }
 
     return related_map.get(tool_name, [])
@@ -769,8 +779,8 @@ def _get_tool_tips(tool_name: str) -> List[str]:
     return tips_map.get(tool_name, [])
 
 
-@mcp.tool()
-async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
+# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
+async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
     """
     List all available tools with their descriptions.
 
@@ -854,8 +864,8 @@ async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
         return {"total": 0, "tools": [], "categories": {}, "error": str(e)}
 
 
-@mcp.tool()
-async def hello_world() -> str:
+# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
+async def hello_world_helper() -> str:
     """
     A simple hello world tool for testing and demonstration purposes.
 
@@ -878,8 +888,8 @@ async def hello_world() -> str:
         return f"Error in hello_world: {str(e)}"
 
 
-@mcp.tool()
-async def health_check() -> Dict[str, Any]:
+# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
+async def health_check_helper() -> Dict[str, Any]:
     """
     Machine-readable health check for monitoring systems.
 

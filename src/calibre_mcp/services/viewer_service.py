@@ -63,6 +63,7 @@ class ViewerService:
     def __init__(self, db_path: Optional[str] = None):
         """Initialize the viewer service."""
         self._viewers = {}
+        self._states = {}  # Track viewer state per book
         self._db_path = db_path
 
     def get_viewer(self, book_id: int, file_path: str):
@@ -85,6 +86,12 @@ class ViewerService:
         if viewer is None:
             raise ValueError(f"No viewer available for file: {file_path}")
 
+        # Initialize state for this book
+        self._states[book_id] = ViewerState(
+            current_page=0,
+            total_pages=0,  # Will be updated when we get metadata
+        )
+
         # Store the viewer for future use
         self._viewers[book_id] = viewer
         return viewer
@@ -102,12 +109,17 @@ class ViewerService:
             ViewerPage object containing page information
         """
         viewer = self.get_viewer(book_id, file_path)
-        page = viewer.get_page(page_number)
+        page_data = viewer.render_page(page_number)
+
+        # Update state
+        if book_id in self._states:
+            self._states[book_id].current_page = page_number
+            self._states[book_id].total_pages = page_data.get("total_pages", 0)
 
         return ViewerPage(
             number=page_number,
-            width=page.get("width"),
-            height=page.get("height"),
+            width=page_data.get("width"),
+            height=page_data.get("height"),
             url=f"/api/books/{book_id}/pages/{page_number}",
             thumbnail_url=f"/api/books/{book_id}/thumbnails/{page_number}",
         )
@@ -126,14 +138,28 @@ class ViewerService:
         viewer = self.get_viewer(book_id, file_path)
         metadata = viewer.get_metadata()
 
+        # Get page count from rendered page if available
+        page_count = metadata.get("page_count", 0)
+        if page_count == 0:
+            # Try to get it from rendering the first page
+            try:
+                first_page = viewer.render_page(0)
+                page_count = first_page.get("total_pages", 0)
+            except Exception:
+                pass
+
+        # Update state with page count
+        if book_id in self._states:
+            self._states[book_id].total_pages = page_count
+
         return ViewerMetadata(
             title=metadata.get("title", ""),
-            author=metadata.get("author", ""),
+            author=metadata.get("author", "") or metadata.get("creator", ""),
             series=metadata.get("series", ""),
             volume=metadata.get("volume", ""),
             publisher=metadata.get("publisher", ""),
             year=metadata.get("year"),
-            page_count=metadata.get("page_count", 0),
+            page_count=page_count,
             format=Path(file_path).suffix[1:].lower(),
             cover_url=f"/api/books/{book_id}/cover",
         )
@@ -149,25 +175,24 @@ class ViewerService:
         Returns:
             ViewerState object containing the current state
         """
-        viewer = self.get_viewer(book_id, file_path)
-        state = viewer.get_state()
+        # Ensure viewer is loaded
+        self.get_viewer(book_id, file_path)
 
-        return ViewerState(
-            current_page=state.current_page,
-            total_pages=state.total_pages,
-            reading_direction=state.reading_direction.value,
-            page_layout=state.page_layout.value,
-            zoom_mode=state.zoom_mode.value,
-            zoom_level=state.zoom_level,
-            scroll_position=state.scroll_position,
-            bookmarks=state.bookmarks,
-            reading_progress=state.reading_progress,
-            show_controls=state.show_controls,
-            show_thumbnails=state.show_thumbnails,
-            show_page_numbers=state.show_page_numbers,
-            background_color=state.background_color,
-            custom_css=state.custom_css,
-        )
+        # Get or create state
+        if book_id not in self._states:
+            self._states[book_id] = ViewerState()
+
+        state = self._states[book_id]
+
+        # Update total_pages from metadata if needed
+        if state.total_pages == 0:
+            try:
+                metadata = self.get_metadata(book_id, file_path)
+                state.total_pages = metadata.page_count
+            except Exception:
+                pass
+
+        return state
 
     def update_state(self, book_id: int, file_path: str, **kwargs) -> ViewerState:
         """
@@ -181,26 +206,38 @@ class ViewerService:
         Returns:
             Updated ViewerState object
         """
-        viewer = self.get_viewer(book_id, file_path)
+        # Ensure viewer is loaded
+        self.get_viewer(book_id, file_path)
+
+        # Get or create state
+        if book_id not in self._states:
+            self._states[book_id] = ViewerState()
+
+        state = self._states[book_id]
 
         # Update the state with the provided values
         if "current_page" in kwargs:
-            viewer.navigate(kwargs["current_page"] - viewer.get_state().current_page)
+            state.current_page = kwargs["current_page"]
+            # Calculate reading progress
+            if state.total_pages > 0:
+                state.reading_progress = (state.current_page / state.total_pages) * 100.0
 
         if "reading_direction" in kwargs:
-            viewer.set_reading_direction(kwargs["reading_direction"])
+            state.reading_direction = kwargs["reading_direction"]
 
         if "page_layout" in kwargs:
-            viewer.set_page_layout(kwargs["page_layout"])
+            state.page_layout = kwargs["page_layout"]
 
         if "zoom_mode" in kwargs:
-            viewer.set_zoom_mode(kwargs["zoom_mode"])
+            state.zoom_mode = kwargs["zoom_mode"]
 
         if "zoom_level" in kwargs:
-            viewer.set_zoom_level(kwargs["zoom_level"])
+            state.zoom_level = kwargs["zoom_level"]
 
-        # Get the updated state
-        return self.get_state(book_id, file_path)
+        if "scroll_position" in kwargs:
+            state.scroll_position = kwargs["scroll_position"]
+
+        return state
 
     def close_viewer(self, book_id: int):
         """
@@ -212,6 +249,10 @@ class ViewerService:
         if book_id in self._viewers:
             viewer = self._viewers.pop(book_id)
             viewer.close()
+        
+        # Clean up state
+        if book_id in self._states:
+            del self._states[book_id]
 
 
 # Global instance

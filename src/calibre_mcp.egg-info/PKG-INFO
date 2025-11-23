@@ -41,23 +41,32 @@ Requires-Dist: mypy>=1.11.0; extra == "dev"
 Requires-Dist: bandit>=1.7.8; extra == "dev"
 Requires-Dist: twine>=5.1.0; extra == "dev"
 Requires-Dist: build>=1.2.0; extra == "dev"
+Requires-Dist: pre-commit>=3.6.0; extra == "dev"
 Dynamic: author
 Dynamic: home-page
 Dynamic: requires-python
 
 # CalibreMCP 📚
 
-**FastMCP 2.13+ server for comprehensive Calibre e-book library management through Claude Desktop**
+[![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.13+-blue)](https://github.com/jlowin/fastmcp)
+[![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue)](pyproject.toml)
+[![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
+[![Portmanteau Tools](https://img.shields.io/badge/Tools-18-orange)](docs/development/README.md)
+[![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
+[![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
+
+**FastMCP 2.13+ server for comprehensive Calibre e-book library management through Claude Desktop and other MCP clients**
 
 **Features:**
-- **Portmanteau Tools** - Consolidated tools reducing tool count while maintaining full functionality
+- **Portmanteau Tools** - ✅ 18 consolidated tools (55% reduction from ~40+ tools)
+- **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
 - **Verb Mapping** - Claude automatically maps user queries to correct operations
-
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.0-blue)](https://github.com/jlowin/fastmcp)
-[![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
-[![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
+- **Comment Management** - Dedicated CRUD operations for book comments
 
 *Austrian efficiency for Sandra's 1000+ book digital library. Built with realistic AI-assisted development timelines (days, not weeks).*
 
@@ -65,18 +74,177 @@ Dynamic: requires-python
 
 ### **Prerequisites**
 
-- **Python 3.11+** with pip
 - **Calibre 6.0+** installed and running
-- **Calibre Content Server** enabled on port 8080
+- **Calibre Content Server** enabled on port 8080 (optional, for remote access)
+- **Node.js** (for MCPB package installation)
+- **Python 3.11+** (for development/standard install)
 
-### **Installation**
+### **Understanding Calibre Library Access Methods**
 
-```bash
-cd d:\dev\repos\calibremcp
-pip install -e .
+CalibreMCP supports multiple ways to access your Calibre library, each with different use cases:
+
+#### **1. Direct Database Access (Local Libraries)** ✅ **Supported - Primary Method**
+
+**What it is:** Direct read/write access to Calibre's SQLite database (`metadata.db`)
+
+**How it works:**
+- CalibreMCP directly opens and queries the SQLite database file
+- No Calibre application or server needs to be running
+- Fast, efficient, and supports all operations
+
+**When to use:**
+- ✅ **Default method** - Works automatically when you provide a library path
+- ✅ Local libraries on the same machine
+- ✅ Best performance for read operations
+- ✅ Full read/write access to metadata
+
+**Configuration:**
+- Set `calibre_library_path` to your Calibre library directory
+- No additional setup required
+
+**Example:**
+```json
+{
+  "mcpServers": {
+    "calibre-mcp": {
+      "env": {
+        "CALIBRE_LIBRARY_PATH": "L:/Multimedia Files/Written Word/Calibre-Bibliothek"
+      }
+    }
+  }
+}
 ```
 
-### **Start Calibre Server**
+#### **2. Calibre Content Server API** ✅ **Supported - Remote Access**
+
+**What it is:** HTTP API provided by Calibre's Content Server (`calibre-server`)
+
+**How it works:**
+- Uses Calibre's built-in Content Server (not the web interface)
+- Communicates via HTTP/REST API
+- Requires Calibre Content Server to be running
+
+**When to use:**
+- ✅ Remote libraries (different machine/network)
+- ✅ When you want to access library over network
+- ✅ When Calibre GUI is running on another machine
+
+**Configuration:**
+- Start Calibre Content Server: `calibre-server --port=8080`
+- Set `CALIBRE_SERVER_URL` environment variable
+- **Authentication:** Optional for read-only access, **required for write/edit operations**
+
+**⚠️ Important Authentication Note:**
+- **Read operations** (search, list, get details) work **without authentication**
+- **Write/Edit operations** (update metadata, add books, delete) **require authentication**
+- If you need to modify your library remotely, you must enable authentication
+
+**Remote Access Setup:**
+
+For accessing Calibre Content Server on a remote machine, you have two options:
+
+**Option A: Port Forwarding (SSH/Network)**
+```bash
+# On the machine running Calibre Content Server
+calibre-server --port=8080
+
+# On your local machine, set up SSH port forwarding
+ssh -L 8080:localhost:8080 user@remote-machine
+
+# Then use localhost in your config
+# CALIBRE_SERVER_URL: "http://localhost:8080"
+```
+
+**Option B: Tailscale (Recommended for Secure Remote Access)**
+```bash
+# On the machine running Calibre Content Server
+calibre-server --port=8080 --listen-on=0.0.0.0
+
+# On Tailscale network, use the Tailscale IP
+# CALIBRE_SERVER_URL: "http://100.x.x.x:8080" (your Tailscale IP)
+```
+
+**⚠️ Security Note:** When exposing Calibre Content Server over a network:
+- **Read-only access** works without authentication (for browsing/searching)
+- **Write/edit operations require authentication** - enable auth if you need to modify the library
+- Use Tailscale or VPN for secure access (recommended)
+- Avoid exposing directly to the internet without proper security
+
+**Example Configuration:**
+```json
+{
+  "mcpServers": {
+    "calibre-mcp": {
+      "env": {
+        "CALIBRE_SERVER_URL": "http://localhost:8080",
+        "CALIBRE_USERNAME": "optional_username",
+        "CALIBRE_PASSWORD": "optional_password"
+      }
+    }
+  }
+}
+```
+
+**Start Calibre Content Server:**
+```bash
+# Option 1: Through Calibre GUI
+# Calibre → Connect/share → Start Content Server
+
+# Option 2: Command line (local only)
+calibre-server --port=8080
+
+# Option 3: Command line (network accessible - use with Tailscale/VPN)
+calibre-server --port=8080 --listen-on=0.0.0.0
+
+# With authentication (required for write/edit operations, optional for read-only)
+calibre-server --port=8080 --listen-on=0.0.0.0 --enable-auth --manage-users
+```
+
+#### **3. Calibre Web Server** ❌ **Not Supported**
+
+**What it is:** Calibre's web-based user interface (different from Content Server)
+
+**Status:** CalibreMCP does **not** support the Calibre Web Server interface. We use the Content Server API instead.
+
+**Why not supported:**
+- Web Server is designed for human interaction, not API access
+- Content Server provides a proper REST API for programmatic access
+- Direct database access is more efficient for local libraries
+
+#### **4. Calibre CLI Tools** ℹ️ **Available but Not Used by CalibreMCP**
+
+**What it is:** Calibre provides command-line tools for library management
+
+**Available CLI Tools:**
+- `calibredb` - Database management (add, remove, export books, manage metadata)
+- `ebook-convert` - Format conversion
+- `ebook-meta` - Metadata reading/writing
+- `calibre-server` - Content Server (used by CalibreMCP)
+
+**Status:** CalibreMCP does **not** use these CLI tools. We use:
+- Direct SQLite access for local libraries (faster, more reliable)
+- Content Server API for remote libraries (proper API, not CLI)
+
+**Why not used:**
+- Direct database access is faster than CLI tools
+- CLI tools require subprocess execution (slower, error-prone)
+- API access is more reliable and provides better error handling
+
+**Note:** You can still use Calibre CLI tools independently if needed:
+```bash
+# List books
+calibredb list
+
+# Convert format
+ebook-convert book.epub book.pdf
+
+# Get metadata
+ebook-meta book.epub
+```
+
+---
+
+### **Start Calibre Content Server** (if using remote access)
 
 ```bash
 # Option 1: Through Calibre GUI
@@ -84,9 +252,161 @@ pip install -e .
 
 # Option 2: Command line
 calibre-server --port=8080
+
+# With authentication
+calibre-server --port=8080 --enable-auth --manage-users
 ```
 
-### **Test Connection**
+---
+
+## 📦 **Installation Methods**
+
+### **1. MCPB Package (Recommended)** ⭐
+
+**One-click installation via MCPB package - no Python setup required!**
+
+> **⚠️ Important:** MCPB packages **only work with Claude Desktop**. They do not work with other MCP clients. The installation method is drag-and-drop only - there is no command-line installation option.
+
+#### **What is MCPB?**
+
+MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles everything needed into a single `.mcpb` file. It's Claude Desktop's preferred installation method.
+
+#### **Install MCPB CLI (for building packages)**
+
+The MCPB CLI is only needed if you want to **build** packages from source. End users don't need it.
+
+```bash
+# Install MCPB CLI globally
+npm install -g @anthropic-ai/mcpb
+
+# Or use npx (no installation needed)
+npx @anthropic-ai/mcpb --version
+```
+
+#### **Get the CalibreMCP Package**
+
+**Option A: Download Pre-built Package**
+- Download the latest `calibre-mcp.mcpb` from [Releases](../../releases)
+
+**Option B: Build from Source** (requires cloning repo)
+```bash
+# Install MCPB CLI
+npm install -g @anthropic-ai/mcpb
+
+# Clone repository
+git clone https://github.com/sandra/calibre-mcp.git
+cd calibre-mcp
+
+# Build the package
+.\scripts\build-mcpb-package.ps1
+
+# Package will be created at: dist\calibre-mcp.mcpb
+```
+
+#### **Install in Claude Desktop** (Drag-and-Drop Only)
+
+**⚠️ Important:** MCPB packages **must be installed via drag-and-drop** in Claude Desktop. There is no command-line installation method.
+
+1. **Open Claude Desktop Settings:**
+   - Click the **⚙️ Settings** icon in Claude Desktop
+   - Navigate to the **MCP Servers** or **Extensions** section
+
+2. **Drag and Drop the Package:**
+   - Locate the `calibre-mcp.mcpb` file on your computer
+   - **Drag the file** into the Claude Desktop settings page
+   - Drop it in the designated area (usually shows "Drop MCPB package here" or similar)
+
+3. **Wait for Installation:**
+   - Claude Desktop will automatically:
+     - Extract the package
+     - Install dependencies
+     - Register the server
+   - You'll see a success message when complete
+
+4. **Configure:**
+   - After installation, Claude Desktop will prompt you to configure:
+     - **Calibre Library Path** (required) - Path to your Calibre library directory
+     - **Calibre Server URL** (optional) - URL if using Calibre Content Server
+     - **Timeout** (optional) - Operation timeout in seconds
+
+5. **Verify Installation:**
+   - The server should appear in your MCP servers list
+   - You should see "20 tools, 20 prompts" in the Claude Desktop interface
+   - Test by asking Claude to list your libraries or books
+
+**✅ Benefits:**
+- No Python environment setup required
+- Automatic dependency management
+- One-click (drag-and-drop) installation
+- Works across all platforms (Windows, macOS, Linux)
+- All dependencies bundled in the package
+
+**❌ Limitations:**
+- **Only works with Claude Desktop** (not other MCP clients)
+- **Must use drag-and-drop** (no CLI installation)
+- Requires Claude Desktop to be running during installation
+
+---
+
+### **2. Standard MCP Configuration** (Manual Setup)
+
+**For Claude Desktop and other MCP clients**, add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "calibre-mcp": {
+      "command": "python",
+      "args": ["-m", "calibre_mcp.server"],
+      "env": {
+        "CALIBRE_SERVER_URL": "http://localhost:8080"
+      }
+    }
+  }
+}
+```
+
+**For other MCP clients**, configure according to your client's MCP server setup requirements.
+
+---
+
+### **3. Python Development Install** (Legacy/Development)
+
+**⚠️ Note: This method requires cloning the repository and setting up a Python environment.**
+
+#### **Installation Steps**
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/sandra/calibre-mcp.git
+   cd calibre-mcp
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   # Using pip
+   pip install -e .
+
+   # Or using uv (recommended)
+   uv pip install -e .
+   ```
+
+3. **Configure Claude Desktop:**
+   ```json
+   {
+     "mcpServers": {
+       "calibre-mcp": {
+         "command": "python",
+         "args": ["-m", "calibre_mcp.server"],
+         "env": {
+           "CALIBRE_SERVER_URL": "http://localhost:8080"
+         }
+       }
+     }
+   }
+   ```
+
+#### **Test Connection**
 
 ```bash
 python -c "
@@ -96,7 +416,7 @@ print('✅ Working' if asyncio.run(quick_library_test()) else '❌ Failed')
 "
 ```
 
-### **Verify Server Will Load in Claude** ⚡
+#### **Verify Server Will Load in Claude** ⚡
 
 Before committing or restarting Claude, verify the server will load:
 
@@ -136,24 +456,6 @@ python scripts/check_logs.py --errors-only
 - Auto-detects server name, log file location, Claude path
 - Checks only the **LAST** startup attempt (ignores older failures)
 - See [MCP Development Workflow](docs/MCP_DEVELOPMENT_WORKFLOW.md) for complete process
-
-### **Claude Desktop Integration**
-
-Add to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "calibre-mcp": {
-      "command": "python",
-      "args": ["-m", "calibre_mcp.server"],
-      "env": {
-        "CALIBRE_SERVER_URL": "http://localhost:8080"
-      }
-    }
-  }
-}
-```
 
 ## Features
 
@@ -398,7 +700,7 @@ calibremcp/
 - ✅ FastMCP 2.0 compliance with proper structure  
 - ✅ Comprehensive error handling and diagnostics
 - ✅ Austrian efficiency: 45-minute realistic timeline
-- ✅ Production-ready for immediate Claude Desktop use
+- ✅ Production-ready for immediate use with Claude Desktop and other MCP clients
 
 ## 📄 License
 

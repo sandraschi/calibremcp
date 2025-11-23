@@ -105,3 +105,29 @@ def sample_book_data():
             },
         ],
     }
+
+
+@pytest.fixture(scope="function")
+def portmanteau_test_data():
+    """Test data for portmanteau tool testing."""
+    return {
+        "book": {
+            "id": "123",
+            "title": "Test Book",
+            "authors": [{"name": "Test Author"}],
+            "formats": ["EPUB"]
+        },
+        "library": {
+            "name": "Test Library",
+            "path": "/path/to/library",
+            "book_count": 100,
+            "is_active": True
+        },
+        "query_result": {
+            "results": [
+                {"id": 1, "title": "Book 1"},
+                {"id": 2, "title": "Book 2"}
+            ],
+            "total": 2
+        }
+    }

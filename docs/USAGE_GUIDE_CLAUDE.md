@@ -8,12 +8,39 @@
 
 CalibreMCP uses **portmanteau tools** - consolidated tools that handle multiple related operations through an `operation` parameter. This reduces tool count while maintaining full functionality.
 
-**Key Portmanteau Tools:**
-- **`query_books`** - ALL book querying (search, list, find, get)
-- **`manage_books`** - Book CRUD operations (add, get, update, delete)
-- **`manage_libraries`** - Library management (list, switch, stats, search)
-- **`manage_smart_collections`** - Collection operations
-- **`manage_users`** - User management
+**All Portmanteau Tools (18 total):**
+
+### Core Library Management
+- **`manage_libraries`** - Library operations (list, switch, stats, search)
+- **`manage_books`** - Book CRUD operations (add, get, details, update, delete)
+- **`query_books`** - ALL book querying (search, list, recent, find, get, by_author, by_series)
+
+### Content Management
+- **`manage_tags`** - Tag management (list, get, create, update, delete, find_duplicates, merge, etc.)
+- **`manage_authors`** - Author management (list, get, get_books, stats, by_letter)
+- **`manage_comments`** - Comment CRUD operations (create, read, update, delete, append, replace)
+- **`manage_metadata`** - Metadata operations (update, organize_tags, fix_issues)
+- **`manage_files`** - File operations (convert, download, bulk)
+
+### System & Analysis
+- **`manage_system`** - System tools (help, status, tool_help, list_tools, hello_world, health_check)
+- **`manage_analysis`** - Analysis operations (tag_statistics, duplicates, series, health, unread_priority, reading_stats)
+- **`analyze_library`** - Library analysis (6 operations)
+
+### Advanced Features
+- **`manage_bulk_operations`** - Bulk operations (update_metadata, export, delete, convert)
+- **`manage_content_sync`** - Content synchronization (register_device, update_device, get_device, start, status, cancel)
+- **`manage_smart_collections`** - Smart collections (create, get, update, delete, list, query, plus specialized creates)
+
+### User Management
+- **`manage_users`** - User management (create_user, update_user, delete_user, list_users, get_user, login, verify_token)
+
+### Import/Export
+- **`export_books`** - Book export (csv, json, html, pandoc)
+
+### Viewer & Specialized
+- **`manage_viewer`** - Book viewer (open, get_page, get_metadata, get_state, update_state, close, open_file)
+- **`manage_specialized`** - Specialized tools (japanese_organizer, it_curator, reading_recommendations)
 
 ---
 

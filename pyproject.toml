@@ -48,7 +48,8 @@ dev = [
     "mypy>=1.11.0",
     "bandit>=1.7.8",
     "twine>=5.1.0",
-    "build>=1.2.0"
+    "build>=1.2.0",
+    "pre-commit>=3.6.0"  # Git hooks for code quality
 ]
 
 [project.urls]
@@ -66,6 +67,11 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+# Per-file ignores for intentional import order (MCP stdio protocol requires warning suppression before imports)
+[tool.ruff.lint.per-file-ignores]
+"src/calibre_mcp/__main__.py" = ["E402"]  # Imports after warning suppression for MCP stdio protocol
+"src/calibre_mcp/server.py" = ["E402"]  # Imports after warning suppression for MCP stdio protocol
 
 [tool.mypy]
 python_version = "3.11"

@@ -69,9 +69,104 @@
   ],
   "prompts": [
     {
-      "name": "what_should_i_read_next",
-      "description": "What should I read next? Show me personalized reading recommendations based on my library, series progress, and reading habits. Use Austrian efficiency to eliminate decision paralysis.",
-      "text": "What should I read next? Analyze my library collection, reading history, and current series progress to provide personalized reading recommendations. Use Austrian efficiency to eliminate decision paralysis - give me specific book suggestions with priority rankings and tell me exactly which book I should read right now. Include any incomplete series I should continue and books that match my interests."
+      "name": "reading_recommendations",
+      "description": "What should I read next? Get personalized reading recommendations based on library, series progress, and reading habits. Austrian efficiency to eliminate decision paralysis.",
+      "text": "What should I read next? Analyze my Calibre library collection, reading history, and current series progress to provide personalized reading recommendations. Use Austrian efficiency to eliminate decision paralysis - give me specific book suggestions with priority rankings and tell me exactly which book I should read right now. Include any incomplete series I should continue and books that match my interests."
+    },
+    {
+      "name": "library_organization",
+      "description": "Analyze library health and organization. Check for duplicates, inconsistent metadata, missing tags, and provide optimization recommendations.",
+      "text": "Analyze my Calibre library health and organization. Check for duplicate books, inconsistent metadata, missing tags, and organizational issues. Provide specific recommendations for improving library structure and suggest actions to clean up and optimize my collection."
+    },
+    {
+      "name": "book_discovery",
+      "description": "Discover unread books in your library. Find similar books, hidden gems, or books in genres you enjoy based on reading history.",
+      "text": "Help me discover books in my library that I haven't read yet. Find books similar to [book title or author], or show me books in genres I enjoy. Use my reading history and preferences to suggest hidden gems in my collection that I might have overlooked."
+    },
+    {
+      "name": "series_management",
+      "description": "Manage book series. Show incomplete series, missing volumes, reading order, and prioritize which series to complete.",
+      "text": "Show me all incomplete series in my library. Identify which series I should continue reading, which ones are missing volumes, and provide a prioritized list of series to complete. Include reading order recommendations and highlight any series that are nearly complete."
+    },
+    {
+      "name": "metadata_cleanup",
+      "description": "Review and fix library metadata issues. Find missing information, inconsistent data, duplicate tags, and suggest bulk fixes.",
+      "text": "Review my library metadata for issues. Find books with missing or incorrect information, inconsistent author names, duplicate tags, or incomplete series data. Provide a prioritized list of metadata fixes and suggest bulk operations to improve data quality."
+    },
+    {
+      "name": "tag_organization",
+      "description": "Organize and consolidate tags. Find duplicates, unused tags, and suggest a clean tag hierarchy for better organization.",
+      "text": "Analyze my tag usage and organization. Find duplicate or similar tags that should be merged, identify unused tags, and suggest a clean tag hierarchy. Help me consolidate tags for better organization and easier searching."
+    },
+    {
+      "name": "duplicate_detection",
+      "description": "Find duplicate books in your library. Check for similar titles, same authors, or matching ISBNs with confidence scores.",
+      "text": "Find duplicate books in my library. Check for books with similar titles, same authors, or matching ISBNs. Provide a list of potential duplicates with confidence scores and suggest which copies to keep or merge."
+    },
+    {
+      "name": "reading_statistics",
+      "description": "Show comprehensive reading statistics. Analyze reading patterns, favorite genres, authors, ratings, and reading trends.",
+      "text": "Show me comprehensive reading statistics from my library. Analyze my reading patterns, favorite genres, most-read authors, average ratings, and reading trends. Provide insights into my reading habits and suggest areas to explore."
+    },
+    {
+      "name": "japanese_books",
+      "description": "Organize Japanese books (manga, light novels, language learning). Categorize by series, identify reading order, find missing volumes.",
+      "text": "Organize my Japanese books (manga, light novels, language learning materials). Categorize by series, identify reading order, find missing volumes, and provide recommendations for completing series. Use proper Japanese reading order conventions."
+    },
+    {
+      "name": "it_books",
+      "description": "Curate IT and programming books. Organize by language, identify outdated books, suggest learning paths, and recommend next reads.",
+      "text": "Analyze my IT and programming books. Organize by programming language, identify outdated books, suggest learning paths, and recommend which technical books to read next based on my current collection and skill development goals."
+    },
+    {
+      "name": "format_conversion",
+      "description": "Convert books to different formats. Identify books needing conversion, suggest optimal formats for devices, manage formats efficiently.",
+      "text": "Help me convert books to different formats. Identify books that need format conversion, suggest optimal formats for different devices, and help me manage my book formats efficiently. Check for books missing preferred formats."
+    },
+    {
+      "name": "library_search",
+      "description": "Advanced library search with filters. Find books by date ranges, file sizes, formats, ratings, publishers, or custom combinations.",
+      "text": "Help me search my library with advanced filters. Find books by specific criteria: publication date ranges, file sizes, formats, ratings, publishers, or custom combinations. Use boolean search operators and filters to find exactly what I'm looking for."
+    },
+    {
+      "name": "unread_priority",
+      "description": "Create prioritized list of unread books. Use Austrian efficiency to rank by rating, series status, purchase date, and tags.",
+      "text": "Create a prioritized list of unread books in my library. Use Austrian efficiency principles to rank books by rating, series status, purchase date, and tags. Eliminate decision paralysis by giving me a clear, prioritized reading queue."
+    },
+    {
+      "name": "library_health",
+      "description": "Perform comprehensive library health check. Check for missing files, corrupted metadata, orphaned records, database integrity issues.",
+      "text": "Perform a comprehensive health check of my Calibre library. Check for missing files, corrupted metadata, orphaned records, database integrity issues, and other problems. Provide a health score and prioritized list of issues to fix."
+    },
+    {
+      "name": "author_analysis",
+      "description": "Analyze authors in your library. Show most-read authors, incomplete series, new authors to explore, and extensive collections.",
+      "text": "Analyze authors in my library. Show me my most-read authors, authors with incomplete series, authors I haven't read yet, and suggest new authors to explore based on my reading preferences. Identify authors with extensive collections I might want to complete."
+    },
+    {
+      "name": "bulk_operations",
+      "description": "Perform bulk operations on your library. Update metadata, export books, convert formats, or apply tags to groups of books.",
+      "text": "Help me perform bulk operations on my library. Update metadata for multiple books, export books in batches, convert formats in bulk, or apply tags to groups of books. Identify opportunities for efficient bulk management."
+    },
+    {
+      "name": "reading_goals",
+      "description": "Set and track reading goals. Analyze reading pace, suggest realistic goals, track progress toward completing series or genres.",
+      "text": "Help me set and track reading goals. Analyze my reading pace, suggest realistic goals, track progress toward completing series or reading specific genres, and provide motivation and recommendations to achieve my reading objectives."
+    },
+    {
+      "name": "book_comparison",
+      "description": "Compare books in your library. Find similar books, compare editions, identify related series, or choose between books on same topic.",
+      "text": "Compare books in my library. Find similar books, compare editions, identify related series, or help me choose between multiple books on the same topic. Use metadata, tags, and content analysis to provide intelligent comparisons."
+    },
+    {
+      "name": "library_export",
+      "description": "Export books from your library. Export specific books, entire series, books by author or tag, or create backups with optimal formats.",
+      "text": "Help me export books from my library. Export specific books, entire series, books by author or tag, or create backups. Suggest optimal export formats and help me organize exported files efficiently."
+    },
+    {
+      "name": "smart_collections",
+      "description": "Create smart collections for your library. Set up dynamic collections based on tags, ratings, dates, or reading status that update automatically.",
+      "text": "Create smart collections for my library. Set up dynamic collections based on criteria like tags, ratings, publication dates, or reading status. Help me organize books into logical groups that update automatically as my library changes."
     }
   ],
   "compatibility": {

@@ -532,7 +532,64 @@ Following this standard provides:
 
 ---
 
+## Portmanteau Tool Specific Requirements
+
+Portmanteau tools (tools that consolidate multiple operations via an `operation` parameter) have additional required sections:
+
+### Required Sections for Portmanteau Tools
+
+1. **PORTMANTEAU PATTERN RATIONALE** (REQUIRED)
+   - Explains why operations are consolidated
+   - Lists benefits (prevents tool explosion, improves discoverability, etc.)
+   - References FastMCP 2.13+ best practices
+
+2. **SUPPORTED OPERATIONS** (REQUIRED)
+   - List of all operations supported by the tool
+   - Brief one-line description per operation
+
+3. **OPERATIONS DETAIL** (REQUIRED)
+   - Detailed description of each operation
+   - Parameters specific to each operation
+   - Return structures for each operation
+
+### Portmanteau Template
+
+See [PHASE_3_DOCSTRING_PLAN.md](development/PHASE_3_DOCSTRING_PLAN.md) for the complete portmanteau docstring template.
+
+### Example Portmanteau Structure
+
+```python
+"""
+Brief description of the portmanteau tool.
+
+PORTMANTEAU PATTERN RATIONALE:
+Instead of creating N separate tools, this tool consolidates related
+operations into a single interface. This design:
+- Prevents tool explosion (N tools → 1 tool)
+- Improves discoverability
+- Reduces cognitive load
+- Enables consistent interface
+- Follows FastMCP 2.13+ best practices
+
+SUPPORTED OPERATIONS:
+- operation1: Description
+- operation2: Description
+
+OPERATIONS DETAIL:
+
+operation1: Detailed description
+- What it does
+- Parameters: param1 (required), param2 (optional)
+- Returns: Structure description
+
+[Additional sections follow standard format...]
+"""
+```
+
+---
+
 *Tool Docstring Standard v1.0.0*  
 *Part of MCPB Packaging Documentation*  
-*Location: `mcpb/docs/TOOL_DOCSTRING_STANDARD.md`*
+*Location: `docs/TOOL_DOCSTRING_STANDARD.md`*  
+*Updated: 2025-11-22 - Added portmanteau tool requirements*
 

@@ -10,6 +10,10 @@ try:
 except ImportError:
     from ..compat import MCPTool
 
+from ...logging_config import get_logger
+
+logger = get_logger("calibremcp.tools.smart_collections")
+
 
 # Models
 class CollectionRule(BaseModel):
@@ -260,7 +264,19 @@ class SmartCollectionsTool(MCPTool):
                     return field_value not in rule_value
                 return str(field_value) != str(rule_value)
             return False
-        except Exception:
+        except Exception as e:
+            # Log the error and return False (rule doesn't match)
+            logger.warning(
+                "Error evaluating collection rule",
+                extra={
+                    "operator": operator,
+                    "field_value": str(field_value)[:100] if field_value else None,
+                    "rule_value": str(rule_value)[:100] if rule_value else None,
+                    "error_type": type(e).__name__,
+                    "error": str(e),
+                },
+                exc_info=True,
+            )
             return False
 
     # Special Collection Types

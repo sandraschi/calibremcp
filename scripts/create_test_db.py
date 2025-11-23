@@ -176,95 +176,94 @@ def create_test_database():
     cursor.executemany("INSERT INTO series (id, name, sort) VALUES (?, ?, ?)", series)
 
     # Insert sample books
+    # Format: (id, title, sort, path, flags, uuid, has_cover, series_index, author_sort, isbn, lccn)
     books = [
         (
             1,
             "A Study in Scarlet",
             "Study in Scarlet, A",
-            "Sherlock Holmes (1)",
-            1.0,
-            "Doyle, Arthur Conan",
-            None,
-            None,
             "Arthur Conan Doyle/A Study in Scarlet (1)",
             1,
             "test-uuid-1",
             0,
+            1.0,
+            "Doyle, Arthur Conan",
+            None,
+            None,
         ),
         (
             2,
             "The Sign of the Four",
             "Sign of the Four, The",
-            "Sherlock Holmes (2)",
-            2.0,
-            "Doyle, Arthur Conan",
-            None,
-            None,
             "Arthur Conan Doyle/The Sign of the Four (2)",
             1,
             "test-uuid-2",
             0,
+            2.0,
+            "Doyle, Arthur Conan",
+            None,
+            None,
         ),
         (
             3,
             "Pride and Prejudice",
             "Pride and Prejudice",
-            None,
-            1.0,
-            "Austen, Jane",
-            None,
-            None,
             "Jane Austen/Pride and Prejudice (3)",
             1,
             "test-uuid-3",
             0,
+            1.0,
+            "Austen, Jane",
+            None,
+            None,
         ),
         (
             4,
             "The Adventures of Tom Sawyer",
             "Adventures of Tom Sawyer, The",
-            None,
-            1.0,
-            "Twain, Mark",
-            None,
-            None,
             "Mark Twain/The Adventures of Tom Sawyer (4)",
             1,
             "test-uuid-4",
             0,
+            1.0,
+            "Twain, Mark",
+            None,
+            None,
         ),
     ]
     cursor.executemany(
         """
-        INSERT INTO books (id, title, sort, author_sort, series_index, isbn, lccn, path, flags, uuid, has_cover)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO books (id, title, sort, path, flags, uuid, has_cover, pubdate, series_index, author_sort, isbn, lccn)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)
     """,
         books,
     )
 
     # Link books to authors
+    # Format: (id, book, author)
     book_authors = [
         (1, 1, 1),  # A Study in Scarlet -> Arthur Conan Doyle
-        (2, 1, 1),  # The Sign of the Four -> Arthur Conan Doyle
-        (3, 2, 2),  # Pride and Prejudice -> Jane Austen
-        (4, 3, 3),  # Tom Sawyer -> Mark Twain
+        (2, 2, 1),  # The Sign of the Four -> Arthur Conan Doyle
+        (3, 3, 2),  # Pride and Prejudice -> Jane Austen
+        (4, 4, 3),  # Tom Sawyer -> Mark Twain
     ]
     cursor.executemany(
         "INSERT INTO books_authors_link (id, book, author) VALUES (?, ?, ?)", book_authors
     )
 
     # Link books to tags
+    # Format: (id, book, tag)
     book_tags = [
         (1, 1, 1),  # A Study in Scarlet -> mystery
-        (1, 1, 2),  # A Study in Scarlet -> detective
-        (1, 1, 3),  # A Study in Scarlet -> classic
-        (2, 2, 1),  # The Sign of the Four -> mystery
-        (2, 2, 2),  # The Sign of the Four -> detective
-        (2, 2, 3),  # The Sign of the Four -> classic
-        (3, 3, 3),  # Pride and Prejudice -> classic
-        (3, 3, 4),  # Pride and Prejudice -> romance
-        (4, 4, 3),  # Tom Sawyer -> classic
-        (4, 4, 5),  # Tom Sawyer -> adventure
+        (2, 1, 2),  # A Study in Scarlet -> detective
+        (3, 1, 3),  # A Study in Scarlet -> classic
+        (4, 2, 1),  # The Sign of the Four -> mystery
+        (5, 2, 2),  # The Sign of the Four -> detective
+        (6, 2, 3),  # The Sign of the Four -> classic
+        (7, 3, 3),  # Pride and Prejudice -> classic
+        (8, 3, 4),  # Pride and Prejudice -> romance
+        (9, 4, 3),  # Tom Sawyer -> classic
+        (10, 4, 5),  # Tom Sawyer -> adventure
     ]
     cursor.executemany("INSERT INTO books_tags_link (id, book, tag) VALUES (?, ?, ?)", book_tags)
 
@@ -306,16 +305,16 @@ def create_test_database():
     conn.commit()
     conn.close()
 
-    print(f"\n✓ Test database created: {TEST_DB_PATH}")
+    print(f"\n[OK] Test database created: {TEST_DB_PATH}")
     print("  - 4 books")
     print("  - 3 authors")
     print("  - 5 tags")
     print("  - 1 series")
     print(f"  - Size: {TEST_DB_PATH.stat().st_size / 1024:.1f} KB")
 
-    print(f"\n✓ Test library structure created: {TEST_LIBRARY_DIR}")
+    print(f"\n[OK] Test library structure created: {TEST_LIBRARY_DIR}")
     print(
-        "\n⚠️  Note: Run 'python scripts/create_test_files.py' to create actual book files (EPUB, PDF, CBZ)"
+        "\n[NOTE] Run 'python scripts/create_test_files.py' to create actual book files (EPUB, PDF, CBZ)"
     )
     print("   The database is ready, but book files need to be created separately.")
 

@@ -39,6 +39,11 @@ jobs:
     - name: Run ruff format check
       run: |
         uv run ruff format --check .
+    
+    # Note: Pre-commit hooks run locally, but we can verify config is valid
+    - name: Validate pre-commit config
+      run: |
+        uv run pre-commit validate-config || echo "Pre-commit not installed, skipping validation"
 
   # Type Checking
   typecheck:

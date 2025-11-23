@@ -229,8 +229,17 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
             try:
                 close_database()
                 logger.debug("Closed existing database connection")
-            except Exception:
-                pass  # Ignore errors if database wasn't initialized
+            except Exception as e:
+                # Log the error but continue - database may not be initialized yet
+                logger.warning(
+                    "Could not close previous database connection, continuing with new library",
+                    extra={
+                        "error_type": type(e).__name__,
+                        "error": str(e),
+                        "library_name": library_name,
+                    },
+                    exc_info=True,
+                )
 
             # Re-initialize database with new library
             init_database(str(metadata_db.absolute()), echo=False)
@@ -429,9 +438,36 @@ async def cross_library_search_helper(
         # Discover available libraries
         discovered_libs = discover_calibre_libraries()
 
+        # Parse intelligent query to extract content_type and other hints
+        from ..shared.query_parsing import parse_intelligent_query
+        parsed = parse_intelligent_query(query)
+        
         # Determine which libraries to search
         if libraries is None:
-            libraries_to_search = list(discovered_libs.keys())
+            # If content_type hint is present (manga, comic, paper), filter libraries intelligently
+            if parsed.get("content_type"):
+                content_type = parsed["content_type"].lower()
+                # Match libraries by name containing the content type
+                # e.g., "manga" -> match libraries with "manga" in name
+                matching_libs = [
+                    lib_name for lib_name in discovered_libs.keys()
+                    if content_type in lib_name.lower()
+                ]
+                if matching_libs:
+                    libraries_to_search = matching_libs
+                    logger.info(
+                        f"Content type '{content_type}' detected, filtering to matching libraries",
+                        extra={"content_type": content_type, "libraries": matching_libs}
+                    )
+                else:
+                    # No matching libraries found, search all
+                    libraries_to_search = list(discovered_libs.keys())
+                    logger.warning(
+                        f"Content type '{content_type}' detected but no matching libraries found, searching all",
+                        extra={"content_type": content_type}
+                    )
+            else:
+                libraries_to_search = list(discovered_libs.keys())
         else:
             # Validate library names
             invalid = [lib for lib in libraries if lib not in discovered_libs]
@@ -448,19 +484,26 @@ async def cross_library_search_helper(
         all_results: List[Dict[str, Any]] = []
         config = CalibreConfig()
         start_time = time.time()
-
+        
         for lib_name in libraries_to_search:
             try:
                 # Temporarily switch to this library
                 original_path = config.local_library_path
                 config.set_active_library(lib_name)
 
-                # Perform search using book service
-                search_results = book_service.search(
-                    query=query,
-                    filters={},
+                # Perform search using book service with parsed parameters
+                search_results = book_service.list(
+                    skip=0,
                     limit=1000,  # Get all results for cross-library search
-                    offset=0,
+                    search=parsed["text"] if parsed["text"] else None,
+                    author_name=parsed["author"],
+                    tag_name=parsed["tag"],
+                    series_name=parsed["series"],
+                    pubdate_start=f"{parsed['pubdate']}-01-01" if parsed["pubdate"] else None,
+                    pubdate_end=f"{parsed['pubdate']}-12-31" if parsed["pubdate"] else None,
+                    rating=parsed["rating"],
+                    added_after=parsed.get("added_after"),
+                    added_before=parsed.get("added_before"),
                 )
 
                 # Add library name to each result
