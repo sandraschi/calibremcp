@@ -20,6 +20,8 @@
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
 - **Verb Mapping** - Claude automatically maps user queries to correct operations
 - **Comment Management** - Dedicated CRUD operations for book comments
+- **Random Book Opening** - Open random books by author/tag/series with `manage_viewer(operation="open_random")`
+- **Metadata Display** - Show comprehensive book metadata with formatted HTML popup via `manage_metadata(operation="show")`
 
 *Austrian efficiency for Sandra's 1000+ book digital library. Built with realistic AI-assisted development timelines (days, not weeks).*
 

@@ -24,9 +24,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Handles comment format normalization (string/list formats from Calibre API)
   - Comprehensive error handling and structured logging
   - Full unit test coverage (13 test cases)
+- **Random Book Opening** - `manage_viewer(operation="open_random")` for serendipitous reading
+  - Search for books by author/tag/series filters
+  - Randomly select one matching book
+  - Automatically open with system's default application
+  - Supports format preference (EPUB, PDF, etc.)
+  - Example: "open a dickson carr book now" → opens random Carr book
+- **Metadata Display Tool** - `manage_metadata(operation="show")` for comprehensive book metadata viewing
+  - Search for books by title or author
+  - Retrieve and format comprehensive metadata
+  - Display in formatted HTML popup (optional)
+  - Returns formatted text representation
+  - Example: "cal meta gormenghast" → shows metadata popup
 - **Portmanteau Tool Refactoring Complete** - 18 consolidated tools (55% reduction from ~40+ tools)
   - `manage_comments` - Comment CRUD operations (create, read, update, delete, append, replace)
-  - `manage_viewer` - Book viewer operations (open, get_page, get_metadata, get_state, update_state, close, open_file)
+  - `manage_viewer` - Book viewer operations (open, get_page, get_metadata, get_state, update_state, close, open_file, open_random)
+  - `manage_metadata` - Metadata operations (update, organize_tags, fix_issues, show)
   - `manage_specialized` - Specialized tools (japanese_organizer, it_curator, reading_recommendations)
 - **Phase 3: Docstring Standardization** - 100% compliance with TOOL_DOCSTRING_STANDARD.md
   - All 18 portmanteau tools have PORTMANTEAU PATTERN RATIONALE sections

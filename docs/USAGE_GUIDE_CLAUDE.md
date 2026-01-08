@@ -19,7 +19,7 @@ CalibreMCP uses **portmanteau tools** - consolidated tools that handle multiple 
 - **`manage_tags`** - Tag management (list, get, create, update, delete, find_duplicates, merge, etc.)
 - **`manage_authors`** - Author management (list, get, get_books, stats, by_letter)
 - **`manage_comments`** - Comment CRUD operations (create, read, update, delete, append, replace)
-- **`manage_metadata`** - Metadata operations (update, organize_tags, fix_issues)
+- **`manage_metadata`** - Metadata operations (update, organize_tags, fix_issues, show)
 - **`manage_files`** - File operations (convert, download, bulk)
 
 ### System & Analysis
@@ -39,7 +39,7 @@ CalibreMCP uses **portmanteau tools** - consolidated tools that handle multiple 
 - **`export_books`** - Book export (csv, json, html, pandoc)
 
 ### Viewer & Specialized
-- **`manage_viewer`** - Book viewer (open, get_page, get_metadata, get_state, update_state, close, open_file)
+- **`manage_viewer`** - Book viewer (open, get_page, get_metadata, get_state, update_state, close, open_file, open_random)
 - **`manage_specialized`** - Specialized tools (japanese_organizer, it_curator, reading_recommendations)
 
 ---
@@ -216,6 +216,79 @@ else:
     print(f"Found {result.get('total', 0)} books:")
     for book in result.get("items", [])[:10]:
         print(f"  - {book['title']} by {', '.join(book.get('authors', []))}")
+```
+
+### **Workflow 4: Opening a Random Book**
+
+#### User says: "open a dickson carr book now"
+
+```python
+# Open a random book by John Dickson Carr
+result = await manage_viewer(
+    operation="open_random",
+    author="Dickson Carr",
+    format_preference="EPUB"
+)
+
+# Result includes:
+# - result["success"]: Whether operation succeeded
+# - result["book_id"]: ID of the randomly selected book
+# - result["title"]: Book title
+# - result["author"]: Author name(s)
+# - result["file_path"]: Path to the opened file
+# - result["format"]: Format of the opened file
+# - result["message"]: Status message
+
+if result["success"]:
+    print(f"Opened: {result['title']} by {result['author']}")
+    print(f"File: {result['file_path']}")
+```
+
+**Other examples:**
+```python
+# Open random mystery book
+await manage_viewer(operation="open_random", tag="mystery")
+
+# Open random book in a series
+await manage_viewer(operation="open_random", series="Sherlock Holmes")
+
+# Open random book with PDF preference
+await manage_viewer(operation="open_random", author="Carr", format_preference="PDF")
+```
+
+### **Workflow 5: Viewing Book Metadata**
+
+#### User says: "cal meta gormenghast" or "show metadata for gormenghast"
+
+```python
+# Show comprehensive metadata for a book
+result = await manage_metadata(
+    operation="show",
+    query="Gormenghast",
+    open_browser=True  # Opens formatted HTML popup (default: True)
+)
+
+# Result includes:
+# - result["success"]: Whether operation succeeded
+# - result["book_id"]: Book ID
+# - result["title"]: Book title
+# - result["author"]: Author name(s)
+# - result["metadata"]: Complete metadata dictionary
+# - result["html_path"]: Path to HTML file (if open_browser=True)
+# - result["formatted_text"]: Formatted text representation
+
+if result["success"]:
+    print(result["formatted_text"])
+    # HTML popup is automatically opened in browser
+```
+
+**Other examples:**
+```python
+# Show metadata by author
+await manage_metadata(operation="show", author="Peake")
+
+# Show metadata without browser popup
+await manage_metadata(operation="show", query="Gormenghast", open_browser=False)
 ```
 
 ---

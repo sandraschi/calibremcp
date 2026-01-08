@@ -356,6 +356,133 @@ async def test_calibre_connection() -> ConnectionTestResponse
 
 ---
 
+### **Tool 6: `manage_viewer`** ⭐ **BOOK VIEWER OPERATIONS**
+
+**Portmanteau tool** for book viewer and file opening operations.
+
+#### **Operations**
+
+1. **`operation="open"`**: Open a book in the viewer (requires `book_id`, `file_path`)
+2. **`operation="get_page"`**: Get a specific page from a book (requires `book_id`, `file_path`, `page_number`)
+3. **`operation="get_metadata"`**: Get comprehensive metadata for a book (requires `book_id`, `file_path`)
+4. **`operation="get_state"`**: Get current viewer state (requires `book_id`, `file_path`)
+5. **`operation="update_state"`**: Update viewer state (requires `book_id`, `file_path`)
+6. **`operation="close"`**: Close a viewer session (requires `book_id`)
+7. **`operation="open_file"`**: Open book file with system's default application (requires `book_id`, `file_path`)
+8. **`operation="open_random"`** ⭐ **NEW**: Search for books matching criteria, randomly select one, and open it
+
+#### **open_random Operation**
+
+Searches for books matching author/tag/series filters, randomly selects one, and opens it with the system's default application.
+
+**Parameters:**
+- `author` (optional): Author name filter (e.g., "John Dickson Carr")
+- `tag` (optional): Tag name filter (e.g., "mystery")
+- `series` (optional): Series name filter (e.g., "Sherlock Holmes")
+- `format_preference` (default: "EPUB"): Preferred file format
+
+**Note:** At least one search filter (author, tag, or series) is required.
+
+**Returns:**
+```python
+{
+    "success": bool,
+    "book_id": int,
+    "title": str,
+    "author": str,
+    "file_path": str,
+    "format": str,
+    "message": str
+}
+```
+
+**Usage Examples:**
+
+```python
+# Open a random book by author
+result = await manage_viewer(
+    operation="open_random",
+    author="Dickson Carr"
+)
+
+# Open random mystery book
+result = await manage_viewer(
+    operation="open_random",
+    tag="mystery"
+)
+
+# Open random book in series with PDF preference
+result = await manage_viewer(
+    operation="open_random",
+    series="Sherlock Holmes",
+    format_preference="PDF"
+)
+```
+
+---
+
+### **Tool 7: `manage_metadata`** ⭐ **METADATA OPERATIONS**
+
+**Portmanteau tool** for metadata management and display.
+
+#### **Operations**
+
+1. **`operation="update"`**: Update metadata for single or multiple books (requires `updates`)
+2. **`operation="organize_tags"`**: AI-powered tag organization and cleanup suggestions
+3. **`operation="fix_issues"`**: Automatically fix common metadata problems
+4. **`operation="show"`** ⭐ **NEW**: Display comprehensive book metadata in formatted popup/modal
+
+#### **show Operation**
+
+Searches for a book by title or author, retrieves comprehensive metadata, and displays it in a formatted HTML popup (optional).
+
+**Parameters:**
+- `query` (required): Search query (title or partial title) - e.g., "Gormenghast"
+- `author` (optional): Author name filter - e.g., "Mervyn Peake"
+- `open_browser` (default: True): Whether to open metadata in browser popup
+
+**Returns:**
+```python
+{
+    "success": bool,
+    "book_id": int,
+    "title": str,
+    "author": str,
+    "metadata": dict,  # Complete metadata dictionary
+    "html_path": Optional[str],  # Path to HTML file if open_browser=True
+    "formatted_text": str  # Formatted text representation
+}
+```
+
+**Usage Examples:**
+
+```python
+# Show metadata for a book (opens HTML popup)
+result = await manage_metadata(
+    operation="show",
+    query="Gormenghast"
+)
+
+# Show metadata by author
+result = await manage_metadata(
+    operation="show",
+    author="Peake"
+)
+
+# Show metadata without browser popup
+result = await manage_metadata(
+    operation="show",
+    query="Gormenghast",
+    open_browser=False
+)
+
+# Display formatted text
+if result["success"]:
+    print(result["formatted_text"])
+```
+
+---
+
 ### **Additional Portmanteau Tools**
 
 - **`manage_smart_collections`**: Create, update, delete, query smart collections
