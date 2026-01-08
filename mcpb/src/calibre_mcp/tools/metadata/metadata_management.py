@@ -1,15 +1,18 @@
 """
-Metadata management tools for CalibreMCP.
+DEPRECATED: Individual metadata tools are deprecated in favor of the manage_metadata
+portmanteau tool (see tools/metadata/manage_metadata.py). These functions are kept
+as helpers but are no longer registered with FastMCP 2.13+.
 
-These tools handle book metadata updates, tag organization,
-and automatic metadata fixes for library maintenance.
+Use manage_metadata(operation="...") instead:
+- update_book_metadata() → manage_metadata(operation="update", updates=...)
+- auto_organize_tags() → manage_metadata(operation="organize_tags")
+- fix_metadata_issues() → manage_metadata(operation="fix_issues")
 """
 
 from typing import List, Dict, Any
 from datetime import datetime
 
 # Import the MCP server instance
-from ...server import mcp
 
 # Import response models
 from ...server import MetadataUpdateRequest, MetadataUpdateResponse, TagStatsResponse
@@ -21,8 +24,8 @@ from ...logging_config import get_logger
 logger = get_logger("calibremcp.tools.metadata_management")
 
 
-@mcp.tool()
-async def update_book_metadata(updates: List[MetadataUpdateRequest]) -> MetadataUpdateResponse:
+# NOTE: @mcp.tool() decorator removed - use manage_metadata portmanteau tool instead
+async def update_book_metadata_helper(updates: List[MetadataUpdateRequest]) -> MetadataUpdateResponse:
     """
     Update metadata for single or multiple books.
 
@@ -128,8 +131,8 @@ async def update_book_metadata(updates: List[MetadataUpdateRequest]) -> Metadata
     )
 
 
-@mcp.tool()
-async def auto_organize_tags() -> TagStatsResponse:
+# NOTE: @mcp.tool() decorator removed - use manage_metadata portmanteau tool instead
+async def auto_organize_tags_helper() -> TagStatsResponse:
     """
     AI-powered tag organization and cleanup suggestions.
 
@@ -143,8 +146,8 @@ async def auto_organize_tags() -> TagStatsResponse:
     pass
 
 
-@mcp.tool()
-async def fix_metadata_issues() -> MetadataUpdateResponse:
+# NOTE: @mcp.tool() decorator removed - use manage_metadata portmanteau tool instead
+async def fix_metadata_issues_helper() -> MetadataUpdateResponse:
     """
     Automatically fix common metadata problems.
 

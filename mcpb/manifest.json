@@ -1,109 +1,27 @@
 {
   "manifest_version": "0.2",
-  "name": "calibremcp",
-  "version": "1.0.0",
-  "description": "MCP server for Calibre ebook library management",
-  "long_description": "CalibreMCP is a comprehensive Model Context Protocol (MCP) server that seamlessly integrates Claude AI with your Calibre ebook library, transforming how you interact with your digital book collection. This powerful extension enables Claude to directly access, search, and manage your ebooks, providing intelligent assistance for reading, research, and library organization.",
+  "name": "calibre-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Calibre eBook library management",
   "author": {
-    "name": "sandraschi",
+    "name": "Sandra Schi",
     "email": "sandra@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandraschi/calibre-mcp"
   },
   "server": {
     "type": "python",
-    "entry_point": "server/server.py",
+    "entry_point": "src/calibre_mcp/server.py",
     "mcp_config": {
       "command": "python",
-      "args": ["${__dirname}/server/server.py"],
+      "args": ["src/calibre_mcp/server.py"],
       "env": {
-        "PYTHONPATH": "${PWD}",
+        "PYTHONPATH": "${__dirname}/src",
         "PYTHONUNBUFFERED": "1"
       }
     }
-  },
-  "user_config": {
-    "calibre_library_path": {
-      "type": "directory",
-      "title": "Calibre Library Path",
-      "description": "Path to your Calibre library directory (contains metadata.db)",
-      "required": true,
-      "default": "L:/Multimedia Files/Written Word/Calibre-Bibliothek"
-    },
-    "calibre_server_url": {
-      "type": "string",
-      "title": "Calibre Server URL",
-      "description": "URL of your Calibre content server (optional)",
-      "required": false,
-      "default": ""
-    },
-    "timeout": {
-      "type": "string",
-      "title": "Operation Timeout (seconds)",
-      "description": "Timeout for Calibre operations",
-      "default": "30"
-    }
-  },
-  "tools": [
-    {"name": "query_books"},
-    {"name": "manage_books"},
-    {"name": "get_book_details"},
-    {"name": "get_recent_books"},
-    {"name": "test_calibre_connection"},
-    {"name": "manage_libraries"},
-    {"name": "get_tag_statistics"},
-    {"name": "find_duplicate_books"},
-    {"name": "get_series_analysis"},
-    {"name": "analyze_library_health"},
-    {"name": "unread_priority_list"},
-    {"name": "update_book_metadata"},
-    {"name": "auto_organize_tags"},
-    {"name": "fix_metadata_issues"},
-    {"name": "reading_statistics"},
-    {"name": "convert_book_format"},
-    {"name": "download_book"},
-    {"name": "bulk_format_operations"},
-    {"name": "japanese_book_organizer"},
-    {"name": "it_book_curator"},
-    {"name": "reading_recommendations"},
-    {"name": "manage_smart_collections"},
-    {"name": "manage_users"},
-    {"name": "export_books_csv"},
-    {"name": "export_books_json"},
-    {"name": "export_books_html"},
-    {"name": "export_books_pandoc"}
-  ],
-  "prompts": [
-    {
-      "name": "what_should_i_read_next",
-      "description": "What should I read next? Show me personalized reading recommendations based on my library, series progress, and reading habits. Use Austrian efficiency to eliminate decision paralysis.",
-      "text": "What should I read next? Analyze my library collection, reading history, and current series progress to provide personalized reading recommendations. Use Austrian efficiency to eliminate decision paralysis - give me specific book suggestions with priority rankings and tell me exactly which book I should read right now. Include any incomplete series I should continue and books that match my interests."
-    }
-  ],
-  "compatibility": {
-    "platforms": ["win32", "darwin", "linux"],
-    "python": ">=3.10"
-  },
-  "keywords": [
-    "calibre",
-    "ebook",
-    "library",
-    "books",
-    "reading",
-    "management",
-    "fastmcp",
-    "book-search",
-    "metadata",
-    "series",
-    "japanese",
-    "manga",
-    "programming",
-    "it-books",
-    "weeb",
-    "austrian-efficiency",
-    "book-recommendations",
-    "library-health",
-    "duplicates",
-    "formats",
-    "conversion"
-  ],
-  "license": "MIT"
+  }
 }

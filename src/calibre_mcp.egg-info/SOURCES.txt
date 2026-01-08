@@ -78,6 +78,7 @@ src/calibre_mcp/tools/advanced_features/smart_collections.py
 src/calibre_mcp/tools/advanced_features/social_features.py
 src/calibre_mcp/tools/ai/__init__.py
 src/calibre_mcp/tools/ai/content_analyzer.py
+src/calibre_mcp/tools/ai/llm_summarizer.py
 src/calibre_mcp/tools/ai/recommendation_engine.py
 src/calibre_mcp/tools/analysis/__init__.py
 src/calibre_mcp/tools/analysis/analysis_helpers.py
@@ -111,6 +112,7 @@ src/calibre_mcp/tools/import_export/export_books_portmanteau.py
 src/calibre_mcp/tools/import_export/export_helpers.py
 src/calibre_mcp/tools/import_export/export_library.py
 src/calibre_mcp/tools/library/__init__.py
+src/calibre_mcp/tools/library/library_discovery.py
 src/calibre_mcp/tools/library/library_management.py
 src/calibre_mcp/tools/library/manage_libraries.py
 src/calibre_mcp/tools/library_operations/__init__.py
@@ -129,6 +131,7 @@ src/calibre_mcp/tools/organization/__init__.py
 src/calibre_mcp/tools/organization/library_organizer.py
 src/calibre_mcp/tools/shared/__init__.py
 src/calibre_mcp/tools/shared/error_handling.py
+src/calibre_mcp/tools/shared/query_parsing.py
 src/calibre_mcp/tools/specialized/__init__.py
 src/calibre_mcp/tools/specialized/manage_specialized.py
 src/calibre_mcp/tools/specialized/specialized_tools.py
@@ -158,7 +161,6 @@ src/calibre_mcp/viewers/pdf/pdfjs_viewer.py
 tests/test_ai_enhancements.py
 tests/test_api.py
 tests/test_basic.py
-tests/test_mcp_client.py
 tests/test_mcp_compliance.py
 tests/test_mcp_server.py
 tests/test_server_integration.py

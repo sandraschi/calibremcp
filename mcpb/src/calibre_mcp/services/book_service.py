@@ -8,12 +8,13 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 
 from ..db.database import DatabaseService
-from ..models.book import Book, BookCreate, BookUpdate, BookResponse
-from ..models.author import Author
-from ..models.series import Series
-from ..models.tag import Tag
-from ..models.rating import Rating
-from ..models.comment import Comment
+from ..db.models import Book  # Use db.models.Book for queries (has series relationship)
+from ..models.book import (
+    BookCreate,
+    BookUpdate,
+    BookResponse,
+)  # Use models.book for Pydantic schemas
+from ..db.models import Author, Series, Tag, Rating, Comment  # Use db.models for query models
 from .base_service import BaseService, NotFoundError, ValidationError
 
 
@@ -50,6 +51,36 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             db: Database service instance
         """
         super().__init__(db, Book, BookResponse)
+        self._library_path_cache = None
+
+    def _get_library_base_path(self) -> Optional[str]:
+        """
+        Get the base library path from the database connection URL.
+
+        Returns:
+            Library base path (directory containing metadata.db) or None if unavailable
+        """
+        if self._library_path_cache is not None:
+            return self._library_path_cache
+
+        try:
+            # Get database URL from engine
+            if self.db._engine is None:
+                return None
+
+            url = str(self.db._engine.url)
+
+            # Extract path from SQLite URL (sqlite:///path/to/metadata.db)
+            if url.startswith("sqlite:///"):
+                db_path = url.replace("sqlite:///", "").replace("\\", "/")
+                # Get parent directory (library root)
+                library_path = str(Path(db_path).parent)
+                self._library_path_cache = library_path
+                return library_path
+        except Exception:
+            pass
+
+        return None
 
     def get_by_id(self, book_id: int) -> Dict[str, Any]:
         """
@@ -148,14 +179,17 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
         with self._get_db_session() as session:
             # Start building the query
+            # Only eager-load relationships for tables that definitely exist in Calibre schema
+            # Many tables (identifiers, books_ratings_link, etc.) may not exist in all Calibre databases
             query = session.query(Book).options(
                 joinedload(Book.authors),
                 joinedload(Book.tags),
-                joinedload(Book.series),
-                joinedload(Book.ratings).joinedload(Rating.rating),
-                joinedload(Book.comments),
-                joinedload(Book.data),
-                joinedload(Book.identifiers),
+                joinedload(Book.series),  # db.models.Book has series as relationship
+                joinedload(Book.data),  # Load format files for file paths
+                # Note: ratings, comments, identifiers may not exist in all databases
+                # Only eager-load if needed - for now, load lazily to avoid errors
+                # joinedload(Book.comments),  # Optional - may not exist
+                # joinedload(Book.identifiers),  # Optional - may not exist
             )
 
             # Apply search filter (title, author, series, tags)
@@ -165,7 +199,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
             # First check if FTS database is available
             if search:
-                from ...utils.fts_utils import find_fts_database, query_fts
+                from ..utils.fts_utils import find_fts_database, query_fts
 
                 # Get metadata.db path from the database engine URL (not config)
                 # The engine is already connected to the correct library
@@ -183,11 +217,14 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
                 fts_db_path = None
                 book_ids = None
+                fts_succeeded = False
                 if metadata_db_path and metadata_db_path.exists():
                     fts_db_path = find_fts_database(metadata_db_path)
 
                     if fts_db_path:
                         # Use FTS search - get all matching IDs first (we'll paginate later)
+                        # query_fts catches exceptions internally and returns ([], 0) on failure
+                        # So we check if we got results - if not, fall back to LIKE
                         book_ids, total_fts = query_fts(
                             fts_db_path,
                             search,
@@ -195,17 +232,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                             offset=0,
                         )
 
+                        # If FTS returned results, use them
                         if book_ids:
                             # Filter query to only include FTS-matched book IDs
                             query = query.filter(Book.id.in_(book_ids))
                             # Don't need joins or ilike filters since FTS already found matches
                             # Note: Total count will be limited to the IDs we got from FTS
-                        else:
-                            # FTS found no matches, return empty result
-                            query = query.filter(Book.id.in_([]))
+                            fts_succeeded = True
+                        # else: FTS returned no results - could be no matches OR FTS failed
+                        # We'll fall back to LIKE search to be safe (since we can't distinguish
+                        # "no matches" from "FTS failed" when query_fts returns ([], 0))
 
-                # Fallback to LIKE search if FTS not available
-                if not fts_db_path or book_ids is None:
+                # Fallback to LIKE search if FTS not available or failed
+                # Only use LIKE if we didn't successfully use FTS
+                if not fts_succeeded or book_ids is None:
                     search = f"%{search}%"
                     query = (
                         query.join(Book.authors, isouter=True)
@@ -421,11 +461,16 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         query = query.filter(column == value)
 
             # Apply sorting
+            # Note: In actual Calibre databases, rating might be stored differently.
+            # Since books_ratings_link table doesn't exist in user's database,
+            # we'll skip rating sort for now or use a workaround.
             sort_mapping = {
                 "title": Book.title,
                 "author": Author.sort,
                 "series": Series.name,
-                "rating": Book.rating,
+                # Rating: books_ratings_link doesn't exist in actual Calibre schema
+                # Skip rating sort or implement alternative access method
+                "rating": Book.title,  # Fallback to title sort for now
                 "timestamp": Book.timestamp,
                 "pubdate": Book.pubdate,
             }
@@ -640,7 +685,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             return [
                 {
                     "format": data.format.upper(),
-                    "size": data.size,
+                    "size": data.uncompressed_size,
                     "name": data.name,
                     "mtime": data.mtime.isoformat() if data.mtime else None,
                 }
@@ -699,7 +744,79 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         Returns:
             Dictionary containing the book data in the response format
         """
-        return BookResponse.from_orm(book).dict()
+        # Build response dictionary manually to avoid relationship access issues
+        # Pydantic V2 model_validate will try to access all attributes including relationships
+        # which can cause issues with lazy-loaded relationships or column name mismatches
+        book_dict = {
+            "id": book.id,
+            "title": book.title,
+            "sort": book.sort,
+            "timestamp": book.timestamp,
+            "pubdate": book.pubdate,
+            "series_index": book.series_index,
+            "author_sort": book.author_sort,
+            "isbn": book.isbn,
+            "lccn": book.lccn,
+            "path": book.path,
+            "has_cover": bool(book.has_cover),
+            "uuid": book.uuid,
+            "last_modified": book.last_modified,
+        }
+
+        # Handle relationships manually to avoid lazy-loading issues
+        book_dict["authors"] = [
+            {"id": a.id, "name": a.name} for a in (book.authors if hasattr(book, "authors") else [])
+        ]
+        book_dict["tags"] = [
+            {"id": t.id, "name": t.name} for t in (book.tags if hasattr(book, "tags") else [])
+        ]
+        # Handle series - db.models.Book has series as relationship
+        if hasattr(book, "series") and book.series:
+            book_dict["series"] = (
+                {"id": book.series[0].id, "name": book.series[0].name} if book.series else None
+            )
+        else:
+            book_dict["series"] = None
+
+        # Skip identifiers - relationship has column name mismatch (book vs book_id)
+        book_dict["identifiers"] = {}
+
+        # Build formats list with file paths
+        # Calibre stores files using either:
+        # 1. Descriptive filename from data.name if available
+        # 2. Numeric format {data.id}.{format.lower()} if data.name is empty
+        formats = []
+        if hasattr(book, "data") and book.data:
+            # Get library base path from database URL
+            library_path = self._get_library_base_path()
+            for data in book.data:
+                # Use descriptive filename if available, otherwise use numeric format
+                if data.name and data.name.strip():
+                    # Descriptive filename: name may include extension, or we add it
+                    if data.name.lower().endswith(f".{data.format.lower()}"):
+                        filename = data.name
+                    else:
+                        filename = f"{data.name}.{data.format.lower()}"
+                else:
+                    # Numeric filename format
+                    filename = f"{data.id}.{data.format.lower()}"
+
+                relative_path = f"{book.path}/{filename}" if book.path else filename
+                full_path = (
+                    str(Path(library_path) / relative_path) if library_path else relative_path
+                )
+
+                formats.append(
+                    {
+                        "format": data.format.upper(),
+                        "filename": filename,
+                        "path": full_path,
+                        "size": data.uncompressed_size if hasattr(data, "uncompressed_size") else 0,
+                    }
+                )
+        book_dict["formats"] = formats
+
+        return BookResponse.model_validate(book_dict).model_dump()
 
 
 # Create a singleton instance of the service

@@ -9,6 +9,7 @@ from typing import Optional, List, Dict, Any
 
 from ...server import mcp
 from ...logging_config import get_logger
+from ..shared.error_handling import handle_tool_error, format_error_response
 
 logger = get_logger("calibremcp.tools.library_management")
 
@@ -23,15 +24,46 @@ async def manage_libraries(
     """
     Manage Calibre libraries with multiple operations in a single unified interface.
 
-    This portmanteau tool consolidates all library management operations (listing,
-    switching, statistics, and cross-library search) into a single interface. Use the
-    `operation` parameter to select which operation to perform.
+    PORTMANTEAU PATTERN RATIONALE:
+    Instead of creating 4 separate tools (one per operation), this tool consolidates related
+    library management operations into a single interface. This design:
+    - Prevents tool explosion (4 tools → 1 tool) while maintaining full functionality
+    - Improves discoverability by grouping related operations together
+    - Reduces cognitive load when working with library management tasks
+    - Enables consistent library interface across all operations
+    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
 
-    Operations:
+    SUPPORTED OPERATIONS:
     - list: List all available Calibre libraries with metadata and statistics
     - switch: Switch the active library for all subsequent operations
     - stats: Get detailed statistics for a specific or current library
     - search: Search for books across multiple libraries simultaneously
+
+    OPERATIONS DETAIL:
+
+    list: List all available libraries
+    - Discovers all Calibre libraries on the system
+    - Returns metadata including name, path, book count, size, and active status
+    - No parameters required
+    - Returns: List of libraries with metadata
+
+    switch: Switch active library
+    - Changes the active library for all subsequent operations
+    - Requires library_name parameter (must match a library from list operation)
+    - Case-sensitive library name matching
+    - Returns: Success status and new active library info
+
+    stats: Get library statistics
+    - Provides detailed statistics for a specific or current library
+    - Includes book counts, author counts, format distribution, language distribution
+    - library_name is optional (uses current library if omitted)
+    - Returns: Comprehensive statistics dictionary
+
+    search: Cross-library search
+    - Searches for books across multiple libraries simultaneously
+    - Requires query parameter (searches titles, authors, tags, etc.)
+    - Optional libraries parameter to limit search scope
+    - Returns: Books found with library_name included per result
 
     Prerequisites:
         - For 'switch' and 'stats': Library must exist (use 'list' to see available libraries)
@@ -157,43 +189,74 @@ async def manage_libraries(
         - For individual operations: See list_libraries, switch_library, get_library_stats, cross_library_search
           (these are deprecated in favor of this portmanteau tool)
     """
-    if operation == "list":
-        return await _handle_list_libraries()
-    elif operation == "switch":
-        if not library_name:
-            return {
-                "success": False,
-                "error": "library_name is required for operation='switch'. Use operation='list' to see available libraries.",
-                "suggestions": [
-                    "First call manage_libraries(operation='list') to see all available libraries",
-                    "Then use one of those library names with operation='switch'",
+    try:
+        if operation == "list":
+            return await _handle_list_libraries()
+        elif operation == "switch":
+            if not library_name:
+                return format_error_response(
+                    error_msg=(
+                        "library_name is required for operation='switch'. "
+                        "Use operation='list' to see available libraries."
+                    ),
+                    error_code="MISSING_LIBRARY_NAME",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=[
+                        "First call manage_libraries(operation='list') to see all available libraries",
+                        "Then use one of those library names with operation='switch'",
+                        "Example: manage_libraries(operation='switch', library_name='Main Library')",
+                    ],
+                    related_tools=["manage_libraries"],
+                )
+            return await _handle_switch_library(library_name)
+        elif operation == "stats":
+            return await _handle_get_library_stats(library_name)
+        elif operation == "search":
+            if not query:
+                return format_error_response(
+                    error_msg="query is required for operation='search'.",
+                    error_code="MISSING_QUERY",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=[
+                        "Provide a search query string, e.g., query='python programming'",
+                        "Optionally specify libraries=['Library1', 'Library2'] to search specific libraries",
+                        "Example: manage_libraries(operation='search', query='machine learning')",
+                    ],
+                    related_tools=["manage_libraries", "query_books"],
+                )
+            return await _handle_cross_library_search(query, libraries)
+        else:
+            return format_error_response(
+                error_msg=(
+                    f"Invalid operation: '{operation}'. "
+                    f"Must be one of: 'list', 'switch', 'stats', 'search'"
+                ),
+                error_code="INVALID_OPERATION",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Use operation='list' to see all available libraries",
+                    "Use operation='switch' to change the active library",
+                    "Use operation='stats' to get library statistics",
+                    "Use operation='search' to search across libraries",
                 ],
-            }
-        return await _handle_switch_library(library_name)
-    elif operation == "stats":
-        return await _handle_get_library_stats(library_name)
-    elif operation == "search":
-        if not query:
-            return {
-                "success": False,
-                "error": "query is required for operation='search'.",
-                "suggestions": [
-                    "Provide a search query string, e.g., query='python programming'",
-                    "Optionally specify libraries=['Library1', 'Library2'] to search specific libraries",
-                ],
-            }
-        return await _handle_cross_library_search(query, libraries)
-    else:
-        return {
-            "success": False,
-            "error": f"Invalid operation: '{operation}'. Must be one of: 'list', 'switch', 'stats', 'search'",
-            "suggestions": [
-                "Use operation='list' to see all available libraries",
-                "Use operation='switch' to change the active library",
-                "Use operation='stats' to get library statistics",
-                "Use operation='search' to search across libraries",
-            ],
-        }
+                related_tools=["manage_libraries"],
+            )
+    except Exception as e:
+        return handle_tool_error(
+            exception=e,
+            operation=operation,
+            parameters={
+                "operation": operation,
+                "library_name": library_name,
+                "query": query,
+                "libraries": libraries,
+            },
+            tool_name="manage_libraries",
+            context="Library management operation",
+        )
 
 
 async def _handle_list_libraries() -> Dict[str, Any]:
@@ -205,13 +268,13 @@ async def _handle_list_libraries() -> Dict[str, Any]:
         result = await list_libraries_helper()
         return result.model_dump()
     except Exception as e:
-        logger.error(f"Error listing libraries: {e}", exc_info=True)
-        return {
-            "libraries": [],
-            "current_library": "",
-            "total_libraries": 0,
-            "error": str(e),
-        }
+        return handle_tool_error(
+            exception=e,
+            operation="list",
+            parameters={},
+            tool_name="manage_libraries",
+            context="Listing available Calibre libraries",
+        )
 
 
 async def _handle_switch_library(library_name: str) -> Dict[str, Any]:
@@ -222,13 +285,13 @@ async def _handle_switch_library(library_name: str) -> Dict[str, Any]:
     try:
         return await switch_library_helper(library_name)
     except Exception as e:
-        logger.error(f"Error switching library: {e}", exc_info=True)
-        return {
-            "success": False,
-            "error": f"Error switching library: {str(e)}",
-            "library_name": library_name,
-            "library_path": "",
-        }
+        return handle_tool_error(
+            exception=e,
+            operation="switch",
+            parameters={"library_name": library_name},
+            tool_name="manage_libraries",
+            context=f"Switching to library: {library_name}",
+        )
 
 
 async def _handle_get_library_stats(library_name: Optional[str]) -> Dict[str, Any]:
@@ -240,19 +303,13 @@ async def _handle_get_library_stats(library_name: Optional[str]) -> Dict[str, An
         result = await get_library_stats_helper(library_name)
         return result.model_dump()
     except Exception as e:
-        logger.error(f"Error getting library stats: {e}", exc_info=True)
-        return {
-            "library_name": library_name or "unknown",
-            "total_books": 0,
-            "total_authors": 0,
-            "total_series": 0,
-            "total_tags": 0,
-            "format_distribution": {},
-            "language_distribution": {},
-            "rating_distribution": {},
-            "last_modified": None,
-            "error": str(e),
-        }
+        return handle_tool_error(
+            exception=e,
+            operation="stats",
+            parameters={"library_name": library_name},
+            tool_name="manage_libraries",
+            context=f"Getting statistics for library: {library_name or 'current'}",
+        )
 
 
 async def _handle_cross_library_search(
@@ -266,12 +323,10 @@ async def _handle_cross_library_search(
         result = await cross_library_search_helper(query, libraries)
         return result.model_dump()
     except Exception as e:
-        logger.error(f"Error in cross-library search: {e}", exc_info=True)
-        return {
-            "results": [],
-            "total_found": 0,
-            "query_used": query,
-            "search_time_ms": 0,
-            "library_searched": "",
-            "error": str(e),
-        }
+        return handle_tool_error(
+            exception=e,
+            operation="search",
+            parameters={"query": query, "libraries": libraries},
+            tool_name="manage_libraries",
+            context=f"Cross-library search for query: {query}",
+        )

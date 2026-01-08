@@ -7,11 +7,19 @@ Provides fixtures for test database and library setup.
 import pytest
 from pathlib import Path
 import sys
+import logging
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from calibre_mcp.db.database import init_database, close_database
+
+
+# Configure logging for tests
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 
 @pytest.fixture(scope="session")
@@ -131,3 +139,18 @@ def portmanteau_test_data():
             "total": 2
         }
     }
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_logging():
+    """Reset logging configuration before each test."""
+    # Clear any existing handlers
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    yield
+    
+    # Cleanup after test
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)

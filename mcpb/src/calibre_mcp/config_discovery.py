@@ -60,30 +60,106 @@ class CalibreConfigDiscovery:
         """
         Discover all available Calibre libraries using multiple methods.
 
+        Priority:
+        1. Explicitly given directory (L:/Multimedia Files/Written Word) - highest priority
+        2. Parse Calibre's JSON config files (library_infos.json, global.py.json) - fallback
+
         Returns:
             Dict mapping library names to CalibreLibrary objects
         """
         libraries = {}
 
-        # Method 1: Read from Calibre's global configuration
-        calibre_libraries = self._discover_from_calibre_config()
-        libraries.update(calibre_libraries)
+        # Method 1: Scan explicitly given directory first (highest priority)
+        user_library_path = Path("L:/Multimedia Files/Written Word")
+        if user_library_path.exists() and user_library_path.is_dir():
+            scanned_libraries = self._scan_directory_for_libraries(user_library_path)
+            libraries.update(scanned_libraries)
 
-        # Method 2: Scan common library locations
-        scanned_libraries = self._scan_common_locations()
-        libraries.update(scanned_libraries)
+        # Method 2: Only parse JSON config if no libraries found from explicit directory
+        if not libraries:
+            # Use Calibre's Python API to get libraries (most reliable)
+            calibre_api_libraries = self._discover_from_calibre_api()
+            libraries.update(calibre_api_libraries)
 
-        # Method 3: Environment variable override
+            # Read from Calibre's JSON configuration files
+            calibre_libraries = self._discover_from_calibre_config()
+            libraries.update(calibre_libraries)
+
+        # Method 3: Environment variable override (always checked)
         env_libraries = self._discover_from_environment()
         libraries.update(env_libraries)
-
-        # Method 4: Scan parent directories of existing libraries
-        parent_libraries = self._scan_parent_directories(libraries)
-        libraries.update(parent_libraries)
 
         self.discovered_libraries = libraries
         log_operation(logger, "libraries_discovered", level="INFO", total_libraries=len(libraries))
 
+        return libraries
+
+    def _scan_directory_for_libraries(self, base_dir: Path) -> Dict[str, CalibreLibrary]:
+        """Scan a specific directory for Calibre libraries"""
+        libraries = {}
+        
+        try:
+            # Only scan subdirectories for libraries (base directory itself is not a library)
+            for item in base_dir.iterdir():
+                if item.is_dir():
+                    item_metadata_db = item / "metadata.db"
+                    if item_metadata_db.exists():
+                        libraries[item.name] = CalibreLibrary(
+                            name=item.name,
+                            path=item,
+                            metadata_db=item_metadata_db,
+                            is_active=False
+                        )
+        except (PermissionError, OSError) as e:
+            logger.warning(f"Could not scan {base_dir} for libraries: {e}")
+        
+        return libraries
+
+    def _discover_from_calibre_api(self) -> Dict[str, CalibreLibrary]:
+        """Discover libraries using Calibre's Python API (most reliable method)"""
+        libraries = {}
+        
+        try:
+            # Try to import Calibre's config module to get library paths
+            from calibre.utils.config import prefs
+            
+            # Get library database from Calibre's preferences
+            library_path = prefs['library_path']
+            if library_path and Path(library_path).exists() and (Path(library_path) / "metadata.db").exists():
+                libraries["main"] = CalibreLibrary(
+                    name="main",
+                    path=Path(library_path),
+                    metadata_db=Path(library_path) / "metadata.db",
+                    is_active=True
+                )
+            
+            # Get all libraries from Calibre's library database
+            try:
+                # Calibre stores library info in library_infos.pickle
+                library_infos_path = self.calibre_config_dir / "library_infos.pickle"
+                if library_infos_path.exists():
+                    with open(library_infos_path, "rb") as f:
+                        import pickle
+                        lib_infos = pickle.load(f)
+                        for lib_name, lib_info in lib_infos.items():
+                            if isinstance(lib_info, dict) and "path" in lib_info:
+                                lib_path = Path(lib_info["path"])
+                                if lib_path.exists() and (lib_path / "metadata.db").exists():
+                                    libraries[lib_name] = CalibreLibrary(
+                                        name=lib_name,
+                                        path=lib_path,
+                                        metadata_db=lib_path / "metadata.db",
+                                        is_active=lib_info.get("is_active", False)
+                                    )
+            except Exception as e:
+                logger.debug(f"Could not read library_infos.pickle via Calibre API: {e}")
+                
+        except ImportError:
+            # Calibre Python API not available - this is expected if Calibre is not installed as Python package
+            logger.debug("Calibre Python API not available, falling back to config file parsing")
+        except Exception as e:
+            logger.warning(f"Error discovering libraries via Calibre API: {e}")
+        
         return libraries
 
     def _discover_from_calibre_config(self) -> Dict[str, CalibreLibrary]:
@@ -100,7 +176,12 @@ class CalibreConfigDiscovery:
             return libraries
 
         try:
-            # Read global.py for library paths
+            # Read global.py.json for library paths (Calibre now uses JSON format)
+            global_py_json = self.calibre_config_dir / "global.py.json"
+            if global_py_json.exists():
+                libraries.update(self._parse_global_py_json(global_py_json))
+            
+            # Also try old format global.py (for backwards compatibility)
             global_py = self.calibre_config_dir / "global.py"
             if global_py.exists():
                 libraries.update(self._parse_global_py(global_py))
@@ -148,6 +229,30 @@ class CalibreConfigDiscovery:
 
         except Exception as e:
             log_error(logger, "global_py_parse_error", e)
+
+        return libraries
+
+    def _parse_global_py_json(self, global_py_json: Path) -> Dict[str, CalibreLibrary]:
+        """Parse Calibre's global.py.json configuration file (JSON format)"""
+        libraries = {}
+
+        try:
+            with open(global_py_json, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Extract library_path from JSON
+            if "library_path" in data:
+                library_path = Path(data["library_path"])
+                if library_path.exists() and (library_path / "metadata.db").exists():
+                    libraries["main"] = CalibreLibrary(
+                        name="main",
+                        path=library_path,
+                        metadata_db=library_path / "metadata.db",
+                        is_active=True,
+                    )
+
+        except Exception as e:
+            log_error(logger, "global_py_json_parse_error", e)
 
         return libraries
 
@@ -204,17 +309,28 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         # Common base directories to scan
-        common_bases = [
+        # PRIORITY: User's actual library location first
+        user_library_path = Path("L:/Multimedia Files/Written Word")
+        common_bases = []
+        
+        # Add user's actual library location FIRST (highest priority)
+        if user_library_path.exists():
+            common_bases.append(user_library_path)
+        
+        # Then add other common locations (lower priority)
+        common_bases.extend([
             Path.home() / "Documents" / "Calibre Library",
-            Path.home() / "Calibre Library",
             Path.home() / "Books" / "Calibre Library",
             Path.home() / "Library" / "Calibre Library",  # macOS
             Path("/opt/calibre/library"),  # Linux
-            Path("C:/Users")
-            / os.getenv("USERNAME", "")
-            / "Documents"
-            / "Calibre Library",  # Windows
-        ]
+        ])
+        
+        # Skip the default Windows location if it's the wrong one
+        # Only add C:\Users\...\Calibre Library if it's NOT the user's home
+        default_windows_path = Path("C:/Users") / os.getenv("USERNAME", "") / "Calibre Library"
+        if default_windows_path.exists() and default_windows_path != user_library_path:
+            # Only add if it's different from the user's actual library
+            common_bases.append(default_windows_path)
 
         # Add environment-specific paths
         if "CALIBRE_LIBRARY_PATH" in os.environ:
@@ -225,16 +341,20 @@ class CalibreConfigDiscovery:
                 # Check if this is a library directory
                 metadata_db = base_dir / "metadata.db"
                 if metadata_db.exists():
-                    libraries["main"] = CalibreLibrary(
-                        name="main", path=base_dir, metadata_db=metadata_db, is_active=True
+                    lib_name = base_dir.name if base_dir.name != "Written Word" else "main"
+                    libraries[lib_name] = CalibreLibrary(
+                        name=lib_name, path=base_dir, metadata_db=metadata_db, is_active=True
                     )
 
                 # Scan for subdirectories that might be libraries
-                for item in base_dir.iterdir():
-                    if item.is_dir() and (item / "metadata.db").exists():
-                        libraries[item.name] = CalibreLibrary(
-                            name=item.name, path=item, metadata_db=item / "metadata.db"
-                        )
+                try:
+                    for item in base_dir.iterdir():
+                        if item.is_dir() and (item / "metadata.db").exists():
+                            libraries[item.name] = CalibreLibrary(
+                                name=item.name, path=item, metadata_db=item / "metadata.db"
+                            )
+                except (PermissionError, OSError) as e:
+                    logger.warning(f"Could not scan {base_dir}: {e}")
 
         return libraries
 

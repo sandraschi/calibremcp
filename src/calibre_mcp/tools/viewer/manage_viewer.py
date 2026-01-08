@@ -19,8 +19,8 @@ logger = get_logger("calibremcp.tools.viewer")
 @mcp.tool()
 async def manage_viewer(
     operation: str,
-    book_id: int,
-    file_path: str,
+    book_id: Optional[int] = None,
+    file_path: Optional[str] = None,
     # Page-specific parameters
     page_number: int = 0,
     # State update parameters
@@ -29,6 +29,11 @@ async def manage_viewer(
     page_layout: Optional[str] = None,
     zoom_mode: Optional[str] = None,
     zoom_level: Optional[float] = None,
+    # Search parameters for open_random operation
+    author: Optional[str] = None,
+    tag: Optional[str] = None,
+    series: Optional[str] = None,
+    format_preference: str = "EPUB",
 ) -> Dict[str, Any]:
     """
     Manage book viewer operations in the Calibre library with multiple operations in a single unified interface.
@@ -96,19 +101,44 @@ async def manage_viewer(
     - Parameters: book_id (required), file_path (required)
     - Returns: success status and file path
 
+    open_random: Open a random book matching search criteria
+    - Searches for books matching author, tag, or series filters
+    - Randomly selects one matching book
+    - Opens it with the system's default application
+    - Parameters: author (optional), tag (optional), series (optional), format_preference (default: "EPUB")
+    - Returns: Selected book information and file path
+    - Example: open_random(author="John Dickson Carr") opens a random Carr book
+
     Prerequisites:
-        - Book must exist in library (book_id must be valid)
-        - File path must exist and be accessible
-        - For 'open_file': System must have default application for file type
+        - Book must exist in library (book_id must be valid) for operations requiring book_id
+        - File path must exist and be accessible for operations requiring file_path
+        - For 'open_file' and 'open_random': System must have default application for file type
+        - For 'open_random': At least one search filter (author, tag, or series) should be provided
 
     Parameters:
         operation: The operation to perform. Must be one of:
-            "open", "get_page", "get_metadata", "get_state", "update_state", "close", "open_file"
+            "open", "get_page", "get_metadata", "get_state", "update_state", "close", "open_file", "open_random"
 
-        book_id: The unique identifier of the book in the Calibre library (required for all operations)
+        book_id: The unique identifier of the book in the Calibre library
+                 Required for: open, get_page, get_metadata, get_state, update_state, close, open_file
+                 Not required for: open_random
 
-        file_path: Full path to the book file (PDF, EPUB, CBZ, CBR, etc.) (required for all operations)
+        file_path: Full path to the book file (PDF, EPUB, CBZ, CBR, etc.)
+                  Required for: open, get_page, get_metadata, get_state, update_state, open_file
+                  Not required for: close, open_random
                   Use query_books() to get valid format paths from book.formats[].path
+
+        author: Author name filter (for 'open_random' operation, optional)
+                Example: author="John Dickson Carr"
+
+        tag: Tag name filter (for 'open_random' operation, optional)
+             Example: tag="mystery"
+
+        series: Series name filter (for 'open_random' operation, optional)
+                Example: series="Sherlock Holmes"
+
+        format_preference: Preferred file format (for 'open_random' operation, default: "EPUB")
+                          Common formats: EPUB, PDF, MOBI, AZW3
 
         page_number: Zero-based page index to retrieve (for 'get_page' operation, default: 0)
 
@@ -201,6 +231,17 @@ async def manage_viewer(
                 "file_path": str - Actual file path opened (for open_file, if successful)
             }
 
+        For operation="open_random":
+            {
+                "success": bool - Whether operation succeeded
+                "book_id": int - ID of the randomly selected book
+                "title": str - Book title
+                "author": str - Author name(s)
+                "file_path": str - Path to the opened file
+                "format": str - Format of the opened file
+                "message": str - Status message
+            }
+
     Usage:
         # Open a book in the viewer
         result = await manage_viewer(operation="open", book_id=123, file_path="/path/to/book.pdf")
@@ -219,6 +260,9 @@ async def manage_viewer(
 
         # Open book in default application
         result = await manage_viewer(operation="open_file", book_id=123, file_path="/path/to/book.epub")
+
+        # Open a random book by author
+        result = await manage_viewer(operation="open_random", author="John Dickson Carr")
 
     Examples:
         # Open book and get initial data
@@ -264,17 +308,220 @@ async def manage_viewer(
 
     Errors:
         Common errors and solutions:
-        - Invalid operation: Use one of "open", "get_page", "get_metadata", "get_state", "update_state", "close", "open_file"
+        - Invalid operation: Use one of "open", "get_page", "get_metadata", "get_state", "update_state", "close", "open_file", "open_random"
         - File not found: Verify file_path exists. Use query_books() to get valid format paths
         - Page out of range: Page numbers are 0-based (first page is 0). Check page_count from metadata
         - No viewer available: Supported formats are PDF, EPUB, CBZ, CBR. Check file extension
         - Permission denied (open_file): Check file permissions and default application association
+        - No books found (open_random): Provide at least one search filter (author, tag, or series)
+        - Missing book_id/file_path: Required for all operations except "open_random"
 
     See Also:
         - query_books(): For finding books and getting file paths
         - manage_books(): For book management operations
     """
     try:
+        # Handle open_random operation first (doesn't require book_id/file_path)
+        if operation == "open_random":
+            try:
+                import random
+                import os
+                import platform
+                import subprocess
+                from sqlalchemy.orm import joinedload
+                from ...db.database import get_database
+                from ...db.models import Book, Data
+                from ...tools.book_tools import search_books_helper
+
+                # Build search parameters
+                search_params = {"limit": 100}  # Get up to 100 books for random selection
+                if author:
+                    search_params["author"] = author
+                if tag:
+                    search_params["tag"] = tag
+                if series:
+                    search_params["series"] = series
+
+                # Validate at least one search criterion
+                if not author and not tag and not series:
+                    return format_error_response(
+                        error_msg="At least one search filter (author, tag, or series) is required for open_random operation.",
+                        error_code="MISSING_SEARCH_CRITERIA",
+                        error_type="ValueError",
+                        operation=operation,
+                        suggestions=[
+                            "Provide author parameter: author='John Dickson Carr'",
+                            "Provide tag parameter: tag='mystery'",
+                            "Provide series parameter: series='Sherlock Holmes'",
+                        ],
+                        related_tools=["query_books"],
+                    )
+
+                # Search for books
+                search_result = await search_books_helper(**search_params)
+                books = search_result.get("items", [])
+
+                if not books:
+                    return format_error_response(
+                        error_msg=f"No books found matching the search criteria (author={author}, tag={tag}, series={series}).",
+                        error_code="NO_BOOKS_FOUND",
+                        error_type="ValueError",
+                        operation=operation,
+                        suggestions=[
+                            "Check spelling of author/tag/series names",
+                            "Try a broader search (e.g., partial author name)",
+                            "Use query_books() to verify books exist with these criteria",
+                        ],
+                        related_tools=["query_books"],
+                    )
+
+                # Randomly select a book
+                selected_book = random.choice(books)
+                selected_book_id = selected_book["id"]
+                selected_title = selected_book.get("title", "Unknown")
+                authors_list = selected_book.get("authors", [])
+                if authors_list and isinstance(authors_list[0], dict):
+                    selected_author = ", ".join([a.get("name", "") for a in authors_list])
+                else:
+                    selected_author = ", ".join(authors_list) if authors_list else "Unknown"
+
+                # Get file path from database
+                db = get_database()
+                with db.session_scope() as session:
+                    book_obj = session.query(Book).options(joinedload(Book.data)).filter(Book.id == selected_book_id).first()
+                    if not book_obj:
+                        return format_error_response(
+                            error_msg=f"Book {selected_book_id} not found in database.",
+                            error_code="BOOK_NOT_FOUND",
+                            error_type="NotFoundError",
+                            operation=operation,
+                            suggestions=["Verify the book exists in the library"],
+                            related_tools=["query_books"],
+                        )
+
+                    # Get library path
+                    from ...config import CalibreConfig
+                    config = CalibreConfig()
+                    libraries = config.discover_libraries()
+                    if not libraries:
+                        return format_error_response(
+                            error_msg="No libraries found.",
+                            error_code="NO_LIBRARIES",
+                            error_type="ValueError",
+                            operation=operation,
+                            suggestions=["Configure Calibre library paths"],
+                            related_tools=["manage_libraries"],
+                        )
+                    first_lib_path = next(iter(libraries.values())).path
+
+                    # Find format
+                    formats = book_obj.data
+                    format_obj = None
+
+                    # Try preferred format first
+                    for fmt in formats:
+                        if fmt.format.upper() == format_preference.upper():
+                            format_obj = fmt
+                            break
+
+                    # If not found, use first available
+                    if not format_obj and formats:
+                        format_obj = formats[0]
+
+                    if not format_obj:
+                        return format_error_response(
+                            error_msg=f"Book {selected_book_id} has no available formats.",
+                            error_code="NO_FORMATS",
+                            error_type="ValueError",
+                            operation=operation,
+                            suggestions=["Check that the book has file formats in the library"],
+                            related_tools=["manage_books"],
+                        )
+
+                    # Build file path
+                    file_format = format_obj.format.upper()
+                    file_name = format_obj.name if format_obj.name else f"{book_obj.title}.{format_obj.format.lower()}"
+                    # Ensure filename has extension
+                    if not file_name.lower().endswith(f".{format_obj.format.lower()}"):
+                        file_name = f"{file_name}.{format_obj.format.lower()}"
+                    # Clean filename
+                    import re
+                    file_name = re.sub(r'[<>:"/\\|?*]', '_', file_name)
+                    file_path = Path(first_lib_path) / book_obj.path / file_name
+
+                    # If file doesn't exist, try without extension
+                    if not file_path.exists():
+                        file_path_no_ext = Path(first_lib_path) / book_obj.path / format_obj.name
+                        if file_path_no_ext.exists():
+                            file_path = file_path_no_ext
+
+                    if not file_path.exists():
+                        return format_error_response(
+                            error_msg=f"File not found: {file_path}",
+                            error_code="FILE_NOT_FOUND",
+                            error_type="FileNotFoundError",
+                            operation=operation,
+                            suggestions=["Verify the book file exists in the library"],
+                            related_tools=["manage_books"],
+                        )
+
+                    # Open file with system default application
+                    file_path_str = str(file_path.resolve())
+                    system = platform.system()
+
+                    if system == "Windows":
+                        os.startfile(file_path_str)
+                    elif system == "Darwin":  # macOS
+                        subprocess.run(["open", file_path_str], check=False)
+                    else:  # Linux and others
+                        subprocess.run(["xdg-open", file_path_str], check=False)
+
+                    return {
+                        "success": True,
+                        "book_id": selected_book_id,
+                        "title": selected_title,
+                        "author": selected_author,
+                        "file_path": file_path_str,
+                        "format": file_format,
+                        "message": f"Opened random book: {selected_title} by {selected_author}",
+                    }
+
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"author": author, "tag": tag, "series": series, "format_preference": format_preference},
+                    tool_name="manage_viewer",
+                    context="Opening random book",
+                )
+
+        # Validate book_id and file_path for other operations
+        if not book_id:
+            return format_error_response(
+                error_msg=f"book_id is required for operation '{operation}'. Use 'open_random' operation if you want to search and open a random book.",
+                error_code="MISSING_BOOK_ID",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Provide book_id parameter",
+                    "Or use operation='open_random' with author/tag/series filters",
+                ],
+                related_tools=["query_books", "manage_viewer"],
+            )
+
+        if not file_path:
+            return format_error_response(
+                error_msg=f"file_path is required for operation '{operation}'. Use 'open_random' operation if you want to search and open a random book.",
+                error_code="MISSING_FILE_PATH",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Provide file_path parameter",
+                    "Or use operation='open_random' with author/tag/series filters",
+                ],
+                related_tools=["query_books", "manage_viewer"],
+            )
+
         # Validate file_path exists for operations that need it
         if operation != "close":  # close doesn't need file validation
             file_path_obj = Path(file_path)
@@ -574,7 +821,7 @@ async def manage_viewer(
             return format_error_response(
                 error_msg=(
                     f"Invalid operation: '{operation}'. Must be one of: "
-                    "'open', 'get_page', 'get_metadata', 'get_state', 'update_state', 'close', 'open_file'"
+                    "'open', 'get_page', 'get_metadata', 'get_state', 'update_state', 'close', 'open_file', 'open_random'"
                 ),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",
@@ -587,6 +834,7 @@ async def manage_viewer(
                     "Use operation='update_state' to save reading progress",
                     "Use operation='close' to close a viewer session",
                     "Use operation='open_file' to open book in default application",
+                    "Use operation='open_random' to search and open a random book (requires author/tag/series filter)",
                 ],
                 related_tools=["manage_viewer"],
             )

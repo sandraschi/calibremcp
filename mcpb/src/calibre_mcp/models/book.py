@@ -98,7 +98,7 @@ class BookBase(BaseModel):
     lccn: Optional[str] = Field(None, description="Library of Congress Control Number")
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Pydantic V2 replacement for orm_mode
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
 

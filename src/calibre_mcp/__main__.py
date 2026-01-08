@@ -30,6 +30,13 @@ if _is_stdio_transport:
         # If we can't redirect, at least suppress warnings
         pass
 
+    # Also suppress FastMCP internal logging that interferes with MCP protocol
+    import logging
+    logging.getLogger('mcp').setLevel(logging.WARNING)
+    logging.getLogger('mcp.server').setLevel(logging.WARNING)
+    logging.getLogger('mcp.server.lowlevel').setLevel(logging.WARNING)
+    logging.getLogger('mcp.server.lowlevel.server').setLevel(logging.WARNING)
+
 # Standard imports
 from .server import main
 

@@ -909,7 +909,7 @@ def _generate_styled_html(
         "<body>",
         '    <div class="container">',
         "        <header>",
-        "            <h1>📚 Calibre Library Export</h1>",
+        "            <h1>Calibre Library Export</h1>",
         "        </header>",
         '        <div class="export-info">',
         "            <h2>Export Information</h2>",

@@ -77,6 +77,14 @@ def create_test_database():
         )
     """)
 
+    # Ratings table
+    cursor.execute("""
+        CREATE TABLE ratings (
+            id INTEGER PRIMARY KEY,
+            rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5)
+        )
+    """)
+
     # Comments table
     cursor.execute("""
         CREATE TABLE comments (
@@ -126,6 +134,15 @@ def create_test_database():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE books_ratings_link (
+            id INTEGER PRIMARY KEY,
+            book INTEGER NOT NULL,
+            rating INTEGER NOT NULL,
+            UNIQUE(book, rating)
+        )
+    """)
+
     # Foreign keys
     cursor.execute("""
         CREATE INDEX idx_books_authors_book ON books_authors_link(book)
@@ -141,6 +158,12 @@ def create_test_database():
     """)
     cursor.execute("""
         CREATE INDEX idx_books_series_book ON books_series_link(book)
+    """)
+    cursor.execute("""
+        CREATE INDEX idx_books_ratings_book ON books_ratings_link(book)
+    """)
+    cursor.execute("""
+        CREATE INDEX idx_books_ratings_rating ON books_ratings_link(rating)
     """)
     cursor.execute("""
         CREATE INDEX idx_data_book ON data(book)
@@ -174,6 +197,16 @@ def create_test_database():
         (1, "Sherlock Holmes", "Holmes, Sherlock"),
     ]
     cursor.executemany("INSERT INTO series (id, name, sort) VALUES (?, ?, ?)", series)
+
+    # Insert sample ratings (1-5 scale)
+    ratings = [
+        (1, 1),  # 1 star
+        (2, 2),  # 2 stars
+        (3, 3),  # 3 stars
+        (4, 4),  # 4 stars
+        (5, 5),  # 5 stars
+    ]
+    cursor.executemany("INSERT INTO ratings (id, rating) VALUES (?, ?)", ratings)
 
     # Insert sample books
     # Format: (id, title, sort, path, flags, uuid, has_cover, series_index, author_sort, isbn, lccn)
@@ -274,6 +307,17 @@ def create_test_database():
     ]
     cursor.executemany(
         "INSERT INTO books_series_link (id, book, series) VALUES (?, ?, ?)", book_series
+    )
+
+    # Link books to ratings
+    book_ratings = [
+        (1, 1, 5),  # A Study in Scarlet -> 5 stars
+        (2, 2, 4),  # The Sign of the Four -> 4 stars
+        (3, 3, 5),  # Pride and Prejudice -> 5 stars
+        (4, 4, 4),  # Tom Sawyer -> 4 stars
+    ]
+    cursor.executemany(
+        "INSERT INTO books_ratings_link (id, book, rating) VALUES (?, ?, ?)", book_ratings
     )
 
     # Insert comments

@@ -99,14 +99,14 @@ def setup_logging(
     # Configure handlers
     handlers = {}
 
-    # For MCP servers: NO console logging (stdout/stderr reserved for JSON-RPC)
-    # Logs go to file only for stdio transport compatibility
+    # For MCP servers: stderr logging is OK (stdout reserved for JSON-RPC protocol)
+    # MCP spec allows stderr for logging/debugging, stdout must be clean for JSON-RPC
     if enable_console:
         handlers["console"] = {
             "class": "logging.StreamHandler",
             "level": level,
             "formatter": "structured",
-            "stream": "ext://sys.stderr",
+            "stream": "ext://sys.stderr",  # stderr is safe for MCP servers
             "filters": ["correlation_id"],
         }
 

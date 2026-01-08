@@ -15,6 +15,57 @@ Phase 2 adds 19 additional tools:
 - Austrian Efficiency Specials (3 tools)
 """
 
+# CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
+# Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
+# This must happen BEFORE any imports that might write to stdout
+import os
+import sys
+
+if os.name == 'nt':  # Windows only
+    try:
+        # Force binary mode for stdin/stdout to prevent CRLF conversion
+        import msvcrt
+        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
+        msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+    except (OSError, AttributeError):
+        # Fallback: just ensure no CRLF conversion
+        pass
+
+# DevNullStdout class for stdio mode suppression
+class DevNullStdout:
+    def __init__(self, original_stdout):
+        self.original_stdout = original_stdout
+
+    def write(self, data):
+        # Suppress all writes to stdout during initialization
+        pass
+
+    def flush(self):
+        pass
+
+    def restore(self):
+        sys.stdout = self.original_stdout
+
+# CRITICAL: Suppress all warnings before any imports
+# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
+import warnings
+
+# Suppress all warnings immediately and aggressively
+warnings.filterwarnings("ignore")
+warnings.simplefilter("ignore")
+# Suppress specific warning categories
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
+# For MCP stdio transport, we need to prevent ANY output to stderr
+# Warnings are printed to stderr, which breaks JSON-RPC protocol
+# Note: This is handled in __main__.py before imports
+
+# CRITICAL: Detect if we're running in stdio mode (MCP server)
+# MCP servers use stdio transport, so stdout must be clean for JSON-RPC
+_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, 'isatty') else True
+
 from typing import Optional, List, Dict, Any, AsyncContextManager
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -143,9 +194,12 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                     # Update config to use this library
                     config.local_library_path = library_to_load
                     # Persist to storage
-                    await storage.set_current_library(current_library)
+                    try:
+                        await storage.set_current_library(current_library)
+                    except Exception as storage_e:
+                        logger.warning(f"Could not persist library to storage: {storage_e}")
                     logger.info(
-                        f"✅ Database initialized with library: {current_library} at {library_to_load}"
+                        f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
                     )
                 except Exception as e:
                     logger.error(f"Failed to initialize database: {e}", exc_info=True)
@@ -167,7 +221,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                         config.local_library_path = library_to_load
                         await storage.set_current_library(current_library)
                         logger.info(
-                            f"✅ Database initialized with discovered library: {current_library} at {library_to_load}"
+                            f"Database initialized with discovered library: {current_library} at {library_to_load}"
                         )
                     except Exception as e:
                         logger.error(f"Failed to initialize database: {e}", exc_info=True)
@@ -175,13 +229,13 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                             f"Cannot initialize database at {metadata_db}: {e}"
                         ) from e
                 else:
-                    logger.warning(
-                        "⚠️ No Calibre libraries found. Server starting without library - use 'manage_libraries(operation=\"list\")' to see available libraries"
-                    )
+                    error_msg = f"metadata.db not found at {metadata_db.absolute()}"
+                    logger.error(error_msg)
+                    raise FileNotFoundError(error_msg)
             else:
-                logger.warning(
-                    "⚠️ No Calibre libraries found. Server starting without library - use 'manage_libraries(operation=\"list\")' to see available libraries"
-                )
+                error_msg = "No libraries discovered, cannot initialize database"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
 
         log_operation(logger, "server_lifespan_ready", level="INFO")
 
@@ -212,6 +266,27 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
 # macOS: ~/Library/Application Support/calibre-mcp
 # Linux: ~/.local/share/calibre-mcp
 mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
+
+# CRITICAL: After server initialization, restore stdout for stdio mode
+# This allows the server to communicate via JSON-RPC while preventing initialization logging
+if _is_stdio_mode:
+    if hasattr(sys.stdout, 'restore'):
+        sys.stdout.restore()
+        # Now we can safely write to stdout for JSON-RPC communication
+
+    # Note: Original logging functionality is restored via setup_logging()
+
+    # Set up proper logging to stderr only (not stdout)
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stderr  # Critical: log to stderr, not stdout
+    )
+
+# Register prompt templates
+from .prompts import register_prompts
+register_prompts(mcp)
 
 
 # ==================== RESPONSE MODELS ====================
@@ -396,11 +471,21 @@ class ReadingRecommendations(BaseModel):
 # ==================== HELPER FUNCTIONS ====================
 
 
-async def get_api_client() -> CalibreAPIClient:
-    """Get or create API client instance"""
+async def get_api_client() -> Optional[CalibreAPIClient]:
+    """
+    Get or create API client instance for remote Calibre Content Server access.
+
+    Only creates HTTP client if use_remote=True in config.
+    For local libraries, this returns None and tools should use direct SQLite access.
+    """
     global api_client
+    config = CalibreConfig()
+
+    # Only create HTTP client if remote access is enabled
+    if not config.use_remote:
+        return None
+
     if api_client is None:
-        config = CalibreConfig()
         api_client = CalibreAPIClient(config)
         await api_client.initialize()
     return api_client
@@ -478,7 +563,9 @@ def main():
         mcp.run(show_banner=False)
 
     except Exception as e:
+        # Log error to file only (no stdout/stderr output for MCP stdio protocol)
         log_error(logger, "server_startup_error", e)
+        # Re-raise to let FastMCP handle it properly
         raise
 
 

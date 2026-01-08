@@ -1,0 +1,16 @@
+{
+  "examples": [
+    {
+      "description": "Basic usage example",
+      "commands": ["command1()", "command2()"],
+      "expected_result": "Expected outcome"
+    }
+  ],
+  "workflows": {
+    "basic_workflow": [
+      "Step 1",
+      "Step 2",
+      "Step 3"
+    ]
+  }
+}

@@ -14,7 +14,7 @@ import inspect
 import logging
 from pathlib import Path
 
-# Set up logging
+# Set up logging (stderr is OK for MCP servers)
 logger = logging.getLogger(__name__)
 
 # Type variable for tool functions
@@ -123,6 +123,11 @@ def discover_tools() -> List[Type["BaseTool"]]:
     return tool_classes
 
 
+# @mcp.tool()
+# async def test_tool() -> str:
+#     """Simple test tool to verify MCP is working."""
+#     return "MCP is working!"
+
 def register_tools(mcp: Any) -> None:
     """
     Register all tools with an MCP server instance.
@@ -135,98 +140,101 @@ def register_tools(mcp: Any) -> None:
     Args:
         mcp: MCP server instance (FastMCP or similar)
     """
+    import_count = 0
+    error_count = 0
+
     # Import all tool modules to trigger auto-registration of @mcp.tool() decorated functions
     # These are already registered when imported (FastMCP 2.13+ behavior)
-    from .core import tools as _core_tools  # noqa: F401
-    from .library import tools as _library_tools  # noqa: F401 - Includes manage_libraries portmanteau
-    from .analysis import tools as _analysis_tools  # noqa: F401
-    from .analysis import manage_analysis  # noqa: F401 - Portmanteau tool
-    from .metadata import tools as _metadata_tools  # noqa: F401
-    from .files import tools as _file_tools  # noqa: F401
-    from .specialized import tools as _specialized_tools  # noqa: F401
-    from .system import tools as _system_tools  # noqa: F401
-
-    # NOTE: Individual system tools (help, status, etc.) are deprecated
-    # They are now accessed via manage_system portmanteau tool
-    # Helper functions (help_helper, status_helper, etc.) are imported by manage_system
-    # No need to import them here - they don't have @mcp.tool() decorators
-
-    # NOTE: Individual export tools (export_books_csv, etc.) are deprecated
-    # They are now accessed via export_books portmanteau tool
-    # Helper functions are imported by export_books_portmanteau
-    # No need to import them here - they don't have @mcp.tool() decorators
-    from .ocr import tools as _ocr_tools  # noqa: F401
-
-    # DEPRECATED: Individual tag tools removed - use manage_tags portmanteau tool instead
-    # from .tag_tools import (
-    #     list_tags,
-    #     get_tag,
-    #     create_tag,
-    #     update_tag,
-    #     delete_tag,
-    #     find_duplicate_tags,
-    #     merge_tags,
-    #     get_unused_tags,
-    #     delete_unused_tags,
-    # )
-
-    # Import book_management to register portmanteau tools
-    from .book_management import query_books, manage_books  # noqa: F401 - Portmanteau tools
-
-    # Import authors portmanteau tool
-    from .authors import manage_authors  # noqa: F401 - Portmanteau tool
-
-    # Import tags portmanteau tool
-    from .tags import manage_tags  # noqa: F401 - Portmanteau tool
-
-    # Import comments portmanteau tool
-    from .comments import manage_comments  # noqa: F401 - Portmanteau tool
-
-    # Import viewer portmanteau tool
-    from .viewer import manage_viewer  # noqa: F401 - Portmanteau tool
-
-    # Import specialized portmanteau tool
-    from .specialized import manage_specialized  # noqa: F401 - Portmanteau tool
-
-    # Import metadata portmanteau tool
-    from .metadata import manage_metadata  # noqa: F401 - Portmanteau tool
-
-    # Import files portmanteau tool
-    from .files import manage_files  # noqa: F401 - Portmanteau tool
-
-    # Import system portmanteau tool
-    from .system import manage_system  # noqa: F401 - Portmanteau tool
-
-    # Import analysis portmanteau tools
-    from .analysis import analyze_library  # noqa: F401 - Portmanteau tool
-
-    # Import advanced features portmanteau tools
-    from .advanced_features import manage_bulk_operations  # noqa: F401 - Portmanteau tool
-    from .advanced_features import manage_content_sync  # noqa: F401 - Portmanteau tool
-
-    # Import user management portmanteau tool
-    from .user_management import manage_users  # noqa: F401 - Portmanteau tool
-
-    # Import export portmanteau tool
-    from .import_export import export_books  # noqa: F401 - Portmanteau tool
-
+    import_modules = [
+        (".core", "tools", "_core_tools"),
+        (".library", "tools", "_library_tools"),
+        (".analysis", "tools", "_analysis_tools"),
+        (".analysis", "manage_analysis", None),
+        (".metadata", "tools", "_metadata_tools"),
+        (".files", "tools", "_file_tools"),
+        (".specialized", "tools", "_specialized_tools"),
+        (".system", "tools", "_system_tools"),
+        (".ocr", "tools", "_ocr_tools"),
+        (".book_management", "query_books", None),
+        (".book_management", "manage_books", None),
+        (".authors", "manage_authors", None),
+        (".tags", "manage_tags", None),
+        (".comments", "manage_comments", None),
+        (".viewer", "manage_viewer", None),
+        (".specialized", "manage_specialized", None),
+        (".metadata", "manage_metadata", None),
+        (".files", "manage_files", None),
+        (".system", "manage_system", None),
+        (".analysis", "analyze_library", None),
+        (".advanced_features", "manage_bulk_operations", None),
+        (".advanced_features", "manage_content_sync", None),
+        (".user_management", "manage_users", None),
+        (".import_export", "export_books", None),
+    ]
+    
+    for module_path, attr_name, alias in import_modules:
+        try:
+            if attr_name == "tools":
+                # Import as module
+                module = importlib.import_module(f"calibre_mcp.tools{module_path}.{attr_name}", package="calibre_mcp.tools")
+                import_count += 1
+                logger.debug(f"Imported {module_path}.{attr_name}")
+            else:
+                # Import specific attribute
+                module = importlib.import_module(f"calibre_mcp.tools{module_path}", package="calibre_mcp.tools")
+                if hasattr(module, attr_name):
+                    getattr(module, attr_name)  # Trigger decorator execution
+                    import_count += 1
+                    logger.debug(f"Imported {module_path}.{attr_name}")
+                else:
+                    logger.warning(f"Module {module_path} does not have attribute {attr_name}")
+                    error_count += 1
+        except Exception as e:
+            error_count += 1
+            logger.error(f"Failed to import {module_path}.{attr_name}: {e}", exc_info=True)
+    
     # Only register BaseTool classes (functions with @mcp.tool() are already auto-registered)
     tool_classes: List[Type[BaseTool]] = []
 
     # Import BaseTool classes that need explicit registration
-    # BookTools removed - use manage_books portmanteau tool instead
-    # ViewerTools removed - use manage_viewer portmanteau tool instead
-    # AuthorTools removed - use manage_authors portmanteau tool instead
-    from .ocr.calibre_ocr_tool import OCRTool
-
-    tool_classes = [OCRTool]
-    # Only OCRTool remains - specialized tool that doesn't fit portmanteau pattern
+    try:
+        from .ocr.calibre_ocr_tool import OCRTool
+        tool_classes = [OCRTool]
+        logger.debug("Imported OCRTool")
+    except Exception as e:
+        logger.error(f"Failed to import OCRTool: {e}", exc_info=True)
 
     # Register BaseTool classes
+    registered_base_tools = 0
     for tool_class in tool_classes:
-        tool_class.register(mcp)
+        try:
+            tool_class.register(mcp)
+            registered_base_tools += 1
+            logger.debug(f"Registered BaseTool: {tool_class.__name__}")
+        except Exception as e:
+            logger.error(f"Failed to register BaseTool {tool_class.__name__}: {e}", exc_info=True)
 
-    # Log registration
+    # Get count of registered tools from FastMCP
+    try:
+        # FastMCP stores tools in mcp._tools or similar
+        if hasattr(mcp, '_tools'):
+            registered_tools_count = len(mcp._tools)
+        elif hasattr(mcp, 'tools'):
+            registered_tools_count = len(mcp.tools) if isinstance(mcp.tools, dict) else 0
+        else:
+            registered_tools_count = "unknown"
+    except Exception:
+        registered_tools_count = "unknown"
+
+    # Log registration summary
     logger.info(
-        f"Registered {len(tool_classes)} BaseTool classes (functions auto-registered on import)"
+        f"Tool registration complete: {import_count} modules imported, "
+        f"{error_count} errors, {registered_base_tools} BaseTool classes registered, "
+        f"{registered_tools_count} total tools registered"
     )
+
+    if error_count > 0:
+        logger.warning(f"Tool registration had {error_count} errors - some tools may not be available")
+
+    if registered_tools_count == 0 or registered_tools_count == "unknown":
+        logger.error("No tools registered! Check import errors above.")

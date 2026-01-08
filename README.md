@@ -6,14 +6,15 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
-[![Portmanteau Tools](https://img.shields.io/badge/Tools-18-orange)](docs/development/README.md)
+[![Portmanteau Tools](https://img.shields.io/badge/Tools-21-orange)](docs/development/README.md)
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
 **FastMCP 2.13+ server for comprehensive Calibre e-book library management through Claude Desktop and other MCP clients**
 
 **Features:**
-- **Portmanteau Tools** - ✅ 18 consolidated tools (55% reduction from ~40+ tools)
+- **Portmanteau Tools** - ✅ 21 consolidated tools (18 portmanteau + 3 specialized)
+- **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
@@ -425,6 +426,11 @@ python scripts/check_logs.py --errors-only
 - **Reading Progress** - Track reading progress across devices
 - **Tag Management** - Smart tagging and categorization
 - **Library Statistics** - Detailed insights into your collection
+- **Advanced OCR Processing** - Multiple OCR backends with different capabilities:
+  - **GOT-OCR2.0 Integration**: Revolutionary open-source OCR with formatted text preservation
+  - **ABBYY FineReader CLI**: Traditional commercial OCR with multi-language support
+  - **OCR Modes**: Plain text, formatted text, fine-grained region OCR, HTML rendering
+  - **Auto Provider Selection**: Automatically chooses best available OCR backend
 
 ### AI-Powered Tools
 - **Book Recommendations** - Get personalized book suggestions based on content similarity
@@ -506,6 +512,37 @@ results = await query_books(
 
 # List all books (simple operation, no filters)
 results = await query_books(operation="list", limit=50)
+```
+
+### OCR Processing Examples
+
+```python
+# Auto-select best OCR provider (GOT-OCR2.0 preferred, FineReader fallback)
+result = await process_ocr(source="/path/to/scanned_book.pdf")
+
+# Use GOT-OCR2.0 for formatted text preservation
+result = await process_ocr(
+    source="/path/to/book_page.png",
+    provider="got-ocr",
+    ocr_mode="format",
+    render_html=True
+)
+
+# Traditional FineReader OCR for searchable PDFs
+result = await process_ocr(
+    source="/path/to/scanned_document.pdf",
+    provider="finereader",
+    language="english",
+    output_format="pdf"
+)
+
+# Fine-grained OCR on specific region
+result = await process_ocr(
+    source="/path/to/document.png",
+    provider="got-ocr",
+    ocr_mode="fine-grained",
+    region=[100, 200, 400, 500]  # [x1, y1, x2, y2]
+)
 ```
 
 ### AI-Powered Recommendations

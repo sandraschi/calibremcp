@@ -66,15 +66,7 @@ class AuthorUpdate(BaseModel):
 class AuthorResponse(AuthorBase):
     """Pydantic model for author response"""
 
+    model_config = {"from_attributes": True}
+
     id: int = Field(..., description="Unique identifier for the author")
     book_count: int = Field(0, description="Number of books by this author")
-
-    @classmethod
-    def from_orm(cls, obj):
-        """Create response model from ORM object"""
-        data = super().from_orm(obj)
-        if hasattr(obj, "book_count"):
-            data.book_count = obj.book_count
-        elif hasattr(obj, "books"):
-            data.book_count = len(obj.books)
-        return data

@@ -2,66 +2,18 @@
 List Books Tool
 
 This module provides functionality to list and search books in the Calibre library.
+Uses BookService for proper database queries instead of mock data.
 """
 
-import logging
 from typing import Dict, Any, Optional
 
-from fastmcp import MCPServerError
-from ...models import BookFormat, BookStatus
+from ...tools.compat import MCPServerError
+from ...logging_config import get_logger
+from ...services.book_service import book_service
 
-# Import the tool decorator from the parent package
-from .. import tool
-
-logger = logging.getLogger("calibremcp.tools.library_operations")
+logger = get_logger("calibremcp.tools.library_operations")
 
 
-@tool(
-    name="list_books",
-    description="List books in the library with optional filtering and pagination",
-    parameters={
-        "query": {"type": "string", "description": "Search query string", "default": ""},
-        "author": {"type": "string", "description": "Filter by author", "default": ""},
-        "tag": {"type": "string", "description": "Filter by tag", "default": ""},
-        "format": {
-            "type": "string",
-            "description": "Filter by format",
-            "enum": [fmt.value for fmt in BookFormat],
-            "default": "",
-        },
-        "status": {
-            "type": "string",
-            "description": "Filter by reading status",
-            "enum": [s.value for s in BookStatus],
-            "default": "",
-        },
-        "limit": {
-            "type": "integer",
-            "description": "Maximum number of results to return",
-            "minimum": 1,
-            "maximum": 1000,
-            "default": 50,
-        },
-        "offset": {
-            "type": "integer",
-            "description": "Offset for pagination",
-            "minimum": 0,
-            "default": 0,
-        },
-        "sort_by": {
-            "type": "string",
-            "description": "Field to sort by",
-            "enum": ["title", "author", "date_added", "pubdate", "rating"],
-            "default": "title",
-        },
-        "sort_order": {
-            "type": "string",
-            "description": "Sort order",
-            "enum": ["asc", "desc"],
-            "default": "asc",
-        },
-    },
-)
 async def list_books(
     query: str = "",
     author: str = "",
@@ -77,107 +29,110 @@ async def list_books(
     """
     List books in the library with optional filtering and pagination.
 
+    Uses BookService to query the actual Calibre database instead of mock data.
+
     Args:
-        query: Search query string
-        author: Filter by author
-        tag: Filter by tag
-        format: Filter by format
-        status: Filter by reading status
-        limit: Maximum number of results to return
-        offset: Offset for pagination
-        sort_by: Field to sort by
-        sort_order: Sort order (asc/desc)
-        library_path: Path to the Calibre library
+        query: Search query string (searches title, author, series, tags)
+        author: Filter by author name (case-insensitive partial match)
+        tag: Filter by tag name (case-insensitive partial match)
+        format: Filter by format (e.g., "epub", "pdf")
+        status: Filter by reading status (unread, reading, finished, abandoned)
+        limit: Maximum number of results to return (1-1000, default: 50)
+        offset: Offset for pagination (default: 0)
+        sort_by: Field to sort by (title, author, date_added, pubdate, rating)
+        sort_order: Sort order (asc/desc, default: asc)
+        library_path: Path to the Calibre library (optional, uses active library)
 
     Returns:
-        Dictionary containing the list of books and pagination info
+        Dictionary containing:
+        - books: List of book dictionaries
+        - total_count: Total number of matching books
+        - offset: Current offset
+        - limit: Current limit
+        - has_more: Whether there are more results
 
     Raises:
         MCPServerError: If there's an error listing books
     """
     try:
-        # In a real implementation, this would query a database
-        # For now, we'll return a mock response
-
-        # Mock data - in a real implementation, this would come from a database
-        mock_books = [
-            {
-                "id": "a1b2c3d4",
-                "title": "Example Book 1",
-                "authors": ["Author One", "Author Two"],
-                "formats": ["epub", "pdf"],
-                "tags": ["fiction", "sci-fi"],
-                "rating": 4.5,
-                "publisher": "Example Publisher",
-                "pubdate": "2023-01-01",
-                "size": 1024000,
-                "description": "This is an example book description.",
-                "series": "Example Series",
-                "series_index": 1,
-                "languages": ["en"],
-                "status": "unread",
-                "progress": 0.0,
-                "date_added": "2023-01-01T00:00:00",
-                "cover_url": "/covers/a1b2c3d4",
-            },
-            # Add more mock books as needed
-        ]
-
-        # Apply filters (in a real implementation, this would be done in the database query)
-        filtered_books = []
-        for book in mock_books:
-            # Apply query filter
-            if query and query.lower() not in book["title"].lower():
-                continue
-
-            # Apply author filter
-            if author and not any(author.lower() in a.lower() for a in book["authors"]):
-                continue
-
-            # Apply tag filter
-            if tag and tag.lower() not in [t.lower() for t in book["tags"]]:
-                continue
-
-            # Apply format filter
-            if format and format.lower() not in book["formats"]:
-                continue
-
-            # Apply status filter
-            if status and status.lower() != book["status"].lower():
-                continue
-
-            filtered_books.append(book)
-
-        # Apply sorting (in a real implementation, this would be done in the database query)
-        reverse_sort = sort_order.lower() == "desc"
-
-        def get_sort_key(book):
-            if sort_by == "title":
-                return book["title"].lower()
-            elif sort_by == "author":
-                return book["authors"][0].lower() if book["authors"] else ""
-            elif sort_by == "date_added":
-                return book.get("date_added", "")
-            elif sort_by == "pubdate":
-                return book.get("pubdate", "")
-            elif sort_by == "rating":
-                return book.get("rating", 0)
-            return ""
-
-        filtered_books.sort(key=get_sort_key, reverse=reverse_sort)
-
-        # Apply pagination
-        total_books = len(filtered_books)
-        paginated_books = filtered_books[offset : offset + limit]
-
+        # Validate inputs
+        if limit < 1 or limit > 1000:
+            raise ValueError("Limit must be between 1 and 1000")
+        
+        if offset < 0:
+            raise ValueError("Offset cannot be negative")
+        
+        # Map sort_by to BookService's expected values
+        sort_field_map = {
+            "title": "title",
+            "author": "author",
+            "date_added": "timestamp",
+            "pubdate": "pubdate",
+            "rating": "rating",
+        }
+        
+        book_sort_by = sort_field_map.get(sort_by.lower(), "title")
+        
+        # Build BookService query parameters
+        search_term = query if query else None
+        author_name = author if author else None
+        tag_name = tag if tag else None
+        
+        # Note: BookService doesn't directly support format or status filtering
+        # We'll filter those after getting results, or extend BookService if needed
+        
+        # Query books using BookService
+        result = book_service.list(
+            skip=offset,
+            limit=limit,
+            search=search_term,
+            author_name=author_name,
+            tag_name=tag_name,
+            sort_by=book_sort_by,
+            sort_order=sort_order.lower(),
+        )
+        
+        books = result.get("items", [])
+        total_count = result.get("total", 0)
+        
+        # Apply format filter if specified
+        if format:
+            format_upper = format.upper()
+            filtered_books = []
+            for book in books:
+                book_formats = book.get("formats", [])
+                # Check if any format matches (formats are usually uppercase in BookService)
+                if any(fmt.upper() == format_upper for fmt in book_formats):
+                    filtered_books.append(book)
+            books = filtered_books
+            # Recalculate total (this is approximate since we filtered after pagination)
+            # In a full implementation, format filtering would be done in the database query
+        
+        # Apply status filter if specified
+        if status:
+            status_lower = status.lower()
+            filtered_books = []
+            for book in books:
+                book_status = book.get("status", "").lower()
+                if book_status == status_lower:
+                    filtered_books.append(book)
+            books = filtered_books
+            # Recalculate total (this is approximate since we filtered after pagination)
+            # In a full implementation, status filtering would be done in the database query
+        
+        # Calculate has_more
+        has_more = (offset + len(books)) < total_count
+        
         return {
-            "books": paginated_books,
-            "total_count": total_books,
+            "books": books,
+            "total_count": total_count,
             "offset": offset,
             "limit": limit,
-            "has_more": (offset + len(paginated_books)) < total_books,
+            "has_more": has_more,
         }
-
+    
+    except ValueError as e:
+        raise MCPServerError(f"Invalid input: {str(e)}")
     except Exception as e:
         logger.error(f"Error listing books: {e}", exc_info=True)
         raise MCPServerError(f"Failed to list books: {str(e)}")

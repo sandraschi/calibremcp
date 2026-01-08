@@ -1,7 +1,15 @@
 """
 Export books to various formats (CSV, JSON, etc.).
 
-FastMCP 2.12 compliant - uses @mcp.tool() decorator.
+DEPRECATED: These individual export functions are deprecated in favor of the export_books
+portmanteau tool (see tools/import_export/export_books_portmanteau.py). These functions are kept
+as helpers but are no longer registered with FastMCP 2.13+.
+
+Use export_books(operation="...") instead:
+- export_books_csv() → export_books(operation="csv", ...)
+- export_books_json() → export_books(operation="json", ...)
+- export_books_html() → export_books(operation="html", ...)
+- export_books_pandoc() → export_books(operation="pandoc", ...)
 """
 
 import csv
@@ -15,7 +23,6 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from ...server import mcp
 from ...services.book_service import book_service
 from ...logging_config import get_logger
 
@@ -129,7 +136,7 @@ def _generate_intelligent_filename(
     return f"{filename}.{format_ext}"
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_csv(
     output_path: Optional[str] = None,
     book_ids: Optional[List[int]] = None,
@@ -341,7 +348,7 @@ async def export_books_csv(
         return {"success": False, "error": str(e), "file_path": None, "books_exported": 0}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_json(
     output_path: Optional[str] = None,
     book_ids: Optional[List[int]] = None,
@@ -488,7 +495,7 @@ async def export_books_json(
         return {"success": False, "error": str(e), "file_path": None, "books_exported": 0}
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_html(
     output_path: Optional[str] = None,
     book_ids: Optional[List[int]] = None,
@@ -902,7 +909,7 @@ def _generate_styled_html(
         "<body>",
         '    <div class="container">',
         "        <header>",
-        "            <h1>📚 Calibre Library Export</h1>",
+        "            <h1>Calibre Library Export</h1>",
         "        </header>",
         '        <div class="export-info">',
         "            <h2>Export Information</h2>",
@@ -1091,7 +1098,7 @@ def _generate_styled_html(
     return "\n".join(html_parts)
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_pandoc(
     output_path: Optional[str] = None,
     format_type: str = "docx",

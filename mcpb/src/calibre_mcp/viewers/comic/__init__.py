@@ -5,11 +5,15 @@ Comic viewer module for CalibreMCP - Handles CBZ and CBR formats.
 from typing import Dict, Any
 from pathlib import Path
 import zipfile
-import rarfile
 import base64
 import re
 from enum import Enum
 import os
+
+try:
+    import rarfile
+except ImportError:
+    rarfile = None  # Optional dependency
 
 
 class ReadingDirection(str, Enum):
@@ -68,6 +72,8 @@ class ComicViewer:
                     if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
                 ]
             elif ext == "cbr":
+                if rarfile is None:
+                    raise ImportError("rarfile is required for CBR viewing. Install it with: pip install rarfile")
                 self._archive = rarfile.RarFile(file_path, "r")
                 self._file_list = [
                     f

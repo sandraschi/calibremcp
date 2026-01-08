@@ -69,8 +69,9 @@ async def list_books_helper(
         )
 
 
-@mcp.tool()
-async def get_book_details(book_id: int) -> BookDetailResponse:
+# get_book_details removed - migrated to manage_books(operation="details")
+# Use manage_books(operation="details", book_id=...) instead
+async def get_book_details_helper(book_id: int) -> BookDetailResponse:
     """
     Get complete metadata and file information for a specific book.
 
@@ -142,6 +143,10 @@ async def test_calibre_connection() -> ConnectionTestResponse:
     Verifies server connectivity, authentication, and retrieves
     basic server information for troubleshooting purposes.
 
+    **Note:** This tool is for testing REMOTE Calibre Content Server connections.
+    For LOCAL libraries (direct SQLite access), this tool will return connection
+    status indicating local mode is active.
+
     Returns:
         ConnectionTestResponse: Connection status and server diagnostics
     """
@@ -149,7 +154,46 @@ async def test_calibre_connection() -> ConnectionTestResponse:
         start_time = asyncio.get_event_loop().time()
         client = await get_api_client()
 
-        # Test connection
+        # Check if using local library mode (client is None)
+        if client is None:
+            # Local library mode - check database connection instead
+            from calibre_mcp.db.database import get_database
+            from calibre_mcp.config import CalibreConfig
+
+            config = CalibreConfig()
+            db = get_database()
+
+            # Test local database connection
+            try:
+                with db.session_scope() as session:
+                    from calibre_mcp.db.models import Book
+
+                    book_count = session.query(Book).count()
+
+                end_time = asyncio.get_event_loop().time()
+                response_time_ms = int((end_time - start_time) * 1000)
+
+                return ConnectionTestResponse(
+                    connected=True,
+                    server_url="local://"
+                    + (str(config.local_library_path) if config.local_library_path else "local"),
+                    server_version="Local SQLite",
+                    library_count=1,
+                    total_books=book_count,
+                    response_time_ms=response_time_ms,
+                )
+            except Exception as db_e:
+                return ConnectionTestResponse(
+                    connected=False,
+                    server_url="local://unknown",
+                    server_version=None,
+                    library_count=0,
+                    total_books=0,
+                    response_time_ms=0,
+                    error_message=f"Local database connection failed: {str(db_e)}",
+                )
+
+        # Remote server mode - test HTTP connection
         server_info = await client.test_connection()
 
         end_time = asyncio.get_event_loop().time()

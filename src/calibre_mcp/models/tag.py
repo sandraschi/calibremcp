@@ -63,15 +63,7 @@ class TagUpdate(BaseModel):
 class TagResponse(TagBase):
     """Pydantic model for tag response"""
 
+    model_config = {"from_attributes": True}
+
     id: int = Field(..., description="Unique identifier for the tag")
     book_count: int = Field(0, description="Number of books with this tag")
-
-    @classmethod
-    def from_orm(cls, obj):
-        """Create response model from ORM object"""
-        data = super().from_orm(obj)
-        if hasattr(obj, "book_count"):
-            data.book_count = obj.book_count
-        elif hasattr(obj, "books"):
-            data.book_count = len(obj.books)
-        return data

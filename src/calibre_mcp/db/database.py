@@ -3,7 +3,8 @@ Database service for managing SQLAlchemy connections and sessions.
 """
 
 import os
-from typing import TypeVar, Any
+import logging
+from typing import TypeVar, Any, Optional
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, event
@@ -14,6 +15,9 @@ from .models import Base
 from .repositories import BookRepository, AuthorRepository, LibraryRepository
 
 T = TypeVar("T")
+
+# Get logger once at module level (stderr logging is OK for MCP servers)
+logger = logging.getLogger("calibremcp.db.database")
 
 
 class DatabaseService:
@@ -35,6 +39,7 @@ class DatabaseService:
         self._session_factory = None
         self._repositories = {}
         self._initialized = True
+        self._current_db_path = None
 
     def initialize(self, db_url: str, echo: bool = False, force: bool = False) -> None:
         """
@@ -45,18 +50,46 @@ class DatabaseService:
             echo: If True, log all SQL statements
             force: If True, close existing connection and re-initialize (for library switching)
         """
-        # If already initialized and not forcing, return early
-        if self._engine is not None and not force:
-            return
+        if not db_url:
+            raise ValueError("Database URL cannot be None or empty")
 
-        # Close existing connection if forcing re-initialization
+        # If already initialized and not forcing, check if it's the same path
+        if self._engine is not None and not force:
+            if self.is_initialized_with(db_url):
+                return
+            else:
+                logger.warning(
+                    f"Database initialized with different path. Use force=True to switch.",
+                    extra={"service": "database", "action": "skip_reinit_different_path"}
+                )
+                return
+
+        # If forcing, close existing connection
         if force and self._engine is not None:
             self.close()
 
         # Convert path to SQLite URL if it's a file path
-        if "://" not in db_url and os.path.exists(db_url):
-            abs_path = os.path.abspath(db_url).replace("\\\\", "/")
-            db_url = f"sqlite:///{abs_path}"
+        try:
+            if "://" not in db_url and os.path.exists(db_url):
+                abs_path = os.path.abspath(db_url).replace("\\\\", "/")
+                db_url = f"sqlite:///{abs_path}"
+                self._current_db_path = abs_path
+            else:
+                # Extract path from SQLite URL if it's already a URL
+                if db_url.startswith("sqlite:///"):
+                    path_part = db_url.replace("sqlite:///", "").replace("/", os.sep)
+                    self._current_db_path = os.path.abspath(path_part).replace("\\\\", "/")
+                else:
+                    # Store original URL if it's not a file path
+                    self._current_db_path = db_url
+        except (OSError, ValueError, TypeError) as e:
+            logger.error(f"Failed to process database URL: {e}", extra={
+                "service": "database",
+                "action": "process_db_url_failed",
+                "db_url": str(db_url),
+                "error": str(e)
+            })
+            raise ValueError(f"Invalid database URL: {db_url}") from e
 
         self._engine = create_engine(
             db_url,
@@ -138,6 +171,17 @@ class DatabaseService:
             self._engine = None
 
         self._repositories = {}
+        self._current_db_path = None
+
+    def get_current_path(self) -> Optional[str]:
+        """Get the current database path, if initialized."""
+        return self._current_db_path
+
+    def is_initialized_with(self, db_path: str) -> bool:
+        """Check if database is initialized with the given path."""
+        if not self._current_db_path or not self._engine:
+            return False
+        return self._current_db_path == db_path
 
 
 # Global instance

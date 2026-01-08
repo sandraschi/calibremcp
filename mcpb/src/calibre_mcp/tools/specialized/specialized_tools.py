@@ -1,19 +1,26 @@
 """
 Specialized tools for CalibreMCP.
 
-These tools provide specialized functionality including Austrian efficiency
-optimization, Japanese book organization, IT curation, and smart recommendations.
+DEPRECATED: This module is deprecated in favor of the manage_specialized portmanteau tool
+(see tools/specialized/manage_specialized.py). Individual tools are kept for backward
+compatibility but are no longer registered with FastMCP 2.13+.
+
+Use manage_specialized(operation="...") instead of individual tools:
+- japanese_book_organizer() → manage_specialized(operation="japanese_organizer")
+- it_book_curator() → manage_specialized(operation="it_curator")
+- reading_recommendations() → manage_specialized(operation="reading_recommendations")
 """
 
-# Import the MCP server instance
-from ...server import mcp
+# NOTE: @mcp.tool() decorators removed - use manage_specialized portmanteau tool instead
 
-# Import response models
+# Import response models (for type hints)
 from ...server import JapaneseBookOrganization, ITBookCuration, ReadingRecommendations
 
+# NOTE: These functions are NOT registered as tools (no @mcp.tool() decorator)
+# They are kept for reference but should not be used directly
 
-@mcp.tool()
-async def japanese_book_organizer() -> JapaneseBookOrganization:
+
+async def japanese_book_organizer_helper() -> JapaneseBookOrganization:
     """
     Weeb optimization - Organize Japanese library for maximum cultural efficiency.
 
@@ -27,8 +34,7 @@ async def japanese_book_organizer() -> JapaneseBookOrganization:
     pass
 
 
-@mcp.tool()
-async def it_book_curator() -> ITBookCuration:
+async def it_book_curator_helper() -> ITBookCuration:
     """
     IT book curation for Sandra's programming and technology collection.
 
@@ -42,8 +48,7 @@ async def it_book_curator() -> ITBookCuration:
     pass
 
 
-@mcp.tool()
-async def reading_recommendations() -> ReadingRecommendations:
+async def reading_recommendations_helper() -> ReadingRecommendations:
     """
     Austrian efficiency reading recommendations - eliminate decision paralysis.
 

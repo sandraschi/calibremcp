@@ -15,6 +15,7 @@ import jwt
 
 from ...server import mcp
 from ...logging_config import get_logger
+from ..shared.error_handling import handle_tool_error, format_error_response
 from .user_manager import (
     UserCreate,
     UserUpdate,
@@ -74,11 +75,16 @@ async def manage_users(
     """
     Manage users and authentication with multiple operations in a single unified interface.
 
-    This portmanteau tool consolidates all user management operations (creating, updating,
-    deleting, listing users, and authentication) into a single interface. Use the `operation`
-    parameter to select which operation to perform.
+    PORTMANTEAU PATTERN RATIONALE:
+    Instead of creating 7 separate tools (one per operation), this tool consolidates related
+    user management operations into a single interface. This design:
+    - Prevents tool explosion (7 tools → 1 tool) while maintaining full functionality
+    - Improves discoverability by grouping related operations together
+    - Reduces cognitive load when working with user management tasks
+    - Enables consistent user interface across all operations
+    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
 
-    Operations:
+    SUPPORTED OPERATIONS:
     - create_user: Create a new user account
     - update_user: Update an existing user's information
     - delete_user: Delete a user account
@@ -86,6 +92,43 @@ async def manage_users(
     - get_user: Get details for a specific user
     - login: Authenticate a user and get a JWT token
     - verify_token: Verify a JWT token's validity
+
+    OPERATIONS DETAIL:
+
+    create_user: Create a new user account
+    - Creates a user with username, email, password, and role
+    - Parameters: user_data (required) with username, email, password, role
+    - Returns: Created user ID and status
+
+    update_user: Update user information
+    - Updates user fields such as email, role, password, etc.
+    - Parameters: user_id (required), update_data (required)
+    - Returns: Update confirmation
+
+    delete_user: Delete a user account
+    - Removes user from system
+    - Parameters: user_id (required)
+    - Returns: Deletion confirmation
+
+    list_users: List all users
+    - Returns paginated list of all users
+    - Parameters: page (optional, default: 1), per_page (optional, default: 20)
+    - Returns: List of users with pagination info
+
+    get_user: Get user details
+    - Retrieves complete user information by ID
+    - Parameters: user_id (required)
+    - Returns: User data
+
+    login: Authenticate user
+    - Validates credentials and returns JWT token
+    - Parameters: username (required), password (required)
+    - Returns: JWT token and user information
+
+    verify_token: Verify JWT token
+    - Validates JWT token and returns user information
+    - Parameters: token (required)
+    - Returns: Token validity and user information
 
     Prerequisites:
         - For 'create_user': Provide user_data with username, email, password, role
@@ -265,92 +308,136 @@ async def manage_users(
     See Also:
         - UserManagerTool: Legacy tool (deprecated in favor of this portmanteau tool)
     """
-    if operation == "create_user":
-        if not user_data:
-            return {
-                "success": False,
-                "error": "user_data is required for operation='create_user'.",
-                "suggestions": [
-                    "Provide user_data with username, email, password, and role",
-                    "Example: user_data={'username': 'john', 'email': 'john@example.com', 'password': 'pass123', 'role': 'user'}",
+    try:
+        if operation == "create_user":
+            if not user_data:
+                return format_error_response(
+                    error_msg="user_data is required for operation='create_user'.",
+                    error_code="MISSING_USER_DATA",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=[
+                        "Provide user_data with username, email, password, and role",
+                        "Example: user_data={'username': 'john', 'email': 'john@example.com', 'password': 'pass123', 'role': 'user'}",
+                    ],
+                    related_tools=["manage_users"],
+                )
+            return await _handle_create_user(user_data)
+
+        elif operation == "update_user":
+            if not user_id:
+                return format_error_response(
+                    error_msg="user_id is required for operation='update_user'.",
+                    error_code="MISSING_USER_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list_users' to see all available user IDs"],
+                    related_tools=["manage_users"],
+                )
+            if not update_data:
+                return format_error_response(
+                    error_msg="update_data is required for operation='update_user'.",
+                    error_code="MISSING_UPDATE_DATA",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Provide update_data dictionary with fields to update"],
+                    related_tools=["manage_users"],
+                )
+            return await _handle_update_user(user_id, update_data)
+
+        elif operation == "delete_user":
+            if not user_id:
+                return format_error_response(
+                    error_msg="user_id is required for operation='delete_user'.",
+                    error_code="MISSING_USER_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list_users' to see all available user IDs"],
+                    related_tools=["manage_users"],
+                )
+            return await _handle_delete_user(user_id)
+
+        elif operation == "list_users":
+            return await _handle_list_users(page, per_page)
+
+        elif operation == "get_user":
+            if not user_id:
+                return format_error_response(
+                    error_msg="user_id is required for operation='get_user'.",
+                    error_code="MISSING_USER_ID",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Use operation='list_users' to see all available user IDs"],
+                    related_tools=["manage_users"],
+                )
+            return await _handle_get_user(user_id)
+
+        elif operation == "login":
+            if not username:
+                return format_error_response(
+                    error_msg="username is required for operation='login'.",
+                    error_code="MISSING_USERNAME",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Provide username parameter"],
+                    related_tools=["manage_users"],
+                )
+            if not password:
+                return format_error_response(
+                    error_msg="password is required for operation='login'.",
+                    error_code="MISSING_PASSWORD",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Provide password parameter"],
+                    related_tools=["manage_users"],
+                )
+            return await _handle_login(username, password)
+
+        elif operation == "verify_token":
+            if not token:
+                return format_error_response(
+                    error_msg="token is required for operation='verify_token'.",
+                    error_code="MISSING_TOKEN",
+                    error_type="ValueError",
+                    operation=operation,
+                    suggestions=["Provide token parameter from operation='login'"],
+                    related_tools=["manage_users"],
+                )
+            return await _handle_verify_token(token)
+
+        else:
+            return format_error_response(
+                error_msg=(
+                    f"Invalid operation: '{operation}'. Must be one of: "
+                    "'create_user', 'update_user', 'delete_user', 'list_users', "
+                    "'get_user', 'login', 'verify_token'"
+                ),
+                error_code="INVALID_OPERATION",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Use operation='create_user' to create a new user",
+                    "Use operation='update_user' to update user information",
+                    "Use operation='delete_user' to delete a user",
+                    "Use operation='list_users' to list all users",
+                    "Use operation='get_user' to get user details",
+                    "Use operation='login' to authenticate and get a token",
+                    "Use operation='verify_token' to verify a JWT token",
                 ],
-            }
-        return await _handle_create_user(user_data)
-
-    elif operation == "update_user":
-        if not user_id:
-            return {
-                "success": False,
-                "error": "user_id is required for operation='update_user'.",
-                "suggestions": ["Use operation='list_users' to see all available user IDs"],
-            }
-        if not update_data:
-            return {
-                "success": False,
-                "error": "update_data is required for operation='update_user'.",
-                "suggestions": ["Provide update_data dictionary with fields to update"],
-            }
-        return await _handle_update_user(user_id, update_data)
-
-    elif operation == "delete_user":
-        if not user_id:
-            return {
-                "success": False,
-                "error": "user_id is required for operation='delete_user'.",
-                "suggestions": ["Use operation='list_users' to see all available user IDs"],
-            }
-        return await _handle_delete_user(user_id)
-
-    elif operation == "list_users":
-        return await _handle_list_users(page, per_page)
-
-    elif operation == "get_user":
-        if not user_id:
-            return {
-                "success": False,
-                "error": "user_id is required for operation='get_user'.",
-                "suggestions": ["Use operation='list_users' to see all available user IDs"],
-            }
-        return await _handle_get_user(user_id)
-
-    elif operation == "login":
-        if not username:
-            return {
-                "success": False,
-                "error": "username is required for operation='login'.",
-                "suggestions": ["Provide username parameter"],
-            }
-        if not password:
-            return {
-                "success": False,
-                "error": "password is required for operation='login'.",
-                "suggestions": ["Provide password parameter"],
-            }
-        return await _handle_login(username, password)
-
-    elif operation == "verify_token":
-        if not token:
-            return {
-                "success": False,
-                "error": "token is required for operation='verify_token'.",
-                "suggestions": ["Provide token parameter from operation='login'"],
-            }
-        return await _handle_verify_token(token)
-
-    else:
-        return {
-            "success": False,
-            "error": f"Invalid operation: '{operation}'. Must be one of: 'create_user', 'update_user', 'delete_user', 'list_users', 'get_user', 'login', 'verify_token'",
-            "suggestions": [
-                "Use operation='create_user' to create a new user",
-                "Use operation='update_user' to update user information",
-                "Use operation='delete_user' to delete a user",
-                "Use operation='list_users' to list all users",
-                "Use operation='get_user' to get user details",
-                "Use operation='login' to authenticate and get a token",
-                "Use operation='verify_token' to verify a JWT token",
-            ],
-        }
+                related_tools=["manage_users"],
+            )
+    except Exception as e:
+        return handle_tool_error(
+            exception=e,
+            operation=operation,
+            parameters={
+                "operation": operation,
+                "user_id": user_id,
+                "username": username,
+            },
+            tool_name="manage_users",
+            context="User management operation",
+        )
 
 
 async def _handle_create_user(user_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -364,8 +451,13 @@ async def _handle_create_user(user_data: Dict[str, Any]) -> Dict[str, Any]:
 
         return {"success": True, "user_id": "mock_user_id", "message": "User created successfully"}
     except Exception as e:
-        logger.error(f"Error creating user: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to create user: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="create_user",
+            parameters={"user_data": user_data},
+            tool_name="manage_users",
+            context="Creating new user",
+        )
 
 
 async def _handle_update_user(user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -376,8 +468,13 @@ async def _handle_update_user(user_id: str, update_data: Dict[str, Any]) -> Dict
         # In a real implementation, update in database
         return {"success": True, "message": "User updated successfully"}
     except Exception as e:
-        logger.error(f"Error updating user: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to update user: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="update_user",
+            parameters={"user_id": user_id, "update_data": update_data},
+            tool_name="manage_users",
+            context=f"Updating user {user_id}",
+        )
 
 
 async def _handle_delete_user(user_id: str) -> Dict[str, Any]:
@@ -386,8 +483,13 @@ async def _handle_delete_user(user_id: str) -> Dict[str, Any]:
         # In a real implementation, delete from database
         return {"success": True, "message": "User deleted successfully"}
     except Exception as e:
-        logger.error(f"Error deleting user: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to delete user: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="delete_user",
+            parameters={"user_id": user_id},
+            tool_name="manage_users",
+            context=f"Deleting user {user_id}",
+        )
 
 
 async def _handle_list_users(page: int, per_page: int) -> Dict[str, Any]:
@@ -412,8 +514,13 @@ async def _handle_list_users(page: int, per_page: int) -> Dict[str, Any]:
             "pagination": {"page": page, "per_page": per_page, "total": 1, "total_pages": 1},
         }
     except Exception as e:
-        logger.error(f"Error listing users: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to list users: {str(e)}", "users": []}
+        return handle_tool_error(
+            exception=e,
+            operation="list_users",
+            parameters={"page": page, "per_page": per_page},
+            tool_name="manage_users",
+            context="Listing users",
+        )
 
 
 async def _handle_get_user(user_id: str) -> Dict[str, Any]:
@@ -433,10 +540,22 @@ async def _handle_get_user(user_id: str) -> Dict[str, Any]:
             }
             return {"success": True, "user": user}
 
-        return {"success": False, "error": f"User {user_id} not found"}
+        return format_error_response(
+            error_msg=f"User {user_id} not found",
+            error_code="USER_NOT_FOUND",
+            error_type="KeyError",
+            operation="get_user",
+            suggestions=["Use operation='list_users' to see all available users"],
+            related_tools=["manage_users"],
+        )
     except Exception as e:
-        logger.error(f"Error getting user: {e}", exc_info=True)
-        return {"success": False, "error": f"Failed to get user: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="get_user",
+            parameters={"user_id": user_id},
+            tool_name="manage_users",
+            context=f"Getting user {user_id}",
+        )
 
 
 async def _handle_login(username: str, password: str) -> Dict[str, Any]:
@@ -444,14 +563,17 @@ async def _handle_login(username: str, password: str) -> Dict[str, Any]:
     try:
         # Mock authentication - in real implementation, verify against database
         if username != "admin" or password != "admin123":
-            return {
-                "success": False,
-                "error": "Invalid username or password",
-                "suggestions": [
+            return format_error_response(
+                error_msg="Invalid username or password",
+                error_code="INVALID_CREDENTIALS",
+                error_type="ValueError",
+                operation="login",
+                suggestions=[
                     "Check your username and password",
                     "Contact administrator if you forgot your credentials",
                 ],
-            }
+                related_tools=["manage_users"],
+            )
 
         user_data = {
             "id": "mock_admin_id",
@@ -475,8 +597,13 @@ async def _handle_login(username: str, password: str) -> Dict[str, Any]:
             },
         }
     except Exception as e:
-        logger.error(f"Error during login: {e}", exc_info=True)
-        return {"success": False, "error": f"Login failed: {str(e)}"}
+        return handle_tool_error(
+            exception=e,
+            operation="login",
+            parameters={"username": username},
+            tool_name="manage_users",
+            context=f"Logging in user '{username}'",
+        )
 
 
 async def _handle_verify_token(token: str) -> Dict[str, Any]:

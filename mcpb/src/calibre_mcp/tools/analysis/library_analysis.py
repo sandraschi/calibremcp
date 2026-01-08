@@ -1,15 +1,23 @@
 """
 Analysis and statistics tools for CalibreMCP.
 
-These tools provide comprehensive analytics, health checks, and
-statistical analysis of Calibre libraries and reading patterns.
+DEPRECATED: These individual tools are deprecated in favor of the manage_analysis
+portmanteau tool (see tools/analysis/manage_analysis.py). These functions are kept
+as helpers but are no longer registered with FastMCP 2.13+.
+
+Use manage_analysis(operation="...") instead:
+- get_tag_statistics() → manage_analysis(operation="tag_statistics")
+- find_duplicate_books() → manage_analysis(operation="duplicate_books")
+- get_series_analysis() → manage_analysis(operation="series_analysis")
+- analyze_library_health() → manage_analysis(operation="library_health")
+- unread_priority_list() → manage_analysis(operation="unread_priority")
+- reading_statistics() → manage_analysis(operation="reading_stats")
 """
 
 from typing import Dict, List, Any
 from difflib import SequenceMatcher
 
 # Import the MCP server instance
-from ...server import mcp
 
 # Import response models
 from ...server import (
@@ -29,7 +37,8 @@ from ...logging_config import get_logger
 logger = get_logger("calibremcp.tools.library_analysis")
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
+# This function is kept as a helper for backward compatibility
 async def get_tag_statistics() -> TagStatsResponse:
     """
     Analyze tag usage and suggest cleanup operations.
@@ -162,7 +171,7 @@ async def get_tag_statistics() -> TagStatsResponse:
         )
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
 async def find_duplicate_books() -> DuplicatesResponse:
     """
     Find potentially duplicate books within and across libraries.
@@ -177,7 +186,7 @@ async def find_duplicate_books() -> DuplicatesResponse:
     pass
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
 async def get_series_analysis() -> SeriesAnalysisResponse:
     """
     Analyze book series completion and provide reading order recommendations.
@@ -354,7 +363,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
         )
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
 async def analyze_library_health() -> LibraryHealthResponse:
     """
     Perform comprehensive library health check and database integrity analysis.
@@ -369,7 +378,7 @@ async def analyze_library_health() -> LibraryHealthResponse:
     pass
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
 async def unread_priority_list() -> UnreadPriorityResponse:
     """
     Austrian efficiency: Prioritize unread books to eliminate decision paralysis.
@@ -384,7 +393,7 @@ async def unread_priority_list() -> UnreadPriorityResponse:
     pass
 
 
-@mcp.tool()
+# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
 async def reading_statistics() -> ReadingStats:
     """
     Generate personal reading analytics from library database.

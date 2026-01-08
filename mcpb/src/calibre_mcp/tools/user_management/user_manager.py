@@ -1,7 +1,8 @@
 """Tool for managing CalibreMCP users and permissions."""
 
 from typing import Dict, Optional
-from pydantic import BaseModel, EmailStr, Field, validator
+from enum import Enum
+from pydantic import BaseModel, EmailStr, Field, validator, ConfigDict, field_serializer
 from datetime import datetime, timedelta
 from pathlib import Path
 import secrets
@@ -15,7 +16,7 @@ except ImportError:
 
 
 # Models
-class UserRole(str):
+class UserRole(str, Enum):
     """User roles with permissions."""
 
     ADMIN = "admin"  # Full access, including user management
@@ -25,14 +26,14 @@ class UserRole(str):
     @classmethod
     def has_permission(cls, role: str, required: str) -> bool:
         """Check if a role has the required permission level."""
-        hierarchy = {cls.ADMIN: 3, cls.LIBRARIAN: 2, cls.READER: 1}
+        hierarchy = {cls.ADMIN.value: 3, cls.LIBRARIAN.value: 2, cls.READER.value: 1}
         return hierarchy.get(role, 0) >= hierarchy.get(required, 99)
 
 
 class UserCreate(BaseModel):
     """Model for creating a new user."""
 
-    username: str = Field(..., min_length=3, max_length=50, regex=r"^[a-zA-Z0-9_-]+$")
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$")
     email: EmailStr
     password: str = Field(..., min_length=8)
     role: UserRole = UserRole.READER
@@ -69,6 +70,8 @@ class UserUpdate(BaseModel):
 class UserResponse(BaseModel):
     """Response model for user data (without sensitive info)."""
 
+    model_config = ConfigDict()
+
     id: str
     username: str
     email: str
@@ -78,8 +81,10 @@ class UserResponse(BaseModel):
     created_at: datetime
     last_login: Optional[datetime]
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
+    @field_serializer("created_at", "last_login")
+    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+        """Serialize datetime fields to ISO format strings."""
+        return value.isoformat() if value else None
 
 
 # Main tool

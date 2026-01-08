@@ -10,7 +10,8 @@ import signal
 import sys
 from typing import Any, Dict, Optional
 
-from fastmcp import MCPServer, MCPMessage, MCPServerError
+from fastmcp import MCPServer, MCPMessage
+from ..tools.compat import MCPServerError
 
 from .config import settings
 from .core.exception_handlers import CalibreError, BookNotFoundError

@@ -57,5 +57,12 @@ class Param:
     pass
 
 
+# MCPServerError compatibility - FastMCP 2.13 doesn't export this, use RuntimeError
+class MCPServerError(RuntimeError):
+    """Compatibility shim for MCPServerError (use RuntimeError in FastMCP 2.13+)."""
+
+    pass
+
+
 # Export for backward compatibility
-__all__ = ["MCPTool", "Param"]
+__all__ = ["MCPTool", "Param", "MCPServerError"]

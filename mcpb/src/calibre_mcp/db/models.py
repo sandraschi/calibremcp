@@ -79,9 +79,15 @@ class Book(Base):
     series = relationship("Series", secondary=books_series_link, back_populates="books")
     tags = relationship("Tag", secondary=books_tags_link, back_populates="books")
     ratings = relationship("Rating", secondary=books_ratings_link, back_populates="books")
-    comments = relationship("Comment", back_populates="book", uselist=False)
-    data = relationship("Data", back_populates="book")
-    identifiers = relationship("Identifier", back_populates="book")
+    comments = relationship("Comment", back_populates="book_rel", uselist=False)
+    data = relationship("Data", back_populates="book_rel")
+    identifiers = relationship(
+        "Identifier",
+        back_populates="book_rel",
+        primaryjoin="Book.id == Identifier.book",
+        foreign_keys="[Identifier.book]",
+        lazy="noload",  # Never load automatically - access manually if needed
+    )
 
     def __repr__(self):
         return f"<Book(id={self.id}, title='{self.title}')>"

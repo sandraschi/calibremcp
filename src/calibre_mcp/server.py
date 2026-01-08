@@ -15,10 +15,40 @@ Phase 2 adds 19 additional tools:
 - Austrian Efficiency Specials (3 tools)
 """
 
+# CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
+# Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
+# This must happen BEFORE any imports that might write to stdout
+import os
+import sys
+
+if os.name == 'nt':  # Windows only
+    try:
+        # Force binary mode for stdin/stdout to prevent CRLF conversion
+        import msvcrt
+        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
+        msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+    except (OSError, AttributeError):
+        # Fallback: just ensure no CRLF conversion
+        pass
+
+# DevNullStdout class for stdio mode suppression
+class DevNullStdout:
+    def __init__(self, original_stdout):
+        self.original_stdout = original_stdout
+
+    def write(self, data):
+        # Suppress all writes to stdout during initialization
+        pass
+
+    def flush(self):
+        pass
+
+    def restore(self):
+        sys.stdout = self.original_stdout
+
 # CRITICAL: Suppress all warnings before any imports
 # MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
 import warnings
-import sys
 
 # Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
@@ -31,6 +61,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # For MCP stdio transport, we need to prevent ANY output to stderr
 # Warnings are printed to stderr, which breaks JSON-RPC protocol
 # Note: This is handled in __main__.py before imports
+
+# CRITICAL: Detect if we're running in stdio mode (MCP server)
+# MCP servers use stdio transport, so stdout must be clean for JSON-RPC
+_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, 'isatty') else True
 
 from typing import Optional, List, Dict, Any, AsyncContextManager
 from pathlib import Path
@@ -151,6 +185,8 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             )
 
         # Initialize database with the selected library
+        # NOTE: Allow server to start even if database init fails - tools will handle errors gracefully
+        db_initialized = False
         if library_to_load:
             metadata_db = library_to_load / "metadata.db"
             if metadata_db.exists():
@@ -165,43 +201,25 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                     except Exception as storage_e:
                         logger.warning(f"Could not persist library to storage: {storage_e}")
                     logger.info(
-                        f"✅ Database initialized with library: {current_library} at {library_to_load}"
+                        f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
                     )
+                    db_initialized = True
                 except Exception as e:
                     logger.error(f"Failed to initialize database: {e}", exc_info=True)
-                    raise RuntimeError(f"Cannot initialize database at {metadata_db}: {e}") from e
+                    logger.warning(
+                        "Server will start without database initialization. "
+                        "Tools will attempt to initialize database on first use."
+                    )
             else:
-                error_msg = f"metadata.db not found at {metadata_db.absolute()}"
-                logger.error(error_msg)
-                raise FileNotFoundError(error_msg)
+                logger.warning(f"metadata.db not found at {metadata_db.absolute()}")
         else:
-            # Last resort: try to discover from CalibreConfig
-            if config.discovered_libraries:
-                first_discovered = list(config.discovered_libraries.values())[0]
-                library_to_load = first_discovered.path
-                metadata_db = library_to_load / "metadata.db"
-                if metadata_db.exists():
-                    try:
-                        init_database(str(metadata_db.absolute()), echo=False)
-                        current_library = first_discovered.name
-                        config.local_library_path = library_to_load
-                        await storage.set_current_library(current_library)
-                        logger.info(
-                            f"Database initialized with discovered library: {current_library} at {library_to_load}"
-                        )
-                    except Exception as e:
-                        logger.error(f"Failed to initialize database: {e}", exc_info=True)
-                        raise RuntimeError(
-                            f"Cannot initialize database at {metadata_db}: {e}"
-                        ) from e
-                else:
-                    error_msg = f"metadata.db not found at {metadata_db.absolute()}"
-                    logger.error(error_msg)
-                    raise FileNotFoundError(error_msg)
-            else:
-                error_msg = "No libraries discovered, cannot initialize database"
-                logger.error(error_msg)
-                raise RuntimeError(error_msg)
+            logger.warning("No libraries discovered. Server will start without database initialization.")
+        
+        if not db_initialized:
+            logger.warning(
+                "Database not initialized during server startup. "
+                "Tools will attempt to initialize database automatically on first use."
+            )
 
         log_operation(logger, "server_lifespan_ready", level="INFO")
 
@@ -232,6 +250,21 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
 # macOS: ~/Library/Application Support/calibre-mcp
 # Linux: ~/.local/share/calibre-mcp
 mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
+
+# CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
+# We should not set up additional logging to stderr as it would override the redirection
+# and break the MCP JSON-RPC protocol.
+
+# For non-MCP modes (if any), we could set up logging here, but since this is MCP-only,
+# we rely on the structured logging from logging_config.py which handles MCP compatibility.
+
+if not _is_stdio_mode:
+    # Only set up logging for non-MCP modes (if any)
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 
 # Register prompt templates
 from .prompts import register_prompts
@@ -476,13 +509,12 @@ def create_app() -> FastMCP:
 def main():
     """Main server entry point"""
     try:
-        # Initialize logging (file only, no console for stdio transport)
-        # CRITICAL: Console logging breaks MCP stdio protocol (JSON-RPC on stdout)
+        # Initialize logging (stderr is OK for MCP servers, stdout reserved for JSON-RPC)
         log_file_path = Path("logs/calibremcp.log")
         setup_logging(
             level="INFO",
             log_file=log_file_path,
-            enable_console=False,  # Disable console for MCP stdio transport
+            enable_console=True,  # Enable stderr logging (MCP allows stderr for logs)
         )
 
         # Re-get logger after setup (logging config changed)
@@ -502,9 +534,84 @@ def main():
         # Tools with @mcp.tool() auto-register when imported (FastMCP 2.12+)
         # BaseTool classes need explicit registration
         # NOTE: Server lifespan handles initialization (database, libraries, storage)
+        
+        # Verify mcp instance is valid before registering tools
+        if mcp is None:
+            logger.error("MCP instance is None - cannot register tools!")
+            raise RuntimeError("MCP instance not initialized")
+        
+        logger.info(f"Registering tools with MCP instance: {type(mcp).__name__}")
+        logger.info(f"MCP instance attributes: {[attr for attr in dir(mcp) if not attr.startswith('_')][:10]}")
+        
+        # Import and register tools
         from .tools import register_tools
-
         register_tools(mcp)
+        
+        # Verify tools were registered
+        try:
+            # Check if FastMCP has registered tools - try multiple ways to access
+            tool_count = None
+            tool_names = []
+            
+            # Method 1: Check _tools attribute (internal)
+            if hasattr(mcp, '_tools'):
+                if isinstance(mcp._tools, dict):
+                    tool_count = len(mcp._tools)
+                    tool_names = list(mcp._tools.keys())
+                elif hasattr(mcp._tools, '__len__'):
+                    tool_count = len(mcp._tools)
+            
+            # Method 2: Check tools attribute (public API)
+            if tool_count is None and hasattr(mcp, 'tools'):
+                if isinstance(mcp.tools, dict):
+                    tool_count = len(mcp.tools)
+                    tool_names = list(mcp.tools.keys())
+                elif hasattr(mcp.tools, '__len__'):
+                    tool_count = len(mcp.tools)
+            
+            # Method 3: Check _server attribute (FastMCP internal)
+            if tool_count is None and hasattr(mcp, '_server'):
+                server = mcp._server
+                if hasattr(server, '_tools'):
+                    if isinstance(server._tools, dict):
+                        tool_count = len(server._tools)
+                        tool_names = list(server._tools.keys())
+            
+            # Method 4: Try FastMCP's list_tools method
+            if tool_count is None:
+                try:
+                    # FastMCP 2.13+ has list_tools() method
+                    if hasattr(mcp, 'list_tools'):
+                        tools_list = mcp.list_tools()
+                        if tools_list:
+                            tool_count = len(tools_list) if isinstance(tools_list, list) else 0
+                            if isinstance(tools_list, list):
+                                tool_names = [t.get('name', t if isinstance(t, str) else 'unknown') for t in tools_list]
+                    # Also try _server.list_tools if available
+                    elif hasattr(mcp, '_server') and hasattr(mcp._server, 'list_tools'):
+                        tools_list = mcp._server.list_tools()
+                        if tools_list:
+                            tool_count = len(tools_list) if isinstance(tools_list, list) else 0
+                            if isinstance(tools_list, list):
+                                tool_names = [t.get('name', t if isinstance(t, str) else 'unknown') for t in tools_list]
+                except Exception as e:
+                    logger.debug(f"Could not use list_tools(): {e}")
+            
+            if tool_count is None:
+                tool_count = "unknown (could not determine)"
+            
+            logger.info(f"Tool registration verification: {tool_count} tools found")
+            if tool_names:
+                logger.info(f"Registered tool names (first 20): {', '.join(tool_names[:20])}")
+            if tool_count == 0:
+                logger.error("CRITICAL: No tools registered! Check tool imports and @mcp.tool() decorators.")
+                logger.error("Possible causes:")
+                logger.error("1. Tool modules failed to import (check import errors in register_tools)")
+                logger.error("2. @mcp.tool() decorators are not executing (check if mcp instance is valid)")
+                logger.error("3. Circular import issue (tools import mcp before mcp is created)")
+                logger.error("4. FastMCP version mismatch or API change")
+        except Exception as e:
+            logger.error(f"Could not verify tool count: {e}", exc_info=True)
 
         # Run the FastMCP server (handles event loop internally)
         # Server lifespan handles initialization/cleanup (FastMCP 2.13+)

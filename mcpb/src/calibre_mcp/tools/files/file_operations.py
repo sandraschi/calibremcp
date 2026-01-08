@@ -1,21 +1,24 @@
 """
-File operations tools for CalibreMCP.
+DEPRECATED: Individual file operation tools are deprecated in favor of the manage_files
+portmanteau tool (see tools/files/manage_files.py). These functions are kept
+as helpers but are no longer registered with FastMCP 2.13+.
 
-These tools handle book format conversion, downloading,
-and bulk file operations for library management.
+Use manage_files(operation="...") instead:
+- convert_book_format() → manage_files(operation="convert", conversion_requests=...)
+- download_book() → manage_files(operation="download", book_id=..., format_preference=...)
+- bulk_format_operations() → manage_files(operation="bulk", operation_type=..., ...)
 """
 
 from typing import Optional, List, Dict, Any
 
 # Import the MCP server instance
-from ...server import mcp
 
 # Import response models
 from ...server import ConversionRequest, ConversionResponse
 
 
-@mcp.tool()
-async def convert_book_format(
+# NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead
+async def convert_book_format_helper(
     conversion_requests: List[ConversionRequest],
 ) -> List[ConversionResponse]:
     """
@@ -34,8 +37,8 @@ async def convert_book_format(
     pass
 
 
-@mcp.tool()
-async def download_book(book_id: int, format_preference: str = "EPUB") -> Dict[str, Any]:
+# NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead
+async def download_book_helper(book_id: int, format_preference: str = "EPUB") -> Dict[str, Any]:
     """
     Download a book file in the specified format.
 
@@ -164,8 +167,8 @@ async def download_book(book_id: int, format_preference: str = "EPUB") -> Dict[s
         raise ValueError(f"Failed to download book: {str(e)}")
 
 
-@mcp.tool()
-async def bulk_format_operations(
+# NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead
+async def bulk_format_operations_helper(
     operation_type: str, target_format: Optional[str] = None, book_ids: Optional[List[int]] = None
 ) -> Dict[str, Any]:
     """

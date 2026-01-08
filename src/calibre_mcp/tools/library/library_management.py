@@ -443,37 +443,69 @@ async def cross_library_search_helper(
         parsed = parse_intelligent_query(query)
         
         # Determine which libraries to search
+        # DEFAULT: Search only active library (faster, more predictable)
+        # To search all libraries, explicitly pass libraries=["ALL"]
+        config = CalibreConfig()
+        
         if libraries is None:
-            # If content_type hint is present (manga, comic, paper), filter libraries intelligently
-            if parsed.get("content_type"):
-                content_type = parsed["content_type"].lower()
-                # Match libraries by name containing the content type
-                # e.g., "manga" -> match libraries with "manga" in name
-                matching_libs = [
-                    lib_name for lib_name in discovered_libs.keys()
-                    if content_type in lib_name.lower()
-                ]
-                if matching_libs:
-                    libraries_to_search = matching_libs
+            # No libraries specified - search active library only
+            if config.local_library_path:
+                # Find the active library name
+                active_lib_name = None
+                for name, path in discovered_libs.items():
+                    if path == config.local_library_path:
+                        active_lib_name = name
+                        break
+                if active_lib_name:
+                    libraries_to_search = [active_lib_name]
                     logger.info(
-                        f"Content type '{content_type}' detected, filtering to matching libraries",
-                        extra={"content_type": content_type, "libraries": matching_libs}
+                        f"Searching active library only: {active_lib_name}",
+                        extra={"library": active_lib_name, "query": query}
                     )
                 else:
-                    # No matching libraries found, search all
+                    # Active library path doesn't match discovered - search all as fallback
                     libraries_to_search = list(discovered_libs.keys())
                     logger.warning(
-                        f"Content type '{content_type}' detected but no matching libraries found, searching all",
-                        extra={"content_type": content_type}
+                        "Active library path not found in discovered libraries, searching all",
+                        extra={"active_path": str(config.local_library_path)}
                     )
             else:
+                # No active library - search all as fallback
                 libraries_to_search = list(discovered_libs.keys())
+                logger.info("No active library set, searching all libraries")
+        elif isinstance(libraries, list):
+            if len(libraries) == 1 and libraries[0].upper() == "ALL":
+                # Explicit request to search all libraries
+                libraries_to_search = list(discovered_libs.keys())
+                logger.info(f"Explicit 'ALL' libraries requested, searching {len(libraries_to_search)} libraries")
+            else:
+                # Use provided library list (with content_type filtering if applicable)
+                if parsed.get("content_type"):
+                    content_type = parsed["content_type"].lower()
+                    # Match libraries by name containing the content type
+                    matching_libs = [
+                        lib_name for lib_name in discovered_libs.keys()
+                        if content_type in lib_name.lower()
+                    ]
+                    if matching_libs:
+                        libraries_to_search = matching_libs
+                        logger.info(
+                            f"Content type '{content_type}' detected, filtering to matching libraries",
+                            extra={"content_type": content_type, "libraries": matching_libs}
+                        )
+                    else:
+                        # No matching libraries found, use provided list
+                        libraries_to_search = libraries
+                else:
+                    # Use provided library list
+                    libraries_to_search = libraries
+                
+                # Validate library names
+                invalid = [lib for lib in libraries_to_search if lib not in discovered_libs]
+                if invalid:
+                    raise ValueError(f"Libraries not found: {', '.join(invalid)}")
         else:
-            # Validate library names
-            invalid = [lib for lib in libraries if lib not in discovered_libs]
-            if invalid:
-                raise ValueError(f"Libraries not found: {', '.join(invalid)}")
-            libraries_to_search = libraries
+            raise ValueError(f"Invalid libraries parameter: {libraries}. Must be None or a list of library names.")
 
         if not libraries_to_search:
             return LibrarySearchResponse(
@@ -482,46 +514,104 @@ async def cross_library_search_helper(
 
         # Search each library and combine results
         all_results: List[Dict[str, Any]] = []
-        config = CalibreConfig()
         start_time = time.time()
+        
+        # Store original library path to restore at the end
+        original_path = config.local_library_path
+        original_lib_name = None
+        
+        # Find original library name
+        for name, path in discovered_libs.items():
+            if path == original_path:
+                original_lib_name = name
+                break
         
         for lib_name in libraries_to_search:
             try:
                 # Temporarily switch to this library
-                original_path = config.local_library_path
+                library_path = discovered_libs[lib_name]
+                
+                from ...db.database import init_database, get_database, db
+                from pathlib import Path
+                
+                metadata_db = Path(library_path) / "metadata.db"
+                if not metadata_db.exists():
+                    logger.warning(f"metadata.db not found for library '{lib_name}' at {metadata_db}")
+                    continue
+                
+                # Check if we're already connected to this library
+                current_path = db.get_current_path()
+                target_path = str(metadata_db.absolute())
+
+                # Only switch if we're not already connected to this library
+                if current_path != target_path:
+                    # Force re-initialization with this library
+                    init_database(target_path, echo=False, force=True)
+                    logger.debug(f"Database switched to library: {lib_name}", extra={
+                        "library": lib_name,
+                        "path": target_path
+                    })
+                else:
+                    logger.debug(f"Already connected to library: {lib_name}, skipping re-init")
+                
                 config.set_active_library(lib_name)
 
                 # Perform search using book service with parsed parameters
-                search_results = book_service.list(
+                # Use get_all() method (not list()) - get_all supports all search parameters
+                logger.debug(f"Searching library '{lib_name}'", extra={
+                    "library": lib_name,
+                    "search": parsed["text"],
+                    "author": parsed["author"],
+                    "tag": parsed["tag"],
+                    "series": parsed["series"]
+                })
+                
+                search_results = book_service.get_all(
                     skip=0,
                     limit=1000,  # Get all results for cross-library search
                     search=parsed["text"] if parsed["text"] else None,
                     author_name=parsed["author"],
                     tag_name=parsed["tag"],
                     series_name=parsed["series"],
-                    pubdate_start=f"{parsed['pubdate']}-01-01" if parsed["pubdate"] else None,
-                    pubdate_end=f"{parsed['pubdate']}-12-31" if parsed["pubdate"] else None,
                     rating=parsed["rating"],
-                    added_after=parsed.get("added_after"),
-                    added_before=parsed.get("added_before"),
                 )
+
+                logger.debug(f"Search results for '{lib_name}': {search_results.get('total', 0)} books found", extra={
+                    "library": lib_name,
+                    "total": search_results.get("total", 0),
+                    "items_count": len(search_results.get("items", []))
+                })
 
                 # Add library name to each result
                 for item in search_results.get("items", []):
                     item["library_name"] = lib_name
                     all_results.append(item)
-
-                # Restore original library
-                if original_path:
-                    # Find library name for original path
-                    for name, path in discovered_libs.items():
-                        if path == original_path:
-                            config.set_active_library(name)
-                            break
+                
+                # Note: Sessions are managed by scoped_session and will be cleaned up
+                # when init_database(force=True) is called for the next library
+                logger.debug(f"Search completed for library: {lib_name}", extra={
+                    "library": lib_name,
+                    "results_count": len(search_results.get("items", []))
+                })
 
             except Exception as e:
-                logger.warning(f"Error searching library '{lib_name}': {e}")
+                logger.error(f"Error searching library '{lib_name}': {e}", exc_info=True, extra={
+                    "library": lib_name,
+                    "error": str(e),
+                    "error_type": type(e).__name__
+                })
                 continue
+
+        # Restore original library
+        if original_path and original_lib_name:
+            try:
+                original_metadata_db = Path(original_path) / "metadata.db"
+                if original_metadata_db.exists():
+                    init_database(str(original_metadata_db.absolute()), echo=False, force=True)
+                    config.set_active_library(original_lib_name)
+                    logger.debug(f"Restored original library: {original_lib_name}")
+            except Exception as e:
+                logger.warning(f"Failed to restore original library: {e}")
 
         # Return combined results
         search_time_ms = int((time.time() - start_time) * 1000)

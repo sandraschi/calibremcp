@@ -189,23 +189,32 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
                 query_lower = remaining.lower()
                 break
     
-    # Parse author: "by Author Name"
-    if " by " in query_lower:
-        parts = query.split(" by ", 1)
-        if len(parts) == 2:
-            remaining = parts[0].strip()
-            author = parts[1].strip()
-            # Remove common prefixes from remaining
+    # Parse author: "by Author Name" or "author Author Name" or "books by Author Name"
+    author_patterns = [
+        (r"author\s+(.+)", 1),  # "author John Dickson Carr"
+        (r"books?\s+by\s+(.+)", 1),  # "books by John Dickson Carr"
+        (r" by\s+(.+)", 1),  # "something by John Dickson Carr"
+        (r"^by\s+(.+)", 1),  # "by John Dickson Carr"
+    ]
+    
+    author_found = False
+    for pattern, group_num in author_patterns:
+        match = re.search(pattern, query_lower, re.IGNORECASE)
+        if match:
+            author = match.group(group_num).strip()
+            # Remove the matched pattern from remaining
+            remaining = re.sub(pattern, "", remaining, flags=re.IGNORECASE).strip()
+            # Clean up remaining text - remove common prefixes
             if remaining.lower() in ("books", "book", "find", "search", "list", "get", "show", "show me"):
                 remaining = ""
             result["author"] = author
             query_lower = remaining.lower()
+            author_found = True
+            break
     
-    elif query_lower.startswith("by "):
-        author = query[3:].strip()
-        result["author"] = author
-        remaining = ""
-        query_lower = ""
+    # REMOVED: Automatic author name inference
+    # Only treat as author if explicit "by" or "author" keyword is present
+    # Default assumption: user is searching for a book title, not an author name
     
     # Parse tag: "tagged as X" or "with tag X" or "tag X"
     tag_patterns = [
