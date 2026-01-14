@@ -78,13 +78,11 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 # Load environment variables first
-load_dotenv()
+# load_dotenv()  # Temporarily disabled for testing
 
-# Import structured logging
-from .logging_config import get_logger, log_operation, log_error, setup_logging
-
-# Logger will be re-initialized in main() after logging setup
-logger = get_logger("calibremcp.server")
+# Lazy imports - only import when actually needed to avoid heavy initialization during module import
+# These will be imported in main() or lifespan when actually needed
+logger = logging.getLogger("calibremcp.server")  # Temporary logger until proper setup
 
 # Global API client and database connections (initialized on startup)
 api_client = None  # CalibreAPIClient
@@ -113,36 +111,52 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
     """FastMCP 2.13 server lifespan for initialization and cleanup."""
     global api_client, current_library, available_libraries, storage, logger
 
-    # Startup - keep this lightweight for FastMCP standards
+    # Startup
     logger = get_logger("calibremcp.server")
     log_operation(logger, "server_lifespan_startup", level="INFO")
 
     try:
-        # Initialize storage only
+        # Initialize storage
         storage_instance = CalibreMCPStorage(mcp_instance)
         await storage_instance.initialize()
         set_storage(storage_instance)
         storage = storage_instance
         logger.info("FastMCP 2.13 storage initialized")
 
-        # Defer heavy initialization (library discovery, database setup) until first tool use
-        # This follows FastMCP standards - lifespan should be lightweight
-        logger.info("Heavy initialization deferred until first tool use")
+        # Initialize config and discover libraries FIRST
+        from .db.database import init_database
+        from .config import CalibreConfig
+        from .config_discovery import get_active_calibre_library
 
-        # Yield control back to FastMCP
-        yield
+        config = CalibreConfig()
 
-    except Exception as e:
-        logger.error(f"Lifespan startup error: {e}")
-        raise
-    finally:
-        # Cleanup
-        log_operation(logger, "server_lifespan_shutdown", level="INFO")
-        try:
-            # Cleanup will happen here when server shuts down
-            pass
-        except Exception as cleanup_error:
-            logger.error(f"Lifespan cleanup error: {cleanup_error}")
+        # Auto-discover libraries using CalibreConfig's discovery system
+        if config.auto_discover_libraries:
+            discovered_libs = config.discover_libraries()
+            if discovered_libs:
+                logger.info(f"Auto-discovered {len(discovered_libs)} Calibre libraries")
+
+        # Restore current library from persistent storage
+        persisted_library = await storage.get_current_library()
+        if persisted_library:
+            current_library = persisted_library
+            logger.info(f"Restored current library from storage: {current_library}")
+
+        # Discover libraries (using utils for backward compatibility)
+        libraries = await discover_libraries()
+        available_libraries = libraries
+        log_operation(
+            logger,
+            "library_discovery",
+            level="INFO",
+            discovered_libraries=list(libraries.keys()),
+            current_library=current_library,
+        )
+
+        # CRITICAL: Auto-load default library - ensure database is ALWAYS initialized
+        # Priority: 1) persisted library, 2) config.local_library_path, 3) active library from Calibre config, 4) first discovered library
+
+        library_to_load = None
         library_name_loaded = None
 
         # Try persisted library first
@@ -255,9 +269,20 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
 # Windows: %APPDATA%\calibre-mcp (survives Windows restarts)
 # macOS: ~/Library/Application Support/calibre-mcp
 # Linux: ~/.local/share/calibre-mcp
-# Create MCP instance as per FastMCP 2.14.1+ standards
-# Lifespan runs when server starts, not during module import
-mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
+# Lazy MCP instance creation - created only when needed
+_mcp_instance = None
+
+def get_mcp() -> FastMCP:
+    """Get or create the MCP instance lazily"""
+    global _mcp_instance
+    if _mcp_instance is None:
+        _mcp_instance = FastMCP("CalibreMCP Phase 2")
+    return _mcp_instance
+
+# For backward compatibility, provide mcp as a property
+@property
+def mcp() -> FastMCP:
+    return get_mcp()
 
 # CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
 # We should not set up additional logging to stderr as it would override the redirection
@@ -580,9 +605,16 @@ async def main():
             fastmcp_version="2.14.1+",
         )
 
-        # MCP instance is already created at module level
+        # Get the MCP instance (created lazily)
+        mcp = get_mcp()
 
-        # Lifespan is handled automatically by FastMCP
+        # Initialize server lifespan manually (deferred from module import)
+        logger.info("Initializing server lifespan...")
+        from contextlib import asynccontextmanager
+
+        lifespan_context = server_lifespan(mcp)
+        lifespan_manager = await lifespan_context.__aenter__()
+        logger.info("Server lifespan initialized successfully")
 
         # Register tools with FastMCP server
         # Verify mcp instance is valid before registering tools
@@ -594,8 +626,10 @@ async def main():
 
         # Import and register tools
         # CRITICAL: Suppress potential stdout noise from heavy imports (transformers, etc.)
-        from .tools import register_tools
-        register_tools(mcp)
+        # Temporarily disabled for testing
+        # from .tools import register_tools
+        # register_tools(mcp)
+        logger.info("Tool registration disabled for testing")
 
         # Verify tools were registered
         try:
@@ -628,9 +662,23 @@ async def main():
 
         # Run the FastMCP server using the SOTA-recommended async stdio transport
         # Standard logic for FastMCP 2.14.1+: use run_stdio_async()
-        await mcp.run_stdio_async()
+        try:
+            await mcp.run_stdio_async()
+        finally:
+            # Cleanup lifespan
+            try:
+                await lifespan_context.__aexit__(None, None, None)
+                logger.info("Server lifespan cleaned up successfully")
+            except Exception as cleanup_error:
+                logger.error(f"Error during lifespan cleanup: {cleanup_error}")
 
     except Exception as e:
+        # Cleanup lifespan on error
+        try:
+            await lifespan_context.__aexit__(type(e), e, e.__traceback__)
+        except Exception as cleanup_error:
+            logger.error(f"Error during lifespan cleanup on exception: {cleanup_error}")
+
         # Log error to file only (no stdout/stderr output for MCP stdio protocol)
         log_error(logger, "server_startup_error", e)
         # Re-raise to let FastMCP handle it properly

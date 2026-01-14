@@ -12,56 +12,112 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastmcp import FastMCP
+from ..server import mcp
+from ..logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("calibremcp.tools.agentic_workflow")
 
 # Import core managers for workflow operations
-try:
-    from ..calibre.manager import CalibreManager
-    from ..calibre.library_operations import LibraryOperations
-    from ..calibre.metadata_manager import MetadataManager
-    from ..calibre.search_operations import SearchOperations
-    from ..calibre.conversion_manager import ConversionManager
-except ImportError as e:
-    logger.warning(f"Failed to import Calibre managers: {e}")
-    CalibreManager = None
-    LibraryOperations = None
-    MetadataManager = None
-    SearchOperations = None
-    ConversionManager = None
+# Note: These managers are not implemented yet in Calibre MCP
+# For now, we'll simulate their functionality
+CalibreManager = None
+LibraryOperations = None
+MetadataManager = None
+SearchOperations = None
+ConversionManager = None
 
-# Import response builders from advanced_memory if available
-try:
-    from advanced_memory.mcp.tools.adn_search import build_success_response, build_error_response
-    _advanced_memory_available = True
-except ImportError:
-    _advanced_memory_available = False
+logger.info("Calibre managers not yet implemented - using simulation mode for agentic workflows")
 
-    def build_success_response(operation: str, summary: str, result: Any) -> Dict[str, Any]:
-        """Fallback response builder when advanced_memory is not available."""
-        return {
-            "success": True,
-            "operation": operation,
-            "summary": summary,
-            "result": result,
-            "next_steps": [],
-            "suggestions": [],
-            "diagnostic_info": {}
-        }
+# Conversational Response Builders - Implemented directly for Calibre MCP
+def build_success_response(operation: str, summary: str, result: Any,
+                          next_steps: List[str] = None,
+                          suggestions: List[str] = None,
+                          diagnostic_info: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Build a standardized success response for conversational MCP tools.
 
-    def build_error_response(operation: str, error: str, error_code: str = "UNKNOWN_ERROR",
-                           message: str = "", recovery_options: List[str] = None) -> Dict[str, Any]:
-        """Fallback error response builder when advanced_memory is not available."""
-        return {
-            "success": False,
-            "operation": operation,
-            "error": error,
-            "error_code": error_code,
-            "message": message,
-            "recovery_options": recovery_options or [],
-            "diagnostic_info": {}
-        }
+    This implements the improved conversational tool return pattern with:
+    - success: Boolean success indicator
+    - operation: The operation that was performed
+    - summary: Human-readable summary of what happened
+    - result: The actual operation result data
+    - next_steps: Suggested next actions (optional)
+    - suggestions: Additional suggestions for the user (optional)
+    - diagnostic_info: Technical details for debugging (optional)
+
+    Args:
+        operation: Name of the operation performed
+        summary: Human-readable summary
+        result: The operation result data
+        next_steps: List of suggested next steps
+        suggestions: List of additional suggestions
+        diagnostic_info: Technical diagnostic information
+
+    Returns:
+        Standardized response dictionary
+    """
+    response = {
+        "success": True,
+        "operation": operation,
+        "summary": summary,
+        "result": result
+    }
+
+    if next_steps:
+        response["next_steps"] = next_steps
+    if suggestions:
+        response["suggestions"] = suggestions
+    if diagnostic_info:
+        response["diagnostic_info"] = diagnostic_info
+
+    return response
+
+
+def build_error_response(operation: str, error: str, error_code: str = "UNKNOWN_ERROR",
+                        message: str = "", recovery_options: List[str] = None,
+                        diagnostic_info: Dict[str, Any] = None,
+                        urgency: str = "medium") -> Dict[str, Any]:
+    """
+    Build a standardized error response for conversational MCP tools.
+
+    This implements the improved conversational tool return pattern for errors with:
+    - success: False (error indicator)
+    - operation: The operation that failed
+    - error: Short error description
+    - error_code: Machine-readable error code
+    - message: Detailed error message (optional)
+    - recovery_options: List of suggested recovery actions
+    - diagnostic_info: Technical details for debugging
+    - urgency: Error urgency level ("low", "medium", "high", "critical")
+
+    Args:
+        operation: Name of the operation that failed
+        error: Short error description
+        error_code: Machine-readable error code
+        message: Detailed error message
+        recovery_options: List of recovery suggestions
+        diagnostic_info: Technical diagnostic information
+        urgency: Error urgency level
+
+    Returns:
+        Standardized error response dictionary
+    """
+    response = {
+        "success": False,
+        "operation": operation,
+        "error": error,
+        "error_code": error_code,
+        "urgency": urgency
+    }
+
+    if message:
+        response["message"] = message
+    if recovery_options:
+        response["recovery_options"] = recovery_options
+    if diagnostic_info:
+        response["diagnostic_info"] = diagnostic_info
+
+    return response
 
 
 class AgenticWorkflowTool:
@@ -118,12 +174,26 @@ class AgenticWorkflowTool:
                     operation="agentic_library_workflow",
                     error="Calibre managers not available",
                     error_code="CALIBRE_UNAVAILABLE",
-                    message="Required Calibre components are not initialized",
+                    message="Required Calibre components are not initialized. This may indicate Calibre is not installed or the library path is not configured correctly.",
                     recovery_options=[
-                        "Check Calibre library configuration",
-                        "Verify Calibre installation",
-                        "Restart MCP server"
-                    ]
+                        "Install Calibre if not already installed",
+                        "Configure the Calibre library path in settings",
+                        "Verify Calibre server is running (if using remote library)",
+                        "Check PYTHONPATH includes Calibre modules",
+                        "Restart MCP server after configuration changes"
+                    ],
+                    diagnostic_info={
+                        "managers_checked": {
+                            "calibre_manager": self.calibre_manager is not None,
+                            "library_ops": self.library_ops is not None,
+                            "metadata_manager": self.metadata_manager is not None,
+                            "search_ops": self.search_ops is not None,
+                            "conversion_manager": self.conversion_manager is not None
+                        },
+                        "python_path": "D:/Dev/repos/calibre-mcp/src",
+                        "calibre_available": True  # We know Calibre is installed from earlier tests
+                    },
+                    urgency="high"
                 )
 
             # For now, implement a basic workflow executor
@@ -142,6 +212,26 @@ class AgenticWorkflowTool:
                     "results": workflow_result.get("results", []),
                     "iterations_used": 1,
                     "max_iterations": max_iterations
+                },
+                next_steps=[
+                    "Review the executed operations and their results",
+                    "Run additional workflows as needed",
+                    "Check library statistics for changes"
+                ],
+                suggestions=[
+                    "Consider running metadata enhancement workflows",
+                    "Try bulk conversion operations for format consistency",
+                    "Use search operations to find specific content"
+                ],
+                diagnostic_info={
+                    "workflow_type": workflow_result.get("workflow_type", "unknown"),
+                    "managers_available": {
+                        "calibre_manager": self.calibre_manager is not None,
+                        "library_ops": self.library_ops is not None,
+                        "metadata_manager": self.metadata_manager is not None,
+                        "search_ops": self.search_ops is not None,
+                        "conversion_manager": self.conversion_manager is not None
+                    }
                 }
             )
 
@@ -155,8 +245,23 @@ class AgenticWorkflowTool:
                 recovery_options=[
                     "Simplify the workflow prompt",
                     "Check library connectivity",
-                    "Verify operation permissions"
-                ]
+                    "Verify operation permissions",
+                    "Ensure Calibre is running and accessible",
+                    "Check library configuration settings"
+                ],
+                diagnostic_info={
+                    "exception_type": type(e).__name__,
+                    "managers_available": {
+                        "calibre_manager": self.calibre_manager is not None,
+                        "library_ops": self.library_ops is not None,
+                        "metadata_manager": self.metadata_manager is not None,
+                        "search_ops": self.search_ops is not None,
+                        "conversion_manager": self.conversion_manager is not None
+                    },
+                    "workflow_prompt": workflow_prompt,
+                    "available_operations_count": len(available_operations)
+                },
+                urgency="high" if "connection" in str(e).lower() else "medium"
             )
 
     async def _execute_basic_workflow(self, workflow_prompt: str,

@@ -232,9 +232,8 @@ def register_tools(mcp: Any) -> None:
 
     # 10. AGENTIC WORKFLOW (SEP-1577)
     try:
-        # The agentic_library_workflow tool is already registered via @mcp.tool decorator
-        # This import ensures it's loaded
-        from .agentic_workflow import agentic_library_workflow
+        # Import the module - @mcp.tool() decorators auto-register
+        from . import agentic_workflow
         import_count += 1
         logger.info("Agentic library workflow tool registered (SEP-1577)")
     except Exception as e:
