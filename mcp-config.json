@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "calibre-mcp": {
+      "command": "D:/Dev/repos/calibre-mcp/venv/Scripts/python.exe",
+      "args": ["-m", "calibre_mcp.server"],
+      "cwd": "D:/Dev/repos/calibre-mcp",
+      "env": {
+        "PYTHONPATH": "D:/Dev/repos/calibre-mcp/src"
+      }
+    }
+  }
+}
