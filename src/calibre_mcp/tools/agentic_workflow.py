@@ -16,6 +16,7 @@ from ..server import mcp
 from ..logging_config import get_logger
 
 logger = get_logger("calibremcp.tools.agentic_workflow")
+logger.info("Agentic workflow tool module loaded")
 
 # Import core managers for workflow operations
 # Note: These managers are not implemented yet in Calibre MCP

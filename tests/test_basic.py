@@ -14,7 +14,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import the server module
-from calibre_mcp import mcp, CalibreConfig, CalibreAPIClient
+from calibre_mcp import _get_mcp, CalibreConfig, CalibreAPIClient
+from calibre_mcp.server import mcp
 
 # Test configuration
 TEST_LIBRARY_PATH = str(Path.home() / "Calibre Library")

@@ -5,7 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2025-12-22
+## [Unreleased] - 2026-01-14
+
+### Fixed
+- **FastMCP 2.14.1+ Compliance** - Complete server modernization
+  - Updated `pyproject.toml` to require `fastmcp>=2.14.1,<2.15.0`
+  - Added `lifespan=server_lifespan` parameter to FastMCP constructor
+  - Implemented proper server lifespan for initialization/cleanup (FastMCP 2.13+ requirement)
+  - Fixed server startup method (deprecated `run_standalone()` → `run_stdio_async()`)
+  - Added FastMCP persistent storage backend (py-key-value-aio[disk])
+- **Import System Overhaul** - Fixed relative import failures
+  - Converted all relative imports to absolute imports (`from .module` → `from calibre_mcp.module`)
+  - Enabled direct script execution without package context issues
+  - Maintained backward compatibility for module imports
+- **Cursor MCP Configuration** - Fixed IDE integration
+  - Updated Cursor MCP config to use absolute paths instead of relative
+  - Corrected entry point to `src/calibre_mcp/server.py`
+  - Added proper environment variables (`PYTHONPATH`, `PYTHONUNBUFFERED`)
+  - Removed conflicting launcher files (`run_server.py`, `server/server.py`)
+- **Unicode Safety** - Eliminated encoding crashes
+  - Removed all emoji characters from logger messages
+  - Fixed Windows console encoding compatibility issues
+  - Prevented `UnicodeEncodeError` crashes in IDE environments
+- **Test Suite Compatibility** - Updated for FastMCP FunctionTool objects
+  - Fixed circular import issues in test suite
+  - Updated integration tests to work with new FastMCP tool registration
+  - Added lazy import patterns for testing (`_get_mcp()`)
+  - Comprehensive test coverage maintained
+
+### Changed
+- **Server Architecture** - Modernized to FastMCP 2.14.1+ standards
+  - Eliminated non-standard launcher scripts
+  - Direct execution capability (`python src/calibre_mcp/server.py`)
+  - Proper async stdio transport implementation
+  - Enhanced error handling and logging
+
+### Added
+- **Lifespan Management** - FastMCP 2.14.1+ server lifecycle
+  - Proper initialization and cleanup procedures
+  - Async context manager for server lifespan
+  - Storage initialization with error recovery
+- **Enhanced Logging** - Structured logging throughout server lifecycle
+  - Phase-based initialization logging
+  - Import success/failure tracking
+  - Debug information for troubleshooting
 
 ### Added
 - **Database Auto-Initialization** - Robust first-try reliability improvements

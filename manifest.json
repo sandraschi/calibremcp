@@ -10,12 +10,12 @@
   },
   "server": {
     "type": "python",
-    "entry_point": "server/server.py",
+    "entry_point": "src/calibre_mcp/server.py",
     "mcp_config": {
       "command": "python",
-      "args": ["${__dirname}/server/server.py"],
+      "args": ["src/calibre_mcp/server.py"],
       "env": {
-        "PYTHONPATH": "${PWD}",
+        "PYTHONPATH": "${__dirname}/src",
         "PYTHONUNBUFFERED": "1"
       }
     }

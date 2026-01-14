@@ -1,6 +1,6 @@
 # CalibreMCP Phase 2 Dependencies
 # FastMCP 2.0+ with latest MCP spec compliance
-fastmcp>=2.10.1
+fastmcp>=2.14.1,<2.15.0
 
 # Core HTTP and data dependencies
 fastapi>=0.95.0        # Web framework

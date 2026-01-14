@@ -137,7 +137,7 @@ class TestFastMCP212Compliance:
 
         # Check for required dependencies
         requirements = requirements_path.read_text(encoding="utf-8").splitlines()
-        required_deps = ["fastmcp>=2.12.0", "python-dotenv", "pydantic>=2.0.0", "httpx"]
+        required_deps = ["fastmcp>=2.14.1", "python-dotenv", "pydantic>=2.0.0", "httpx"]
 
         for dep in required_deps:
             assert any(dep in req for req in requirements), f"Missing required dependency: {dep}"

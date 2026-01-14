@@ -129,7 +129,7 @@ def discover_tools() -> List[Type["BaseTool"]]:
 
 def register_tools(mcp: Any) -> None:
     """
-    Register all tools with an MCP server instance.
+    Register all tools with an MCP server instance with detailed error handling and timing.
 
     This function registers all FastMCP compliant tools.
     Explicit imports are used instead of dynamic discovery to ensure reliability.
@@ -137,25 +137,37 @@ def register_tools(mcp: Any) -> None:
     Args:
         mcp: MCP server instance (FastMCP)
     """
+    import time
     import_count = 0
     error_count = 0
 
+    logger.info("TOOL REGISTRATION: Starting tool registration process...")
+    start_time = time.time()
+
     # 1. CORE TOOLS
     try:
+        logger.info("Importing core tools...")
+        import_start = time.time()
         from .core import tools as _core_tools
-
+        import_time = time.time() - import_start
+        logger.info(".2f")
         import_count += 1
     except Exception as e:
-        logger.error(f"Failed to load core tools: {e}")
+        logger.error(f"Failed to load core tools: {e}", exc_info=True)
+        logger.error(f"Core tools error type: {type(e).__name__}")
         error_count += 1
 
     # 2. LIBRARY MANAGEMENT
     try:
+        logger.info("Importing library tools...")
+        import_start = time.time()
         from .library import tools as _library_tools
-
+        import_time = time.time() - import_start
+        logger.info(".2f")
         import_count += 1
     except Exception as e:
-        logger.error(f"Failed to load library tools: {e}")
+        logger.error(f"Failed to load library tools: {e}", exc_info=True)
+        logger.error(f"Library tools error type: {type(e).__name__}")
         error_count += 1
 
     # 3. BOOK MANAGEMENT
@@ -232,12 +244,15 @@ def register_tools(mcp: Any) -> None:
 
     # 10. AGENTIC WORKFLOW (SEP-1577)
     try:
-        # Import the module - @mcp.tool() decorators auto-register
+        logger.info("Importing agentic workflow tool (SEP-1577)...")
+        import_start = time.time()
         from . import agentic_workflow
+        import_time = time.time() - import_start
+        logger.info(f"Agentic library workflow tool registered in {import_time:.2f}s (SEP-1577)")
         import_count += 1
-        logger.info("Agentic library workflow tool registered (SEP-1577)")
     except Exception as e:
-        logger.error(f"Failed to load agentic workflow tool: {e}")
+        logger.error(f"Failed to load agentic workflow tool: {e}", exc_info=True)
+        logger.error(f"Agentic workflow error type: {type(e).__name__}")
         error_count += 1
 
     # Get count of registered tools from FastMCP
@@ -253,8 +268,14 @@ def register_tools(mcp: Any) -> None:
     except Exception:
         registered_tools_count = "unknown"
 
+    total_time = time.time() - start_time
     logger.info(
-        f"Tool registration complete: {import_count} modules/tools processed, "
+        f"Tool registration complete in {total_time:.2f}s: {import_count} modules/tools processed, "
         f"{error_count} errors, "
         f"{registered_tools_count} total tools registered"
     )
+
+    if error_count > 0:
+        logger.warning(f"{error_count} tool modules failed to load - check logs above for details")
+    else:
+        logger.info("SUCCESS: All tool modules loaded successfully")

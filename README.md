@@ -1,7 +1,7 @@
 # CalibreMCP 📚
 
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.13+-blue)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.1+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue)](pyproject.toml)
@@ -10,7 +10,7 @@
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
-**FastMCP 2.13+ server for comprehensive Calibre e-book library management through Claude Desktop and other MCP clients**
+**FastMCP 2.14.1+ server for comprehensive Calibre e-book library management through Claude Desktop and other MCP clients**
 
 **Features:**
 - **Portmanteau Tools** - ✅ 21 consolidated tools (18 portmanteau + 3 specialized)
@@ -312,9 +312,12 @@ cd calibre-mcp
   "mcpServers": {
     "calibre-mcp": {
       "command": "python",
-      "args": ["-m", "calibre_mcp.server"],
+      "args": ["src/calibre_mcp/server.py"],
+      "cwd": "/path/to/calibre-mcp",
       "env": {
-        "CALIBRE_SERVER_URL": "http://localhost:8080"
+        "PYTHONPATH": "src",
+        "CALIBRE_SERVER_URL": "http://localhost:8080",
+        "PYTHONUNBUFFERED": "1"
       }
     }
   }

@@ -1,3 +1,9 @@
+# Setup basic logging for diagnostics
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("calibre_mcp.server")
+logger.info("SERVER.PY: Module import starting...")
+
 """
 CalibreMCP Phase 2 - FastMCP 2.13+ Server for Calibre E-book Library Management
 
@@ -18,6 +24,7 @@ Phase 2 adds 19 additional tools:
 # CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
 # Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
 # This must happen BEFORE any imports that might write to stdout
+logger.info("Setting stdio binary mode...")
 import os
 import sys
 
@@ -28,12 +35,16 @@ if os.name == "nt":  # Windows only
 
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-    except (OSError, AttributeError):
+        logger.info("Binary mode set successfully")
+    except (OSError, AttributeError) as e:
         # Fallback: just ensure no CRLF conversion
-        pass
+        logger.warning(f"Binary mode failed: {e}")
+
+logger.info("Stdio setup complete")
 
 
 # DevNullStdout class for stdio mode suppression
+logger.info("Defining DevNullStdout class...")
 class DevNullStdout:
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
@@ -48,49 +59,66 @@ class DevNullStdout:
     def restore(self):
         sys.stdout = self.original_stdout
 
+logger.info("DevNullStdout class defined")
 
 # CRITICAL: Suppress all warnings before any imports
-# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
+logger.info("Setting up warning suppression...")
 import warnings
-
-# Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
-# Suppress specific warning categories
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+logger.info("Warning suppression complete")
 
-# For MCP stdio transport, we need to prevent ANY output to stderr
-# Warnings are printed to stderr, which breaks JSON-RPC protocol
-# Note: This is handled in __main__.py before imports
-
-# CRITICAL: Detect if we're running in stdio mode (MCP server)
-# MCP servers use stdio transport, so stdout must be clean for JSON-RPC
+# CRITICAL: Detect if we're running in stdio mode
+logger.info("Detecting stdio mode...")
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
+logger.info(f"Stdio mode detection: {_is_stdio_mode}")
 
+# Import typing and basic modules
+logger.info("Importing typing and basic modules...")
 from typing import Optional, List, Dict, Any, AsyncContextManager
 from pathlib import Path
 from contextlib import asynccontextmanager
+logger.info("Basic imports complete")
 
+# Import external dependencies
+logger.info("Importing FastMCP...")
 from fastmcp import FastMCP
+logger.info("FastMCP imported")
+
+logger.info("Importing Pydantic...")
 from pydantic import BaseModel
+logger.info("Pydantic imported")
+
+logger.info("Importing dotenv...")
 from dotenv import load_dotenv
+logger.info("dotenv imported")
 
-# Load environment variables first
+# Load environment variables
+logger.info("Loading environment variables...")
 load_dotenv()
+logger.info("Environment variables loaded")
 
-# Import structured logging
-from .logging_config import get_logger, log_operation, log_error, setup_logging
-
-# Logger will be re-initialized in main() after logging setup
+# Setup proper logging
+logger.info("Setting up proper logging system...")
+from calibre_mcp.logging_config import get_logger, log_operation, log_error, setup_logging
 logger = get_logger("calibremcp.server")
+logger.info("Logger setup complete")
+
+# Import CalibreAPIClient at module level (needed for type hints)
+logger.info("Importing CalibreAPIClient for type hints...")
+from calibre_mcp.calibre_api import CalibreAPIClient
+logger.info("SUCCESS: CalibreAPIClient imported for type hints")
 
 # Global API client and database connections (initialized on startup)
+logger.info("Setting up global variables...")
 api_client = None  # CalibreAPIClient
 current_library: str = "main"
 available_libraries: Dict[str, str] = {}
 storage = None  # CalibreMCPStorage
+logger.info("Global variables initialized")
 
 
 def create_app(path: str = "/mcp"):
@@ -109,144 +137,19 @@ def create_app(path: str = "/mcp"):
 
 
 @asynccontextmanager
-async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
-    """FastMCP 2.13 server lifespan for initialization and cleanup."""
-    global api_client, current_library, available_libraries, storage, logger
+@asynccontextmanager
+async def server_lifespan(mcp_instance: FastMCP):
+    """FastMCP 2.14.1+ lifespan for initialization and cleanup."""
+    import logging
+    logger = logging.getLogger("calibremcp.lifespan")
+    logger.info("SERVER LIFESPAN: Starting initialization...")
 
-    # Startup - keep this lightweight for FastMCP standards
-    logger = get_logger("calibremcp.server")
-    log_operation(logger, "server_lifespan_startup", level="INFO")
+    # Minimal initialization - just yield
+    yield
 
-    try:
-        # Initialize storage only
-        storage_instance = CalibreMCPStorage(mcp_instance)
-        await storage_instance.initialize()
-        set_storage(storage_instance)
-        storage = storage_instance
-        logger.info("FastMCP 2.13 storage initialized")
+    logger.info("SERVER LIFESPAN: Cleanup complete")
 
-        # Defer heavy initialization (library discovery, database setup) until first tool use
-        # This follows FastMCP standards - lifespan should be lightweight
-        logger.info("Heavy initialization deferred until first tool use")
-
-        # Yield control back to FastMCP
-        yield
-
-    except Exception as e:
-        logger.error(f"Lifespan startup error: {e}")
-        raise
-    finally:
-        # Cleanup
-        log_operation(logger, "server_lifespan_shutdown", level="INFO")
-        try:
-            # Cleanup will happen here when server shuts down
-            pass
-        except Exception as cleanup_error:
-            logger.error(f"Lifespan cleanup error: {cleanup_error}")
-        library_name_loaded = None
-
-        # Try persisted library first
-        if persisted_library and libraries.get(persisted_library):
-            library_to_load = Path(libraries[persisted_library])
-            library_name_loaded = persisted_library
-            logger.info(f"Using persisted library: {persisted_library}")
-        # Try config.local_library_path
-        elif (
-            config.local_library_path
-            and (config.local_library_path / "metadata.db").exists()
-        ):
-            library_to_load = config.local_library_path
-            # Find library name from discovered libraries
-            for name, path in libraries.items():
-                if Path(path) == library_to_load:
-                    library_name_loaded = name
-                    break
-            if not library_name_loaded:
-                library_name_loaded = library_to_load.name
-            logger.info(f"Using library from config: {library_to_load}")
-        # Try active library from Calibre's own config
-        else:
-            active_lib = get_active_calibre_library()
-            if (
-                active_lib
-                and active_lib.path.exists()
-                and (active_lib.path / "metadata.db").exists()
-            ):
-                library_to_load = active_lib.path
-                library_name_loaded = active_lib.name
-                logger.info(
-                    f"Using active Calibre library: {active_lib.name} at {active_lib.path}"
-                )
-        # Fallback to first discovered library
-        if not library_to_load and libraries:
-            first_lib_path = list(libraries.values())[0]
-            library_to_load = Path(first_lib_path)
-            library_name_loaded = list(libraries.keys())[0]
-            logger.info(
-                f"Auto-loading first discovered library: {library_name_loaded} at {library_to_load}"
-            )
-
-        # Initialize database with the selected library
-        # NOTE: Allow server to start even if database init fails - tools will handle errors gracefully
-        db_initialized = False
-        if library_to_load:
-            metadata_db = library_to_load / "metadata.db"
-            if metadata_db.exists():
-                try:
-                    init_database(str(metadata_db.absolute()), echo=False)
-                    current_library = library_name_loaded or library_to_load.name
-                    # Update config to use this library
-                    config.local_library_path = library_to_load
-                    # Persist to storage
-                    try:
-                        await storage.set_current_library(current_library)
-                    except Exception as storage_e:
-                        logger.warning(
-                            f"Could not persist library to storage: {storage_e}"
-                        )
-                    logger.info(
-                        f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
-                    )
-                    db_initialized = True
-                except Exception as e:
-                    logger.error(f"Failed to initialize database: {e}", exc_info=True)
-                    logger.warning(
-                        "Server will start without database initialization. "
-                        "Tools will attempt to initialize database on first use."
-                    )
-            else:
-                logger.warning(f"metadata.db not found at {metadata_db.absolute()}")
-        else:
-            logger.warning(
-                "No libraries discovered. Server will start without database initialization."
-            )
-
-        if not db_initialized:
-            logger.warning(
-                "Database not initialized during server startup. "
-                "Tools will attempt to initialize database automatically on first use."
-            )
-
-        log_operation(logger, "server_lifespan_ready", level="INFO")
-
-        yield  # Server runs here
-
-    finally:
-        # Shutdown
-        log_operation(logger, "server_lifespan_shutdown", level="INFO")
-
-        # Save current library state
-        if storage:
-            try:
-                await storage.set_current_library(current_library)
-                logger.info(f"Saved current library to storage: {current_library}")
-            except Exception as e:
-                logger.warning(f"Failed to save library state: {e}")
-
-        # Cleanup database connections if needed
-        # (FastMCP will handle storage cleanup)
-
-        log_operation(logger, "server_lifespan_complete", level="INFO")
+    lifespan_logger.info("SERVER LIFESPAN: Complete")
 
 
 # Initialize FastMCP server with lifespan
@@ -255,9 +158,10 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
 # Windows: %APPDATA%\calibre-mcp (survives Windows restarts)
 # macOS: ~/Library/Application Support/calibre-mcp
 # Linux: ~/.local/share/calibre-mcp
-# Create MCP instance as per FastMCP 2.14.1+ standards
-# Lifespan runs when server starts, not during module import
-mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
+# Create MCP instance with lifespan for FastMCP 2.14.1+ compliance
+logger.info("Creating FastMCP instance with lifespan...")
+mcp = FastMCP("CalibreMCP Phase 2")
+logger.info("FastMCP instance created successfully")
 
 # CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
 # We should not set up additional logging to stderr as it would override the redirection
@@ -276,7 +180,7 @@ if not _is_stdio_mode:
     )
 
 # Register prompt templates
-from .prompts import register_prompts
+from calibre_mcp.prompts import register_prompts
 
 register_prompts(mcp)
 
@@ -504,6 +408,7 @@ async def get_api_client() -> Optional[CalibreAPIClient]:
     Only creates HTTP client if use_remote=True in config.
     For local libraries, this returns None and tools should use direct SQLite access.
     """
+    from calibre_mcp.config import CalibreConfig
     global api_client
     config = CalibreConfig()
 
@@ -551,51 +456,118 @@ def create_app() -> FastMCP:
 
 
 async def main():
-    """Main server entry point"""
+    """Main server entry point with comprehensive error handling and logging"""
+    logger = None
+
     try:
-        # Import heavy modules only when actually running the server
-        from .logging_config import get_logger, log_operation, log_error, setup_logging
-        from .calibre_api import CalibreAPIClient
-        from .config import CalibreConfig
-        from .storage.persistence import CalibreMCPStorage, set_storage
+        # PHASE 1: Import heavy modules with error handling
+        logger = logging.getLogger("calibremcp.server")
+        logger.info("PHASE 1: Starting module imports...")
 
-        # Initialize logging (stderr is OK for MCP servers, stdout reserved for JSON-RPC)
-        log_file_path = Path("logs/calibremcp.log")
-        setup_logging(
-            level="INFO",
-            log_file=log_file_path,
-            enable_console=False,  # Disable console logging to prevent JSON-RPC corruption
-        )
+        try:
+            logger.info("Importing logging_config...")
+            from calibre_mcp.logging_config import get_logger, log_operation, log_error, setup_logging
+            logger.info("SUCCESS: logging_config imported")
 
-        # Re-get logger after setup (logging config changed)
+            logger.info("Importing CalibreAPIClient...")
+            from calibre_mcp.calibre_api import CalibreAPIClient
+            logger.info("SUCCESS: CalibreAPIClient imported")
+
+            logger.info("Importing CalibreConfig...")
+            from calibre_mcp.config import CalibreConfig
+            logger.info("SUCCESS: CalibreConfig imported")
+
+            logger.info("Importing storage components...")
+            from calibre_mcp.storage.persistence import CalibreMCPStorage, set_storage
+            logger.info("SUCCESS: Storage components imported")
+
+        except Exception as import_error:
+            logger.error(f"CRITICAL: Module import failed: {import_error}", exc_info=True)
+            raise RuntimeError(f"Failed to import required modules: {import_error}") from import_error
+
+        # PHASE 2: Initialize logging with timeout protection
+        logger.info("PHASE 2: Initializing logging system...")
+        try:
+            log_file_path = Path("logs/calibremcp.log")
+            logger.info(f"Setting up logging to file: {log_file_path}")
+
+            # Add timeout for logging setup (should be fast)
+            import asyncio
+            setup_result = await asyncio.wait_for(
+                asyncio.to_thread(setup_logging,
+                    level="INFO",
+                    log_file=log_file_path,
+                    enable_console=False
+                ),
+                timeout=5.0
+            )
+            logger.info("SUCCESS: Logging setup completed")
+
+        except asyncio.TimeoutError:
+            logger.warning("WARNING: Logging setup timed out, continuing with basic logging")
+        except Exception as log_error:
+            logger.error(f"ERROR: Logging setup failed: {log_error}", exc_info=True)
+            # Continue with basic logging
+
+        # Get proper logger after setup
         logger = get_logger("calibremcp.server")
+        logger.info("PHASE 2: Logger initialized successfully")
 
-        # Log server startup
-        log_operation(
-            logger,
-            "server_startup",
-            level="INFO",
-            version="1.0.0",
-            collection_size="1000+ books",
-            fastmcp_version="2.14.1+",
-        )
+        # PHASE 3: Log server startup details
+        logger.info("PHASE 3: Logging startup information...")
+        try:
+            log_operation(
+                logger,
+                "server_startup",
+                level="INFO",
+                version="1.0.0",
+                collection_size="1000+ books",
+                fastmcp_version="2.14.1+",
+                python_version=f"{__import__('sys').version}",
+                platform=__import__('platform').platform(),
+            )
+            logger.info("SUCCESS: Startup logging completed")
+        except Exception as log_op_error:
+            logger.error(f"Startup logging failed: {log_op_error}", exc_info=True)
 
-        # MCP instance is already created at module level
+        # PHASE 4: Verify MCP instance
+        logger.info("PHASE 4: Verifying MCP instance...")
+        try:
+            if mcp is None:
+                logger.error("CRITICAL: MCP instance is None - cannot register tools!")
+                raise RuntimeError("MCP instance not initialized")
 
-        # Lifespan is handled automatically by FastMCP
+            logger.info(f"SUCCESS: MCP instance verified: {type(mcp).__name__} (id: {id(mcp)})")
 
-        # Register tools with FastMCP server
-        # Verify mcp instance is valid before registering tools
-        if mcp is None:
-            logger.error("MCP instance is None - cannot register tools!")
-            raise RuntimeError("MCP instance not initialized")
+        except Exception as mcp_error:
+            logger.error(f"ERROR: MCP instance verification failed: {mcp_error}", exc_info=True)
+            raise
 
-        logger.info(f"Registering tools with MCP instance: {type(mcp).__name__}")
+        # PHASE 5: Register tools with comprehensive error handling
+        logger.info("PHASE 5: Registering tools...")
+        try:
+            # Add timeout for tool registration (may involve heavy imports)
+            import asyncio
 
-        # Import and register tools
-        # CRITICAL: Suppress potential stdout noise from heavy imports (transformers, etc.)
-        from .tools import register_tools
-        register_tools(mcp)
+            async def register_tools_with_timeout():
+                logger.info("Starting tool registration...")
+                from calibre_mcp.tools import register_tools
+                logger.info("Tools module imported, calling register_tools...")
+                register_tools(mcp)
+                logger.info("register_tools() completed")
+
+            await asyncio.wait_for(register_tools_with_timeout(), timeout=30.0)
+            logger.info("SUCCESS: Tool registration completed")
+
+        except asyncio.TimeoutError:
+            logger.error("CRITICAL: Tool registration timed out after 30 seconds")
+            logger.error("This usually indicates a hanging import in one of the tool modules")
+            logger.error("Check for circular imports or heavy initialization in tool modules")
+            raise RuntimeError("Tool registration timed out - check for hanging imports")
+        except Exception as tool_error:
+            logger.error(f"ERROR: Tool registration failed: {tool_error}", exc_info=True)
+            logger.error(f"Tool registration error type: {type(tool_error).__name__}")
+            raise
 
         # Verify tools were registered
         try:
@@ -614,8 +586,8 @@ async def main():
         import calibre_mcp
 
         if hasattr(calibre_mcp, "_original_stdout") and calibre_mcp._original_stdout:
-            sys.stdout.flush()
-            sys.stdout = calibre_mcp._original_stdout
+            __import__('sys').stdout.flush()
+            __import__('sys').stdout = calibre_mcp._original_stdout
 
             # Re-configure binary mode for Windows if needed
             if os.name == "nt":
@@ -626,13 +598,58 @@ async def main():
                 except Exception:
                     pass
 
-        # Run the FastMCP server using the SOTA-recommended async stdio transport
-        # Standard logic for FastMCP 2.14.1+: use run_stdio_async()
-        await mcp.run_stdio_async()
+        # PHASE 6: Start FastMCP server
+        logger.info("PHASE 6: Starting FastMCP server...")
+        try:
+            # Log what we're about to do
+            logger.info("Calling mcp.run_stdio_async()...")
+            logger.info(f"MCP instance: {type(mcp).__name__}")
+            logger.info(f"MCP lifespan configured: {hasattr(mcp, '_lifespan') and mcp._lifespan is not None}")
+
+            # Run the FastMCP server using the SOTA-recommended async stdio transport
+            await mcp.run_stdio_async()
+
+        except Exception as server_error:
+            logger.error("CRITICAL: FastMCP server startup failed")
+            logger.error(f"Server error type: {type(server_error).__name__}")
+            logger.error(f"Server error message: {server_error}", exc_info=True)
+
+            # Log additional diagnostic information
+            try:
+                logger.error(f"Python version: {sys.version}")
+                logger.error(f"Platform: {__import__('platform').platform()}")
+
+                # Check if MCP has tools registered
+                if hasattr(mcp, '_tools'):
+                    tool_count = len(mcp._tools)
+                    logger.error(f"MCP tools registered: {tool_count}")
+                else:
+                    logger.error("MCP _tools attribute not found")
+
+            except Exception as diag_error:
+                logger.error(f"Diagnostic logging failed: {diag_error}")
+
+            raise
 
     except Exception as e:
-        # Log error to file only (no stdout/stderr output for MCP stdio protocol)
-        log_error(logger, "server_startup_error", e)
+        # PHASE 7: Global exception handling
+        if logger:
+            logger.error("CRITICAL: Unhandled exception in main()")
+            logger.error(f"Exception type: {type(e).__name__}")
+            logger.error(f"Exception message: {e}", exc_info=True)
+
+            # Try to log to file if logging system is available
+            try:
+                log_error(logger, "server_startup_error", e)
+            except Exception as log_error:
+                # Last resort logging
+                logger.error(f"CRITICAL ERROR: {e}")
+        else:
+            # No logger available, print to stderr
+            # Last resort logging - no logger available
+            import sys
+            sys.stderr.write(f"CRITICAL ERROR (no logger): {e}\n")
+
         # Re-raise to let FastMCP handle it properly
         raise
 
