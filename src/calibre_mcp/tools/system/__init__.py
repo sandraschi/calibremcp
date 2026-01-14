@@ -4,16 +4,34 @@ System management tools for CalibreMCP.
 This module provides the manage_system portmanteau tool for comprehensive system management.
 """
 
-# Import portmanteau tool (this is registered with @mcp.tool() and visible to Claude)
-from .manage_system import manage_system  # noqa: F401
+# Import portmanteau and granular tools
+from .manage_system import manage_system
+from .system_tools import (
+    help,
+    status,
+    tool_help,
+    list_tools,
+    hello_world,
+    health_check,
+    ping,
+    version,
+    maintenance,
+    config_view,
+)
 
-# Helper functions are imported but NOT registered (they have no @mcp.tool() decorator)
-# They are used internally by the portmanteau tool
-
-# List of tools to register - ONLY portmanteau tool is registered
-# Helper functions are NOT in this list (they have no @mcp.tool() decorator)
+# List of tools to register
 tools = [
-    manage_system,  # Portmanteau tool (ONLY ONE visible to Claude)
+    manage_system,
+    help,
+    status,
+    tool_help,
+    list_tools,
+    hello_world,
+    health_check,
+    ping,
+    version,
+    maintenance,
+    config_view,
 ]
 
-__all__ = ["manage_system"]
+__all__ = ["manage_system", "help", "status", "ping", "version"]

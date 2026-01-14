@@ -26,6 +26,7 @@ from enum import Enum
 from ...server import mcp, get_api_client, current_library
 from ...logging_config import get_logger, log_operation, log_error
 from ...config import CalibreConfig
+from ...db.database import DatabaseService
 
 logger = get_logger("calibremcp.tools.system")
 
@@ -124,7 +125,11 @@ HELP_DOCS = {
                 "advanced": "AI-powered metadata enhancement",
                 "expert": "Advanced metadata validation and repair",
             },
-            "tools": ["update_book_metadata", "auto_organize_tags", "fix_metadata_issues"],
+            "tools": [
+                "update_book_metadata",
+                "auto_organize_tags",
+                "fix_metadata_issues",
+            ],
         },
         "files": {
             "title": "File Operations",
@@ -144,7 +149,11 @@ HELP_DOCS = {
                 "advanced": "Advanced content curation",
                 "expert": "Expert-level content analysis",
             },
-            "tools": ["japanese_book_organizer", "it_book_curator", "reading_recommendations"],
+            "tools": [
+                "japanese_book_organizer",
+                "it_book_curator",
+                "reading_recommendations",
+            ],
         },
     },
     "examples": {
@@ -204,8 +213,8 @@ HELP_DOCS = {
 }
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def help_helper(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
+@mcp.tool()
+async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
     """
     Comprehensive help system with multiple detail levels.
 
@@ -302,8 +311,10 @@ async def help_helper(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] =
         return f"Error generating help: {str(e)}"
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None) -> str:
+@mcp.tool()
+async def status(
+    level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None
+) -> str:
     """
     Comprehensive system status and diagnostic information.
 
@@ -371,7 +382,11 @@ async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[
             content.append("")
 
         # Intermediate level - Tool information
-        if level in [StatusLevel.INTERMEDIATE, StatusLevel.ADVANCED, StatusLevel.DIAGNOSTIC]:
+        if level in [
+            StatusLevel.INTERMEDIATE,
+            StatusLevel.ADVANCED,
+            StatusLevel.DIAGNOSTIC,
+        ]:
             content.append("## Tool Status")
             content.append("")
 
@@ -394,17 +409,25 @@ async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[
 
                 for tool in registered_tools:
                     name_lower = tool["name"].lower()
-                    if any(x in name_lower for x in ["list_books", "search_books", "get_book"]):
+                    if any(
+                        x in name_lower
+                        for x in ["list_books", "search_books", "get_book"]
+                    ):
                         tool_categories["Core Operations"].append(tool)
                     elif any(x in name_lower for x in ["library", "switch"]):
                         tool_categories["Library Management"].append(tool)
-                    elif any(x in name_lower for x in ["statistics", "analysis", "series", "tag"]):
+                    elif any(
+                        x in name_lower
+                        for x in ["statistics", "analysis", "series", "tag"]
+                    ):
                         tool_categories["Analysis"].append(tool)
                     elif "metadata" in name_lower or "update" in name_lower:
                         tool_categories["Metadata"].append(tool)
                     elif "download" in name_lower or "format" in name_lower:
                         tool_categories["Files"].append(tool)
-                    elif any(x in name_lower for x in ["help", "status", "health", "tool"]):
+                    elif any(
+                        x in name_lower for x in ["help", "status", "health", "tool"]
+                    ):
                         tool_categories["System"].append(tool)
                     else:
                         tool_categories["Other"].append(tool)
@@ -468,18 +491,28 @@ async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[
             # Calibre connection details
             if calibre_status == "connected":
                 content.append("### Calibre Server Details")
-                content.append(f"**Server URL:** {calibre_info.get('server_url', 'Unknown')}")
-                content.append(f"**Server Version:** {calibre_info.get('version', 'Unknown')}")
-                content.append(f"**Total Books:** {calibre_info.get('total_books', 'Unknown')}")
+                content.append(
+                    f"**Server URL:** {calibre_info.get('server_url', 'Unknown')}"
+                )
+                content.append(
+                    f"**Server Version:** {calibre_info.get('version', 'Unknown')}"
+                )
+                content.append(
+                    f"**Total Books:** {calibre_info.get('total_books', 'Unknown')}"
+                )
                 content.append("")
             else:
                 content.append("### Calibre Connection Issues")
-                content.append(f"**Error:** {calibre_info.get('error', 'Unknown error')}")
+                content.append(
+                    f"**Error:** {calibre_info.get('error', 'Unknown error')}"
+                )
                 content.append("")
 
             # Configuration details
             content.append("### Configuration")
-            content.append(f"**Auto-discover Libraries:** {config.auto_discover_libraries}")
+            content.append(
+                f"**Auto-discover Libraries:** {config.auto_discover_libraries}"
+            )
             content.append(f"**Server URL:** {config.server_url}")
             content.append(f"**Timeout:** {config.timeout}s")
             content.append(f"**Max Retries:** {config.max_retries}")
@@ -487,7 +520,11 @@ async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[
 
             # Environment variables
             content.append("### Environment Variables")
-            env_vars = ["CALIBRE_SERVER_URL", "CALIBRE_LIBRARY_PATH", "CALIBRE_LIBRARIES"]
+            env_vars = [
+                "CALIBRE_SERVER_URL",
+                "CALIBRE_LIBRARY_PATH",
+                "CALIBRE_LIBRARIES",
+            ]
             for var in env_vars:
                 value = "Set" if var in os.environ else "Not set"
                 content.append(f"**{var}:** {value}")
@@ -562,8 +599,8 @@ def _get_tool_by_name(tool_name: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
+@mcp.tool()
+async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
     """
     Get detailed help for a specific tool.
 
@@ -586,7 +623,9 @@ async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -
         tool_help("list_libraries", level="expert")
     """
     try:
-        log_operation(logger, "tool_help_requested", tool_name=tool_name, level=level.value)
+        log_operation(
+            logger, "tool_help_requested", tool_name=tool_name, level=level.value
+        )
 
         # Get tool information
         tool_info = _get_tool_by_name(tool_name)
@@ -594,14 +633,14 @@ async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -
         if not tool_info:
             # Try to find similar tool names
             all_tools = _get_registered_tools()
-            similar = [t["name"] for t in all_tools if tool_name.lower() in t["name"].lower()]
+            similar = [
+                t["name"] for t in all_tools if tool_name.lower() in t["name"].lower()
+            ]
 
             if similar:
                 return f"Tool '{tool_name}' not found. Did you mean: {', '.join(similar[:5])}?"
             else:
-                return (
-                    f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
-                )
+                return f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
 
         # Build help content
         content = []
@@ -641,7 +680,9 @@ async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -
                     content.append(f"### `{param['name']}`")
                     content.append("")
                     content.append(f"- **Type:** `{param['type']}`")
-                    content.append(f"- **Required:** {'Yes' if param['required'] else 'No'}")
+                    content.append(
+                        f"- **Required:** {'Yes' if param['required'] else 'No'}"
+                    )
                     if param["default"] is not None:
                         content.append(f"- **Default:** `{repr(param['default'])}`")
                     content.append("")
@@ -649,7 +690,9 @@ async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -
             content.append("")
 
         # Signature
-        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT] and tool_info.get("signature"):
+        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT] and tool_info.get(
+            "signature"
+        ):
             content.append("## Function Signature")
             content.append("")
             content.append("```python")
@@ -779,8 +822,8 @@ def _get_tool_tips(tool_name: str) -> List[str]:
     return tips_map.get(tool_name, [])
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
+@mcp.tool()
+async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
     """
     List all available tools with their descriptions.
 
@@ -837,7 +880,9 @@ async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
                 categories["core"].append(tool)
             elif any(x in name_lower for x in ["library", "switch"]):
                 categories["library"].append(tool)
-            elif any(x in name_lower for x in ["statistics", "analysis", "series", "tag"]):
+            elif any(
+                x in name_lower for x in ["statistics", "analysis", "series", "tag"]
+            ):
                 categories["analysis"].append(tool)
             elif "metadata" in name_lower or "update" in name_lower:
                 categories["metadata"].append(tool)
@@ -853,7 +898,10 @@ async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
             "tools": filtered,
             "categories": {k: len(v) for k, v in categories.items() if v},
             "categorized_tools": {
-                k: [{"name": t["name"], "description": t["description"][:100]} for t in v]
+                k: [
+                    {"name": t["name"], "description": t["description"][:100]}
+                    for t in v
+                ]
                 for k, v in categories.items()
                 if v
             },
@@ -864,8 +912,8 @@ async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
         return {"total": 0, "tools": [], "categories": {}, "error": str(e)}
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def hello_world_helper() -> str:
+@mcp.tool()
+async def hello_world() -> str:
     """
     A simple hello world tool for testing and demonstration purposes.
 
@@ -888,8 +936,8 @@ async def hello_world_helper() -> str:
         return f"Error in hello_world: {str(e)}"
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def health_check_helper() -> Dict[str, Any]:
+@mcp.tool()
+async def health_check() -> Dict[str, Any]:
     """
     Machine-readable health check for monitoring systems.
 
@@ -946,7 +994,9 @@ async def health_check_helper() -> Dict[str, Any]:
             cpu_percent = psutil.cpu_percent(interval=0.1)
 
             health_status["checks"]["system_resources"] = {
-                "status": "healthy" if memory.percent < 90 and cpu_percent < 90 else "warning",
+                "status": "healthy"
+                if memory.percent < 90 and cpu_percent < 90
+                else "warning",
                 "memory_percent": memory.percent,
                 "cpu_percent": cpu_percent,
             }
@@ -962,7 +1012,9 @@ async def health_check_helper() -> Dict[str, Any]:
 
         # Overall status determination
         unhealthy_checks = [
-            check for check in health_status["checks"].values() if check["status"] == "unhealthy"
+            check
+            for check in health_status["checks"].values()
+            if check["status"] == "unhealthy"
         ]
         if unhealthy_checks:
             health_status["status"] = "unhealthy"
@@ -971,4 +1023,68 @@ async def health_check_helper() -> Dict[str, Any]:
 
     except Exception as e:
         log_error(logger, "health_check_error", e)
-        return {"status": "unhealthy", "timestamp": datetime.now().isoformat(), "error": str(e)}
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
+        }
+
+
+@mcp.tool()
+async def ping() -> str:
+    """
+    Verify connectivity to the Calibre database and API.
+
+    Returns:
+        "pong" if successful, or an error message.
+    """
+    try:
+        client = await get_api_client()
+        await client.test_connection()
+        return "pong"
+    except Exception as e:
+        return f"Ping failed: {str(e)}"
+
+
+@mcp.tool()
+async def version() -> str:
+    """
+    Get the current version of the CalibreMCP server.
+    """
+    return "12.1.0-SOTA"
+
+
+@mcp.tool()
+async def maintenance(operation: str = "vacuum") -> str:
+    """
+    Perform database maintenance operations.
+
+    Args:
+        operation: The maintenance operation to perform (vacuum, integrity_check).
+    """
+    db = DatabaseService()
+    try:
+        if operation == "vacuum":
+            db.execute_raw("VACUUM")
+            return "Database vacuumed successfully."
+        elif operation == "integrity_check":
+            result = db.execute_raw("PRAGMA integrity_check")
+            return f"Integrity check result: {result}"
+        else:
+            return f"Unknown maintenance operation: {operation}"
+    except Exception as e:
+        return f"Maintenance failed: {str(e)}"
+
+
+@mcp.tool()
+async def config_view() -> Dict[str, Any]:
+    """
+    View non-sensitive server configuration.
+    """
+    config = CalibreConfig()
+    return {
+        "server_url": config.server_url,
+        "timeout": config.timeout,
+        "max_retries": config.max_retries,
+        "auto_discover": config.auto_discover_libraries,
+    }

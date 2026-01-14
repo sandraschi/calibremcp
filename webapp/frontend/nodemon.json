@@ -1,0 +1,22 @@
+{
+  "watch": [
+    "app",
+    "components",
+    "lib",
+    "public",
+    "next.config.js",
+    "tsconfig.json",
+    "tailwind.config.ts"
+  ],
+  "ext": "ts,tsx,js,jsx,json,css",
+  "ignore": [
+    "node_modules",
+    ".next",
+    ".git",
+    "*.log"
+  ],
+  "exec": "next dev --turbo -p 13001",
+  "restartable": "rs",
+  "delay": 1000,
+  "verbose": false
+}

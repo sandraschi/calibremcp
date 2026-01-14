@@ -77,7 +77,9 @@ class StructuredFormatter(logging.Formatter):
 
 
 def setup_logging(
-    level: str = "INFO", log_file: Optional[Path] = None, enable_console: Optional[bool] = None
+    level: str = "INFO",
+    log_file: Optional[Path] = None,
+    enable_console: Optional[bool] = None,
 ) -> None:
     """
     Setup structured logging configuration.
@@ -91,6 +93,11 @@ def setup_logging(
     # Auto-detect MCP server mode and disable console logging
     if enable_console is None:
         enable_console = not _is_mcp_server()
+
+    # CRITICAL: For MCP servers, console logging must be EXPLICITLY disabled
+    # to prevent any output from breaking the JSON-RPC stdio stream.
+    if _is_mcp_server():
+        enable_console = False
 
     # Create logs directory if it doesn't exist
     if log_file:
@@ -137,8 +144,16 @@ def setup_logging(
         },
         "handlers": handlers,
         "loggers": {
-            "calibremcp": {"level": level, "handlers": list(handlers.keys()), "propagate": False},
-            "calibre_mcp": {"level": level, "handlers": list(handlers.keys()), "propagate": False},
+            "calibremcp": {
+                "level": level,
+                "handlers": list(handlers.keys()),
+                "propagate": False,
+            },
+            "calibre_mcp": {
+                "level": level,
+                "handlers": list(handlers.keys()),
+                "propagate": False,
+            },
         },
         "root": {"level": level, "handlers": list(handlers.keys())},
     }

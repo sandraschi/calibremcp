@@ -21,15 +21,17 @@ Phase 2 adds 19 additional tools:
 import os
 import sys
 
-if os.name == 'nt':  # Windows only
+if os.name == "nt":  # Windows only
     try:
         # Force binary mode for stdin/stdout to prevent CRLF conversion
         import msvcrt
+
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     except (OSError, AttributeError):
         # Fallback: just ensure no CRLF conversion
         pass
+
 
 # DevNullStdout class for stdio mode suppression
 class DevNullStdout:
@@ -45,6 +47,7 @@ class DevNullStdout:
 
     def restore(self):
         sys.stdout = self.original_stdout
+
 
 # CRITICAL: Suppress all warnings before any imports
 # MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
@@ -64,7 +67,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 # CRITICAL: Detect if we're running in stdio mode (MCP server)
 # MCP servers use stdio transport, so stdout must be clean for JSON-RPC
-_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, 'isatty') else True
+_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 
 from typing import Optional, List, Dict, Any, AsyncContextManager
 from pathlib import Path
@@ -93,6 +96,21 @@ api_client: Optional[CalibreAPIClient] = None
 current_library: str = "main"
 available_libraries: Dict[str, str] = {}
 storage: Optional[CalibreMCPStorage] = None
+
+
+def create_app(path: str = "/mcp"):
+    """
+    Create FastMCP HTTP ASGI app for mounting in FastAPI.
+
+    Args:
+        path: Mount path (ignored, handled by FastAPI mount)
+
+    Returns the ASGI app that can be mounted at the specified path.
+    FastMCP 2.13+ provides http_app() method for this.
+    """
+    # FastMCP http_app() returns ASGI app - path is handled by FastAPI mount
+    # The path parameter is kept for API compatibility but not used
+    return mcp.http_app()
 
 
 @asynccontextmanager
@@ -154,7 +172,10 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             library_name_loaded = persisted_library
             logger.info(f"Using persisted library: {persisted_library}")
         # Try config.local_library_path
-        elif config.local_library_path and (config.local_library_path / "metadata.db").exists():
+        elif (
+            config.local_library_path
+            and (config.local_library_path / "metadata.db").exists()
+        ):
             library_to_load = config.local_library_path
             # Find library name from discovered libraries
             for name, path in libraries.items():
@@ -174,7 +195,9 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             ):
                 library_to_load = active_lib.path
                 library_name_loaded = active_lib.name
-                logger.info(f"Using active Calibre library: {active_lib.name} at {active_lib.path}")
+                logger.info(
+                    f"Using active Calibre library: {active_lib.name} at {active_lib.path}"
+                )
         # Fallback to first discovered library
         if not library_to_load and libraries:
             first_lib_path = list(libraries.values())[0]
@@ -199,7 +222,9 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                     try:
                         await storage.set_current_library(current_library)
                     except Exception as storage_e:
-                        logger.warning(f"Could not persist library to storage: {storage_e}")
+                        logger.warning(
+                            f"Could not persist library to storage: {storage_e}"
+                        )
                     logger.info(
                         f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
                     )
@@ -213,8 +238,10 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             else:
                 logger.warning(f"metadata.db not found at {metadata_db.absolute()}")
         else:
-            logger.warning("No libraries discovered. Server will start without database initialization.")
-        
+            logger.warning(
+                "No libraries discovered. Server will start without database initialization."
+            )
+
         if not db_initialized:
             logger.warning(
                 "Database not initialized during server startup. "
@@ -261,13 +288,15 @@ mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
 if not _is_stdio_mode:
     # Only set up logging for non-MCP modes (if any)
     import logging
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
 # Register prompt templates
 from .prompts import register_prompts
+
 register_prompts(mcp)
 
 
@@ -276,6 +305,8 @@ register_prompts(mcp)
 
 class LibrarySearchResponse(BaseModel):
     """Response model for library search operations"""
+
+    model_config = {"from_attributes": True}
 
     results: List[Dict[str, Any]]
     total_found: int
@@ -286,6 +317,8 @@ class LibrarySearchResponse(BaseModel):
 
 class BookDetailResponse(BaseModel):
     """Response model for detailed book information"""
+
+    model_config = {"from_attributes": True}
 
     book_id: int
     title: str
@@ -320,6 +353,8 @@ class ConnectionTestResponse(BaseModel):
 class LibraryListResponse(BaseModel):
     """Response model for library listing"""
 
+    model_config = {"from_attributes": True}
+
     libraries: List[Dict[str, Any]]
     current_library: str
     total_libraries: int
@@ -327,6 +362,8 @@ class LibraryListResponse(BaseModel):
 
 class LibraryStatsResponse(BaseModel):
     """Response model for library statistics"""
+
+    model_config = {"from_attributes": True}
 
     library_name: str
     total_books: int
@@ -342,6 +379,8 @@ class LibraryStatsResponse(BaseModel):
 class TagStatsResponse(BaseModel):
     """Response model for tag statistics"""
 
+    model_config = {"from_attributes": True}
+
     total_tags: int
     unique_tags: int
     duplicate_tags: List[Dict[str, Any]]
@@ -352,6 +391,8 @@ class TagStatsResponse(BaseModel):
 class DuplicatesResponse(BaseModel):
     """Response model for duplicate detection"""
 
+    model_config = {"from_attributes": True}
+
     duplicate_groups: List[Dict[str, Any]]
     total_duplicates: int
     confidence_scores: Dict[str, float]
@@ -360,6 +401,8 @@ class DuplicatesResponse(BaseModel):
 class SeriesAnalysisResponse(BaseModel):
     """Response model for series analysis"""
 
+    model_config = {"from_attributes": True}
+
     incomplete_series: List[Dict[str, Any]]
     reading_order_suggestions: List[Dict[str, Any]]
     series_statistics: Dict[str, Any]
@@ -367,6 +410,8 @@ class SeriesAnalysisResponse(BaseModel):
 
 class LibraryHealthResponse(BaseModel):
     """Response model for library health analysis"""
+
+    model_config = {"from_attributes": True}
 
     health_score: float
     issues_found: List[Dict[str, Any]]
@@ -377,6 +422,8 @@ class LibraryHealthResponse(BaseModel):
 class UnreadPriorityResponse(BaseModel):
     """Response model for unread priority list"""
 
+    model_config = {"from_attributes": True}
+
     prioritized_books: List[Dict[str, Any]]
     priority_reasons: Dict[str, str]
     total_unread: int
@@ -384,6 +431,8 @@ class UnreadPriorityResponse(BaseModel):
 
 class MetadataUpdateRequest(BaseModel):
     """Request model for metadata updates"""
+
+    model_config = {"from_attributes": True}
 
     book_id: int
     field: str
@@ -393,6 +442,8 @@ class MetadataUpdateRequest(BaseModel):
 class MetadataUpdateResponse(BaseModel):
     """Response model for metadata updates"""
 
+    model_config = {"from_attributes": True}
+
     updated_books: List[int]
     failed_updates: List[Dict[str, Any]]
     success_count: int
@@ -400,6 +451,8 @@ class MetadataUpdateResponse(BaseModel):
 
 class ReadingStats(BaseModel):
     """Response model for reading statistics"""
+
+    model_config = {"from_attributes": True}
 
     total_books_read: int
     average_rating: float
@@ -410,6 +463,8 @@ class ReadingStats(BaseModel):
 class ConversionRequest(BaseModel):
     """Request model for format conversion"""
 
+    model_config = {"from_attributes": True}
+
     book_id: int
     source_format: str
     target_format: str
@@ -418,6 +473,8 @@ class ConversionRequest(BaseModel):
 
 class ConversionResponse(BaseModel):
     """Response model for format conversion"""
+
+    model_config = {"from_attributes": True}
 
     book_id: int
     success: bool
@@ -428,6 +485,8 @@ class ConversionResponse(BaseModel):
 class JapaneseBookOrganization(BaseModel):
     """Response model for Japanese book organization"""
 
+    model_config = {"from_attributes": True}
+
     manga_series: List[Dict[str, Any]]
     light_novels: List[Dict[str, Any]]
     language_learning: List[Dict[str, Any]]
@@ -437,6 +496,8 @@ class JapaneseBookOrganization(BaseModel):
 class ITBookCuration(BaseModel):
     """Response model for IT book curation"""
 
+    model_config = {"from_attributes": True}
+
     programming_languages: Dict[str, List[Dict[str, Any]]]
     outdated_books: List[Dict[str, Any]]
     learning_paths: List[Dict[str, Any]]
@@ -444,6 +505,8 @@ class ITBookCuration(BaseModel):
 
 class ReadingRecommendations(BaseModel):
     """Response model for reading recommendations"""
+
+    model_config = {"from_attributes": True}
 
     recommendations: List[Dict[str, Any]]
     reasoning: Dict[str, str]
@@ -506,7 +569,7 @@ def create_app() -> FastMCP:
     return mcp
 
 
-def main():
+async def main():
     """Main server entry point"""
     try:
         # Initialize logging (stderr is OK for MCP servers, stdout reserved for JSON-RPC)
@@ -514,7 +577,7 @@ def main():
         setup_logging(
             level="INFO",
             log_file=log_file_path,
-            enable_console=True,  # Enable stderr logging (MCP allows stderr for logs)
+            enable_console=False,  # Disable console logging to prevent JSON-RPC corruption
         )
 
         # Re-get logger after setup (logging config changed)
@@ -527,96 +590,55 @@ def main():
             level="INFO",
             version="1.0.0",
             collection_size="1000+ books",
-            fastmcp_version="2.13.0+",
+            fastmcp_version="2.14.1+",
         )
 
         # Register tools with FastMCP server
-        # Tools with @mcp.tool() auto-register when imported (FastMCP 2.12+)
-        # BaseTool classes need explicit registration
-        # NOTE: Server lifespan handles initialization (database, libraries, storage)
-        
         # Verify mcp instance is valid before registering tools
         if mcp is None:
             logger.error("MCP instance is None - cannot register tools!")
             raise RuntimeError("MCP instance not initialized")
-        
+
         logger.info(f"Registering tools with MCP instance: {type(mcp).__name__}")
-        logger.info(f"MCP instance attributes: {[attr for attr in dir(mcp) if not attr.startswith('_')][:10]}")
-        
+
         # Import and register tools
+        # CRITICAL: Suppress potential stdout noise from heavy imports (transformers, etc.)
         from .tools import register_tools
+
         register_tools(mcp)
-        
+
         # Verify tools were registered
         try:
-            # Check if FastMCP has registered tools - try multiple ways to access
-            tool_count = None
-            tool_names = []
-            
-            # Method 1: Check _tools attribute (internal)
-            if hasattr(mcp, '_tools'):
-                if isinstance(mcp._tools, dict):
-                    tool_count = len(mcp._tools)
-                    tool_names = list(mcp._tools.keys())
-                elif hasattr(mcp._tools, '__len__'):
-                    tool_count = len(mcp._tools)
-            
-            # Method 2: Check tools attribute (public API)
-            if tool_count is None and hasattr(mcp, 'tools'):
-                if isinstance(mcp.tools, dict):
-                    tool_count = len(mcp.tools)
-                    tool_names = list(mcp.tools.keys())
-                elif hasattr(mcp.tools, '__len__'):
-                    tool_count = len(mcp.tools)
-            
-            # Method 3: Check _server attribute (FastMCP internal)
-            if tool_count is None and hasattr(mcp, '_server'):
-                server = mcp._server
-                if hasattr(server, '_tools'):
-                    if isinstance(server._tools, dict):
-                        tool_count = len(server._tools)
-                        tool_names = list(server._tools.keys())
-            
-            # Method 4: Try FastMCP's list_tools method
-            if tool_count is None:
-                try:
-                    # FastMCP 2.13+ has list_tools() method
-                    if hasattr(mcp, 'list_tools'):
-                        tools_list = mcp.list_tools()
-                        if tools_list:
-                            tool_count = len(tools_list) if isinstance(tools_list, list) else 0
-                            if isinstance(tools_list, list):
-                                tool_names = [t.get('name', t if isinstance(t, str) else 'unknown') for t in tools_list]
-                    # Also try _server.list_tools if available
-                    elif hasattr(mcp, '_server') and hasattr(mcp._server, 'list_tools'):
-                        tools_list = mcp._server.list_tools()
-                        if tools_list:
-                            tool_count = len(tools_list) if isinstance(tools_list, list) else 0
-                            if isinstance(tools_list, list):
-                                tool_names = [t.get('name', t if isinstance(t, str) else 'unknown') for t in tools_list]
-                except Exception as e:
-                    logger.debug(f"Could not use list_tools(): {e}")
-            
-            if tool_count is None:
-                tool_count = "unknown (could not determine)"
-            
-            logger.info(f"Tool registration verification: {tool_count} tools found")
-            if tool_names:
-                logger.info(f"Registered tool names (first 20): {', '.join(tool_names[:20])}")
-            if tool_count == 0:
-                logger.error("CRITICAL: No tools registered! Check tool imports and @mcp.tool() decorators.")
-                logger.error("Possible causes:")
-                logger.error("1. Tool modules failed to import (check import errors in register_tools)")
-                logger.error("2. @mcp.tool() decorators are not executing (check if mcp instance is valid)")
-                logger.error("3. Circular import issue (tools import mcp before mcp is created)")
-                logger.error("4. FastMCP version mismatch or API change")
-        except Exception as e:
-            logger.error(f"Could not verify tool count: {e}", exc_info=True)
+            # Check if FastMCP has registered tools
+            tool_count = "unknown"
+            if hasattr(mcp, "_tools"):
+                tool_count = len(mcp._tools)
 
-        # Run the FastMCP server (handles event loop internally)
-        # Server lifespan handles initialization/cleanup (FastMCP 2.13+)
-        # Disable banner for STDIO transport (Rich console fails on Windows STDIO)
-        mcp.run(show_banner=False)
+            logger.info(f"Tool registration verification: {tool_count} tools found")
+            if tool_count == 0:
+                logger.error("CRITICAL: No tools registered! Check tool imports.")
+        except Exception as e:
+            logger.error(f"Could not verify tool count: {e}")
+
+        # Restore stdout explicitly for JSON-RPC communication
+        import calibre_mcp
+
+        if hasattr(calibre_mcp, "_original_stdout") and calibre_mcp._original_stdout:
+            sys.stdout.flush()
+            sys.stdout = calibre_mcp._original_stdout
+
+            # Re-configure binary mode for Windows if needed
+            if os.name == "nt":
+                import msvcrt
+
+                try:
+                    msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+                except Exception:
+                    pass
+
+        # Run the FastMCP server using the SOTA-recommended async stdio transport
+        # Standard logic for FastMCP 2.14.1+: use run_stdio_async()
+        await mcp.run_stdio_async()
 
     except Exception as e:
         # Log error to file only (no stdout/stderr output for MCP stdio protocol)
@@ -628,12 +650,12 @@ def main():
 if __name__ == "__main__":
     # Handle both direct execution and module execution
     import sys
+    import asyncio
     from pathlib import Path
 
     # If running directly (not as module), fix imports
-    # Add src directory to path to allow absolute imports
     current_file = Path(__file__).resolve()
-    src_path = current_file.parent.parent  # Go from src/calibre_mcp/server.py to src/
+    src_path = current_file.parent.parent
 
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
@@ -641,4 +663,4 @@ if __name__ == "__main__":
     # Now re-import using absolute imports
     from calibre_mcp.server import main
 
-    main()
+    asyncio.run(main())

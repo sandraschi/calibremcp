@@ -14,7 +14,11 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 from dotenv import load_dotenv
 
 from .logging_config import get_logger, log_operation, log_error
-from .config_discovery import CalibreLibrary, discover_calibre_libraries, get_active_calibre_library
+from .config_discovery import (
+    CalibreLibrary,
+    discover_calibre_libraries,
+    get_active_calibre_library,
+)
 
 
 logger = get_logger("calibremcp.config")
@@ -27,13 +31,18 @@ class RemoteServerConfig(BaseModel):
     display_name: str = ""
     username: Optional[str] = None  # Not stored here, only in keyring
 
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
 
 class CalibreConfig(BaseModel):
     """Root configuration for Calibre MCP with automatic library discovery"""
 
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
     # Library configuration - now auto-discovered
     local_library_path: Optional[Path] = Field(
-        default=None, description="Path to local Calibre library (auto-discovered if not specified)"
+        default=None,
+        description="Path to local Calibre library (auto-discovered if not specified)",
     )
 
     # Discovered libraries
@@ -47,11 +56,14 @@ class CalibreConfig(BaseModel):
     )
 
     library_discovery_paths: List[Path] = Field(
-        default_factory=list, description="Additional paths to scan for Calibre libraries"
+        default_factory=list,
+        description="Additional paths to scan for Calibre libraries",
     )
 
     # Disable remote access by default
-    default_remote: Optional[str] = Field(None, description="Default remote server name to use")
+    default_remote: Optional[str] = Field(
+        None, description="Default remote server name to use"
+    )
     remotes: Dict[str, RemoteServerConfig] = Field(
         default_factory=dict, description="Configured remote servers"
     )
@@ -60,9 +72,15 @@ class CalibreConfig(BaseModel):
     use_remote: bool = Field(
         default=False, description="Set to True to enable remote server access"
     )
-    server_url: str = Field(default="http://localhost:8080", description="Calibre server URL")
-    username: Optional[str] = Field(default=None, description="Calibre username (if auth enabled)")
-    password: Optional[str] = Field(default=None, description="Calibre password (if auth enabled)")
+    server_url: str = Field(
+        default="http://localhost:8080", description="Calibre server URL"
+    )
+    username: Optional[str] = Field(
+        default=None, description="Calibre username (if auth enabled)"
+    )
+    password: Optional[str] = Field(
+        default=None, description="Calibre password (if auth enabled)"
+    )
 
     # Request settings
     timeout: int = Field(default=30, description="Request timeout in seconds")
@@ -157,7 +175,10 @@ class CalibreConfig(BaseModel):
                     config_data["library_paths"] = lib_paths
             except json.JSONDecodeError:
                 log_operation(
-                    logger, "invalid_json_warning", level="WARNING", env_var="CALIBRE_LIBRARY_PATHS"
+                    logger,
+                    "invalid_json_warning",
+                    level="WARNING",
+                    env_var="CALIBRE_LIBRARY_PATHS",
                 )
 
         # Handle base library path
@@ -175,7 +196,12 @@ class CalibreConfig(BaseModel):
             env_value = os.getenv(env_var)
             if env_value is not None:
                 # Convert to appropriate type
-                if config_key in ["timeout", "max_retries", "default_limit", "max_limit"]:
+                if config_key in [
+                    "timeout",
+                    "max_retries",
+                    "default_limit",
+                    "max_limit",
+                ]:
                     try:
                         config_data[config_key] = int(env_value)
                     except ValueError:
@@ -203,7 +229,7 @@ class CalibreConfig(BaseModel):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to dictionary"""
-        return self.dict()
+        return self.model_dump()
 
     def save_config(self, config_file: str) -> bool:
         """
@@ -267,16 +293,22 @@ class CalibreConfig(BaseModel):
                     if path.exists() and path.is_dir():
                         # Check if this path itself is a library
                         if (path / "metadata.db").exists():
-                            lib_name = path.name if path.name != "Written Word" else "main"
+                            lib_name = (
+                                path.name if path.name != "Written Word" else "main"
+                            )
                             libraries[lib_name] = CalibreLibrary(
-                                name=lib_name, path=path, metadata_db=path / "metadata.db"
+                                name=lib_name,
+                                path=path,
+                                metadata_db=path / "metadata.db",
                             )
                         # Scan this path for libraries
                         try:
                             for item in path.iterdir():
                                 if item.is_dir() and (item / "metadata.db").exists():
                                     libraries[item.name] = CalibreLibrary(
-                                        name=item.name, path=item, metadata_db=item / "metadata.db"
+                                        name=item.name,
+                                        path=item,
+                                        metadata_db=item / "metadata.db",
                                     )
                         except (PermissionError, OSError) as e:
                             logger.warning(f"Could not scan {path}: {e}")
@@ -295,7 +327,9 @@ class CalibreConfig(BaseModel):
                     for lib_name, lib_info in libraries.items():
                         # Check if library is in the user's preferred location
                         try:
-                            if lib_info.path.is_relative_to(user_library_path) or str(lib_info.path).startswith(str(user_library_path)):
+                            if lib_info.path.is_relative_to(user_library_path) or str(
+                                lib_info.path
+                            ).startswith(str(user_library_path)):
                                 preferred_library = lib_info
                                 break
                         except (ValueError, AttributeError):
@@ -303,7 +337,7 @@ class CalibreConfig(BaseModel):
                             if str(lib_info.path).startswith(str(user_library_path)):
                                 preferred_library = lib_info
                                 break
-                    
+
                     # Use preferred library if found, otherwise use first library
                     if preferred_library:
                         self.local_library_path = preferred_library.path

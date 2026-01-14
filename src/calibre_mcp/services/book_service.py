@@ -245,6 +245,12 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             # (matches title OR author OR series OR tags). This is combined with AND
             # for any other filters (e.g., search AND publisher uses AND logic).
 
+            # Initialize FTS variables BEFORE the search block (needed for later reference)
+            fts_db_path = None
+            book_ids = None
+            fts_snippets = {}
+            fts_succeeded = False
+
             # First check if FTS database is available
             if search:
                 logger.debug(
@@ -275,6 +281,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                             extra={"service": "book_service", "action": "db_path_extracted", "path": str(metadata_db_path), "exists": metadata_db_path.exists()},
                         )
 
+                # Reset FTS variables for this search (already initialized above)
                 fts_db_path = None
                 book_ids = None
                 fts_snippets = {}

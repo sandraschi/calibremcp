@@ -150,6 +150,7 @@ src/calibre_mcp/utils/__init__.py
 src/calibre_mcp/utils/book_formatter.py
 src/calibre_mcp/utils/finereader.py
 src/calibre_mcp/utils/fts_utils.py
+src/calibre_mcp/utils/got_ocr.py
 src/calibre_mcp/utils/library_utils.py
 src/calibre_mcp/viewers/__init__.py
 src/calibre_mcp/viewers/comic/__init__.py
@@ -163,5 +164,6 @@ tests/test_api.py
 tests/test_basic.py
 tests/test_mcp_compliance.py
 tests/test_mcp_server.py
+tests/test_runner.py
 tests/test_server_integration.py
 tests/test_stdio_integration.py

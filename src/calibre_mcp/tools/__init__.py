@@ -114,7 +114,11 @@ def discover_tools() -> List[Type["BaseTool"]]:
             else:
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
-                    if inspect.isclass(attr) and issubclass(attr, BaseTool) and attr != BaseTool:
+                    if (
+                        inspect.isclass(attr)
+                        and issubclass(attr, BaseTool)
+                        and attr != BaseTool
+                    ):
                         tool_classes.append(attr)
 
         except Exception as e:
@@ -123,118 +127,135 @@ def discover_tools() -> List[Type["BaseTool"]]:
     return tool_classes
 
 
-# @mcp.tool()
-# async def test_tool() -> str:
-#     """Simple test tool to verify MCP is working."""
-#     return "MCP is working!"
-
 def register_tools(mcp: Any) -> None:
     """
     Register all tools with an MCP server instance.
 
-    This function registers all FastMCP 2.12 compliant tools from categorized modules.
-
-    FastMCP 2.12 auto-registers tools decorated with @mcp.tool() when modules are imported.
-    This function only registers BaseTool classes that need explicit registration.
+    This function registers all FastMCP compliant tools.
+    Explicit imports are used instead of dynamic discovery to ensure reliability.
 
     Args:
-        mcp: MCP server instance (FastMCP or similar)
+        mcp: MCP server instance (FastMCP)
     """
     import_count = 0
     error_count = 0
 
-    # Import all tool modules to trigger auto-registration of @mcp.tool() decorated functions
-    # These are already registered when imported (FastMCP 2.13+ behavior)
-    import_modules = [
-        (".core", "tools", "_core_tools"),
-        (".library", "tools", "_library_tools"),
-        (".analysis", "tools", "_analysis_tools"),
-        (".analysis", "manage_analysis", None),
-        (".metadata", "tools", "_metadata_tools"),
-        (".files", "tools", "_file_tools"),
-        (".specialized", "tools", "_specialized_tools"),
-        (".system", "tools", "_system_tools"),
-        (".ocr", "tools", "_ocr_tools"),
-        (".book_management", "query_books", None),
-        (".book_management", "manage_books", None),
-        (".authors", "manage_authors", None),
-        (".tags", "manage_tags", None),
-        (".comments", "manage_comments", None),
-        (".viewer", "manage_viewer", None),
-        (".specialized", "manage_specialized", None),
-        (".metadata", "manage_metadata", None),
-        (".files", "manage_files", None),
-        (".system", "manage_system", None),
-        (".analysis", "analyze_library", None),
-        (".advanced_features", "manage_bulk_operations", None),
-        (".advanced_features", "manage_content_sync", None),
-        (".user_management", "manage_users", None),
-        (".import_export", "export_books", None),
-    ]
-    
-    for module_path, attr_name, alias in import_modules:
-        try:
-            if attr_name == "tools":
-                # Import as module
-                module = importlib.import_module(f"calibre_mcp.tools{module_path}.{attr_name}", package="calibre_mcp.tools")
-                import_count += 1
-                logger.debug(f"Imported {module_path}.{attr_name}")
-            else:
-                # Import specific attribute
-                module = importlib.import_module(f"calibre_mcp.tools{module_path}", package="calibre_mcp.tools")
-                if hasattr(module, attr_name):
-                    getattr(module, attr_name)  # Trigger decorator execution
-                    import_count += 1
-                    logger.debug(f"Imported {module_path}.{attr_name}")
-                else:
-                    logger.warning(f"Module {module_path} does not have attribute {attr_name}")
-                    error_count += 1
-        except Exception as e:
-            error_count += 1
-            logger.error(f"Failed to import {module_path}.{attr_name}: {e}", exc_info=True)
-    
-    # Only register BaseTool classes (functions with @mcp.tool() are already auto-registered)
-    tool_classes: List[Type[BaseTool]] = []
-
-    # Import BaseTool classes that need explicit registration
+    # 1. CORE TOOLS
     try:
-        from .ocr.calibre_ocr_tool import OCRTool
-        tool_classes = [OCRTool]
-        logger.debug("Imported OCRTool")
-    except Exception as e:
-        logger.error(f"Failed to import OCRTool: {e}", exc_info=True)
+        from .core import tools as _core_tools
 
-    # Register BaseTool classes
-    registered_base_tools = 0
-    for tool_class in tool_classes:
-        try:
-            tool_class.register(mcp)
-            registered_base_tools += 1
-            logger.debug(f"Registered BaseTool: {tool_class.__name__}")
-        except Exception as e:
-            logger.error(f"Failed to register BaseTool {tool_class.__name__}: {e}", exc_info=True)
+        import_count += 1
+    except Exception as e:
+        logger.error(f"Failed to load core tools: {e}")
+        error_count += 1
+
+    # 2. LIBRARY MANAGEMENT
+    try:
+        from .library import tools as _library_tools
+
+        import_count += 1
+    except Exception as e:
+        logger.error(f"Failed to load library tools: {e}")
+        error_count += 1
+
+    # 3. BOOK MANAGEMENT
+    try:
+        from .book_management import query_books, manage_books
+
+        import_count += 2
+    except Exception as e:
+        logger.error(f"Failed to load book management tools: {e}")
+        error_count += 1
+
+    # 4. METADATA & TAGS
+    try:
+        from .metadata import tools as _metadata_tools, manage_metadata
+        from .tags import manage_tags
+        from .comments import manage_comments
+
+        import_count += 4
+    except Exception as e:
+        logger.error(f"Failed to load metadata/tags tools: {e}")
+        error_count += 1
+
+    # 5. AUTHORS
+    try:
+        from .authors import manage_authors
+
+        import_count += 1
+    except Exception as e:
+        logger.error(f"Failed to load author tools: {e}")
+        error_count += 1
+
+    # 6. FILE MANAGEMENT
+    try:
+        from .files import tools as _file_tools, manage_files
+
+        import_count += 2
+    except Exception as e:
+        logger.error(f"Failed to load file tools: {e}")
+        error_count += 1
+
+    # 7. ANALYSIS & ADVANCED FEATURES
+    try:
+        from .analysis import tools as _analysis_tools, manage_analysis, analyze_library
+        from .advanced_features import manage_bulk_operations, manage_content_sync
+
+        import_count += 5
+    except Exception as e:
+        logger.error(f"Failed to load analysis/advanced tools: {e}")
+        error_count += 1
+
+    # 8. SYSTEM & SPECIALIZED
+    try:
+        from .system import tools as _system_tools, manage_system
+        from .specialized import tools as _specialized_tools, manage_specialized
+        from .user_management import manage_users
+        from .import_export import export_books
+        from .viewer import manage_viewer
+
+        import_count += 7
+    except Exception as e:
+        logger.error(f"Failed to load system/specialized tools: {e}")
+        error_count += 1
+
+    # 9. OCR & BASE TOOLS
+    try:
+        from .ocr import tools as _ocr_tools
+        from .ocr.calibre_ocr_tool import OCRTool
+
+        OCRTool.register(mcp)
+        import_count += 2
+    except Exception as e:
+        logger.error(f"Failed to load/register OCR tools: {e}")
+        error_count += 1
+
+    # 10. AGENTIC WORKFLOW (SEP-1577)
+    try:
+        # The agentic_library_workflow tool is already registered via @mcp.tool decorator
+        # This import ensures it's loaded
+        from .agentic_workflow import agentic_library_workflow
+        import_count += 1
+        logger.info("Agentic library workflow tool registered (SEP-1577)")
+    except Exception as e:
+        logger.error(f"Failed to load agentic workflow tool: {e}")
+        error_count += 1
 
     # Get count of registered tools from FastMCP
     try:
-        # FastMCP stores tools in mcp._tools or similar
-        if hasattr(mcp, '_tools'):
+        if hasattr(mcp, "_tools"):
             registered_tools_count = len(mcp._tools)
-        elif hasattr(mcp, 'tools'):
-            registered_tools_count = len(mcp.tools) if isinstance(mcp.tools, dict) else 0
+        elif hasattr(mcp, "tools"):
+            registered_tools_count = (
+                len(mcp.tools) if isinstance(mcp.tools, dict) else 0
+            )
         else:
             registered_tools_count = "unknown"
     except Exception:
         registered_tools_count = "unknown"
 
-    # Log registration summary
     logger.info(
-        f"Tool registration complete: {import_count} modules imported, "
-        f"{error_count} errors, {registered_base_tools} BaseTool classes registered, "
+        f"Tool registration complete: {import_count} modules/tools processed, "
+        f"{error_count} errors, "
         f"{registered_tools_count} total tools registered"
     )
-
-    if error_count > 0:
-        logger.warning(f"Tool registration had {error_count} errors - some tools may not be available")
-
-    if registered_tools_count == 0 or registered_tools_count == "unknown":
-        logger.error("No tools registered! Check import errors above.")
