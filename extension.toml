@@ -1,0 +1,10 @@
+id = "calibre-mcp"
+name = "CalibreEbookManager"
+version = "0.1.0"
+schema_version = 1
+authors = ["Sandra <sandraschipal@hotmail.com>"]
+description = "Ebook library organization and conversion"
+repository = "https://github.com/sandraschi/calibre-mcp"
+
+[context_servers.calibre-mcp]
+name = "Calibre Library Tools"

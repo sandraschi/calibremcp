@@ -12,6 +12,8 @@ src/calibre_mcp/logging_config.py
 src/calibre_mcp/models.py
 src/calibre_mcp/prompts.py
 src/calibre_mcp/server.py
+src/calibre_mcp/server_full.py
+src/calibre_mcp/server_minimal.py
 src/calibre_mcp/utils.py
 src/calibre_mcp.egg-info/PKG-INFO
 src/calibre_mcp.egg-info/SOURCES.txt
@@ -56,6 +58,7 @@ src/calibre_mcp/storage/local.py
 src/calibre_mcp/storage/persistence.py
 src/calibre_mcp/storage/remote.py
 src/calibre_mcp/tools/__init__.py
+src/calibre_mcp/tools/agentic_workflow.py
 src/calibre_mcp/tools/author_tools.py
 src/calibre_mcp/tools/base_tool.py
 src/calibre_mcp/tools/book_tools.py
@@ -161,9 +164,19 @@ src/calibre_mcp/viewers/pdf/__init__.py
 src/calibre_mcp/viewers/pdf/pdfjs_viewer.py
 tests/test_ai_enhancements.py
 tests/test_api.py
+tests/test_author_stats.py
 tests/test_basic.py
+tests/test_basic_functionality.py
+tests/test_battery.py
+tests/test_comprehensive.py
+tests/test_db_init.py
+tests/test_direct.py
+tests/test_fts_snippets.py
+tests/test_import.py
 tests/test_mcp_compliance.py
 tests/test_mcp_server.py
+tests/test_minimal.py
+tests/test_path_fix.py
 tests/test_runner.py
 tests/test_server_integration.py
 tests/test_stdio_integration.py

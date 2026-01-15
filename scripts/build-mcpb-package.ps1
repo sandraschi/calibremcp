@@ -1,17 +1,18 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Build MCPB package for CalibreMCP server
+    Build MCPB package for CalibreMCP server (SOTA Standards v1.0.0)
 
 .DESCRIPTION
-    This script builds a production-ready MCPB package for the CalibreMCP server.
-    It validates prerequisites, builds the package, and verifies the result.
+    This script builds a production-ready MCPB package for the CalibreMCP server
+    following MCP Central Docs SOTA standards. It validates prerequisites,
+    builds the package, and verifies the result.
 
 .PARAMETER NoSign
     Skip package signing (for development builds)
 
 .PARAMETER OutputDir
-    Custom output directory for the built package
+    Custom output directory for the built package (default: dist)
 
 .EXAMPLE
     .\build-mcpb-package.ps1 -NoSign
@@ -67,13 +68,14 @@ function Write-Error {
 
 # Main build process
 try {
-    Write-ColorOutput "=== CalibreMCP MCPB Package Builder ===" $Cyan
-    Write-ColorOutput "Version: 1.0.0 | Package: calibre-mcp.mcpb" $Cyan
+    Write-ColorOutput "=== CalibreMCP MCPB Package Builder (SOTA v1.0.0) ===" $Cyan
+    Write-ColorOutput "MCP Central Docs Standards Compliant" $Cyan
+    Write-ColorOutput "Package: calibre-mcp.mcpb" $Cyan
 
     # Step 1: Check prerequisites
     Write-Step "Checking prerequisites..."
 
-    # Check MCPB CLI
+    # Check MCPB CLI (latest version)
     try {
         $mcpbVersion = & mcpb --version 2>$null
         if ($LASTEXITCODE -eq 0) {
@@ -82,7 +84,7 @@ try {
             throw "MCPB CLI not found"
         }
     } catch {
-        Write-Error "MCPB CLI not installed. Run: npm install -g @anthropic-ai/mcpb"
+        Write-Error "MCPB CLI not installed. Run: npm install -g @anthropic-ai/mcpb@latest"
         exit 1
     }
 
@@ -109,13 +111,13 @@ try {
         Write-Success "Ignore file: .mcpbignore found"
     }
 
-    # Step 2: Validate manifest
-    Write-Step "Validating manifest.json..."
+    # Step 2: Validate manifest (MCPB v0.2 format)
+    Write-Step "Validating manifest.json (v0.2 format)..."
 
     try {
         $validateOutput = & mcpb validate manifest.json 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Success "Manifest validation passed!"
+            Write-Success "Manifest validation passed (MCPB v0.2)!"
         } else {
             Write-Error "Manifest validation failed:"
             Write-ColorOutput $validateOutput $Red
@@ -143,10 +145,19 @@ try {
         Write-Success "Cleaned existing package"
     }
 
-    # Step 4: Build MCPB package
-    Write-Step "Building MCPB package..."
+    # Step 4: Build MCPB package (SOTA method)
+    Write-Step "Building MCPB package (SOTA standards)..."
 
-    $buildArgs = @("pack", ".", $packagePath)
+    # Use the MCPB directory structure if it exists
+    $mcpbDir = "mcpb"
+    if (Test-Path $mcpbDir) {
+        Write-ColorOutput "Using MCPB directory structure..." $Yellow
+        Push-Location $mcpbDir
+        $buildArgs = @("pack", ".", "../$OutputDir/calibre-mcp.mcpb")
+    } else {
+        Write-ColorOutput "Using root directory structure..." $Yellow
+        $buildArgs = @("pack", ".", "$packagePath")
+    }
 
     if ($NoSign) {
         Write-ColorOutput "Building unsigned package (development mode)" $Yellow
@@ -159,13 +170,22 @@ try {
         $buildOutput = & mcpb @buildArgs 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Success "MCPB package built successfully!"
+            if (Test-Path $mcpbDir) {
+                Pop-Location
+            }
         } else {
             Write-Error "MCPB build failed:"
             Write-ColorOutput $buildOutput $Red
+            if (Test-Path $mcpbDir) {
+                Pop-Location
+            }
             exit 1
         }
     } catch {
         Write-Error "Failed to build MCPB package: $_"
+        if (Test-Path $mcpbDir) {
+            Pop-Location
+        }
         exit 1
     }
 
@@ -196,18 +216,20 @@ try {
     Write-ColorOutput "Size: $packageSizeMB MB" $Green
     Write-ColorOutput "Location: $packagePath" $Green
     Write-ColorOutput "Signed: $(if ($NoSign) { 'No' } else { 'Yes' })" $Green
+    Write-ColorOutput "Standards: MCPB v0.2, SOTA v1.0.0" $Green
 
     Write-ColorOutput "`n=== Next Steps ===" $Cyan
     Write-ColorOutput "1. Test package: Drag $packagePath to Claude Desktop" $White
     Write-ColorOutput "2. Configure: Set Calibre library path when prompted" $White
     Write-ColorOutput "3. Verify: Test the 18 portmanteau tools in Claude Desktop" $White
+    Write-ColorOutput "4. Deploy: Package ready for distribution" $White
 
     if ($NoSign) {
         Write-ColorOutput "`nNote: This is an unsigned development build." $Yellow
         Write-ColorOutput "For production distribution, remove -NoSign flag." $Yellow
     }
 
-    Write-ColorOutput "`n🎉 Build completed successfully!" $Green
+    Write-ColorOutput "`n🎉 Build completed successfully (SOTA Standards)!" $Green
 
 } catch {
     Write-Error "Build failed with error: $_"

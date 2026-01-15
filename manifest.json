@@ -170,8 +170,7 @@
     }
   ],
   "compatibility": {
-    "platforms": ["win32", "darwin", "linux"],
-    "python": ">=3.10"
+    "platforms": ["win32", "darwin", "linux"]
   },
   "keywords": [
     "calibre",

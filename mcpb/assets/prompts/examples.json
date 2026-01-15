@@ -1,16 +1,453 @@
 {
+  "description": "Comprehensive MCP client usage examples for CalibreMCP server",
   "examples": [
     {
-      "description": "Basic usage example",
-      "commands": ["command1()", "command2()"],
-      "expected_result": "Expected outcome"
+      "description": "Basic library listing - Get all available Calibre libraries",
+      "mcp_tool": "manage_libraries",
+      "operation": "list",
+      "parameters": {},
+      "expected_response": {
+        "libraries": [
+          {
+            "id": "main",
+            "name": "Main Library",
+            "path": "/path/to/library",
+            "book_count": 1250,
+            "last_modified": "2024-01-14T10:30:00Z"
+          }
+        ],
+        "total_libraries": 1,
+        "current_library": "main"
+      },
+      "use_case": "Discover available libraries on startup"
+    },
+    {
+      "description": "Search books by author - Find all books by specific author",
+      "mcp_tool": "query_books",
+      "operation": "search",
+      "parameters": {
+        "author": "Terry Pratchett",
+        "limit": 10
+      },
+      "expected_response": {
+        "results": [
+          {
+            "id": 123,
+            "title": "The Color of Magic",
+            "authors": ["Terry Pratchett"],
+            "series": "Discworld",
+            "series_index": 1.0,
+            "tags": ["fantasy", "humor"],
+            "formats": ["EPUB", "PDF"]
+          }
+        ],
+        "total_found": 45,
+        "search_time_ms": 150
+      },
+      "use_case": "Author-specific book discovery"
+    },
+    {
+      "description": "Get detailed book information - Full metadata for specific book",
+      "mcp_tool": "manage_books",
+      "operation": "get",
+      "parameters": {
+        "book_id": "123",
+        "include_metadata": true,
+        "include_formats": true
+      },
+      "expected_response": {
+        "id": 123,
+        "title": "The Color of Magic",
+        "authors": ["Terry Pratchett"],
+        "publisher": "Colin Smythe",
+        "pubdate": "1983-11-24",
+        "isbn": "978-0062225672",
+        "languages": ["eng"],
+        "tags": ["fantasy", "humor"],
+        "series": "Discworld",
+        "series_index": 1.0,
+        "rating": 5,
+        "comments": "The first Discworld novel...",
+        "formats": [
+          {"format": "EPUB", "size": 245760},
+          {"format": "PDF", "size": 1843200}
+        ],
+        "has_cover": true
+      },
+      "use_case": "Detailed book information display"
+    },
+    {
+      "description": "Complex multi-filter search - Books with specific criteria",
+      "mcp_tool": "query_books",
+      "operation": "search",
+      "parameters": {
+        "author": "Agatha Christie",
+        "tag": "mystery",
+        "min_rating": 4,
+        "after_date": "1950-01-01",
+        "formats": ["EPUB"],
+        "limit": 20
+      },
+      "expected_response": {
+        "results": [
+          {
+            "id": 456,
+            "title": "Murder on the Orient Express",
+            "authors": ["Agatha Christie"],
+            "tags": ["mystery", "detective"],
+            "rating": 5,
+            "pubdate": "1934-01-01",
+            "formats": ["EPUB", "PDF"]
+          }
+        ],
+        "total_found": 15,
+        "applied_filters": ["author", "tag", "rating", "date", "format"]
+      },
+      "use_case": "Advanced filtering with multiple criteria"
+    },
+    {
+      "description": "Library statistics - Get overview of library health",
+      "mcp_tool": "manage_libraries",
+      "operation": "stats",
+      "parameters": {
+        "library_name": "main"
+      },
+      "expected_response": {
+        "library_name": "main",
+        "total_books": 1250,
+        "total_authors": 340,
+        "total_series": 45,
+        "total_tags": 89,
+        "format_distribution": {
+          "EPUB": 890,
+          "PDF": 245,
+          "MOBI": 115
+        },
+        "language_distribution": {
+          "eng": 1100,
+          "deu": 120,
+          "fra": 30
+        },
+        "rating_distribution": {
+          "5": 340,
+          "4": 425,
+          "3": 285,
+          "2": 150,
+          "1": 50
+        },
+        "last_modified": "2024-01-14T10:30:00Z"
+      },
+      "use_case": "Library overview and statistics"
+    },
+    {
+      "description": "Tag management - List all tags with statistics",
+      "mcp_tool": "manage_tags",
+      "operation": "list",
+      "parameters": {
+        "limit": 50,
+        "sort_by": "book_count",
+        "sort_order": "desc"
+      },
+      "expected_response": {
+        "items": [
+          {"id": 1, "name": "fantasy", "book_count": 180},
+          {"id": 2, "name": "science fiction", "book_count": 145},
+          {"id": 3, "name": "mystery", "book_count": 120}
+        ],
+        "total": 89,
+        "page": 1,
+        "per_page": 50
+      },
+      "use_case": "Tag browsing and statistics"
+    },
+    {
+      "description": "Reading recommendations - Austrian efficiency for book selection",
+      "mcp_tool": "manage_specialized",
+      "operation": "reading_recommendations",
+      "parameters": {},
+      "expected_response": {
+        "recommendations": [
+          {
+            "title": "The Name of the Wind",
+            "author": "Patrick Rothfuss",
+            "priority": "HIGH",
+            "reasoning": "Based on your fantasy preferences and current series progress",
+            "why_now": "Perfect continuation of your epic fantasy reading"
+          }
+        ],
+        "reasoning": "Analysis of 1250 books, 45 series, 89 tags, and reading patterns",
+        "factors_considered": [
+          "Current series progress",
+          "Preferred genres (fantasy: 180 books)",
+          "Author preferences",
+          "Rating history",
+          "Recent reading activity"
+        ]
+      },
+      "use_case": "Personalized reading recommendations"
+    },
+    {
+      "description": "Export books to CSV - Data export for analysis",
+      "mcp_tool": "export_books",
+      "operation": "csv",
+      "parameters": {
+        "author": "Isaac Asimov",
+        "output_path": "asimov_books.csv",
+        "include_fields": ["title", "authors", "series", "rating", "pubdate"]
+      },
+      "expected_response": {
+        "success": true,
+        "file_path": "C:\\Users\\user\\Desktop\\calibre_exports\\asimov_books.csv",
+        "books_exported": 45,
+        "export_date": "2024-01-14T11:00:00Z",
+        "fields_included": ["title", "authors", "series", "rating", "pubdate"]
+      },
+      "use_case": "Data export and analysis"
+    },
+    {
+      "description": "Open book in system viewer - Direct file access",
+      "mcp_tool": "manage_viewer",
+      "operation": "open_file",
+      "parameters": {
+        "book_id": "123",
+        "format_preference": "EPUB"
+      },
+      "expected_response": {
+        "success": true,
+        "file_path": "C:\\Calibre Library\\Terry Pratchett\\The Color of Magic (1)\\The Color of Magic - Terry Pratchett.epub",
+        "format": "EPUB",
+        "size": 245760,
+        "opened": true
+      },
+      "use_case": "Direct book file access"
+    },
+    {
+      "description": "Error handling example - Book not found",
+      "mcp_tool": "manage_books",
+      "operation": "get",
+      "parameters": {
+        "book_id": "999999"
+      },
+      "expected_response": {
+        "success": false,
+        "error": "Book with ID 999999 not found in library",
+        "error_code": "BOOK_NOT_FOUND"
+      },
+      "use_case": "Error handling and validation"
     }
   ],
   "workflows": {
-    "basic_workflow": [
-      "Step 1",
-      "Step 2",
-      "Step 3"
+    "library_setup_workflow": [
+      {
+        "step": 1,
+        "description": "Discover available libraries",
+        "tool": "manage_libraries",
+        "operation": "list",
+        "parameters": {}
+      },
+      {
+        "step": 2,
+        "description": "Get library statistics",
+        "tool": "manage_libraries",
+        "operation": "stats",
+        "parameters": {"library_name": "main"}
+      },
+      {
+        "step": 3,
+        "description": "Test basic search functionality",
+        "tool": "query_books",
+        "operation": "search",
+        "parameters": {"text": "test", "limit": 5}
+      }
+    ],
+    "reading_session_workflow": [
+      {
+        "step": 1,
+        "description": "Get personalized recommendations",
+        "tool": "manage_specialized",
+        "operation": "reading_recommendations",
+        "parameters": {}
+      },
+      {
+        "step": 2,
+        "description": "Get detailed book information",
+        "tool": "manage_books",
+        "operation": "get",
+        "parameters": {"book_id": "{recommended_book_id}"}
+      },
+      {
+        "step": 3,
+        "description": "Open book in viewer",
+        "tool": "manage_viewer",
+        "operation": "open_file",
+        "parameters": {"book_id": "{recommended_book_id}"}
+      }
+    ],
+    "library_maintenance_workflow": [
+      {
+        "step": 1,
+        "description": "Analyze library health",
+        "tool": "analyze_library",
+        "operation": "health_check",
+        "parameters": {}
+      },
+      {
+        "step": 2,
+        "description": "Find duplicate books",
+        "tool": "analyze_library",
+        "operation": "find_duplicates",
+        "parameters": {}
+      },
+      {
+        "step": 3,
+        "description": "Clean up unused tags",
+        "tool": "manage_tags",
+        "operation": "delete_unused",
+        "parameters": {}
+      },
+      {
+        "step": 4,
+        "description": "Organize tag hierarchy",
+        "tool": "manage_metadata",
+        "operation": "organize_tags",
+        "parameters": {}
+      }
+    ],
+    "author_discovery_workflow": [
+      {
+        "step": 1,
+        "description": "Search for books by author",
+        "tool": "query_books",
+        "operation": "search",
+        "parameters": {"author": "{author_name}", "limit": 50}
+      },
+      {
+        "step": 2,
+        "description": "Get author statistics",
+        "tool": "manage_authors",
+        "operation": "get_books",
+        "parameters": {"author_id": "{author_id}", "limit": 100}
+      },
+      {
+        "step": 3,
+        "description": "Export author bibliography",
+        "tool": "export_books",
+        "operation": "csv",
+        "parameters": {"author": "{author_name}", "output_path": "{author_name}_bibliography.csv"}
+      }
+    ],
+    "series_management_workflow": [
+      {
+        "step": 1,
+        "description": "Find incomplete series",
+        "tool": "analyze_library",
+        "operation": "series_analysis",
+        "parameters": {}
+      },
+      {
+        "step": 2,
+        "description": "Get next book in series",
+        "tool": "query_books",
+        "operation": "by_series",
+        "parameters": {"series_id": "{series_id}"}
+      },
+      {
+        "step": 3,
+        "description": "Check availability",
+        "tool": "manage_books",
+        "operation": "get",
+        "parameters": {"book_id": "{next_book_id}"}
+      }
     ]
-  }
+  },
+  "error_handling_examples": [
+    {
+      "scenario": "Invalid book ID",
+      "tool": "manage_books",
+      "operation": "get",
+      "parameters": {"book_id": "invalid_id"},
+      "error_response": {
+        "success": false,
+        "error": "Invalid book ID format",
+        "error_code": "INVALID_PARAMETER"
+      },
+      "recovery": "Use query_books to find valid book IDs first"
+    },
+    {
+      "scenario": "Library not found",
+      "tool": "manage_libraries",
+      "operation": "switch",
+      "parameters": {"library_name": "nonexistent"},
+      "error_response": {
+        "success": false,
+        "error": "Library 'nonexistent' not found",
+        "error_code": "LIBRARY_NOT_FOUND",
+        "available_libraries": ["main", "archive"]
+      },
+      "recovery": "Use manage_libraries operation='list' to see available libraries"
+    },
+    {
+      "scenario": "Network timeout",
+      "tool": "export_books",
+      "operation": "pandoc",
+      "parameters": {"book_ids": [1, 2, 3, 4, 5], "format_type": "pdf"},
+      "error_response": {
+        "success": false,
+        "error": "Operation timed out after 300 seconds",
+        "error_code": "TIMEOUT",
+        "partial_results": [1, 2, 3]
+      },
+      "recovery": "Reduce batch size or increase timeout"
+    }
+  ],
+  "performance_tips": [
+    {
+      "tip": "Use specific filters to reduce result sets",
+      "example": "Instead of searching all books, filter by author or tag first",
+      "benefit": "10x faster queries on large libraries"
+    },
+    {
+      "tip": "Enable pagination for large results",
+      "example": "Use limit=50, offset=0 for first page",
+      "benefit": "Reduced memory usage and faster response times"
+    },
+    {
+      "tip": "Use appropriate timeouts",
+      "example": "Set timeout=60 for complex operations on large libraries",
+      "benefit": "Prevents hanging on slow operations"
+    },
+    {
+      "tip": "Cache frequently accessed data",
+      "example": "Library statistics change infrequently",
+      "benefit": "Faster UI response times"
+    }
+  ],
+  "integration_patterns": [
+    {
+      "pattern": "Progressive Enhancement",
+      "description": "Start with basic operations, enhance with advanced features",
+      "sequence": [
+        "manage_libraries operation=list",
+        "query_books operation=search text='' limit=10",
+        "manage_specialized operation=reading_recommendations"
+      ]
+    },
+    {
+      "pattern": "Error Recovery",
+      "description": "Handle errors gracefully with fallback operations",
+      "sequence": [
+        "Try: manage_books operation=get book_id=X",
+        "Catch: query_books operation=search text='title' limit=1",
+        "Fallback: Show 'book not found' message"
+      ]
+    },
+    {
+      "pattern": "Batch Processing",
+      "description": "Process multiple items efficiently",
+      "sequence": [
+        "export_books operation=csv author='Author' limit=100",
+        "manage_bulk_operations operation=update_metadata updates=[{...}]"
+      ]
+    }
+  ]
 }
