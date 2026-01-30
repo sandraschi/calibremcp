@@ -321,6 +321,7 @@ class BookDetailOutput(BookSearchResult):
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def search_books_helper(
     text: Optional[str] = None,
+    title: Optional[str] = None,  # NEW: Direct title search (bypasses FTS)
     fields: Optional[Union[str, List[str]]] = None,
     operator: str = "OR",
     fuzziness: Union[int, str] = "AUTO",
@@ -488,6 +489,11 @@ async def search_books_helper(
               Note: Field boosting and relevance scoring parameters (fields, min_score, etc.)
               are currently not implemented. FTS uses phrase matching when available.
 
+        title: **TITLE-ONLY SEARCH** - Searches specifically in book titles only (fast and exact)
+               Bypasses FTS completely for reliable title matching.
+               Example: title="The Hollow Man" finds books with that exact title
+               Much faster and more reliable than text search for title-specific queries.
+
         query: Alias for `text` parameter (for backward compatibility)
 
         fields: Currently NOT IMPLEMENTED - Field boosting (e.g., "title^3") is not functional.
@@ -506,8 +512,10 @@ async def search_books_helper(
 
         author: **EXPLICIT AUTHOR FILTER** - Filter books by author name only
                 Use this when searching for books by a single specific author.
-                Case-insensitive partial match (e.g., "herron" matches "Mick Herron").
-                Example: search_books(author="Mick Herron")
+                Case-insensitive word-based matching with AND logic between words.
+                Example: search_books(author="Mick Herron") matches "Mick Herron" or "Mick Herron Smith"
+                Example: search_books(author="Dickson Carr") matches "John Dickson Carr" but NOT "John Smith" or "Jane Carr"
+                Note: Author search requires ALL search words to be present in the author name.
                 Note: Use `authors` parameter for multiple authors (OR logic).
 
         authors: **MULTIPLE AUTHORS (OR logic)** - Filter books by any of the specified authors
@@ -857,19 +865,19 @@ async def search_books_helper(
         if parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"]:
             search_text = parsed["text"] if parsed["text"] else None
         
-        # Handle text search across specified fields
-        search_terms = []
-        phrases = []
+            # Handle text search across specified fields
+            search_terms = []
+            phrases = []
 
-        if search_text:
-            # Extract quoted phrases first
-            import re
+            if search_text:
+                # Extract quoted phrases first
+                import re
 
-            phrases = re.findall(r'"(.*?)"', search_text)
-            remaining_text = re.sub(r'"(.*?)"', "", search_text)
+                phrases = re.findall(r'"(.*?)"', search_text)
+                remaining_text = re.sub(r'"(.*?)"', "", search_text)
 
-            # Get individual terms from remaining text
-            search_terms = [term.strip() for term in remaining_text.split() if term.strip()]
+                # Get individual terms from remaining text
+                search_terms = [term.strip() for term in remaining_text.split() if term.strip()]
 
             # If no fields specified, use all with default boosts
             if not processed_fields:
@@ -1177,6 +1185,7 @@ async def search_books_helper(
                 skip=offset,
                 limit=limit,
                 search=search_text,
+                title=title,  # NEW: Direct title search
                 author_name=author_name if not authors_list else None,
                 authors_list=authors_list,
                 exclude_authors_list=exclude_authors_list,

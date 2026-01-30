@@ -17,7 +17,12 @@ from typing import Optional, Tuple, Union
 # Optional dependencies - imported only when needed
 try:
     import aiofiles
-    import aiofiles.os
+    try:
+        import aiofiles.os
+    except AttributeError:
+        # Windows compatibility: aiofiles.os fails on Windows due to missing statvfs
+        # We still have aiofiles for file operations, just not aiofiles.os
+        pass
 except ImportError:
     aiofiles = None  # Optional dependency
 

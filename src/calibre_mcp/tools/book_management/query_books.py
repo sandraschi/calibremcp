@@ -33,6 +33,7 @@ async def query_books(
     series: Optional[str] = None,
     exclude_series: Optional[List[str]] = None,
     text: Optional[str] = None,
+    title: Optional[str] = None,  # Direct title search (bypasses FTS)
     query: Optional[str] = None,
     tag: Optional[str] = None,
     tags: Optional[List[str]] = None,
@@ -57,140 +58,144 @@ async def query_books(
     format_table: bool = False,
     limit: int = 50,
     offset: int = 0,
+    # Auto-open functionality
+    auto_open: bool = False,
+    auto_open_format: str = "EPUB",
 ) -> Dict[str, Any]:
     """
-    Query and search books in the Calibre library with multiple operations in a single unified interface.
+    Query and search books in the Calibre library with comprehensive filtering options.
 
     PORTMANTEAU PATTERN RATIONALE:
-    Instead of creating 4 separate tools (one per operation), this tool consolidates related
-    book query operations into a single interface. This design:
-    - Prevents tool explosion (4 tools → 1 tool) while maintaining full functionality
-    - Improves discoverability by grouping related operations together
-    - Reduces cognitive load when working with book query tasks
-    - Enables consistent query interface across all operations
-    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
+    Consolidates search, list, and filtered query operations into single interface. Prevents tool explosion while maintaining
+    full functionality. Follows FastMCP 2.13+ best practices.
 
-    **IMPORTANT FOR CLAUDE - VERB MAPPING:**
-    Users may use different verbs (search, list, find, query, get) but they all map to the same operation.
-    ALL of these user requests should use operation="search":
+    NATURAL LANGUAGE USAGE:
+    The MCP client LLM should parse natural language queries into appropriate parameter combinations:
+    - "search books by harari" → operation="search", author="harari"
+    - "books about china" → operation="search", tag="china"
+    - "books from last year" → operation="search", added_after="2024-01-01"
+    - "find sapiens book" → operation="search", title="sapiens"
+    - "mystery novels" → operation="search", tag="mystery"
 
-    - "search books by [author]" → query_books(operation="search", author="...")
-    - "list books by [author]" → query_books(operation="search", author="...")
-    - "find books by [author]" → query_books(operation="search", author="...")
-    - "query books by [author]" → query_books(operation="search", author="...")
-    - "get books by [author]" → query_books(operation="search", author="...")
-    - "show me books by [author]" → query_books(operation="search", author="...")
-    - "books by [author]" → query_books(operation="search", author="...")
+    Args:
+        operation (Literal, required): The operation to perform. Must be one of: "search", "list".
+            - "search": Search/find books with flexible filters (author, tag, text, etc.). Use for ALL filtered queries.
+            - "list": List all books in library with basic pagination. Use only for unfiltered "show all" requests.
 
-    **Rule:** If the user wants to access/retrieve/discover books with filters (author, tag, publisher, etc.),
-    use operation="search" regardless of which verb they use. The "search" operation handles all filtering.
+        author (str | None): Filter by specific author name (case-insensitive word-based matching).
+            Example: "Conan Doyle" matches "Arthur Conan Doyle" or "Conan Doyle Jr."
+            Example: "Dickson Carr" matches "John Dickson Carr"
+            Note: Author search requires ALL words to be present in the author name (AND logic).
 
-    Only use operation="list" when the user explicitly wants a simple list of ALL books without any filtering.
+        authors (List[str] | None): Filter by multiple author names (OR logic between authors).
 
-    Example: "list books by conan doyle" → query_books(operation="search", author="Conan Doyle")
-    This searches the currently loaded library (auto-loaded on startup)
+        exclude_authors (List[str] | None): Exclude books by these authors.
 
-    SUPPORTED OPERATIONS:
-    - search: Search/find/list/get/query books with flexible filters (author, tag, text, publisher, year, etc.)
-              **This is the PRIMARY operation - use for ALL user requests to access books with filters.**
-              **Works for ANY verb: "search books", "list books", "find books", "query books", "get books"**
-              Maps ALL user intent: "list books by X", "find books with Y", "search for Z", "get books by W"
-    - list: List ALL books in the library (simple pagination, minimal filtering)
-              **Only use when user explicitly wants to see ALL books without filters**
-              Example: "show me all books" or "list everything in the library"
-    - recent: Get recently added books (sorted by addition date, most recent first)
-              **Use for "recently added", "new books", "latest additions" queries**
-              Example: "show me recent books" or "what books were added recently"
-    - by_author: Get books by a specific author using author_id (requires numeric author_id)
-              **Use only when user provides a numeric author ID**
-              **For author names, use operation="search" with author parameter instead**
-    - by_series: Get books in a specific series using series_id (requires numeric series_id)
-              **Use only when user provides a numeric series ID**
-              **For series names, use operation="search" with series parameter instead**
+        author_id (int | None): Filter by author database ID.
 
-    OPERATIONS DETAIL:
+        series_id (int | None): Filter by series database ID.
 
-    search: Search books with flexible filters
-    - Primary operation for finding books with any combination of filters
-    - Supports author, tag, text, publisher, year, rating, format, and more
-    - Works with ANY verb: "search", "list", "find", "query", "get"
-    - Most parameters apply to this operation
-    - Returns: Paginated list of matching books
+        series (str | None): Filter by series name.
 
-    list: List all books
-    - Simple pagination without complex filtering
-    - Only use when user explicitly wants ALL books
-    - Supports basic author and tag filters
-    - Returns: Paginated list of all books
+        exclude_series (List[str] | None): Exclude books from these series.
 
-    by_author: Get books by author ID
-    - Requires numeric author_id (not author name)
-    - For author names, use operation="search" with author parameter
-    - Returns: List of books by the specified author
+        text (str | None): General search across titles, authors, tags, series, and comments (uses FTS if available).
 
-    recent: Get recently added books
-    - Returns books sorted by addition date (most recent first)
-    - Parameters: limit (optional, default: 10, range: 1-1000)
-    - Returns: List of recently added books
+        title (str | None): Search specifically in book titles only (bypasses FTS for fast exact matching).
+            Example: title="The Hollow Man" finds books with that exact title
+            Note: Much faster than text search for title-specific queries.
 
-    by_series: Get books by series ID
-    - Requires numeric series_id (not series name)
-    - For series names, use operation="search" with series parameter
-    - Returns: List of books in the specified series
+        query (str | None): Advanced query string (same syntax as Calibre search).
 
-    Prerequisites:
-        - **Default library is auto-loaded on server startup** - no manual library loading needed!
-        - For 'search': At least one filter parameter recommended (author, text, tag, etc.)
-        - For 'by_author': author_id required (integer)
-        - For 'by_series': series_id required (integer)
-        - Library must be accessible (automatically handled on startup)
+        tag (str | None): Filter by specific tag/category.
 
-    Parameters:
-        operation: The operation to perform. Must be one of: "search", "list", "recent", "by_author", "by_series"
-            - "search": Search books with flexible filters. Most parameters apply.
-            - "list": List all books with basic filters. Supports author, tag, limit, offset.
-            - "recent": Get recently added books (sorted by addition date, most recent first). Parameters: limit (optional, default: 10).
-            - "by_author": Get books by author_id. Requires author_id parameter.
-            - "by_series": Get books by series_id. Requires series_id parameter.
+        tags (List[str] | None): Filter by multiple tags (OR logic between tags).
 
-        author: Filter by author name (for 'search' and 'list' operations)
-            - Case-insensitive partial match
-            - Example: "Conan Doyle" or "conan"
+        exclude_tags (List[str] | None): Exclude books with these tags.
 
-        author_id: Author ID for 'by_author' operation (required for 'by_author')
-            - Must be an integer
-            - Use search_books to find author IDs
+        publisher (str | None): Filter by publisher name.
 
-        series_id: Series ID for 'by_series' operation (required for 'by_series')
-            - Must be an integer
-            - Use search_books to find series IDs
+        publishers (List[str] | None): Filter by multiple publishers (OR logic between publishers).
 
-        text: Search text for 'search' operation
-            - Searches in title, author, tags, series, comments
-            - Example: "python programming"
+        has_publisher (bool | None): Filter books with/without publisher info (True/False).
 
-        query: Alias for text parameter (backward compatibility)
+        rating (int | None): Filter by exact rating (1-5 stars).
 
-        tag: Filter by tag name (for 'search' and 'list')
-            - Example: "mystery"
+        min_rating (int | None): Filter by minimum rating (1-5).
 
-        tags: Filter by multiple tags (for 'search')
-            - Example: ["mystery", "crime"]
+        max_rating (int | None): Filter by maximum rating (1-5).
 
-        exclude_tags: Exclude books with these tags (for 'search')
-            - Example: ["detective"] - excludes books with "detective" tag
+        unrated (bool | None): Include only unrated books.
 
-        exclude_authors: Exclude books by these authors (for 'search')
-            - Example: ["Author Name"] - excludes books by this author
+        pubdate_start (str | None): Filter by publication date start (YYYY-MM-DD format).
 
-        exclude_series: Exclude books in these series (for 'search')
-            - Example: ["Series Name"] - excludes books in this series
+        pubdate_end (str | None): Filter by publication date end (YYYY-MM-DD format).
 
-        series: Filter by series name (for 'search')
-            - Example: "Sherlock Holmes"
+        added_after (str | None): Filter books added after date (YYYY-MM-DD format).
 
-        rating: Filter by exact rating (for 'search')
-            - Integer 1-5
+        added_before (str | None): Filter books added before date (YYYY-MM-DD format).
+
+        min_size (int | None): Filter by minimum file size in bytes.
+
+        max_size (int | None): Filter by maximum file size in bytes.
+
+        formats (List[str] | None): Filter by available formats (e.g., ["EPUB", "PDF"]).
+
+        comment (str | None): Search in book comments field.
+
+        has_empty_comments (bool | None): Filter books with empty/non-empty comments.
+
+        format_table (bool): Format results as a pretty text table (default: False).
+
+        limit (int): Maximum number of results to return (default: 50).
+
+        offset (int): Number of results to skip for pagination (default: 0).
+
+        publisher (str | None): Filter by publisher name.
+
+        rating (int | None): Filter by exact rating (1-5 stars).
+
+        min_rating (int | None): Filter by minimum rating.
+
+        max_rating (int | None): Filter by maximum rating.
+
+        pubdate_start (str | None): Filter by publication date start (YYYY-MM-DD).
+
+        pubdate_end (str | None): Filter by publication date end (YYYY-MM-DD).
+
+        formats (List[str] | None): Filter by available formats (epub, pdf, mobi, etc.).
+
+        limit (int): Maximum number of books to return (default: 50, max: 200).
+
+        offset (int): Number of books to skip for pagination (default: 0).
+
+    Returns:
+        Dictionary with operation-specific results and conversational response patterns:
+
+        For operation="search":
+            {
+                "success": bool - Whether search completed successfully
+                "results": List[Dict] - Books matching the search criteria
+                "total_found": int - Total number of matching books
+                "query_used": str - The search query that was executed
+                "search_time_ms": int - Time taken to perform search
+                "library_searched": str - Name of library that was searched
+                "available_filters": List[str] - Other filters that could be applied
+                "recommendations": List[str] - Suggested next steps or related searches
+                "summary": str - Conversational summary of results
+            }
+
+        For operation="list":
+            {
+                "success": bool - Whether listing completed successfully
+                "results": List[Dict] - Books in the requested range
+                "total_found": int - Total number of books in library
+                "limit": int - Number of books returned
+                "offset": int - Starting position in results
+                "library_searched": str - Name of library that was searched
+                "next_offset": int | None - Offset for next page (if more results available)
+                "summary": str - Conversational summary of results
+            }
 
         min_rating: Filter by minimum rating (for 'search')
             - Integer 1-5
@@ -247,6 +252,14 @@ async def query_books(
         limit: Maximum results to return (default: 50)
 
         offset: Results offset for pagination (default: 0)
+
+        auto_open: Auto-open book if search returns exactly 1 result (for 'search')
+            - Boolean, default: False
+            - Launches the book's file with the system's default application (e.g., Calibre Viewer, Adobe Reader, Edge)
+
+        auto_open_format: Preferred format for auto-opening (default: "EPUB")
+            - String: "EPUB", "PDF", "MOBI", "AZW3", etc.
+            - Falls back to first available format if preferred format not found
 
     Returns:
         Dictionary containing operation-specific results with book list and pagination info.
@@ -398,9 +411,10 @@ async def query_books(
                 logger.info(f"Content type hint detected: {parsed['content_type']}", extra={"content_type": parsed["content_type"]})
             
             # Use search_books helper - pass ALL search parameters
-            return await _search_books_helper(
+            result = await _search_books_helper(
                 # Text/search (after removing structured params if parsed)
                 text=final_text if final_text else None,
+                title=title,  # NEW: Direct title search
                 query=None,  # Already handled via text
                 # Authors (use parsed author if "by" was in query)
                 author=final_author,
@@ -441,6 +455,53 @@ async def query_books(
                 limit=limit,
                 offset=offset,
             )
+
+            # Auto-open functionality: if enabled and exactly 1 result found
+            if auto_open and result.get("total") == 1 and result.get("items"):
+                book = result["items"][0]
+                logger.info(f"Auto-opening unique search result: {book['title']}", extra={"book_id": book["id"], "auto_open_format": auto_open_format})
+
+                # Find the preferred format
+                file_path = None
+                for fmt in book.get('formats', []):
+                    if isinstance(fmt, dict) and fmt.get('format', '').upper() == auto_open_format.upper():
+                        file_path = fmt.get('path')
+                        break
+
+                # Fallback to first available format
+                if not file_path and book.get('formats'):
+                    first_format = book['formats'][0]
+                    if isinstance(first_format, dict):
+                        file_path = first_format.get('path')
+
+                if file_path:
+                    try:
+                        from ..viewer.manage_viewer import manage_viewer
+                        open_result = await manage_viewer.fn(
+                            operation="open_file",
+                            book_id=book['id'],
+                            file_path=file_path
+                        )
+
+                        # Add viewer info to the result
+                        result["auto_opened"] = True
+                        result["viewer_result"] = open_result
+                        result["opened_book"] = {
+                            "id": book["id"],
+                            "title": book["title"],
+                            "format": auto_open_format,
+                            "file_path": file_path
+                        }
+
+                        logger.info("Book auto-opened successfully", extra={"book_id": book["id"], "file_path": file_path})
+
+                    except Exception as open_error:
+                        logger.warning(f"Auto-open failed: {open_error}", extra={"book_id": book["id"], "error": str(open_error)})
+                        result["auto_open_error"] = str(open_error)
+                else:
+                    logger.warning("No suitable format found for auto-open", extra={"book_id": book["id"], "preferred_format": auto_open_format})
+
+            return result
 
         elif operation == "list":
             # Use list_books helper (simplified parameters)

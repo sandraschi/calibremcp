@@ -20,6 +20,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# CalibreMCP user data (SQLite for user comments, auth, etc.)
+.calibre-mcp-data/
+
 # Virtual Environment
 venv/
 env/

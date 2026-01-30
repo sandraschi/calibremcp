@@ -1,66 +1,146 @@
 """
-Library operation tools for Calibre MCP server.
+Library operations portmanteau tool for Calibre MCP server.
 
-This module provides tools for working with the library as a whole,
-including searching, filtering, and managing library settings.
+Consolidates all library-level operations into a single unified interface:
+- Series analysis and management
+- Library-wide metadata operations
+- Bulk organizational tasks
 """
 
-from typing import Dict
+from typing import Optional, Dict, Any
 
-# Import all library operation tools to register them
-from .list_books import list_books  # noqa: F401
-from .series_manager import SeriesManager, SeriesInfo, SeriesMergeOptions  # noqa: F401
-from .. import tool
+from ...server import mcp
+from ...logging_config import get_logger
 
-# Re-export models for convenience
-from ...models import Book, BookFormat, BookStatus  # noqa: F401
+# Import operation implementations
+from .series_manager import SeriesManager
+from .list_books import list_books
 
-# Initialize tools
-series_manager = SeriesManager()
+logger = get_logger("calibremcp.tools.library_operations")
 
 
-# Register tools with MCP
-@tool(
-    name="analyze_series",
-    description="Analyze series in the library and identify issues",
-    parameters={
-        "library_path": {"type": "string", "description": "Path to the Calibre library"},
-        "update_metadata": {
-            "type": "boolean",
-            "description": "Whether to update book metadata with series information",
-        },
-    },
-)
-async def analyze_series(library_path: str, update_metadata: bool = False) -> Dict:
-    """Analyze all series in the library."""
-    return await series_manager.analyze_series(library_path, update_metadata)
+@mcp.tool()
+async def manage_library_operations(
+    operation: str,
+    # Common parameters
+    library_path: Optional[str] = None,
+    dry_run: bool = True,
+    # Series management parameters
+    update_metadata: bool = False,
+    source_series: Optional[str] = None,
+    target_series: Optional[str] = None,
+    # Book listing parameters
+    query: str = "",
+    author: str = "",
+    tag: str = "",
+    format_filter: str = "",
+    status: str = "",
+    limit: int = 50,
+    offset: int = 0,
+    sort_by: str = "title",
+    sort_order: str = "asc",
+) -> Dict[str, Any]:
+    """
+    Comprehensive library operations portmanteau tool for Calibre MCP server.
 
+    PORTMANTEAU PATTERN RATIONALE:
+    Consolidates 4 related library operations into single interface. Prevents tool explosion while maintaining
+    full functionality. Enables unified library management workflow.
 
-@tool(
-    name="fix_series_metadata",
-    description="Fix common series metadata issues",
-    parameters={
-        "library_path": {"type": "string", "description": "Path to the Calibre library"},
-        "dry_run": {"type": "boolean", "description": "If True, only show what would be changed"},
-    },
-)
-async def fix_series_metadata(library_path: str, dry_run: bool = True) -> Dict:
-    """Fix common series metadata issues."""
-    return await series_manager.fix_series_metadata(library_path, dry_run)
+    SUPPORTED OPERATIONS:
+    - analyze_series: Analyze series structure and identify issues
+    - fix_series_metadata: Repair series metadata problems
+    - merge_series: Combine series entries
+    - list_books: Search and filter books with pagination
 
+    OPERATIONS DETAIL:
 
-@tool(
-    name="merge_series",
-    description="Merge one series into another",
-    parameters={
-        "library_path": {"type": "string", "description": "Path to the Calibre library"},
-        "source_series": {"type": "string", "description": "Name of the series to merge from"},
-        "target_series": {"type": "string", "description": "Name of the series to merge into"},
-        "dry_run": {"type": "boolean", "description": "If True, only show what would be changed"},
-    },
-)
-async def merge_series(
-    library_path: str, source_series: str, target_series: str, dry_run: bool = True
-) -> Dict:
-    """Merge one series into another."""
-    return await series_manager.merge_series(library_path, source_series, target_series, dry_run)
+    analyze_series:
+    - Scan all series in library for consistency issues
+    - Identify missing volumes, incorrect ordering, duplicates
+    - Parameters: library_path (optional), update_metadata (default: False)
+
+    fix_series_metadata:
+    - Automatically repair common series metadata issues
+    - Standardize series names, fix volume numbering
+    - Parameters: library_path (optional), dry_run (default: True)
+
+    merge_series:
+    - Combine one series into another, updating all references
+    - Useful for fixing duplicate series entries
+    - Parameters: source_series, target_series (required), dry_run (default: True)
+
+    list_books:
+    - Search and filter books with advanced criteria
+    - Paginated results with sorting options
+    - Parameters: query, author, tag, format_filter, status, limit, offset, sort_by, sort_order
+
+    Prerequisites:
+        - Valid Calibre library path configured
+        - For series operations: Series data must exist in library
+        - For book listing: Database must be accessible
+
+    Returns:
+        Dict with operation results, success status, and conversational messaging
+
+    Examples:
+        # Analyze series structure
+        {"operation": "analyze_series", "update_metadata": false}
+
+        # Fix series metadata issues
+        {"operation": "fix_series_metadata", "dry_run": true}
+
+        # List books with filters
+        {"operation": "list_books", "author": "Tolkien", "limit": 20}
+    """
+
+    try:
+        if operation == "analyze_series":
+            series_manager = SeriesManager()
+            return await series_manager.analyze_series(
+                library_path=library_path, update_metadata=update_metadata
+            )
+
+        elif operation == "fix_series_metadata":
+            series_manager = SeriesManager()
+            return await series_manager.fix_series_metadata(
+                library_path=library_path, dry_run=dry_run
+            )
+
+        elif operation == "merge_series":
+            if not source_series or not target_series:
+                return {
+                    "success": False,
+                    "error": "source_series and target_series parameters required for merging",
+                    "message": "Please specify both source and target series names for the merge operation."
+                }
+            series_manager = SeriesManager()
+            return await series_manager.merge_series(
+                library_path=library_path, source_series=source_series,
+                target_series=target_series, dry_run=dry_run
+            )
+
+        elif operation == "list_books":
+            return await list_books(
+                query=query, author=author, tag=tag, format=format_filter, status=status,
+                limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order,
+                library_path=library_path
+            )
+
+        else:
+            available_ops = ["analyze_series", "fix_series_metadata", "merge_series", "list_books"]
+            return {
+                "success": False,
+                "error": f"Unknown operation: {operation}",
+                "message": f"Available operations: {', '.join(available_ops)}",
+                "available_operations": available_ops
+            }
+
+    except Exception as e:
+        logger.error(f"Library operation '{operation}' failed: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": f"Library operation failed: {str(e)}",
+            "operation": operation,
+            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details."
+        }

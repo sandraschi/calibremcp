@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "calibre-mcp"
-version = "1.0.0"
-description = "FastMCP 2.14.1+ server for Calibre e-book library management with persistent storage"
+version = "1.1.0"
+description = "FastMCP 2.14.3+ server for conversational Calibre e-book library management with natural language search and auto-open functionality"
 authors = [
     {name = "Sandra", email = "sandra@example.com"}
 ]
@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp>=2.14.1,<2.15.0",
+    "fastmcp>=2.14.3,<2.15.0",
     "fastapi>=0.115.0",
     "httpx>=0.27.0",
     "pydantic>=2.9.0",
@@ -33,7 +33,7 @@ dependencies = [
     "sqlalchemy>=2.0.0",
     "aiohttp>=3.9.0",
     "keyring>=24.0.0",
-    "py-key-value-aio[disk]>=0.2.8,<0.3.0",  # FastMCP 2.13 persistent storage backend (required by fastmcp>=2.13.0.2)
+    "py-key-value-aio[disk]>=0.3.0,<0.4.0",  # FastMCP 2.14.1+ persistent storage backend
     "tenacity>=8.2.0",  # Retry logic for network operations and external API calls
     "psutil>=5.9.0"  # System and process utilities (required by system_tools)
 ]

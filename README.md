@@ -1,22 +1,26 @@
 # CalibreMCP 📚
 
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.1+-blue)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.3+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue)](pyproject.toml)
+[![Version](https://img.shields.io/badge/Version-1.1.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
 [![Portmanteau Tools](https://img.shields.io/badge/Tools-21-orange)](docs/development/README.md)
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
-**FastMCP 2.14.1+ server for comprehensive Calibre e-book library management through Claude Desktop and other MCP clients**
+**FastMCP 2.14.3+ server for conversational Calibre e-book library management with natural language search and auto-open functionality**
 
 **Features:**
-- **Portmanteau Tools** - ✅ 21 consolidated tools (18 portmanteau + 3 specialized)
+- **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
+- **Portmanteau Tools** - 21 consolidated tools (18 portmanteau + 3 specialized)
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
+- **Natural Language Search** - ✅ Intelligent parsing of conversational queries (FastMCP 2.14.3 sampling)
+- **Auto-Open Books** - ✅ Unique search results automatically launch in system viewer
+- **Title-Specific Search** - ✅ Fast, exact title matching with `title` parameter
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
 - **Verb Mapping** - Claude automatically maps user queries to correct operations
 - **Comment Management** - Dedicated CRUD operations for book comments
@@ -197,6 +201,19 @@ ebook-convert book.epub book.pdf
 ebook-meta book.epub
 ```
 
+#### **5. Calibre Plugin (Optional)** - GUI Integration
+
+A Calibre plugin provides GUI integration for extended metadata and webapp features.
+
+**Features:**
+- Edit first_published, translator, user comments (Ctrl+Shift+M)
+- Create virtual libraries from search queries (requires webapp backend)
+- Syncs with `calibre_mcp_data.db` - no MCP process needed for metadata
+
+**Install:** `calibre-customize -b calibre_plugin` or `calibre-customize -a calibre_mcp_integration.zip`
+
+See [docs/integrations/CALIBRE_PLUGIN_DESIGN.md](docs/integrations/CALIBRE_PLUGIN_DESIGN.md).
+
 ---
 
 ### **Start Calibre Content Server** (if using remote access)
@@ -216,7 +233,38 @@ calibre-server --port=8080 --enable-auth --manage-users
 
 ## 📦 **Installation Methods**
 
-### **1. MCPB Package (Recommended)** ⭐
+### **1. PyPI Package Install (Recommended)** ⭐
+
+**Simple pip installation - no repository cloning required!**
+
+```bash
+# Install from PyPI
+pip install calibre-mcp
+
+# Configure Claude Desktop
+{
+  "mcpServers": {
+    "calibre-mcp": {
+      "command": "python",
+      "args": ["-m", "calibre_mcp.server"],
+      "env": {
+        "CALIBRE_LIBRARY_PATH": "C:/path/to/your/calibre/library"
+      }
+    }
+  }
+}
+```
+
+**Advantages:**
+- ✅ **Universal compatibility** - Works with any MCP client
+- ✅ **Simple installation** - Just one pip command
+- ✅ **Always up-to-date** - Install latest version directly
+- ✅ **No repository cloning** - Clean, minimal setup
+- ✅ **Easy updates** - `pip install --upgrade calibre-mcp`
+
+---
+
+### **2. MCPB Package** ⭐
 
 **One-click installation via MCPB package - no Python setup required!**
 
@@ -303,7 +351,7 @@ cd calibre-mcp
 
 ---
 
-### **2. Standard MCP Configuration** (Manual Setup)
+### **3. Standard MCP Configuration** (Manual Setup)
 
 **For Claude Desktop and other MCP clients**, add to your `claude_desktop_config.json`:
 
@@ -325,6 +373,12 @@ cd calibre-mcp
 ```
 
 **For other MCP clients**, configure according to your client's MCP server setup requirements.
+
+**✅ Benefits:**
+- No repository cloning required
+- Simple pip install
+- Automatic dependency management
+- Works with any MCP client
 
 ---
 
@@ -449,7 +503,81 @@ python scripts/check_logs.py --errors-only
 - **Series Merging** - Combine duplicate or related series
 - **Automatic Organization** - Keep your series properly ordered and managed
 
+## 🌟 Natural Language Search & Auto-Open
+
+CalibreMCP supports **conversational book access** with intelligent parsing and automatic viewer launching.
+
+### **Natural Language Search**
+
+The MCP client LLM automatically parses natural language queries into structured searches:
+
+**User Input → MCP Tool Call:**
+- "search books by harari" → `query_books(operation="search", author="harari")`
+- "books about china" → `query_books(operation="search", tag="china")`
+- "books from last year" → `query_books(operation="search", added_after="2024-01-01")`
+- "find sapiens" → `query_books(operation="search", title="sapiens")`
+
+**FastMCP 2.14.3 Sampling:**
+For ambiguous queries, the server uses sampling to ask the MCP client LLM for intelligent parsing.
+
+### **Auto-Open Books**
+
+When searches return exactly 1 result, books automatically launch in your system's default viewer:
+
+```python
+# Auto-open enabled
+result = query_books(operation="search", title="homo deus", auto_open=True)
+
+# Returns:
+{
+  "total": 1,
+  "auto_opened": true,
+  "opened_book": {
+    "title": "Homo Deus: A Brief History of Tomorrow",
+    "format": "EPUB"
+  }
+}
+```
+
+**Supported Formats:** EPUB, PDF, MOBI, AZW3, CBZ, CBR, TXT, HTML, RTF
+
+### **Book Access Commands**
+
+**Natural Phrasings:**
+- "I want to read 'Homo Deus'" → Search & auto-open
+- "Show me 'The Burning Court'" → Search & auto-open
+- "Open 'Sapiens' for reading" → Search & auto-open
+
+**All map to:** Title search with auto-open enabled
+
 ## Usage Examples
+
+### Natural Language & Auto-Open Examples
+
+**Conversational Book Access:** The MCP client parses natural language and auto-opens books:
+
+```python
+# User says: "I want to read 'Homo Deus'" → Auto-search and open
+results = await query_books(
+    operation="search",
+    title="homo deus",
+    auto_open=True,           # Auto-launch viewer if unique result
+    auto_open_format="EPUB"   # Preferred format
+)
+# Result: Book opens in system viewer, returns metadata
+
+# User says: "books about china" → Tag search
+results = await query_books(
+    operation="search",
+    tag="china"
+)
+
+# User says: "find sapiens" → Title search with sampling
+results = await query_books(
+    operation="search",
+    title="sapiens"  # Fast title-only search (bypasses FTS)
+)
+```
 
 ### Search Examples
 

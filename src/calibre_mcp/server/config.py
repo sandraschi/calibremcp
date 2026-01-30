@@ -5,10 +5,17 @@ Configuration settings for the Calibre MCP Server.
 import os
 from pathlib import Path
 from typing import List, Optional
-from pydantic import BaseSettings
+
+# import sys # Removed unused
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+
     # Server configuration
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Calibre MCP Server"
@@ -24,10 +31,6 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
 
 
 # Initialize settings

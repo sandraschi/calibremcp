@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Calibre Plugin** - GUI integration for Calibre
+  - Extended metadata panel: Edit first_published, translator, user comments (Ctrl+Shift+M)
+  - Direct SQLite sync with calibre_mcp_data.db (no MCP process required)
+  - Virtual library from query: Create Calibre saved searches from webapp backend search
+  - Config: Override user data dir, webapp backend URL (default port 13000)
+  - Bulk enrich placeholder (shows backend status)
+  - Install: `calibre-customize -b calibre_plugin` or `calibre-customize -a calibre_mcp_integration.zip`
+- **Calibre Plugin Documentation**
+  - `docs/integrations/CALIBRE_PLUGIN_DESIGN.md` - Architecture, features, data flow
+  - `docs/integrations/CALIBRE_PLUGIN_IMPLEMENTATION_NOTES.md` - Implementation checklist, code snippets
+  - `docs/integrations/CALIBRE_INTEGRATION_GUIDE.md` - Updated with plugin section
+
+### Changed
+- Config default MCP HTTP URL: 8765 -> 13000 (Calibre webapp backend port)
+- `docs/integrations/CALIBRE_INTEGRATION_GUIDE.md` - Added Calibre plugin section
+- `docs/DOCUMENTATION_INDEX.md` - Added Calibre Integrations section
+- `README.md` - Added Calibre plugin to features and library access methods
+
+## [1.1.0] - 2026-01-22
+
+### Added
+- **Natural Language Search** - Intelligent query parsing with FastMCP 2.14.3 sampling
+  - Automatic parsing of conversational queries ("books by harari" → author search)
+  - Fallback LLM sampling for ambiguous queries
+  - Support for multiple query patterns (author, tag, title, date, genre)
+- **Auto-Open Books** - Seamless book reading experience
+  - Unique search results automatically launch in system viewer
+  - Support for EPUB, PDF, MOBI, AZW3, CBZ, CBR, TXT, HTML, RTF formats
+  - Cross-platform viewer launching (Windows `os.startfile`, macOS `open`, Linux `xdg-open`)
+- **Title-Specific Search** - Fast, exact title matching
+  - New `title` parameter bypasses full-text search for precise title queries
+  - Much faster than general text search for title-specific lookups
+- **Enhanced Query Books Tool** - Improved search capabilities
+  - Added `auto_open` and `auto_open_format` parameters
+  - Comprehensive parameter documentation with examples
+  - Better error handling and user feedback
+
+### Changed
+- **Documentation Updates** - Comprehensive README overhaul
+  - Added natural language search examples
+  - Documented auto-open functionality
+  - Updated feature list and usage examples
+  - Improved parameter documentation in docstrings
+
 ## [Unreleased] - 2026-01-14
 
 ### Fixed

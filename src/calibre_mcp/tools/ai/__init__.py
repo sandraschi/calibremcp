@@ -1,218 +1,225 @@
 """
-AI-powered tools for Calibre MCP server.
+AI-powered portmanteau tool for Calibre MCP server.
 
-This module provides AI-powered tools for book recommendations,
-content analysis, and reading insights.
+Consolidates all AI operations into a single unified interface:
+- Book recommendations and personalized suggestions
+- Content analysis and NLP processing
+- Reading habit analysis
+- LLM-powered summarization and cross-book querying
 """
 
-from .. import tool  # noqa: F401
+from typing import Optional, Dict, Any, List
 
-# Import the AI tools
-from .recommendation_engine import RecommendationEngine, RecommendationOptions
-from .content_analyzer import ContentAnalyzer, ContentAnalysisOptions, ReadingHabitOptions
+from ...server import mcp
+from ...logging_config import get_logger
+
+# Import AI tool implementations
+from .recommendation_engine import RecommendationEngine
+from .content_analyzer import ContentAnalyzer
 from .llm_summarizer import (
-    get_summarizer,
     summarize_book_content,
     check_llm_status,
     query_books as llm_query_books,
-    LLMConfig,
 )
 
-# Initialize the tools
-recommendation_engine = RecommendationEngine()
-content_analyzer = ContentAnalyzer()
+logger = get_logger("calibremcp.tools.ai")
 
 
-# Register the tools
-@tool(
-    name="get_book_recommendations",
-    description="Get book recommendations based on a book or user preferences",
-    parameters={
-        "book_id": {"type": "string", "description": "ID of the book to get recommendations for"},
-        "user_preferences": {
-            "type": "object",
-            "description": "User preferences for personalized recommendations",
-            "properties": {
-                "favorite_authors": {"type": "array", "items": {"type": "string"}},
-                "favorite_genres": {"type": "array", "items": {"type": "string"}},
-                "recently_read": {"type": "array", "items": {"type": "object"}},
-                "preferred_publishers": {"type": "array", "items": {"type": "string"}},
-            },
-        },
-        "options": {
-            "type": "object",
-            "description": "Recommendation options",
-            "properties": RecommendationOptions.schema()["properties"],
-        },
-    },
-)
-async def get_book_recommendations(*args, **kwargs):
-    """Get book recommendations based on a book or user preferences."""
-    if "book_id" in kwargs and kwargs["book_id"]:
-        return await recommendation_engine.get_recommendations(**kwargs)
-    elif "user_preferences" in kwargs and kwargs["user_preferences"]:
-        return await recommendation_engine.get_personalized_recommendations(**kwargs)
-    else:
-        return {"success": False, "error": "Either book_id or user_preferences must be provided"}
-
-
-@tool(
-    name="train_recommendation_model",
-    description="Train the recommendation model on the current library",
-    parameters={
-        "books": {
-            "type": "array",
-            "items": {"type": "object"},
-            "description": "List of books to train the model on",
-        }
-    },
-)
-async def train_recommendation_model(*args, **kwargs):
-    """Train the recommendation model on the current library."""
-    return await recommendation_engine.train_model(*args, **kwargs)
-
-
-@tool(
-    name="analyze_book_content",
-    description="Analyze the content of a book using NLP",
-    parameters={
-        "book_content": {"type": "string", "description": "The text content of the book"},
-        "options": {
-            "type": "object",
-            "description": "Analysis options",
-            "properties": ContentAnalysisOptions.schema()["properties"],
-        },
-    },
-)
-async def analyze_book_content(*args, **kwargs):
-    """Analyze the content of a book using NLP."""
-    return await content_analyzer.analyze_book_content(*args, **kwargs)
-
-
-@tool(
-    name="analyze_reading_habits",
-    description="Analyze reading habits from reading history data",
-    parameters={
-        "reading_history": {
-            "type": "array",
-            "items": {"type": "object"},
-            "description": "List of reading sessions",
-        },
-        "options": {
-            "type": "object",
-            "description": "Analysis options",
-            "properties": ReadingHabitOptions.schema()["properties"],
-        },
-    },
-)
-async def analyze_reading_habits(*args, **kwargs):
-    """Analyze reading habits from reading history data."""
-    return await content_analyzer.analyze_reading_habits(*args, **kwargs)
-
-
-# ============================================================================
-# LLM-POWERED TOOLS - NotebookLM Killer!
-# Uses local Ollama on 4090 - no cloud sees your Bullshit Library
-# ============================================================================
-
-
-@tool(
-    name="llm_check_status",
-    description="Check if local LLM (Ollama) is available and which models are loaded",
-    parameters={},
-)
-async def llm_check_status():
-    """Check local LLM availability.
-    
-    Returns status of Ollama and available models.
-    Useful to verify 4090 is ready before heavy operations.
-    """
-    return await check_llm_status()
-
-
-@tool(
-    name="llm_summarize_book",
-    description="Generate an academic summary of a book using local LLM. NotebookLM-killer feature!",
-    parameters={
-        "text": {
-            "type": "string",
-            "description": "Full text content of the book",
-        },
-        "title": {
-            "type": "string",
-            "description": "Book title",
-        },
-        "author": {
-            "type": "string",
-            "description": "Book author",
-        },
-        "target_pages": {
-            "type": "integer",
-            "description": "Target summary length in pages (default: 15)",
-            "default": 15,
-        },
-        "citation": {
-            "type": "string",
-            "description": "Full citation for the book (optional)",
-        },
-        "model": {
-            "type": "string",
-            "description": "Override LLM model (default: llama3.1:70b-instruct-q4_K_M)",
-        },
-    },
-)
-async def llm_summarize_book(
-    text: str,
-    title: str,
-    author: str,
+@mcp.tool()
+async def manage_ai_operations(
+    operation: str,
+    # Recommendation parameters
+    book_id: Optional[str] = None,
+    user_preferences: Optional[Dict[str, Any]] = None,
+    recommendation_options: Optional[Dict[str, Any]] = None,
+    # Training parameters
+    training_books: Optional[List[Dict[str, Any]]] = None,
+    # Content analysis parameters
+    book_content: Optional[str] = None,
+    content_analysis_options: Optional[Dict[str, Any]] = None,
+    # Reading habit parameters
+    reading_history: Optional[List[Dict[str, Any]]] = None,
+    habit_analysis_options: Optional[Dict[str, Any]] = None,
+    # LLM summarization parameters
+    text: Optional[str] = None,
+    title: Optional[str] = None,
+    author: Optional[str] = None,
     target_pages: int = 15,
-    citation: str = None,
-    model: str = None,
-):
-    """Generate academic-style book summary using local LLM.
-    
-    Uses map-reduce to handle 600+ page books:
-    1. Chunks the text intelligently (respects chapters)
-    2. Summarizes each chunk
-    3. Synthesizes into final document
-    
-    Output includes proper citations and academic formatting.
-    Perfect for sharing with friends to "rücke gerade" their understanding.
-    
-    Runs entirely on local 4090 - your Bullshit Library stays private!
+    citation: Optional[str] = None,
+    model: Optional[str] = None,
+    # Cross-book query parameters
+    query: Optional[str] = None,
+    book_contents: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
     """
-    return await summarize_book_content(
-        text=text,
-        title=title,
-        author=author,
-        target_pages=target_pages,
-        citation=citation,
-        model=model,
-    )
+    Comprehensive AI operations portmanteau tool for Calibre MCP server.
 
+    PORTMANTEAU PATTERN RATIONALE:
+    Consolidates 7 related AI operations into single interface. Prevents tool explosion while maintaining
+    full functionality. Enables unified AI workflow management across recommendations, analysis, and LLM operations.
 
-@tool(
-    name="llm_query_books",
-    description="Ask questions across multiple books - RAG across your library!",
-    parameters={
-        "query": {
-            "type": "string",
-            "description": "Your question to answer using the books",
-        },
-        "book_contents": {
-            "type": "object",
-            "description": "Dict of {book_title: relevant_content} to query",
-            "additionalProperties": {"type": "string"},
-        },
-    },
-)
-async def llm_cross_book_query(query: str, book_contents: dict):
-    """Query across multiple books with citations.
-    
-    Example: "Compare German and Soviet tank doctrine in WWII"
-    With contents from Guderian, Soviet military texts, academic analyses.
-    
-    Returns answer with citations to specific books.
-    The 15k book RAG dream realized!
+    SUPPORTED OPERATIONS:
+    - get_recommendations: Get book recommendations based on existing book or preferences
+    - train_model: Train recommendation model on library data
+    - analyze_content: Analyze book content using NLP techniques
+    - analyze_habits: Analyze reading patterns and habits
+    - check_llm_status: Verify local LLM availability and models
+    - summarize_book: Generate academic book summaries using local LLM
+    - query_books: Cross-book question answering with citations
+
+    OPERATIONS DETAIL:
+
+    get_recommendations:
+    - Generate personalized book recommendations
+    - Based on existing book similarity or user preferences
+    - Supports collaborative filtering and content-based approaches
+    - Parameters: book_id OR user_preferences (required), recommendation_options (optional)
+
+    train_model:
+    - Train recommendation algorithms on current library
+    - Improves recommendation quality over time
+    - Parameters: training_books (required)
+
+    analyze_content:
+    - Extract insights from book text using NLP
+    - Sentiment analysis, topic modeling, readability metrics
+    - Parameters: book_content (required), content_analysis_options (optional)
+
+    analyze_habits:
+    - Analyze reading patterns from history data
+    - Identify preferences, reading speed, genre trends
+    - Parameters: reading_history (required), habit_analysis_options (optional)
+
+    check_llm_status:
+    - Verify local LLM service availability
+    - List loaded models and capabilities
+    - No parameters required
+
+    summarize_book:
+    - Generate academic-style book summaries using local LLM
+    - Map-reduce processing for long texts
+    - Includes proper citations and formatting
+    - Parameters: text, title, author (required), target_pages, citation, model (optional)
+
+    query_books:
+    - Answer questions across multiple books simultaneously
+    - RAG implementation with source citations
+    - Parameters: query, book_contents (required)
+
+    Prerequisites:
+        - For LLM operations: Local Ollama service running
+        - For training: Sufficient library data available
+        - For content analysis: Book text content accessible
+
+    Returns:
+        Dict with operation results, success status, and conversational messaging
+
+    Examples:
+        # Get recommendations for a specific book
+        {"operation": "get_recommendations", "book_id": "123"}
+
+        # Train recommendation model
+        {"operation": "train_model", "training_books": [...]}
+
+        # Summarize a book
+        {"operation": "summarize_book", "text": "...", "title": "Book Title", "author": "Author Name"}
     """
-    return await llm_query_books(query, book_contents)
+
+    try:
+        # Initialize AI components
+        recommendation_engine = RecommendationEngine()
+        content_analyzer = ContentAnalyzer()
+
+        if operation == "get_recommendations":
+            if book_id:
+                return await recommendation_engine.get_recommendations(
+                    book_id=book_id, options=recommendation_options
+                )
+            elif user_preferences:
+                return await recommendation_engine.get_personalized_recommendations(
+                    user_preferences=user_preferences, options=recommendation_options
+                )
+            else:
+                return {
+                    "success": False,
+                    "error": "Either book_id or user_preferences must be provided for recommendations",
+                    "message": "Please specify a book to base recommendations on, or provide user preferences."
+                }
+
+        elif operation == "train_model":
+            if not training_books:
+                return {
+                    "success": False,
+                    "error": "training_books parameter required for model training",
+                    "message": "Please provide a list of books to train the recommendation model on."
+                }
+            return await recommendation_engine.train_model(books=training_books)
+
+        elif operation == "analyze_content":
+            if not book_content:
+                return {
+                    "success": False,
+                    "error": "book_content parameter required for content analysis",
+                    "message": "Please provide the text content of the book to analyze."
+                }
+            return await content_analyzer.analyze_book_content(
+                book_content=book_content, options=content_analysis_options
+            )
+
+        elif operation == "analyze_habits":
+            if not reading_history:
+                return {
+                    "success": False,
+                    "error": "reading_history parameter required for habit analysis",
+                    "message": "Please provide reading history data to analyze patterns."
+                }
+            return await content_analyzer.analyze_reading_habits(
+                reading_history=reading_history, options=habit_analysis_options
+            )
+
+        elif operation == "check_llm_status":
+            return await check_llm_status()
+
+        elif operation == "summarize_book":
+            if not all([text, title, author]):
+                return {
+                    "success": False,
+                    "error": "text, title, and author parameters required for summarization",
+                    "message": "Please provide the book text, title, and author for summarization."
+                }
+            return await summarize_book_content(
+                text=text,
+                title=title,
+                author=author,
+                target_pages=target_pages,
+                citation=citation,
+                model=model
+            )
+
+        elif operation == "query_books":
+            if not query or not book_contents:
+                return {
+                    "success": False,
+                    "error": "query and book_contents parameters required for cross-book querying",
+                    "message": "Please provide a question and book contents to query across."
+                }
+            return await llm_query_books(query=query, book_contents=book_contents)
+
+        else:
+            available_ops = ["get_recommendations", "train_model", "analyze_content", "analyze_habits",
+                           "check_llm_status", "summarize_book", "query_books"]
+            return {
+                "success": False,
+                "error": f"Unknown operation: {operation}",
+                "message": f"Available operations: {', '.join(available_ops)}",
+                "available_operations": available_ops
+            }
+
+    except Exception as e:
+        logger.error(f"AI operation '{operation}' failed: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": f"AI operation failed: {str(e)}",
+            "operation": operation,
+            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details."
+        }

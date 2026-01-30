@@ -339,6 +339,32 @@ Structured approach to maintaining the project.
 
 ---
 
+## 📖 **Calibre Integrations**
+
+**Location**: `docs/integrations/`
+
+### **Purpose**
+Calibre plugin and integration documentation.
+
+### **Documents**
+
+#### **1. Calibre Integration Guide**
+📄 [CALIBRE_INTEGRATION_GUIDE.md](integrations/CALIBRE_INTEGRATION_GUIDE.md)
+
+Overview of CalibreMCP integration with Calibre: library access, API, database, troubleshooting.
+
+#### **2. Calibre Plugin Design**
+📄 [CALIBRE_PLUGIN_DESIGN.md](integrations/CALIBRE_PLUGIN_DESIGN.md)
+
+Architecture, communication modes (direct DB vs HTTP), feature specs, plugin structure.
+
+#### **3. Calibre Plugin Implementation Notes**
+📄 [CALIBRE_PLUGIN_IMPLEMENTATION_NOTES.md](integrations/CALIBRE_PLUGIN_IMPLEMENTATION_NOTES.md)
+
+Implementation checklist, code snippets, testing commands. Plugin in `calibre_plugin/`.
+
+---
+
 ## 🔧 **MCP Technical Documentation**
 
 **Location**: `docs/mcp-technical/`

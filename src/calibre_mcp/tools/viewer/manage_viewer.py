@@ -715,8 +715,8 @@ async def manage_viewer(
                     try:
                         book = book_service.get_by_id(book_id)
                         if book and book.get("formats"):
-                            # Prefer EPUB, then PDF, then first available
-                            preferred_formats = ["EPUB", "PDF", "MOBI", "AZW3"]
+                            # Prefer EPUB, then PDF, then MOBI/AZW3, then CBZ/CBR, then other formats
+                            preferred_formats = ["EPUB", "PDF", "MOBI", "AZW3", "CBZ", "CBR", "TXT", "HTML", "RTF"]
                             for fmt_name in preferred_formats:
                                 for fmt in book["formats"]:
                                     if fmt.get("format", "").upper() == fmt_name:

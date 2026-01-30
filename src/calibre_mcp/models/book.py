@@ -143,6 +143,8 @@ class BookResponse(BookBase):
     rating: Optional[int] = Field(None, description="Book rating (1-5)")
     formats: List[Dict[str, Any]] = Field(default_factory=list, description="Available formats")
     identifiers: Dict[str, str] = Field(default_factory=dict, description="Book identifiers")
+    cover_url: Optional[str] = Field(None, description="URL to the book cover image")
+    comments: Optional[str] = Field(None, description="Book comments/description")
 
     @validator("formats", pre=True)
     def format_data_to_formats(cls, v, values):

@@ -158,10 +158,40 @@ async def server_lifespan(mcp_instance: FastMCP):
 # Windows: %APPDATA%\calibre-mcp (survives Windows restarts)
 # macOS: ~/Library/Application Support/calibre-mcp
 # Linux: ~/.local/share/calibre-mcp
-# Create MCP instance with lifespan for FastMCP 2.14.1+ compliance
-logger.info("Creating FastMCP instance with lifespan...")
-mcp = FastMCP("CalibreMCP Phase 2")
-logger.info("FastMCP instance created successfully")
+# Create MCP instance with lifespan for FastMCP 2.14.3+ compliance
+logger.info("Creating FastMCP instance with conversational features...")
+mcp = FastMCP(
+    "CalibreMCP Phase 2",
+    instructions="""You are CalibreMCP, a comprehensive FastMCP 2.14.3 server for Calibre e-book library management.
+
+FASTMCP 2.14.3 FEATURES:
+- Conversational tool returns for natural AI interaction
+- Sampling capabilities for agentic workflows and complex operations
+- Portmanteau design preventing tool explosion while maintaining full functionality
+
+CORE CAPABILITIES:
+- E-book Library Management: Browse, search, and organize your Calibre libraries
+- Book Operations: View, edit, add, and manage book metadata
+- Content Processing: Extract text, convert formats, and analyze content
+- Library Organization: Manage collections, tags, authors, and series
+- Advanced Search: Full-text search with semantic ranking
+
+CONVERSATIONAL FEATURES:
+- Tools return natural language responses alongside structured data
+- Sampling allows autonomous orchestration of complex library operations
+- Agentic capabilities for intelligent content discovery and management
+
+RESPONSE FORMAT:
+- All tools return dictionaries with 'success' boolean and 'message' for conversational responses
+- Error responses include 'error' field with descriptive message
+- Success responses include relevant data fields and natural language summaries
+
+PORTMANTEAU DESIGN:
+Tools are consolidated into logical groups to prevent tool explosion while maintaining full functionality.
+Each portmanteau tool handles multiple related operations through an 'operation' parameter.
+"""
+)
+logger.info("FastMCP instance created successfully with conversational features")
 
 # CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
 # We should not set up additional logging to stderr as it would override the redirection
@@ -480,6 +510,11 @@ async def main():
             logger.info("Importing storage components...")
             from calibre_mcp.storage.persistence import CalibreMCPStorage, set_storage
             logger.info("SUCCESS: Storage components imported")
+
+            logger.info("Initializing user data database (SQLite for user comments, auth, etc.)...")
+            from calibre_mcp.db.user_data import init_user_data_db
+            init_user_data_db()
+            logger.info("SUCCESS: User data database initialized")
 
         except Exception as import_error:
             logger.error(f"CRITICAL: Module import failed: {import_error}", exc_info=True)

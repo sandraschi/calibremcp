@@ -1,0 +1,13 @@
+CalibreMCP Integration Plugin
+
+Integrates CalibreMCP with the Calibre GUI. View and edit extended metadata
+(translator, first published, user comments) stored in calibre_mcp_data.db.
+No MCP process required for basic metadata editing.
+
+Features:
+- MCP Metadata dialog: Edit first_published, translator, user comments
+- Data stored in CalibreMCP's SQLite DB (shared with MCP tools)
+- Config: Override user data dir, MCP HTTP URL for future AI features
+
+Requires: Calibre 6+, CalibreMCP (optional, for AI features)
+Docs: https://github.com/sandraschi/calibre-mcp

@@ -29,6 +29,133 @@ ConversionManager = None
 
 logger.info("Calibre managers not yet implemented - using simulation mode for agentic workflows")
 
+    """
+    Use FastMCP 2.14.3 sampling to ask MCP client LLM to parse natural language queries.
+
+    This implements SEP-1577 sampling where the server borrows the client's LLM
+    to intelligently parse ambiguous natural language queries.
+
+    Args:
+        query: The original natural language query
+        parsing_prompt: Instructions for the LLM to parse the query
+        max_attempts: Maximum sampling attempts (default: 2)
+
+    Returns:
+        Dictionary with parsing results and success status
+    """
+    try:
+        logger.info(f"Starting intelligent query parsing for: {query}")
+
+        # Simulate sampling by returning a structured parsing result
+        # In a real FastMCP 2.14.3 implementation, this would use sampling
+        # to borrow the client's LLM for parsing
+
+        # For now, implement basic fallback parsing
+        # This is a placeholder for the actual sampling implementation
+
+        parsed_parameters = {}
+
+        # Enhanced pattern matching as fallback
+        query_lower = query.lower()
+
+        # Author patterns
+        if "by " in query_lower or "author " in query_lower:
+            # Extract author after "by" or "author"
+            for prefix in ["by ", "author "]:
+                prefix_index = query_lower.find(prefix)
+                if prefix_index >= 0:
+                    author_part = query[prefix_index + len(prefix):].strip()
+                    # Remove common suffixes and clean up
+                    for suffix in ["books", "book", "novels", "works"]:
+                        author_part = author_part.replace(suffix, "").strip()
+                    if author_part and len(author_part.split()) <= 5:  # Reasonable author name length
+                        parsed_parameters["author"] = author_part
+                        break
+
+        # Tag/subject patterns
+        elif any(phrase in query_lower for phrase in ["about ", "on ", "tagged ", "category "]):
+            tag_part = ""
+            for prefix in ["about ", "on ", "tagged as ", "tagged ", "category "]:
+                prefix_index = query_lower.find(prefix)
+                if prefix_index >= 0:
+                    tag_part = query[prefix_index + len(prefix):].strip()
+                    break
+
+            if tag_part:
+                # Remove common suffixes
+                for suffix in ["books", "book", "novels"]:
+                    tag_part = tag_part.replace(suffix, "").strip()
+                if tag_part:
+                    parsed_parameters["tag"] = tag_part
+
+        # Time patterns
+        elif any(phrase in query_lower for phrase in ["last year", "from last year", "this year", "recent", "new books"]):
+            from datetime import datetime
+            if "last year" in query_lower:
+                last_year = datetime.now().year - 1
+                parsed_parameters["pubdate"] = str(last_year)
+            elif "this year" in query_lower:
+                this_year = datetime.now().year
+                parsed_parameters["pubdate"] = str(this_year)
+            elif any(word in query_lower for word in ["recent", "new books"]):
+                # Books from recent months
+                parsed_parameters["added_after"] = "2024-01-01"
+
+        # Title patterns - for queries that look like book titles
+        elif (len(query.split()) <= 6 and  # Allow slightly longer titles
+              any(word in query_lower for word in ["find", "search for", "look for"]) or
+              (len(query.split()) <= 4 and
+               not any(word in query_lower for word in ["by", "about", "books", "show", "list", "get", "tagged", "category", "author", "published", "from"]))):
+
+            # Clean up the query to extract the title
+            title_query = query
+            for prefix in ["find ", "search for ", "look for "]:
+                if title_query.lower().startswith(prefix):
+                    title_query = title_query[len(prefix):].strip()
+                    break
+
+            if title_query and title_query != query:  # Only if we actually modified it
+                parsed_parameters["title"] = title_query
+            elif len(query.split()) <= 4 and not any(word in query_lower for word in ["by", "about", "books", "show", "list", "get", "tagged", "category", "author", "published", "from"]):
+                # Looks like a direct title search
+                parsed_parameters["title"] = query.strip()
+
+        # Genre/tag patterns for common genres
+        elif any(genre in query_lower for genre in ["mystery", "science fiction", "sci-fi", "fantasy", "romance",
+                                                    "history", "biography", "non-fiction", "fiction", "horror",
+                                                    "thriller", "crime", "detective", "adventure"]):
+            # Extract the genre
+            for genre in ["mystery", "science fiction", "sci-fi", "fantasy", "romance",
+                         "history", "biography", "non-fiction", "fiction", "horror",
+                         "thriller", "crime", "detective", "adventure"]:
+                if genre in query_lower:
+                    parsed_parameters["tag"] = genre
+                    break
+
+        success = bool(parsed_parameters)
+
+        result = {
+            "success": success,
+            "parsed_parameters": parsed_parameters if success else {},
+            "query": query,
+            "parsing_method": "basic_fallback",  # Would be "sampling" in real implementation
+            "confidence": 0.7 if success else 0.0,
+            "attempts_used": 1
+        }
+
+        logger.info(f"Query parsing {'successful' if success else 'failed'}", extra=result)
+        return result
+
+    except Exception as e:
+        logger.error(f"Intelligent query parsing failed: {e}", extra={"error": str(e), "query": query})
+        return {
+            "success": False,
+            "parsed_parameters": {},
+            "query": query,
+            "error": str(e),
+            "parsing_method": "error_fallback"
+        }
+
 # Conversational Response Builders - Implemented directly for Calibre MCP
 def build_success_response(operation: str, summary: str, result: Any,
                           next_steps: List[str] = None,

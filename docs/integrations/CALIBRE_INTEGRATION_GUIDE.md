@@ -7,7 +7,8 @@ CalibreMCP provides comprehensive integration with Calibre ebook library managem
 ## Table of Contents
 
 1. [Calibre Overview](#calibre-overview)
-2. [Installation and Setup](#installation-and-setup)
+2. [Calibre Plugin (MCP Integration)](#calibre-plugin)
+3. [Installation and Setup](#installation-and-setup)
 3. [Library Structure](#library-structure)
 4. [API Integration](#api-integration)
 5. [Database Integration](#database-integration)
@@ -37,6 +38,18 @@ Calibre is a powerful, open-source ebook library management system that provides
 - **Plugin System**: Extensible through plugins
 - **Cross-platform**: Windows, macOS, Linux support
 - **Content Server**: Web interface for library access
+
+## Calibre Plugin
+
+A Calibre plugin (`calibre_plugin/`) integrates CalibreMCP with the Calibre GUI:
+
+- **MCP Metadata**: Edit first_published, translator, user comments (Ctrl+Shift+M)
+- **Direct DB access**: No MCP process required; syncs with calibre_mcp_data.db
+- **Bulk Enrich / VL from Query**: Placeholder for future MCP HTTP features
+
+See [CALIBRE_PLUGIN_DESIGN.md](CALIBRE_PLUGIN_DESIGN.md) and [CALIBRE_PLUGIN_IMPLEMENTATION_NOTES.md](CALIBRE_PLUGIN_IMPLEMENTATION_NOTES.md).
+
+**Install**: `calibre-customize -b calibre_plugin` or `calibre-customize -a calibre_mcp_integration.zip`
 
 ## Installation and Setup
 

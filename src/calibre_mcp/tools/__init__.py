@@ -144,115 +144,106 @@ def register_tools(mcp: Any) -> None:
     logger.info("TOOL REGISTRATION: Starting tool registration process...")
     start_time = time.time()
 
-    # 1. CORE TOOLS
+    # Import and register all portmanteau tools
+    # Tools are automatically registered with FastMCP via @mcp.tool() decorators
+    # Just importing them ensures they're loaded and registered
+
     try:
-        logger.info("Importing core tools...")
+        logger.info("Importing all portmanteau tools...")
+
+        # Core tools
         import_start = time.time()
-        from .core import tools as _core_tools
+        from .core import tools as _core_tools  # noqa: F401
+        from .library import tools as _library_tools  # noqa: F401
         import_time = time.time() - import_start
         logger.info(".2f")
-        import_count += 1
-    except Exception as e:
-        logger.error(f"Failed to load core tools: {e}", exc_info=True)
-        logger.error(f"Core tools error type: {type(e).__name__}")
-        error_count += 1
 
-    # 2. LIBRARY MANAGEMENT
-    try:
-        logger.info("Importing library tools...")
+        # Book management portmanteau
         import_start = time.time()
-        from .library import tools as _library_tools
+        from .book_management import manage_books  # noqa: F401
         import_time = time.time() - import_start
         logger.info(".2f")
-        import_count += 1
-    except Exception as e:
-        logger.error(f"Failed to load library tools: {e}", exc_info=True)
-        logger.error(f"Library tools error type: {type(e).__name__}")
-        error_count += 1
 
-    # 3. BOOK MANAGEMENT
-    try:
-        from .book_management import query_books, manage_books
+        # Metadata/tags/descriptions portmanteau
+        import_start = time.time()
+        from .metadata import manage_metadata  # noqa: F401
+        from .tags import manage_tags  # noqa: F401
+        from .comments import manage_comments  # noqa: F401
+        from .descriptions import manage_descriptions  # noqa: F401
+        from .series import manage_series  # noqa: F401
+        from .publishers import manage_publishers  # noqa: F401
+        from .user_comments import manage_user_comments  # noqa: F401
+        from .extended_metadata import manage_extended_metadata  # noqa: F401
+        from .times import manage_times  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-        import_count += 2
-    except Exception as e:
-        logger.error(f"Failed to load book management tools: {e}")
-        error_count += 1
+        # Authors portmanteau
+        import_start = time.time()
+        from .authors import manage_authors  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-    # 4. METADATA & TAGS
-    try:
-        from .metadata import tools as _metadata_tools, manage_metadata
-        from .tags import manage_tags
-        from .comments import manage_comments
+        # File management portmanteau
+        import_start = time.time()
+        from .files import manage_files  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-        import_count += 4
-    except Exception as e:
-        logger.error(f"Failed to load metadata/tags tools: {e}")
-        error_count += 1
+        # Analysis/advanced portmanteau
+        import_start = time.time()
+        from .analysis import manage_analysis  # noqa: F401
+        from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-    # 5. AUTHORS
-    try:
-        from .authors import manage_authors
+        # AI operations portmanteau
+        import_start = time.time()
+        from .ai import manage_ai_operations  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-        import_count += 1
-    except Exception as e:
-        logger.error(f"Failed to load author tools: {e}")
-        error_count += 1
+        # Organization operations portmanteau
+        import_start = time.time()
+        from .organization import manage_organization  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-    # 6. FILE MANAGEMENT
-    try:
-        from .files import tools as _file_tools, manage_files
+        # Library operations portmanteau
+        import_start = time.time()
+        from .library_operations import manage_library_operations  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-        import_count += 2
-    except Exception as e:
-        logger.error(f"Failed to load file tools: {e}")
-        error_count += 1
+        # System/specialized portmanteau
+        import_start = time.time()
+        from .system import manage_system  # noqa: F401
+        from .specialized import manage_specialized  # noqa: F401
+        from .user_management import manage_users  # noqa: F401
+        from .import_export import export_books  # noqa: F401
+        from .viewer import manage_viewer  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(".2f")
 
-    # 7. ANALYSIS & ADVANCED FEATURES
-    try:
-        from .analysis import tools as _analysis_tools, manage_analysis, analyze_library
-        from .advanced_features import manage_bulk_operations, manage_content_sync
-
-        import_count += 5
-    except Exception as e:
-        logger.error(f"Failed to load analysis/advanced tools: {e}")
-        error_count += 1
-
-    # 8. SYSTEM & SPECIALIZED
-    try:
-        from .system import tools as _system_tools, manage_system
-        from .specialized import tools as _specialized_tools, manage_specialized
-        from .user_management import manage_users
-        from .import_export import export_books
-        from .viewer import manage_viewer
-
-        import_count += 7
-    except Exception as e:
-        logger.error(f"Failed to load system/specialized tools: {e}")
-        error_count += 1
-
-    # 9. OCR & BASE TOOLS
-    try:
-        from .ocr import tools as _ocr_tools
+        # OCR tools
+        import_start = time.time()
+        from .ocr import tools as _ocr_tools  # noqa: F401
         from .ocr.calibre_ocr_tool import OCRTool
-
         OCRTool.register(mcp)
-        import_count += 2
-    except Exception as e:
-        logger.error(f"Failed to load/register OCR tools: {e}")
-        error_count += 1
-
-    # 10. AGENTIC WORKFLOW (SEP-1577)
-    try:
-        logger.info("Importing agentic workflow tool (SEP-1577)...")
-        import_start = time.time()
-        from . import agentic_workflow
         import_time = time.time() - import_start
-        logger.info(f"Agentic library workflow tool registered in {import_time:.2f}s (SEP-1577)")
-        import_count += 1
+        logger.info(".2f")
+
+        # Agentic workflow tools
+        import_start = time.time()
+        from .agentic import register_agentic_tools
+        register_agentic_tools()
+        import_time = time.time() - import_start
+        logger.info(f"Agentic workflow tools loaded in {import_time:.2f}s")
+
+        import_count = 23  # Total portmanteau tools imported
+
     except Exception as e:
-        logger.error(f"Failed to load agentic workflow tool: {e}", exc_info=True)
-        logger.error(f"Agentic workflow error type: {type(e).__name__}")
+        logger.error(f"Failed to load portmanteau tools: {e}", exc_info=True)
         error_count += 1
 
     # Get count of registered tools from FastMCP
