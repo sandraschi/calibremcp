@@ -54,163 +54,262 @@ HELP_DOCS = {
     "overview": {
         "title": "CalibreMCP Server Help",
         "description": {
-            "basic": "FastMCP 2.12 server for Calibre ebook library management with AI-powered features.",
+            "basic": (
+                "CalibreMCP is a FastMCP 2.14+ server that connects AI assistants to your Calibre "
+                "ebook library. Search, browse, open books, and manage metadata via natural language."
+            ),
             "intermediate": (
-                "CalibreMCP is a comprehensive Model Context Protocol (MCP) server that seamlessly "
-                "integrates Claude AI with your Calibre ebook library. It provides intelligent "
-                "assistance for reading, research, and library organization with Austrian efficiency."
+                "CalibreMCP uses portmanteau tools: single tools with an operation parameter "
+                "for related actions. Direct database access (no Calibre app needed) or Calibre Content "
+                "Server for remote. Auto-discovers libraries from Calibre config. Supports query_books, "
+                "manage_books, manage_libraries, manage_viewer, and more."
             ),
             "advanced": (
-                "A high-performance, extensible MCP server built on FastMCP 2.12 framework. "
-                "Features include automatic library discovery, multi-library support, advanced search, "
-                "metadata management, format conversion, AI-powered recommendations, and comprehensive "
-                "analytics. Designed for Austrian efficiency with weeb-friendly Japanese content support."
+                "Production MCP server with modular architecture, structured error handling, "
+                "and 20+ portmanteau tools. Access: direct SQLite (metadata.db) or Calibre Content Server API. "
+                "Library discovery: global.py, library_infos.json, CALIBRE_LIBRARY_PATH. "
+                "Extended metadata (translator, first_published, user comments) in separate SQLite. "
+                "Full search with author, tag, series, publisher, rating, date filters."
             ),
             "expert": (
-                "Production-ready MCP server with modular architecture, structured logging, "
-                "comprehensive error handling, and extensive tooling. Supports both local and remote "
-                "Calibre libraries, automatic library discovery via Calibre configuration files, "
-                "and advanced features like series analysis, duplicate detection, and reading analytics."
+                "FastMCP 2.14+ with cooperative/compositing patterns. Tools: query_books (search/list/by_author/by_series), "
+                "manage_books (get/add/update/delete/details), manage_libraries (list/switch/stats), manage_authors, "
+                "manage_series, manage_tags, manage_viewer (open_file/open_random), manage_metadata, manage_files, "
+                "manage_comments, manage_descriptions, manage_publishers, manage_times, manage_user_comments, "
+                "manage_extended_metadata, manage_specialized, manage_bulk_operations, manage_content_sync, "
+                "manage_smart_collections, manage_users, manage_system. All return structured dicts."
             ),
         },
     },
     "tools": {
         "core": {
-            "title": "Core Library Operations",
+            "title": "Core Book Operations",
             "description": {
-                "basic": "Essential tools for basic library access",
-                "intermediate": "Core functionality for listing, searching, and retrieving books",
-                "advanced": "Comprehensive library operations with filtering and sorting",
-                "expert": "Low-level library access with performance optimization",
+                "basic": "query_books and manage_books for searching and retrieving books.",
+                "intermediate": "query_books(operation='search') with author, tag, text filters. manage_books for get/details.",
+                "advanced": "Full query_books filters: author, tags, series, publisher, rating, pubdate, added_after, formats.",
+                "expert": "Verb mapping: search/list/find all use operation='search'. by_author/by_series use IDs.",
             },
-            "tools": ["query_books", "manage_books", "test_calibre_connection"],
+            "tools": ["query_books", "manage_books"],
         },
         "library": {
             "title": "Library Management",
             "description": {
-                "basic": "Tools for managing multiple libraries",
-                "intermediate": "Multi-library operations and switching",
-                "advanced": "Cross-library search and statistics",
-                "expert": "Library health monitoring and optimization",
+                "basic": "manage_libraries: list libraries, switch active, get stats.",
+                "intermediate": "Auto-discovery from Calibre config. CALIBRE_LIBRARY_PATH for direct access.",
+                "advanced": "Multiple libraries supported. Switch changes active DB; stats per library.",
+                "expert": "library_infos.json, global.py parsed. CALIBRE_SERVER_URL for remote.",
             },
-            "tools": [
-                "list_libraries",
-                "switch_library",
-                "get_library_stats",
-                "cross_library_search",
-            ],
+            "tools": ["manage_libraries"],
         },
-        "analysis": {
-            "title": "Library Analysis",
+        "entities": {
+            "title": "Authors, Series, Tags",
             "description": {
-                "basic": "Basic statistics and health checks",
-                "intermediate": "Comprehensive analytics and recommendations",
-                "advanced": "Advanced metrics and trend analysis",
-                "expert": "Deep analysis with performance profiling",
+                "basic": "manage_authors, manage_series, manage_tags for list/get/get_books.",
+                "intermediate": "Browse entities, then filter books. Pagination with limit/offset.",
+                "advanced": "Series with index. Tags hierarchical. Author sort names.",
+                "expert": "Linked to metadata.db. manage_series stats, manage_tags get_books.",
             },
-            "tools": [
-                "get_tag_statistics",
-                "find_duplicate_books",
-                "get_series_analysis",
-                "analyze_library_health",
-                "unread_priority_list",
-                "reading_statistics",
-            ],
+            "tools": ["manage_authors", "manage_series", "manage_tags"],
+        },
+        "viewer": {
+            "title": "Viewer",
+            "description": {
+                "basic": "manage_viewer(operation='open_file', book_id=N) opens in system default app.",
+                "intermediate": "open_random by author/tag/series. Preferred format: EPUB, PDF, MOBI.",
+                "advanced": "File path derived from library path + book path + format filename.",
+                "expert": "Platform-specific open (subprocess). Fallback formats if primary missing.",
+            },
+            "tools": ["manage_viewer"],
         },
         "metadata": {
-            "title": "Metadata Management",
+            "title": "Metadata and Content",
             "description": {
-                "basic": "Basic metadata updates",
-                "intermediate": "Bulk metadata operations",
-                "advanced": "AI-powered metadata enhancement",
-                "expert": "Advanced metadata validation and repair",
+                "basic": "manage_metadata (show, update), manage_descriptions, manage_comments.",
+                "intermediate": "manage_publishers, manage_times (added, published). manage_user_comments (CalibreMCP SQLite).",
+                "advanced": "manage_extended_metadata: translator, first_published in external DB.",
+                "expert": "metadata.db unchanged. calibre_mcp_data.db for user comments, extended fields.",
             },
             "tools": [
-                "update_book_metadata",
-                "auto_organize_tags",
-                "fix_metadata_issues",
+                "manage_metadata",
+                "manage_descriptions",
+                "manage_comments",
+                "manage_publishers",
+                "manage_times",
+                "manage_user_comments",
+                "manage_extended_metadata",
             ],
         },
         "files": {
             "title": "File Operations",
             "description": {
-                "basic": "Basic file operations",
-                "intermediate": "Format conversion and downloads",
-                "advanced": "Bulk file operations",
-                "expert": "Advanced file management with optimization",
+                "basic": "manage_files for format operations, add/remove formats.",
+                "intermediate": "Convert, add format, remove format. Path resolution from library.",
+                "advanced": "Bulk format operations via manage_bulk_operations.",
+                "expert": "File naming, path sanitization. Preferred format order.",
             },
-            "tools": ["convert_book_format", "download_book", "bulk_format_operations"],
+            "tools": ["manage_files", "manage_bulk_operations"],
         },
-        "specialized": {
-            "title": "Specialized Features",
+        "advanced": {
+            "title": "Advanced Features",
             "description": {
-                "basic": "Specialized content organization",
-                "intermediate": "AI-powered recommendations",
-                "advanced": "Advanced content curation",
-                "expert": "Expert-level content analysis",
+                "basic": "manage_specialized, manage_content_sync, manage_smart_collections.",
+                "intermediate": "Content sync, smart collections (saved searches), specialized curation.",
+                "advanced": "manage_users for auth. Export via import_export tools.",
+                "expert": "Full portmanteau set. Integration with Calibre plugin for extended metadata edit.",
             },
             "tools": [
-                "japanese_book_organizer",
-                "it_book_curator",
-                "reading_recommendations",
+                "manage_specialized",
+                "manage_content_sync",
+                "manage_smart_collections",
+                "manage_users",
             ],
+        },
+        "system": {
+            "title": "System",
+            "description": {
+                "basic": "manage_system: help, status, tool_help, list_tools, hello_world, health_check.",
+                "intermediate": "status levels: basic, intermediate, advanced, diagnostic.",
+                "advanced": "tool_help(tool_name) for per-tool docs. list_tools(category) for discovery.",
+                "expert": "health_check machine-readable. Error handling via handle_tool_error.",
+            },
+            "tools": ["manage_system"],
         },
     },
     "examples": {
         "basic": [
-            "# List books in your library",
-            "list_books()",
+            "# Search books by author",
+            'query_books(operation="search", author="Conan Doyle")',
             "",
-            "# Search for a specific book",
-            'query_books(operation="search", text="python programming")',
+            "# List all books",
+            'query_books(operation="list", limit=20)',
             "",
-            "# Get details for a specific book",
+            "# Get book details",
             "manage_books(operation='get', book_id=123)",
             "",
-            "# Get complete book details",
-            "manage_books(operation='details', book_id=123)",
+            "# Open book in default viewer",
+            "manage_viewer(operation='open_file', book_id=123)",
+            "",
+            "# List libraries",
+            'manage_libraries(operation="list")',
         ],
         "intermediate": [
-            "# Advanced search with filters",
-            'query_books(operation="search", text="machine learning", tags=["programming", "ai"])',
+            "# Search with multiple filters",
+            'query_books(operation="search", author="Agatha Christie", tags=["mystery"], min_rating=4)',
             "",
-            "# Get library statistics",
-            "get_library_stats()",
+            "# Switch library",
+            'manage_libraries(operation="switch", library_name="Calibre-Bibliothek IT")',
             "",
-            "# Find duplicate books",
-            "find_duplicate_books()",
+            "# Get library stats",
+            'manage_libraries(operation="stats", library_name="Calibre-Bibliothek")',
             "",
-            "# Analyze series completion",
-            "get_series_analysis()",
+            "# Open random book by tag",
+            'manage_viewer(operation="open_random", tag="programming")',
+            "",
+            "# List authors",
+            'manage_authors(operation="list", limit=50)',
         ],
         "advanced": [
-            "# Cross-library search",
-            'cross_library_search(query="python", libraries=["IT", "Programming"])',
+            "# Search by date range",
+            'query_books(operation="search", pubdate_start="2020-01-01", pubdate_end="2024-12-31")',
             "",
-            "# Bulk metadata update",
-            'update_book_metadata([{"book_id": 123, "tags": ["programming", "python"]}])',
+            "# Search recently added",
+            'query_books(operation="search", added_after="2024-12-01", limit=10)',
             "",
-            "# Convert multiple books",
-            'convert_book_format([{"book_id": 123, "target_format": "PDF"}])',
+            "# Get series books",
+            'manage_series(operation="get_books", series_id=5, limit=20)',
             "",
-            "# Get reading recommendations",
-            "reading_recommendations()",
+            "# Update metadata",
+            'manage_metadata(operation="update", book_id=123, title="New Title")',
+            "",
+            "# System status",
+            'manage_system(operation="status", status_level="intermediate")',
         ],
         "expert": [
-            "# Library health analysis",
-            "analyze_library_health()",
+            "# Tool help",
+            'manage_system(operation="tool_help", tool_name="query_books", tool_help_level="expert")',
             "",
-            "# Japanese content organization",
-            "japanese_book_organizer()",
+            "# List tools by category",
+            'manage_system(operation="list_tools", category="library")',
             "",
-            "# IT book curation",
-            "it_book_curator()",
+            "# Health check",
+            'manage_system(operation="health_check")',
             "",
-            "# Advanced reading analytics",
-            "reading_statistics()",
+            "# User comments (CalibreMCP SQLite)",
+            'manage_user_comments(operation="get", book_id=123)',
+            "",
+            "# Extended metadata",
+            'manage_extended_metadata(operation="get", book_id=123)',
         ],
     },
 }
+
+
+async def help_helper(
+    level: HelpLevel, topic: Optional[str] = None
+) -> str:
+    """
+    Helper for manage_system(operation='help'). Generates multi-level help content.
+    Used by manage_system; not registered as a standalone MCP tool.
+    """
+    try:
+        log_operation(logger, "help_requested", level=level.value, topic=topic)
+
+        content = []
+
+        # Overview
+        overview = HELP_DOCS["overview"]
+        content.append(f"# {overview['title']}")
+        content.append("")
+        content.append(overview["description"][level.value])
+        content.append("")
+
+        # Tools section
+        if not topic or topic == "tools":
+            content.append("## Available Tools")
+            content.append("")
+
+            for category, info in HELP_DOCS["tools"].items():
+                content.append(f"### {info['title']}")
+                content.append("")
+                content.append(info["description"][level.value])
+                content.append("")
+                if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
+                    content.append("**Tools:**")
+                    for tool_name in info["tools"]:
+                        content.append(f"- `{tool_name}()`")
+                    content.append("")
+
+        # Examples
+        content.append("## Examples")
+        content.append("")
+        for example in HELP_DOCS["examples"][level.value]:
+            content.append(example)
+        content.append("")
+
+        # Configuration (intermediate+)
+        if level in [HelpLevel.INTERMEDIATE, HelpLevel.ADVANCED, HelpLevel.EXPERT]:
+            content.append("## Configuration")
+            content.append("")
+            content.append("- CALIBRE_LIBRARY_PATH: Library directory (direct DB access)")
+            content.append("- CALIBRE_SERVER_URL: Calibre Content Server (optional, remote)")
+            content.append("- Auto-discovery: global.py, library_infos.json")
+            content.append("")
+
+        # Troubleshooting (advanced+)
+        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
+            content.append("## Troubleshooting")
+            content.append("")
+            content.append("1. **Library not found**: manage_libraries(operation='list') to see discovered libraries")
+            content.append("2. **DB offline**: Ensure library path exists; check CALIBRE_LIBRARY_PATH")
+            content.append("3. **Open file fails**: Verify book has EPUB/PDF; check library path resolution")
+            content.append("")
+
+        return "\n".join(content)
+
+    except Exception as e:
+        log_error(logger, "help_error", e)
+        return f"Error generating help: {str(e)}"
 
 
 @mcp.tool()
@@ -228,87 +327,7 @@ async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) 
     Returns:
         Formatted help content with examples and guidance
     """
-    try:
-        log_operation(logger, "help_requested", level=level.value, topic=topic)
-
-        # Build help content
-        content = []
-
-        # Overview section
-        overview = HELP_DOCS["overview"]
-        content.append(f"# {overview['title']}")
-        content.append("")
-        content.append(overview["description"][level.value])
-        content.append("")
-
-        # Tools section
-        if not topic or topic == "tools":
-            content.append("## Available Tools")
-            content.append("")
-
-            for category, info in HELP_DOCS["tools"].items():
-                content.append(f"### {info['title']}")
-                content.append("")
-                content.append(info["description"][level.value])
-                content.append("")
-
-                if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
-                    content.append("**Tools:**")
-                    for tool_name in info["tools"]:
-                        content.append(f"- `{tool_name}()`")
-                    content.append("")
-
-        # Examples section
-        if level in [HelpLevel.BASIC, HelpLevel.INTERMEDIATE]:
-            content.append("## Quick Examples")
-            content.append("")
-            for example in HELP_DOCS["examples"][level.value]:
-                content.append(example)
-            content.append("")
-
-        # Advanced examples
-        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
-            content.append("## Advanced Examples")
-            content.append("")
-            for example in HELP_DOCS["examples"][level.value]:
-                content.append(example)
-            content.append("")
-
-        # Configuration section
-        if level in [HelpLevel.INTERMEDIATE, HelpLevel.ADVANCED, HelpLevel.EXPERT]:
-            content.append("## Configuration")
-            content.append("")
-            content.append("CalibreMCP automatically discovers Calibre libraries:")
-            content.append("")
-            content.append("```python")
-            content.append("from calibre_mcp.config import CalibreConfig")
-            content.append("config = CalibreConfig()")
-            content.append("libraries = config.list_libraries()")
-            content.append("```")
-            content.append("")
-
-        # Troubleshooting section
-        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
-            content.append("## Troubleshooting")
-            content.append("")
-            content.append("### Common Issues")
-            content.append("")
-            content.append(
-                "1. **Library not found**: Use `list_libraries()` to see discovered libraries"
-            )
-            content.append(
-                "2. **Connection failed**: Check Calibre server with `test_calibre_connection()`"
-            )
-            content.append(
-                "3. **Performance issues**: Use `analyze_library_health()` for diagnostics"
-            )
-            content.append("")
-
-        return "\n".join(content)
-
-    except Exception as e:
-        log_error(logger, "help_error", e)
-        return f"Error generating help: {str(e)}"
+    return await help_helper(level=level, topic=topic)
 
 
 @mcp.tool()
@@ -537,6 +556,13 @@ async def status(
         return f"Error generating status: {str(e)}"
 
 
+async def status_helper(
+    level: StatusLevel, focus: Optional[str] = None
+) -> str:
+    """Helper for manage_system(operation='status')."""
+    return await status(level=level, focus=focus)
+
+
 def _get_registered_tools() -> List[Dict[str, Any]]:
     """
     Get all registered tools from the MCP server.
@@ -739,6 +765,13 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
         return f"Error generating tool help: {str(e)}"
 
 
+async def tool_help_helper(
+    tool_name: str, level: HelpLevel = HelpLevel.BASIC
+) -> str:
+    """Helper for manage_system(operation='tool_help')."""
+    return await tool_help(tool_name=tool_name, level=level)
+
+
 def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
     """Get example usage for a tool."""
     examples = []
@@ -749,11 +782,11 @@ def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
             "# Search for books",
             "result = query_books(operation='search', text='python programming')",
             "",
-            "# Get recently added books",
-            "result = query_books(operation='recent', limit=10)",
-            "",
             "# List all books",
             "result = query_books(operation='list', limit=50)",
+            "",
+            "# Search by author",
+            "result = query_books(operation='search', author='Conan Doyle')",
         ],
         "manage_books": [
             "# Get book by ID",
@@ -761,18 +794,23 @@ def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
             "# Get complete book details",
             "book = manage_books(operation='details', book_id=123)",
         ],
-        "list_libraries": ["# List all libraries", "libraries = list_libraries()"],
-        "switch_library": [
-            "# Switch to a different library",
-            "result = switch_library(library_name='Programming')",
+        "manage_libraries": [
+            "# List all libraries",
+            "result = manage_libraries(operation='list')",
+            "",
+            "# Switch library",
+            "result = manage_libraries(operation='switch', library_name='Calibre-Bibliothek IT')",
         ],
-        "update_book_metadata": [
-            "# Update single book",
-            "result = update_book_metadata([{'book_id': 123, 'rating': 5}])",
+        "manage_viewer": [
+            "# Open book in default app",
+            "manage_viewer(operation='open_file', book_id=123)",
+            "",
+            "# Open random book by tag",
+            "manage_viewer(operation='open_random', tag='programming')",
         ],
-        "download_book": [
-            "# Download in preferred format",
-            "result = download_book(book_id=123, format_preference='EPUB')",
+        "manage_metadata": [
+            "# Update book metadata",
+            "manage_metadata(operation='update', book_id=123, title='New Title')",
         ],
     }
 
@@ -802,20 +840,22 @@ def _get_related_tools(tool_name: str) -> List[str]:
 def _get_tool_tips(tool_name: str) -> List[str]:
     """Get expert tips for a tool."""
     tips_map = {
-        "search_books": [
-            "Use field-specific searches for better performance",
-            "Combine multiple search criteria for precise results",
-            "Large result sets are automatically paginated",
+        "query_books": [
+            "Use operation='search' for any verb: search, list, find, get, show me",
+            "Combine author, tag, series, publisher for precise results",
+            "Use limit and offset for pagination on large result sets",
         ],
-        "list_books": [
-            "Use limit and offset for pagination",
-            "Filtering reduces database load",
-            "Sorting can impact performance on large libraries",
+        "manage_books": [
+            "operation='details' returns full metadata including formats",
+            "Use get before update to verify book exists",
         ],
-        "update_book_metadata": [
-            "Batch updates are more efficient than single updates",
-            "Validate metadata before bulk operations",
-            "Use transaction-aware updates for consistency",
+        "manage_libraries": [
+            "Switch changes active DB; all subsequent queries use that library",
+            "Stats are per-library; list shows all discovered libraries",
+        ],
+        "manage_viewer": [
+            "open_file derives path from library + book path + format",
+            "Preferred format order: EPUB, PDF, MOBI, AZW3",
         ],
     }
 
@@ -912,6 +952,11 @@ async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
         return {"total": 0, "tools": [], "categories": {}, "error": str(e)}
 
 
+async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
+    """Helper for manage_system(operation='list_tools')."""
+    return await list_tools(category=category)
+
+
 @mcp.tool()
 async def hello_world() -> str:
     """
@@ -934,6 +979,11 @@ async def hello_world() -> str:
     except Exception as e:
         log_error(logger, "hello_world_error", e)
         return f"Error in hello_world: {str(e)}"
+
+
+async def hello_world_helper() -> str:
+    """Helper for manage_system(operation='hello_world')."""
+    return await hello_world()
 
 
 @mcp.tool()
@@ -1028,6 +1078,11 @@ async def health_check() -> Dict[str, Any]:
             "timestamp": datetime.now().isoformat(),
             "error": str(e),
         }
+
+
+async def health_check_helper() -> Dict[str, Any]:
+    """Helper for manage_system(operation='health_check')."""
+    return await health_check()
 
 
 @mcp.tool()

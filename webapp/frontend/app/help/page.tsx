@@ -1,40 +1,56 @@
-import { getHelp } from '@/lib/api';
+'use client';
 
-export default async function HelpPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ level?: string; topic?: string }>;
-}) {
-  const params = await searchParams;
-  const level = (params.level ?? 'basic') as 'basic' | 'intermediate' | 'advanced' | 'expert';
+import { useState } from 'react';
+import { HELP_SECTIONS } from '@/lib/help-content';
+import { Book, Server, Globe } from 'lucide-react';
 
-  let data: Record<string, unknown>;
-  try {
-    data = await getHelp(level, params.topic);
-  } catch (e) {
-    return (
-      <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6 text-slate-100">Help</h1>
-        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-slate-200">
-          <p className="font-medium">Could not load help</p>
-          <p className="mt-2 text-sm text-slate-400">{String((e as Error).message)}</p>
-        </div>
-      </div>
-    );
-  }
+type SectionKey = keyof typeof HELP_SECTIONS;
 
-  const content = typeof data.content === 'string'
-    ? data.content
-    : typeof data.help === 'string'
-      ? data.help
-      : JSON.stringify(data, null, 2);
+const SECTION_ICONS: Record<SectionKey, React.ElementType> = {
+  calibre: Book,
+  calibreMcp: Server,
+  webapp: Globe,
+};
+
+export default function HelpPage() {
+  const [active, setActive] = useState<SectionKey>('calibre');
+  const section = HELP_SECTIONS[active];
+  const Icon = SECTION_ICONS[active];
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6 text-slate-100">Help</h1>
-      <div className="p-4 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-sm overflow-auto whitespace-pre-wrap font-mono">
-        {content}
+
+      <div className="flex gap-2 mb-6 border-b border-slate-700">
+        {(Object.keys(HELP_SECTIONS) as SectionKey[]).map((key) => {
+          const Svg = SECTION_ICONS[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActive(key)}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                active === key
+                  ? 'border-amber text-amber'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Svg className="w-4 h-4" />
+              {HELP_SECTIONS[key].title}
+            </button>
+          );
+        })}
       </div>
+
+      <article className="prose prose-invert prose-slate max-w-none">
+        <div className="flex items-center gap-2 mb-4">
+          <Icon className="w-6 h-6 text-amber" />
+          <h2 className="text-xl font-semibold text-slate-200 m-0">{section.title}</h2>
+        </div>
+        <div className="p-4 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+          {section.content.trim()}
+        </div>
+      </article>
     </div>
   );
 }

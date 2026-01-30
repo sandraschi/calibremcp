@@ -262,10 +262,11 @@ class MCPClient:
                         # User management
                         "manage_users": "calibre_mcp.tools.user_management.manage_users",
                         
-                        # Export
+                        # Export / Import
                         "export_books": "calibre_mcp.tools.import_export.export_books",
+                        "manage_import": "calibre_mcp.tools.import_export.manage_import",
                     }
-                
+
                 if tool_name not in tool_map:
                     raise MCPError(f"Unknown tool: {tool_name}")
                 
@@ -528,9 +529,10 @@ def _preload_tools():
         # User management
         "manage_users": "calibre_mcp.tools.user_management.manage_users",
         
-        # Export
+        # Export / Import
         "export_books": "calibre_mcp.tools.import_export.export_books",
-        
+        "manage_import": "calibre_mcp.tools.import_export.manage_import",
+
         # OCR (if available)
         # Note: OCR tool may be a BaseTool class, handle separately if needed
     }

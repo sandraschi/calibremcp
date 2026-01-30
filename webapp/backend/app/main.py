@@ -44,6 +44,7 @@ from .api import (
     export,
     files,
     library,
+    llm,
     metadata,
     search,
     series,

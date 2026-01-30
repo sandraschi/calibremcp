@@ -35,7 +35,8 @@ dependencies = [
     "keyring>=24.0.0",
     "py-key-value-aio[disk]>=0.3.0,<0.4.0",  # FastMCP 2.14.1+ persistent storage backend
     "tenacity>=8.2.0",  # Retry logic for network operations and external API calls
-    "psutil>=5.9.0"  # System and process utilities (required by system_tools)
+    "psutil>=5.9.0",  # System and process utilities (required by system_tools)
+    "beautifulsoup4>=4.12.0",  # Anna's Archive HTML parsing
 ]
 
 [project.optional-dependencies]

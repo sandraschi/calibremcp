@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { getBooks } from '@/lib/api';
 import { BookGrid } from '@/components/books/book-grid';
+import { ErrorBanner } from '@/components/ui/error-banner';
+
+const BACKEND_HINT = 'Start backend: cd webapp/backend; python -m uvicorn app.main:app --reload --port 13000. Or run webapp\\start-local.bat from repo root.';
 
 function buildPageUrl(base: string, page: number, author?: string, tag?: string): string {
   const params = new URLSearchParams();
@@ -33,11 +36,11 @@ export default async function BooksPage({
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6 text-slate-100">Browse</h1>
-        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-slate-200">
-          <p className="font-medium">Could not load books</p>
-          <p className="mt-2 text-sm text-slate-400">{String((e as Error).message)}</p>
-          <p className="mt-2 text-sm text-slate-500">Start the backend with: cd webapp/backend; python -m uvicorn app.main:app --reload --port 13000</p>
-        </div>
+        <ErrorBanner
+          title="Could not load books"
+          message={String((e as Error).message)}
+          hint={BACKEND_HINT}
+        />
       </div>
     );
   }

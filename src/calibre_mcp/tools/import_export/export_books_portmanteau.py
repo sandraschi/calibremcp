@@ -16,6 +16,9 @@ from .export_helpers import (
     export_json_helper,
     export_html_helper,
     export_pandoc_helper,
+    export_stats_csv_helper,
+    export_stats_json_helper,
+    export_stats_html_helper,
 )
 
 logger = get_logger("calibremcp.tools.export")
@@ -31,12 +34,18 @@ async def export_books(
     tag: Optional[str] = None,
     limit: int = 1000,
     open_file: bool = True,
+    # Detail level for csv/json/html (minimal, standard, full)
+    detail_level: Optional[str] = None,
     # CSV-specific parameters
     include_fields: Optional[List[str]] = None,
     # JSON-specific parameters
     pretty: bool = True,
+    # HTML-specific parameters
+    html_style: str = "catalog",
     # Pandoc-specific parameters
     format_type: str = "docx",
+    # Stats-specific parameters
+    stats_format: str = "json",
 ) -> Dict[str, Any]:
     """
     Comprehensive book export tool for CalibreMCP.
@@ -53,8 +62,9 @@ async def export_books(
     SUPPORTED OPERATIONS:
     - csv: Export books to CSV format (Excel-compatible)
     - json: Export books to JSON format (data exchange/backup)
-    - html: Export books to beautiful HTML format (web viewing)
+    - html: Export books to HTML (catalog, gallery, or dashboard style)
     - pandoc: Export books using Pandoc (DOCX, PDF, EPUB, LaTeX, RTF, etc.)
+    - stats: Export library statistics to CSV, JSON, or HTML
 
     OPERATIONS DETAIL:
 
@@ -93,7 +103,7 @@ async def export_books(
         - For PDF export: LaTeX must be installed (MiKTeX on Windows, TeX Live on Linux/Mac)
 
     Parameters:
-        operation: The export operation to perform. Must be one of: "csv", "json", "html", "pandoc"
+        operation: The export operation. One of: "csv", "json", "html", "pandoc", "stats"
 
         # Common parameters (all operations)
         output_path: Path where to save the exported file. If None, saves to Desktop/calibre_exports/
@@ -238,6 +248,7 @@ async def export_books(
                     tag=tag,
                     limit=limit,
                     include_fields=include_fields,
+                    detail_level=detail_level,
                     open_file=open_file,
                 )
             except Exception as e:
@@ -258,6 +269,7 @@ async def export_books(
                     tag=tag,
                     limit=limit,
                     pretty=pretty,
+                    detail_level=detail_level,
                     open_file=open_file,
                 )
             except Exception as e:
@@ -288,6 +300,32 @@ async def export_books(
                     context="Exporting books to HTML format",
                 )
 
+        elif operation == "stats":
+            try:
+                if stats_format == "csv":
+                    return await export_stats_csv_helper(
+                        output_path=output_path,
+                        open_file=open_file,
+                    )
+                if stats_format == "html":
+                    return await export_stats_html_helper(
+                        output_path=output_path,
+                        open_file=open_file,
+                    )
+                return await export_stats_json_helper(
+                    output_path=output_path,
+                    pretty=pretty,
+                    open_file=open_file,
+                )
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"stats_format": stats_format},
+                    tool_name="export_books",
+                    context="Exporting library statistics",
+                )
+
         elif operation == "pandoc":
             try:
                 return await export_pandoc_helper(
@@ -312,16 +350,17 @@ async def export_books(
             return format_error_response(
                 error_msg=(
                     f"Invalid operation: '{operation}'. Must be one of: "
-                    "'csv', 'json', 'html', 'pandoc'"
+                    "'csv', 'json', 'html', 'pandoc', 'stats'"
                 ),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",
                 operation=operation,
                 suggestions=[
-                    "Use operation='csv' to export to CSV format (Excel-compatible)",
-                    "Use operation='json' to export to JSON format (data exchange)",
-                    "Use operation='html' to export to HTML format (web viewing)",
+                    "Use operation='csv' to export books to CSV",
+                    "Use operation='json' to export books to JSON",
+                    "Use operation='html' to export books to HTML (html_style: catalog, gallery, dashboard)",
                     "Use operation='pandoc' to export using Pandoc (DOCX, PDF, EPUB, etc.)",
+                    "Use operation='stats' to export library statistics (stats_format: csv, json, html)",
                 ],
                 related_tools=["export_books"],
             )

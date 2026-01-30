@@ -1,8 +1,8 @@
 # CalibreMCP Status Report
 
-**Generated:** 2025-12-22
-**Version:** 1.0.0
-**FastMCP Version:** 2.13.0+
+**Generated:** 2025-01-30
+**Version:** 1.1.0
+**FastMCP Version:** 2.14.3+
 
 ---
 
@@ -37,7 +37,10 @@ CalibreMCP is a comprehensive FastMCP 2.13+ server for Calibre e-book library ma
 ## 📈 Recent Activity
 
 ### Latest Commits (Recent)
-1. **Unicode Encoding Fixes** - Resolved Windows startup crashes
+1. **Tool Preload Fixes** (2025-01-30) - manage_analysis **kwargs removed; export_books re-export added; tool preload test
+2. **manage_system Help** - help_helper and all helpers added; HELP_DOCS updated with portmanteau tools
+3. **Webapp Help** - Static help content (Calibre, MCP, Webapp); no backend dependency
+4. **Unicode Encoding Fixes** - Resolved Windows startup crashes
    - Replaced Unicode emojis with ASCII equivalents (✅→SUCCESS, ❌→ERROR, 📚→removed)
    - Fixed undefined variable `_is_stdio_mode` in server initialization
    - Removed problematic `original_getLogger` reference
@@ -347,7 +350,7 @@ All ruff checks passing. Code quality is excellent.
 
 ---
 
-**Last Updated:** 2025-12-22
-**Next Review:** After linting cleanup completion
+**Last Updated:** 2025-01-30
+**Next Review:** After webapp polish and CI updates
 **Maintainer:** Sandra
 

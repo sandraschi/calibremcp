@@ -46,8 +46,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   return (
     <aside
-      className={`shrink-0 flex flex-col border-r border-slate-700 bg-slate-900/95 transition-[width] duration-200 ${
-        collapsed ? 'w-16' : 'w-56'
+      className={`shrink-0 flex flex-col border-r border-slate-600 bg-slate-900 transition-[width] duration-200 ${
+        collapsed ? 'w-16 min-w-[4rem]' : 'w-56 min-w-[14rem]'
       }`}
     >
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">

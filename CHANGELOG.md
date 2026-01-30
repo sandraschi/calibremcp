@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Export enhancements** - Stats (CSV/JSON/HTML), detail_level (minimal/standard/full), html_style (catalog/gallery/dashboard)
+- **manage_import portmanteau** - annas_search (Anna's Archive), from_url (download and add), from_path (local file)
+- **Anna's Archive client** - Search with configurable mirrors (ANNAS_MIRRORS env); docs in `docs/ANNAS_ARCHIVE_CONFIG.md`
+- **Tool preload verification test** - `tests/test_tool_preload.py` parametrized test for all MCP tools
+- **Webapp loading states** - Root and books loading.tsx; ErrorBanner component for consistent error display
+- **manage_system help** - help_helper and all helpers; HELP_DOCS with portmanteau tools (basic/intermediate/advanced/expert)
+- **Webapp help page** - Static content for Calibre, Calibre MCP, Webapp; no backend dependency
 - **Webapp Full UI** - Retractable sidebar, all nav pages
   - Overview dashboard with library stats
   - Authors, Series, Tags list pages with search and drill-down
@@ -36,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/integrations/CALIBRE_PLUGIN_DESIGN.md` - Architecture, features, data flow
   - `docs/integrations/CALIBRE_PLUGIN_IMPLEMENTATION_NOTES.md` - Implementation checklist, code snippets
   - `docs/integrations/CALIBRE_INTEGRATION_GUIDE.md` - Updated with plugin section
+
+### Fixed
+- **manage_analysis **kwargs** - FastMCP incompatible; replaced with explicit optional params; removed unimplemented summarize/analyze_themes/sentiment_analysis
+- **export_books preload** - Added export_books.py re-export for MCP client module path
 
 ### Changed
 - Config default MCP HTTP URL: 8765 -> 13000 (Calibre webapp backend port)

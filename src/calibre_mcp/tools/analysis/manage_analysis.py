@@ -4,7 +4,7 @@ Analysis management portmanteau tool for CalibreMCP.
 Consolidates all analysis and statistics operations into a single unified interface.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from ...server import mcp
 from ...logging_config import get_logger
@@ -24,7 +24,12 @@ logger = get_logger("calibremcp.tools.analysis")
 
 
 @mcp.tool()
-async def manage_analysis(operation: str, **kwargs) -> Dict[str, Any]:
+async def manage_analysis(
+    operation: str,
+    limit: Optional[int] = None,
+    threshold: Optional[float] = None,
+    book_id: Optional[int] = None,
+) -> Dict[str, Any]:
     """
     Comprehensive analysis and statistics tool for CalibreMCP.
 
@@ -141,24 +146,6 @@ async def manage_analysis(operation: str, **kwargs) -> Dict[str, Any]:
                     tool_name="manage_analysis",
                     context="Getting reading statistics",
                 )
-
-        elif operation == "summarize":
-            # AI-powered concise book summaries
-            from .analysis_helpers import summarize_book_helper
-
-            return await summarize_book_helper(**kwargs)
-
-        elif operation == "analyze_themes":
-            # Deep thematic extraction across titles
-            from .analysis_helpers import analyze_themes_helper
-
-            return await analyze_themes_helper(**kwargs)
-
-        elif operation == "sentiment_analysis":
-            # Emotional arc mapping for fiction
-            from .analysis_helpers import sentiment_analysis_helper
-
-            return await sentiment_analysis_helper(**kwargs)
 
         else:
             return format_error_response(
