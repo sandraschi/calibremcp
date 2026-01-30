@@ -5,15 +5,31 @@ Modern web application frontend for CalibreMCP server.
 ## Architecture
 
 - **Backend**: FastAPI HTTP wrapper around MCP server
-- **Frontend**: Next.js 15 with React Server Components
+- **Frontend**: Next.js 15 with React Server Components, Tailwind CSS
 - **Dual Interface**: FastMCP HTTP endpoints for webapp, stdio for MCP clients
 
 ## Features
 
-- **Automatic Library Discovery**: Backend automatically discovers and loads Calibre libraries on startup
-- **Fast Libraries List**: Cached endpoint `/api/libraries/list` for instant dropdown population
-- **Full MCP Client**: Complete implementation of all 17 MCP tools as REST endpoints
-- **Database Initialization**: Automatic database initialization on startup for immediate searches
+- **Retractable Sidebar** - Full navigation with collapse toggle (state in localStorage)
+- **Overview Dashboard** - Library stats (books, authors, series, tags), quick links
+- **Libraries** - List, switch, stats, operations
+- **Books** - Browse with pagination, cover thumbnails, book modal with full metadata
+- **Search** - Filter by author, tag, text, min rating; author/tag dropdowns
+- **Authors** - List with search, click to filter books; Wikipedia links in book modal
+- **Series** - List with search, drill into series and books
+- **Tags** - List with search, click to filter books
+- **Import** - Add books by file path (server-accessible path)
+- **Export** - Export to CSV or JSON with author/tag filters
+- **Chat** - AI chatbot (Ollama, LM Studio, OpenAI-compatible)
+- **Settings** - LLM provider (Ollama/LM Studio/OpenAI), base URL, model list
+- **Logs** - System status (diagnostic view)
+- **Help** - System help content
+
+### AI / LLM
+
+- **Providers**: Ollama (default), LM Studio, OpenAI / cloud APIs
+- **Settings**: Configure base URL, API key (OpenAI), list/load models
+- **Chat**: Model selection, message history; uses backend `/api/llm/chat`
 
 ## Quick Start
 
@@ -34,11 +50,10 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 13000
 
 Backend runs on http://localhost:13000
 
-**On startup**, the backend will:
-1. Discover available Calibre libraries
-2. Cache libraries list for fast dropdown access
-3. Initialize database with current/first library
-4. Be ready for searches and book operations
+**Environment** (optional, in `backend/.env`):
+- `LLM_PROVIDER` - ollama | lmstudio | openai (default: ollama)
+- `LLM_BASE_URL` - e.g. http://127.0.0.1:11434 (Ollama)
+- `LLM_API_KEY` - For OpenAI/cloud APIs
 
 ### Frontend
 
@@ -50,8 +65,63 @@ npm run dev
 
 Frontend runs on http://localhost:13001
 
+**Environment** (optional, in `frontend/.env.local`):
+- `NEXT_PUBLIC_API_URL` - Backend URL (default: http://127.0.0.1:13000)
+- `NEXT_PUBLIC_APP_URL` - App URL for SSR (default: http://127.0.0.1:13001)
+
+### All-in-one
+
+```bash
+# From repo root
+.\webapp\start-local.bat
+```
+
+## Project Structure
+
+```
+webapp/
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── cache.py
+│   │   ├── api/
+│   │   │   ├── books.py
+│   │   │   ├── search.py
+│   │   │   ├── library.py
+│   │   │   ├── authors.py
+│   │   │   ├── series.py
+│   │   │   ├── tags.py
+│   │   │   ├── export.py
+│   │   │   ├── viewer.py
+│   │   │   ├── llm.py       # Ollama/LM Studio/OpenAI chat
+│   │   │   └── ...
+│   │   └── mcp/
+│   └── requirements.txt
+├── frontend/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx         # Overview
+│   │   ├── books/
+│   │   ├── authors/
+│   │   ├── series/
+│   │   ├── tags/
+│   │   ├── import/
+│   │   ├── export/
+│   │   ├── chat/
+│   │   ├── logs/
+│   │   ├── settings/
+│   │   ├── help/
+│   │   └── api/             # Next.js API proxies
+│   └── components/
+│       ├── layout/          # Sidebar, Topbar, AppLayout
+│       ├── books/           # BookCard, BookGrid, BookModal
+│       ├── authors/         # AuthorLinks (Wikipedia)
+│       └── ...
+└── README.md
+```
+
 ## Documentation
 
-- [Backend README](backend/README.md) - Backend setup and API details
-- [API Endpoints](backend/ENDPOINTS.md) - Complete API reference
-- [Setup Guide](SETUP.md) - Detailed setup instructions
+- [docs/WEBAPP_IMPLEMENTATION_GUIDE.md](../docs/WEBAPP_IMPLEMENTATION_GUIDE.md) - Implementation details
+- [backend/ENDPOINTS.md](backend/ENDPOINTS.md) - API reference (if present)

@@ -131,7 +131,7 @@ class MCPClient:
         if tool_name in _tool_cache and _tool_cache[tool_name] is not None:
             cached_func = _tool_cache[tool_name]
             if callable(cached_func):
-                logger.info(f"[CACHE HIT] Using cached tool function for {tool_name}")
+                logger.debug("Cache hit for tool %s", tool_name)
                 try:
                     result = await cached_func(**arguments)
                     if isinstance(result, str):
@@ -207,26 +207,21 @@ class MCPClient:
             import logging
             logger = logging.getLogger(__name__)
             
-            # Debug: Print cache state
-            cache_keys = list(_tool_cache.keys())
-            logger.info(f"[CACHE CHECK] Tool: {tool_name}, Cache size: {len(_tool_cache)}, Cache keys: {cache_keys}")
-            
             if tool_name in _tool_cache:
                 cached_func = _tool_cache[tool_name]
                 if cached_func is not None and callable(cached_func):
-                    logger.info(f"[CACHE HIT] Using cached tool function for {tool_name}")
+                    logger.debug("Cache hit for tool %s", tool_name)
                     tool_func = cached_func
                 else:
-                    logger.warning(f"[CACHE MISS] Tool {tool_name} in cache but value is {type(cached_func)} (not callable)")
-                    # Fall through to import
+                    logger.debug("Tool %s in cache but not callable", tool_name)
                     tool_func = None
             else:
-                logger.warning(f"[CACHE MISS] Tool {tool_name} not in cache, attempting import")
+                logger.debug("Tool %s not in cache", tool_name)
                 tool_func = None
             
             # Only attempt import if cache miss
             if tool_func is None:
-                logger.info(f"[IMPORT] Cache miss for {tool_name}, attempting dynamic import")
+                logger.debug("Cache miss for %s, dynamic import", tool_name)
                 # Fallback: Import the tool dynamically
                 # Map tool names to their import paths - ALL MCP tools
                 tool_map = {
@@ -567,7 +562,7 @@ def _preload_tools():
             elif callable(tool_obj):
                 _tool_cache[tool_name] = tool_obj
             import logging
-            logging.info(f"Preloaded tool: {tool_name}")
+            logging.debug("Preloaded tool: %s", tool_name)
         except Exception as e:
             import logging
             logging.error(f"Failed to preload tool {tool_name}: {e}", exc_info=True)

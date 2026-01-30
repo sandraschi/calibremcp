@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Webapp Full UI** - Retractable sidebar, all nav pages
+  - Overview dashboard with library stats
+  - Authors, Series, Tags list pages with search and drill-down
+  - Import (add by path), Export (CSV/JSON with filters)
+  - Logs (system status), Help, Settings
+- **Webapp AI Chat** - Ollama, LM Studio, OpenAI-compatible
+  - Settings page: provider, base URL, model list
+  - Chat page with model selection
+  - Backend `/api/llm/models`, `/api/llm/chat`
+- **Author Wikipedia Links** - Click author in book modal opens Wikipedia search
+- **Series API** - Backend `/api/series`, frontend series list and detail pages
+- **Book Detail Route** - `/book/[id]` for direct book links from series
+- **Webapp Docker** - Full Docker Compose for backend + frontend
+  - `webapp/Dockerfile.backend`, `webapp/Dockerfile.frontend`
+  - `webapp/docker-compose.yml` - backend:13000, frontend:13001
+  - Mount Calibre library, persist user data volume
+  - `webapp/docker-up.ps1`, `webapp/.env.docker.example`
 - **Calibre Plugin** - GUI integration for Calibre
   - Extended metadata panel: Edit first_published, translator, user comments (Ctrl+Shift+M)
   - Direct SQLite sync with calibre_mcp_data.db (no MCP process required)

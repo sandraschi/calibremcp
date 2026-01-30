@@ -720,6 +720,30 @@ All MCP tools return valid responses even on errors:
 
 ---
 
+## Webapp HTTP API
+
+The Calibre webapp backend exposes REST endpoints (port 13000). See [webapp/README.md](../webapp/README.md).
+
+### **LLM / AI Endpoints**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/llm/models` | GET | List models (Ollama/LM Studio/OpenAI). Query: `provider`, `base_url` |
+| `/api/llm/chat` | POST | Chat completion. Body: `messages`, `model`, `stream`, `provider`, `base_url` |
+
+**Config** (backend `.env`): `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_API_KEY`
+
+### **Core Endpoints**
+
+- `/api/books/` - List, add books
+- `/api/authors/`, `/api/series/`, `/api/tags/` - List with pagination
+- `/api/libraries/list`, `/api/libraries/switch`, `/api/libraries/stats`
+- `/api/search/` - Search books
+- `/api/viewer/open-file` - Open book in system default app
+- `/api/export/csv`, `/api/export/json` - Export books
+
+---
+
 ## 🔧 Development Tools
 
 ### **MCP Inspector Testing**

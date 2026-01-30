@@ -1,85 +1,68 @@
 # Calibre Webapp Implementation Guide
 
-**Step-by-step guide for building the SOTA Calibre webapp**
+**Step-by-step guide for the Calibre webapp**
 
 ---
 
-## 📁 **Project Structure**
+## Current Implementation (2025-01-30)
+
+### Features
+
+- **Retractable Sidebar** - Overview, Libraries, Books, Search, Authors, Series, Tags, Import, Export, Chat, Logs, Settings, Help
+- **Overview Dashboard** - Library stats, quick links
+- **Authors / Series / Tags** - List pages with search, drill to books
+- **Book Modal** - Full metadata, cover, Read button (opens system default app)
+- **Author Wikipedia Links** - Click author in book modal to open Wikipedia search
+- **AI Chat** - Ollama, LM Studio, OpenAI-compatible; Settings for provider, model list
+- **Import / Export** - Add books by path; export CSV/JSON with filters
+
+### Tech Stack
+
+- **Backend**: FastAPI, direct in-process MCP calls (no HTTP self-call)
+- **Frontend**: Next.js 15 App Router, Tailwind CSS, server/client components
+- **Proxies**: Next.js API routes proxy to backend (same-origin, CORS-free)
+
+---
+
+## Project Structure
 
 ```
-calibre-mcp/
-├── webapp/
-│   ├── backend/
-│   │   ├── app/
-│   │   │   ├── __init__.py
-│   │   │   ├── main.py              # FastAPI application
-│   │   │   ├── config.py            # Configuration
-│   │   │   ├── dependencies.py      # Shared dependencies
-│   │   │   ├── api/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── books.py         # Book endpoints
-│   │   │   │   ├── search.py        # Search endpoints
-│   │   │   │   ├── viewer.py        # Reading/viewer endpoints
-│   │   │   │   ├── metadata.py      # Metadata endpoints
-│   │   │   │   ├── library.py       # Library management
-│   │   │   │   └── tags.py          # Tag management
-│   │   │   ├── mcp/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── client.py        # MCP client wrapper
-│   │   │   │   └── tools.py         # Tool call helpers
-│   │   │   ├── models/
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── book.py          # Book models
-│   │   │   │   ├── search.py        # Search models
-│   │   │   │   └── common.py        # Common models
-│   │   │   └── utils/
-│   │   │       ├── __init__.py
-│   │   │       └── errors.py         # Error handling
-│   │   ├── requirements.txt
-│   │   └── README.md
-│   │
-│   ├── frontend/
-│   │   ├── app/                      # Next.js App Router
-│   │   │   ├── layout.tsx           # Root layout
-│   │   │   ├── page.tsx             # Home page
-│   │   │   ├── books/
-│   │   │   │   ├── page.tsx         # Browse books
-│   │   │   │   └── [id]/
-│   │   │   │       ├── page.tsx     # Book detail
-│   │   │   │       └── read/
-│   │   │   │           └── page.tsx # Reading view
-│   │   │   ├── search/
-│   │   │   │   └── page.tsx         # Search page
-│   │   │   └── api/                 # API route handlers (if needed)
-│   │   ├── components/
-│   │   │   ├── ui/                  # shadcn/ui components
-│   │   │   ├── books/
-│   │   │   │   ├── book-card.tsx
-│   │   │   │   ├── book-grid.tsx
-│   │   │   │   └── book-list.tsx
-│   │   │   ├── search/
-│   │   │   │   ├── search-bar.tsx
-│   │   │   │   └── filters.tsx
-│   │   │   ├── viewer/
-│   │   │   │   └── epub-viewer.tsx
-│   │   │   └── metadata/
-│   │   │       └── metadata-modal.tsx
-│   │   ├── lib/
-│   │   │   ├── api.ts               # API client
-│   │   │   ├── query-client.tsx    # TanStack Query setup
-│   │   │   └── utils.ts
-│   │   ├── hooks/
-│   │   │   ├── use-books.ts
-│   │   │   └── use-search.ts
-│   │   ├── store/
-│   │   │   └── ui-store.ts          # Zustand store
-│   │   ├── public/
-│   │   ├── package.json
-│   │   ├── tsconfig.json
-│   │   ├── tailwind.config.ts
-│   │   └── next.config.js
-│   │
-│   └── README.md
+calibre-mcp/webapp/
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── cache.py
+│   │   ├── api/
+│   │   │   ├── books.py
+│   │   │   ├── search.py
+│   │   │   ├── library.py
+│   │   │   ├── authors.py
+│   │   │   ├── series.py
+│   │   │   ├── tags.py
+│   │   │   ├── export.py
+│   │   │   ├── viewer.py
+│   │   │   ├── llm.py         # Ollama/LM Studio/OpenAI
+│   │   │   └── ...
+│   │   └── mcp/
+│   │       └── client.py
+│   └── requirements.txt
+├── frontend/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx             # Overview
+│   │   ├── books/, authors/, series/, tags/
+│   │   ├── import/, export/, chat/, logs/, settings/, help/
+│   │   ├── book/[id]/           # Book detail modal
+│   │   └── api/                 # Next.js proxies
+│   ├── components/
+│   │   ├── layout/              # Sidebar, Topbar, AppLayout
+│   │   ├── books/               # BookCard, BookGrid, BookModal
+│   │   └── authors/             # AuthorLinks (Wikipedia)
+│   └── lib/
+│       ├── api.ts
+│       └── proxy.ts
+└── README.md
 ```
 
 ---

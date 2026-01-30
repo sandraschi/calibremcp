@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException, Query, Body
 from typing import Optional, Dict, Any, List
 
+from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
 
@@ -20,7 +21,16 @@ async def list_tags(
     min_book_count: Optional[int] = None,
     max_book_count: Optional[int] = None,
 ):
-    """List tags with filtering and pagination."""
+    """List tags with filtering and pagination. Cached 60s for dropdown performance."""
+    lib = get_libraries_cache().get("current_library") or ""
+    key = _ttl_key(
+        "tags", lib=lib, search=search or "", limit=limit, offset=offset,
+        sort_by=sort_by, sort_order=sort_order, unused_only=unused_only,
+        min_book_count=min_book_count or 0, max_book_count=max_book_count or 0,
+    )
+    cached = get_ttl_cached(key)
+    if cached is not None:
+        return cached
     try:
         result = await mcp_client.call_tool(
             "manage_tags",
@@ -36,6 +46,7 @@ async def list_tags(
                 "max_book_count": max_book_count,
             }
         )
+        set_ttl_cached(key, result)
         return result
     except Exception as e:
         raise handle_mcp_error(e)

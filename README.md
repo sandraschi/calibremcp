@@ -13,6 +13,7 @@
 **FastMCP 2.14.3+ server for conversational Calibre e-book library management with natural language search and auto-open functionality**
 
 **Features:**
+- **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, AI chat (Ollama/LM Studio), import/export
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
 - **Portmanteau Tools** - 21 consolidated tools (18 portmanteau + 3 specialized)
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
@@ -213,6 +214,19 @@ A Calibre plugin provides GUI integration for extended metadata and webapp featu
 **Install:** `calibre-customize -b calibre_plugin` or `calibre-customize -a calibre_mcp_integration.zip`
 
 See [docs/integrations/CALIBRE_PLUGIN_DESIGN.md](docs/integrations/CALIBRE_PLUGIN_DESIGN.md).
+
+#### **6. Webapp (Optional)** - Browser Interface
+
+A Next.js webapp provides a full browser UI for the Calibre library.
+
+**Features:**
+- Retractable sidebar: Overview, Libraries, Books, Search, Authors, Series, Tags, Import, Export
+- AI Chat (Ollama, LM Studio, OpenAI-compatible) with Settings
+- Book modal with full metadata, Read button, author Wikipedia links
+- Import (add by path), Export (CSV/JSON)
+
+**Start:** `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
+See [webapp/README.md](webapp/README.md).
 
 ---
 

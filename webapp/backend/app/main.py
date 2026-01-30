@@ -46,6 +46,7 @@ from .api import (
     library,
     metadata,
     search,
+    series,
     specialized,
     system,
     tags,
@@ -53,13 +54,7 @@ from .api import (
 )
 from .config import settings
 
-# Global cache for libraries list (populated at startup)
-_libraries_cache: dict = {
-    "libraries": [],
-    "current_library": None,
-    "total_libraries": 0,
-    "loaded": False
-}
+from .cache import get_libraries_cache, update_libraries_cache, update_current_library
 
 # Create FastAPI app
 app = FastAPI(
@@ -141,16 +136,7 @@ async def startup_event():
         libraries = libraries_result.get("libraries", [])
         total_libraries = libraries_result.get("total_libraries", 0)
         current_library = libraries_result.get("current_library")
-        
-        # Cache libraries list for dropdown population
-        global _libraries_cache
-        _libraries_cache = {
-            "libraries": libraries,
-            "current_library": current_library,
-            "total_libraries": total_libraries,
-            "loaded": True
-        }
-        
+        update_libraries_cache(libraries, current_library, total_libraries)
         logger.info(f"Found {total_libraries} Calibre libraries (cached for dropdown)")
         
         if total_libraries == 0:
@@ -186,8 +172,7 @@ async def startup_event():
             )
             
             if switch_result.get("success"):
-                # Update cache with new current library
-                _libraries_cache["current_library"] = library_to_load
+                update_current_library(library_to_load)
                 
                 logger.info(
                     f"SUCCESS: Library '{library_to_load}' loaded. "
@@ -207,7 +192,7 @@ async def startup_event():
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -223,6 +208,7 @@ app.include_router(library.router, prefix="/api/libraries", tags=["libraries"])
 
 # Full MCP client functionality
 app.include_router(authors.router, prefix="/api/authors", tags=["authors"])
+app.include_router(series.router, prefix="/api/series", tags=["series"])
 app.include_router(tags.router, prefix="/api/tags", tags=["tags"])
 app.include_router(comments.router, prefix="/api/comments", tags=["comments"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
@@ -232,6 +218,7 @@ app.include_router(bulk.router, prefix="/api/bulk", tags=["bulk"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
+app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
 
 
 @app.get("/")
@@ -274,11 +261,9 @@ async def debug_import():
 
 @app.get("/api/libraries/list")
 async def get_libraries_list():
-    """Get cached libraries list for dropdown population."""
-    global _libraries_cache
-    
-    # If cache not loaded yet, try to load it now
-    if not _libraries_cache.get("loaded"):
+    """Get cached libraries list (fast; uses startup cache)."""
+    cache = get_libraries_cache()
+    if not cache.get("loaded"):
         try:
             from .mcp.client import mcp_client
             libraries_result = await mcp_client.call_tool(
@@ -286,18 +271,18 @@ async def get_libraries_list():
                 {"operation": "list"}
             )
             if libraries_result.get("success", True):
-                _libraries_cache = {
-                    "libraries": libraries_result.get("libraries", []),
-                    "current_library": libraries_result.get("current_library"),
-                    "total_libraries": libraries_result.get("total_libraries", 0),
-                    "loaded": True
-                }
+                update_libraries_cache(
+                    libraries_result.get("libraries", []),
+                    libraries_result.get("current_library"),
+                    libraries_result.get("total_libraries", 0),
+                )
         except Exception as e:
             logger.warning(f"Failed to load libraries list: {e}")
-    
+
+    cache = get_libraries_cache()
     return {
-        "libraries": _libraries_cache.get("libraries", []),
-        "current_library": _libraries_cache.get("current_library"),
-        "total_libraries": _libraries_cache.get("total_libraries", 0),
-        "loaded": _libraries_cache.get("loaded", False)
+        "libraries": cache.get("libraries", []),
+        "current_library": cache.get("current_library"),
+        "total_libraries": cache.get("total_libraries", 0),
+        "loaded": cache.get("loaded", False)
     }

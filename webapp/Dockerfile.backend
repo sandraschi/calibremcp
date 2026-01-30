@@ -1,0 +1,27 @@
+# CalibreMCP webapp backend - FastAPI + CalibreMCP
+# Build from repo root: docker build -f webapp/Dockerfile.backend .
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install calibre-mcp and backend deps (README.md required by pyproject)
+COPY pyproject.toml setup.py README.md ./
+COPY src ./src
+COPY webapp/backend/requirements.txt ./webapp/backend/
+
+RUN pip install --no-cache-dir -e . \
+    && pip install --no-cache-dir -r webapp/backend/requirements.txt
+
+COPY webapp/backend ./webapp/backend
+
+ENV PYTHONPATH=/app/src
+ENV HOST=0.0.0.0
+ENV PORT=13000
+ENV RELOAD=false
+
+WORKDIR /app/webapp/backend
+
+EXPOSE 13000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "13000"]

@@ -2,13 +2,53 @@
 
 Quick setup instructions for the Calibre webapp.
 
-## Prerequisites
+## Docker (Recommended)
+
+```powershell
+cd webapp
+
+# Set your Calibre library path
+$env:CALIBRE_LIBRARY_PATH = "L:/path/to/your/calibre/library"
+
+# Or create .env from example
+Copy-Item .env.docker.example .env
+# Edit .env and set CALIBRE_LIBRARY_PATH
+
+docker compose up -d
+```
+
+- Backend: http://localhost:13000
+- Frontend: http://localhost:13001
+- API docs: http://localhost:13000/docs
+
+User data (comments, extended metadata) is persisted in a Docker volume.
+
+## Local Run (No Docker)
+
+If Docker cannot reach the registry, run the webapp locally:
+
+**First-time setup** (run from Windows Explorer or native cmd - Cursor sandbox blocks pip/npm):
+```batch
+cd webapp
+setup-local.bat
+```
+
+**Then start:**
+```batch
+start-local.bat
+```
+
+Requires: `.env` with `CALIBRE_LIBRARY_PATH` set.
+
+## Manual Setup
+
+### Prerequisites
 
 - Python 3.11+
 - Node.js 18+
 - CalibreMCP server installed and working
 
-## Backend Setup
+### Backend Setup
 
 ```powershell
 cd webapp\backend

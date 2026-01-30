@@ -1,0 +1,16 @@
+# Docker build context - repo root
+.git
+.github
+*.md
+__pycache__
+*.pyc
+.venv
+venv
+node_modules
+.next
+.gitignore
+*.zip
+tests
+.calibre-mcp-data
+calibre_plugin
+*.egg-info

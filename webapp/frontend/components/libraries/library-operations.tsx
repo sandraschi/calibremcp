@@ -40,16 +40,15 @@ export function LibraryOperations({ libraries, currentLibrary }: LibraryOperatio
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4">
+    <div className="bg-slate-800 rounded-lg border border-slate-600 p-4">
       <div className="space-y-4">
-        {/* Switch Library */}
         <div>
-          <h3 className="font-semibold mb-2">Switch Active Library</h3>
+          <h3 className="font-semibold mb-2 text-slate-200">Switch Active Library</h3>
           <div className="flex gap-2">
             <select
               value={selectedLibrary}
               onChange={(e) => setSelectedLibrary(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber"
             >
               <option value="">Select a library...</option>
               {libraries.map((lib) => (
@@ -61,34 +60,32 @@ export function LibraryOperations({ libraries, currentLibrary }: LibraryOperatio
             <button
               onClick={handleSwitchLibrary}
               disabled={loading || !selectedLibrary}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-amber text-slate-900 rounded-md hover:bg-amber/90 disabled:bg-slate-600 disabled:cursor-not-allowed"
             >
               {loading ? 'Switching...' : 'Switch'}
             </button>
           </div>
         </div>
 
-        {/* Message Display */}
         {message && (
           <div
             className={`p-3 rounded ${
-              message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              message.type === 'success' ? 'bg-emerald-900/50 text-emerald-200' : 'bg-red-900/50 text-red-200'
             }`}
           >
             {message.text}
           </div>
         )}
 
-        {/* Library Operations Info */}
-        <div className="border-t pt-4">
-          <h3 className="font-semibold mb-2">Available Operations</h3>
-          <ul className="space-y-1 text-sm text-gray-600">
-            <li>• Switch between libraries</li>
+        <div className="border-t border-slate-600 pt-4">
+          <h3 className="font-semibold mb-2 text-slate-200">Available Operations</h3>
+          <ul className="space-y-1 text-sm text-slate-400">
+            <li>• Click a library card to switch (Browse and Search use active library)</li>
             <li>• View library statistics</li>
             <li>• Browse library contents</li>
             <li>• Search across libraries</li>
           </ul>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-slate-500 mt-2">
             Note: Library backup and CRUD operations will be available in a future update.
           </p>
         </div>

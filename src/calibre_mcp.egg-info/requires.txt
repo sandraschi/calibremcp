@@ -1,4 +1,4 @@
-fastmcp<2.15.0,>=2.14.1
+fastmcp<2.15.0,>=2.14.3
 fastapi>=0.115.0
 httpx>=0.27.0
 pydantic>=2.9.0
@@ -8,7 +8,7 @@ structlog>=24.4.0
 sqlalchemy>=2.0.0
 aiohttp>=3.9.0
 keyring>=24.0.0
-py-key-value-aio[disk]<0.3.0,>=0.2.8
+py-key-value-aio[disk]<0.4.0,>=0.3.0
 tenacity>=8.2.0
 psutil>=5.9.0
 

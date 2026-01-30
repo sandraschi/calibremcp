@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Optional
 
 # import sys # Removed unused
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
@@ -25,8 +26,11 @@ class Settings(BaseSettings):
     # CORS configuration
     CORS_ORIGINS: List[str] = ["*"]
 
-    # Database configuration
-    LIBRARY_PATH: Optional[str] = None
+    # Database configuration (accepts CALIBRE_LIBRARY_PATH or LIBRARY_PATH)
+    LIBRARY_PATH: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("CALIBRE_LIBRARY_PATH", "LIBRARY_PATH"),
+    )
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")

@@ -1,0 +1,43 @@
+# CalibreMCP webapp - Docker Compose
+# Usage: docker compose up -d
+# Set CALIBRE_LIBRARY_PATH to your Calibre library (required)
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: webapp/Dockerfile.backend
+    ports:
+      - "13000:13000"
+    environment:
+      - CALIBRE_LIBRARY_PATH=/calibre-library
+      - CALIBRE_MCP_USER_DATA_DIR=/data
+      - HOST=0.0.0.0
+      - PORT=13000
+      - RELOAD=false
+      - CORS_ORIGINS=http://localhost:13001,http://127.0.0.1:13001
+    volumes:
+      # Mount your Calibre library - CHANGE THIS PATH
+      - ${CALIBRE_LIBRARY_PATH:-./calibre-library}:/calibre-library:ro
+      # Persist user data (comments, extended metadata)
+      - calibre-mcp-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: webapp/Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:13000}
+    ports:
+      - "13001:13001"
+    environment:
+      - API_URL=http://backend:13000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:13000}
+      - PORT=13001
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  calibre-mcp-data:

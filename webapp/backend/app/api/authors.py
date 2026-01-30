@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, Dict, Any
 
+from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
 
@@ -15,7 +16,12 @@ async def list_authors(
     limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
-    """List authors with optional search."""
+    """List authors with optional search. Cached 60s for dropdown performance."""
+    lib = get_libraries_cache().get("current_library") or ""
+    key = _ttl_key("authors", lib=lib, query=query or "", limit=limit, offset=offset)
+    cached = get_ttl_cached(key)
+    if cached is not None:
+        return cached
     try:
         result = await mcp_client.call_tool(
             "manage_authors",
@@ -26,6 +32,7 @@ async def list_authors(
                 "offset": offset,
             }
         )
+        set_ttl_cached(key, result)
         return result
     except Exception as e:
         raise handle_mcp_error(e)

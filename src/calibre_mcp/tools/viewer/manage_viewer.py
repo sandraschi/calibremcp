@@ -709,36 +709,56 @@ async def manage_viewer(
                 import os
                 import platform
                 import subprocess
+                import re
 
-                # If file_path is not provided or invalid, try to get it from book formats
+                # If file_path is not provided or invalid, build from database
                 if not file_path or not Path(file_path).exists():
                     try:
-                        book = book_service.get_by_id(book_id)
-                        if book and book.get("formats"):
-                            # Prefer EPUB, then PDF, then MOBI/AZW3, then CBZ/CBR, then other formats
-                            preferred_formats = ["EPUB", "PDF", "MOBI", "AZW3", "CBZ", "CBR", "TXT", "HTML", "RTF"]
-                            for fmt_name in preferred_formats:
-                                for fmt in book["formats"]:
-                                    if fmt.get("format", "").upper() == fmt_name:
-                                        file_path = fmt.get("path")
-                                        if file_path and Path(file_path).exists():
-                                            break
-                                if file_path and Path(file_path).exists():
-                                    break
+                        from ...db.database import get_database
+                        from ...db.models import Book
+                        from ...config import CalibreConfig
+                        from sqlalchemy.orm import joinedload
 
-                            # If still no valid path, use first format
-                            if (not file_path or not Path(file_path).exists()) and book["formats"]:
-                                file_path = book["formats"][0].get("path")
+                        db = get_database()
+                        config = CalibreConfig()
+                        lib_path = str(config.local_library_path) if config.local_library_path else None
+                        if not lib_path:
+                            libraries = config.discover_libraries()
+                            if libraries:
+                                first = next(iter(libraries.values()))
+                                lib_path = str(getattr(first, "path", first))
+                        if lib_path:
+                            with db.session_scope() as session:
+                                book_obj = (
+                                    session.query(Book)
+                                    .options(joinedload(Book.data))
+                                    .filter(Book.id == book_id)
+                                    .first()
+                                )
+                                if book_obj and book_obj.data:
+                                    preferred = ["EPUB", "PDF", "MOBI", "AZW3", "CBZ", "CBR", "TXT", "HTML", "RTF"]
+                                    format_obj = None
+                                    for fmt_name in preferred:
+                                        for d in book_obj.data:
+                                            if d.format.upper() == fmt_name:
+                                                format_obj = d
+                                                break
+                                        if format_obj:
+                                            break
+                                    if not format_obj:
+                                        format_obj = book_obj.data[0]
+                                    fname = format_obj.name or f"{book_obj.title}.{format_obj.format.lower()}"
+                                    if not fname.lower().endswith(f".{format_obj.format.lower()}"):
+                                        fname = f"{fname}.{format_obj.format.lower()}"
+                                    fname = re.sub(r'[<>:"/\\|?*]', '_', fname)
+                                    candidate = Path(lib_path) / book_obj.path / fname
+                                    if candidate.exists():
+                                        file_path = str(candidate)
+                                    elif format_obj.name and (Path(lib_path) / book_obj.path / format_obj.name).exists():
+                                        file_path = str((Path(lib_path) / book_obj.path / format_obj.name).resolve())
                     except Exception as e:
-                        # Log the error but continue with original file_path
                         logger.warning(
-                            f"Could not get book format info for book_id={book_id}, "
-                            f"continuing with provided file_path",
-                            extra={
-                                "book_id": book_id,
-                                "error_type": type(e).__name__,
-                                "error": str(e),
-                            },
+                            f"Could not resolve file path for book_id={book_id}: {e}",
                             exc_info=True,
                         )
 
