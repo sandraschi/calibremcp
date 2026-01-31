@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getAnnasMirrors, setAnnasMirrors } from '@/lib/api';
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState('ollama');
+  const [annasMirrors, setAnnasMirrorsState] = useState('');
   const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434');
   const [apiKey, setApiKey] = useState('');
   const [models, setModels] = useState<string[]>([]);
@@ -32,6 +34,10 @@ export default function SettingsPage() {
       setLoadingModels(false);
     }
   };
+
+  useEffect(() => {
+    setAnnasMirrorsState(getAnnasMirrors());
+  }, []);
 
   useEffect(() => {
     if (provider === 'ollama') setBaseUrl('http://127.0.0.1:11434');
@@ -104,6 +110,32 @@ export default function SettingsPage() {
               </ul>
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-slate-200">
+          Anna&apos;s Archive
+        </h2>
+        <p className="text-slate-400 text-sm mb-4">
+          Mirror URL(s) for Anna&apos;s Archive search. Leave empty to use
+          defaults. Comma-separated for multiple mirrors.
+        </p>
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Mirror URL(s)
+          </label>
+          <input
+            type="text"
+            value={annasMirrors}
+            onChange={(e) => setAnnasMirrorsState(e.target.value)}
+            onBlur={() => setAnnasMirrors(annasMirrors)}
+            placeholder="https://annas-archive.se, https://annas-archive.in"
+            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
+          />
+          <p className="text-slate-500 text-xs mt-1">
+            Stored in browser. Used by Import page search.
+          </p>
         </div>
       </section>
     </div>

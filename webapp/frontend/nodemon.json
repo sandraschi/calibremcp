@@ -17,6 +17,7 @@
   ],
   "exec": "next dev --turbo -p 13001",
   "restartable": "rs",
-  "delay": 1000,
+  "delay": 2500,
+  "killTimeout": 3000,
   "verbose": false
 }

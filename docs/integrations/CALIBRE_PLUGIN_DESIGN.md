@@ -2,6 +2,8 @@
 
 **Date**: 2025-01-30
 
+See also: [Moltbot skill](../../moltbot-skill/README.md) for ClawdBot/Moltbot Calibre integration via calibredb.
+
 ## Executive Summary
 
 A Calibre plugin that integrates CalibreMCP with the Calibre GUI. Enables viewing/editing extended metadata (translator, first_published, user_comments), bulk AI enrichment, right-click AI actions, virtual library creation from MCP queries, and optional sync with Calibre custom columns.

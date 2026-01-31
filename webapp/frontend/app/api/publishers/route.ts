@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    return await proxyGet('/api/series/', searchParams);
+    return await proxyGet('/api/publishers/', searchParams);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json(

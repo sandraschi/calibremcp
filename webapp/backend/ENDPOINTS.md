@@ -12,12 +12,13 @@ List books with optional filters.
 - `offset` (int, default: 0): Results offset for pagination
 - `author` (string, optional): Filter by author name
 - `tag` (string, optional): Filter by tag name
+- `publisher` (string, optional): Filter by publisher name
 - `text` (string, optional): Search text
 
 **Response:** BookListResponse with items, total, page, per_page
 
 ### GET `/api/books/{book_id}`
-Get book details by ID.
+Get book details by ID. Uses direct BookService when available for full metadata (rating, publisher, identifiers, comments).
 
 **Path Parameters:**
 - `book_id` (int): Book ID
@@ -257,6 +258,28 @@ AI-powered tag organization and cleanup suggestions.
 Automatically fix common metadata problems.
 
 **Response:** Results of automatic fixes
+
+## Logs API (`/api/logs`)
+
+### GET `/api/logs`
+Tail log file with optional filtering.
+
+**Query Parameters:**
+- `tail` (int, default: 500): Last N lines (1-10000)
+- `filter` (string, optional): Substring filter for log lines
+- `level` (string, optional): Log level filter (DEBUG, INFO, WARNING, ERROR)
+
+**Response:**
+```json
+{
+  "lines": ["log line 1", "..."],
+  "total": 1234,
+  "file": "/path/to/logs/webapp.log",
+  "error": "optional error message"
+}
+```
+
+**Log sources:** `logs/calibremcp.log` (MCP stdio), `logs/webapp.log` (webapp backend); override via `LOG_FILE` env.
 
 ## Health & Info
 

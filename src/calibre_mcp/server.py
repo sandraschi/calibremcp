@@ -152,14 +152,8 @@ async def server_lifespan(mcp_instance: FastMCP):
     lifespan_logger.info("SERVER LIFESPAN: Complete")
 
 
-# Initialize FastMCP server with lifespan
-# Persistent storage is configured in CalibreMCPStorage class
-# which uses DiskStore in platform-appropriate directory:
-# Windows: %APPDATA%\calibre-mcp (survives Windows restarts)
-# macOS: ~/Library/Application Support/calibre-mcp
-# Linux: ~/.local/share/calibre-mcp
-# Create MCP instance with lifespan for FastMCP 2.14.3+ compliance
-logger.info("Creating FastMCP instance with conversational features...")
+# Create MCP instance
+logger.info("Creating FastMCP instance...")
 mcp = FastMCP(
     "CalibreMCP Phase 2",
     instructions="""You are CalibreMCP, a comprehensive FastMCP 2.14.3 server for Calibre e-book library management.
@@ -191,7 +185,7 @@ Tools are consolidated into logical groups to prevent tool explosion while maint
 Each portmanteau tool handles multiple related operations through an 'operation' parameter.
 """
 )
-logger.info("FastMCP instance created successfully with conversational features")
+logger.info("FastMCP instance created")
 
 # CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
 # We should not set up additional logging to stderr as it would override the redirection
@@ -213,6 +207,8 @@ if not _is_stdio_mode:
 from calibre_mcp.prompts import register_prompts
 
 register_prompts(mcp)
+
+# Tools registered in main() for stdio. For webapp HTTP mode, MCP_USE_HTTP=false uses direct import.
 
 
 # ==================== RESPONSE MODELS ====================
@@ -480,8 +476,8 @@ async def discover_libraries() -> Dict[str, str]:
 # ==================== SERVER INITIALIZATION ====================
 
 
-def create_app() -> FastMCP:
-    """Create and configure the FastMCP application"""
+def get_mcp_instance() -> FastMCP:
+    """Return the FastMCP instance (for internal use). Use create_app() for HTTP mounting."""
     return mcp
 
 

@@ -8,12 +8,9 @@ and retrieving book information from Calibre libraries.
 import asyncio
 from typing import Optional
 
-# Import the MCP server instance and helper functions
 from ...server import mcp, get_api_client, current_library
-from ...logging_config import get_logger, log_error
-
-# Import response models
 from ...server import LibrarySearchResponse, BookDetailResponse, ConnectionTestResponse
+from ...logging_config import get_logger, log_error
 
 logger = get_logger("calibremcp.tools.core")
 

@@ -59,13 +59,14 @@ async def list_books(
     offset: int = Query(0, ge=0),
     author: Optional[str] = None,
     tag: Optional[str] = None,
+    publisher: Optional[str] = None,
     text: Optional[str] = None,
 ):
     """List books with optional filters. Unfiltered browse cached 30s."""
     from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
 
     lib = get_libraries_cache().get("current_library") or ""
-    unfiltered = not (author or tag or text)
+    unfiltered = not (author or tag or publisher or text)
     if unfiltered:
         key = _ttl_key("books", lib=lib, limit=limit, offset=offset)
         cached = get_ttl_cached(key)
@@ -80,6 +81,7 @@ async def list_books(
                 "offset": offset,
                 "author": author,
                 "tag": tag,
+                "publisher": publisher,
                 "text": text,
             }
         )
@@ -92,8 +94,47 @@ async def list_books(
 
 @router.get("/{book_id}")
 async def get_book(book_id: int):
-    """Get book details by ID."""
+    """Get book details by ID. Uses direct BookService when available for full metadata."""
     try:
+        # Prefer direct BookService for full metadata (rating, publisher, identifiers)
+        try:
+            from calibre_mcp.db.database import DatabaseService
+            from calibre_mcp.services.book_service import BookService
+
+            db = DatabaseService()
+            if db._engine is not None and db._current_db_path:
+                svc = BookService(db)
+                book_dict = svc.get_by_id(book_id)
+                # Normalize to match frontend Book shape
+                authors = book_dict.get("authors", [])
+                if authors and isinstance(authors[0], dict):
+                    authors = [a.get("name", "") for a in authors]
+                return {
+                    "id": book_dict.get("id"),
+                    "title": book_dict.get("title"),
+                    "authors": authors,
+                    "rating": book_dict.get("rating"),
+                    "tags": [
+                        t.get("name", t) if isinstance(t, dict) else t
+                        for t in book_dict.get("tags", [])
+                    ],
+                    "formats": book_dict.get("formats", []),
+                    "publisher": book_dict.get("publisher"),
+                    "pubdate": book_dict.get("pubdate"),
+                    "timestamp": book_dict.get("timestamp"),
+                    "last_modified": book_dict.get("last_modified"),
+                    "series": book_dict.get("series", {}).get("name") if isinstance(book_dict.get("series"), dict) else book_dict.get("series"),
+                    "series_index": book_dict.get("series_index"),
+                    "identifiers": book_dict.get("identifiers", {}),
+                    "comments": book_dict.get("comments"),
+                    "description": book_dict.get("comments"),
+                    "path": book_dict.get("path"),
+                    "uuid": book_dict.get("uuid"),
+                    "has_cover": book_dict.get("has_cover"),
+                }
+        except Exception:
+            pass
+        # Fallback to MCP tool
         result = await mcp_client.call_tool(
             "manage_books",
             {

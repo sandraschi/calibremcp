@@ -8,12 +8,13 @@
 
 ### Features
 
-- **Retractable Sidebar** - Overview, Libraries, Books, Search, Authors, Series, Tags, Import, Export, Chat, Logs, Settings, Help
+- **Retractable Sidebar** - Overview, Libraries, Books, Search, Authors, Series, Tags, Publishers, Import, Export, Chat, Logs, Settings, Help
 - **Overview Dashboard** - Library stats, quick links
-- **Authors / Series / Tags** - List pages with search, drill to books
-- **Book Modal** - Full metadata, cover, Read button (opens system default app)
+- **Authors / Series / Tags / Publishers** - List pages with search, drill to books
+- **Book Modal** - Full metadata (rating, publisher, series, identifiers, comments), cover, Read button
 - **Author Wikipedia Links** - Click author in book modal to open Wikipedia search
-- **AI Chat** - Ollama, LM Studio, OpenAI-compatible; Settings for provider, model list
+- **AI Chat** - Personality presets, Ollama/LM Studio/OpenAI; Settings for provider, model list
+- **Logs** - Log file viewer (tail, filter, level, live tail with backoff); System status view
 - **Import / Export** - Add books by path; export CSV/JSON with filters
 
 ### Tech Stack

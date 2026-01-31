@@ -12,3 +12,21 @@ body {
   background: var(--background);
   font-family: var(--font-body), system-ui, sans-serif;
 }
+
+/* Ensure inputs, selects, textareas have dark bg and light text (fix white-on-white) */
+input,
+select,
+textarea {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+}
+
+select option {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}

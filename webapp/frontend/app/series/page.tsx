@@ -4,7 +4,7 @@ import { listSeries } from '@/lib/api';
 export default async function SeriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string; page?: string; letter?: string }>;
+  searchParams: Promise<{ query?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || '1'));
@@ -13,7 +13,7 @@ export default async function SeriesPage({
 
   let data: { items: { id: number; name: string; book_count?: number }[]; total: number };
   try {
-    data = await listSeries({ query: params.query, limit, offset, letter: params.letter });
+    data = await listSeries({ query: params.query, limit, offset });
   } catch (e) {
     return (
       <div className="container mx-auto p-6">
@@ -34,17 +34,14 @@ export default async function SeriesPage({
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-slate-100">Series</h1>
-      <form className="mb-6 flex gap-2 flex-wrap" action="/series" method="get">
+      <form className="mb-6" action="/series" method="get">
         <input
           type="search"
           name="query"
           defaultValue={params.query}
           placeholder="Search series..."
-          className="flex-1 min-w-[200px] px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
+          className="w-full max-w-md px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
         />
-        <button type="submit" className="px-4 py-2 rounded-lg bg-amber text-slate-900 font-medium hover:bg-amber/90">
-          Search
-        </button>
       </form>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {data.items.map((s) => (

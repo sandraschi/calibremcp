@@ -700,6 +700,26 @@ When reporting issues, include this diagnostic information:
 
 ---
 
+## 📋 Logging and Log Files
+
+### **Log File Locations**
+
+- **MCP stdio mode** (`python -m calibre_mcp`): `logs/calibremcp.log`
+- **Webapp backend**: `logs/webapp.log`
+- Both use RotatingFileHandler (10MB max, 5 backups)
+
+### **Viewing Logs**
+
+- **Webapp Logs page**: Browse page shows log file with tail, filter, level filter, live tail
+- **Override path**: Set `LOG_FILE` env to a custom log file path
+- Logs page also offers System status (diagnostic) view
+
+### **Enable Debug Logging**
+
+In `setup_logging` or via logging level configuration, use `level="DEBUG"` for verbose output.
+
+---
+
 ## 🆘 Getting Help
 
 ### **Self-Service Debugging**

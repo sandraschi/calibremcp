@@ -17,9 +17,8 @@ from ...logging_config import get_logger
 logger = get_logger("calibremcp.tools.import_export.annas")
 
 DEFAULT_MIRRORS = [
-    "https://annas-archive.org",
-    "https://annas-archive.li",
     "https://annas-archive.se",
+    "https://annas-archive.in",
 ]
 
 
@@ -35,6 +34,7 @@ async def search_annas(
     query: str,
     max_results: int = 20,
     timeout: float = 30.0,
+    mirrors: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """
     Search Anna's Archive for books.
@@ -54,7 +54,7 @@ async def search_annas(
             "error": Optional[str]
         }
     """
-    mirrors = _get_mirrors()
+    mirrors = mirrors if mirrors else _get_mirrors()
     encoded_query = quote_plus(query)
     url_template = "{base}/search?page=1&q={q}&display=table"
 

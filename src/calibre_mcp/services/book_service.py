@@ -110,6 +110,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     joinedload(Book.comments),
                     joinedload(Book.data),
                     joinedload(Book.identifiers),
+                    joinedload(Book.publishers),
                 )
                 .filter(Book.id == book_id)
                 .first()
@@ -1136,8 +1137,27 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         else:
             book_dict["series"] = None
 
-        # Skip identifiers - relationship has column name mismatch (book vs book_id)
-        book_dict["identifiers"] = {}
+        # Rating from ratings relationship
+        if hasattr(book, "ratings") and book.ratings:
+            book_dict["rating"] = book.ratings[0].rating if hasattr(book.ratings[0], "rating") else None
+        else:
+            book_dict["rating"] = None
+
+        # Publisher from publishers relationship
+        if hasattr(book, "publishers") and book.publishers:
+            book_dict["publisher"] = ", ".join(p.name for p in book.publishers if getattr(p, "name", None))
+        else:
+            book_dict["publisher"] = None
+
+        # Identifiers from identifiers relationship
+        if hasattr(book, "identifiers") and book.identifiers:
+            book_dict["identifiers"] = {
+                ident.type: ident.val
+                for ident in book.identifiers
+                if getattr(ident, "type", None) and getattr(ident, "val", None)
+            }
+        else:
+            book_dict["identifiers"] = {}
 
         # Handle comments - may not exist in all databases
         try:

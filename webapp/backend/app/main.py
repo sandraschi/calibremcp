@@ -1,6 +1,7 @@
 """FastAPI application for Calibre webapp."""
 
 import logging
+import logging.handlers
 import os
 import sys
 from pathlib import Path
@@ -24,6 +25,9 @@ if src_path.exists():
     src_str = str(src_path)
     # CRITICAL: Set PYTHONPATH environment variable FIRST (for uvicorn subprocesses)
     os.environ["PYTHONPATH"] = src_str
+    # Use direct import; HTTP mount has no tools (main() never runs)
+    os.environ["MCP_USE_HTTP"] = "false"
+    # Use direct import for MCP tools (HTTP mount has no tools - they are registered only in main())
     # Then ensure it's in sys.path
     if src_str not in sys.path:
         sys.path.insert(0, src_str)
@@ -35,6 +39,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api import (
+    annas,
     analysis,
     authors,
     books,
@@ -45,7 +50,9 @@ from .api import (
     files,
     library,
     llm,
+    logs,
     metadata,
+    publishers,
     search,
     series,
     specialized,
@@ -56,6 +63,17 @@ from .api import (
 from .config import settings
 
 from .cache import get_libraries_cache, update_libraries_cache, update_current_library
+
+# Ensure logs dir exists and add file handler for webapp (rotation via logging.handlers)
+_log_dir = project_root / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
+_log_file = _log_dir / "webapp.log"
+_handler = logging.handlers.RotatingFileHandler(
+    _log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+)
+_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+logging.getLogger("uvicorn").addHandler(_handler)
+logging.getLogger("uvicorn.error").addHandler(_handler)
 
 # Create FastAPI app
 app = FastAPI(
@@ -211,6 +229,7 @@ app.include_router(library.router, prefix="/api/libraries", tags=["libraries"])
 app.include_router(authors.router, prefix="/api/authors", tags=["authors"])
 app.include_router(series.router, prefix="/api/series", tags=["series"])
 app.include_router(tags.router, prefix="/api/tags", tags=["tags"])
+app.include_router(publishers.router, prefix="/api/publishers", tags=["publishers"])
 app.include_router(comments.router, prefix="/api/comments", tags=["comments"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["analysis"])
@@ -219,7 +238,9 @@ app.include_router(bulk.router, prefix="/api/bulk", tags=["bulk"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
+app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
+app.include_router(annas.router, prefix="/api/annas", tags=["annas"])
 
 
 @app.get("/")

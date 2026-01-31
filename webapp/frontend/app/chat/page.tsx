@@ -7,11 +7,18 @@ interface Message {
   content: string;
 }
 
+const PERSONALITIES = [
+  { id: 'default', label: 'Default', preprompt: '' },
+  { id: 'librarian', label: 'Librarian', preprompt: 'You are a helpful librarian assistant. Be concise and focus on book recommendations, metadata, and library organization.' },
+  { id: 'casual', label: 'Casual', preprompt: 'You are a friendly book lover. Chat naturally about books, reading habits, and recommendations.' },
+];
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('llama3.2');
+  const [personality, setPersonality] = useState('default');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,24 +33,41 @@ export default function ChatPage() {
     setInput('');
     setLoading(true);
 
+    const preprompt = PERSONALITIES.find((p) => p.id === personality)?.preprompt ?? '';
+    const messagesToSend = preprompt
+      ? [{ role: 'system' as const, content: preprompt }, ...messages, userMsg]
+      : [...messages, userMsg];
     try {
       const res = await fetch('/api/llm/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map((x) => ({ role: x.role, content: x.content })),
+          messages: messagesToSend.map((x) => ({ role: x.role, content: x.content })),
           model,
           stream: false,
         }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: Record<string, unknown>;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        setMessages((m) => [
+          ...m,
+          { role: 'assistant', content: `Failed: Backend returned invalid response (${text.slice(0, 100)}...)` },
+        ]);
+        return;
+      }
       if (data.error) {
         setMessages((m) => [
           ...m,
           { role: 'assistant', content: `Error: ${data.error}` },
         ]);
       } else {
-        const content = data.message?.content ?? data.choices?.[0]?.message?.content ?? JSON.stringify(data);
+        const msg = data.message as { content?: string } | undefined;
+        const choices = data.choices as Array<{ message?: { content?: string } }> | undefined;
+        const content =
+          msg?.content ?? choices?.[0]?.message?.content ?? JSON.stringify(data);
         setMessages((m) => [...m, { role: 'assistant', content }]);
       }
     } catch (e) {
@@ -59,14 +83,31 @@ export default function ChatPage() {
   return (
     <div className="container mx-auto p-6 flex flex-col h-[calc(100vh-8rem)]">
       <h1 className="text-3xl font-bold mb-4 text-slate-100">Chat</h1>
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          placeholder="Model (e.g. llama3.2)"
-          className="flex-1 max-w-xs px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
-        />
+      <div className="flex flex-wrap gap-4 mb-4 items-end">
+        <div>
+          <label className="block text-sm text-slate-400 mb-1">Personality</label>
+          <select
+            value={personality}
+            onChange={(e) => setPersonality(e.target.value)}
+            className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber"
+          >
+            {PERSONALITIES.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm text-slate-400 mb-1">Model</label>
+          <input
+            type="text"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            placeholder="e.g. llama3.2"
+            className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber w-36"
+          />
+        </div>
         <span className="text-slate-500 text-sm self-center">Configure provider in Settings</span>
       </div>
       <div className="flex-1 overflow-auto rounded-lg bg-slate-800 border border-slate-600 p-4 space-y-4">

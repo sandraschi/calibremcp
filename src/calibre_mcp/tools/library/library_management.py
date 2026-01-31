@@ -8,7 +8,6 @@ and cross-library search functionality.
 from typing import Optional, List, Dict, Any
 import time
 
-# Import response models
 from ...server import LibraryListResponse, LibraryStatsResponse, LibrarySearchResponse
 
 # Import services and utilities

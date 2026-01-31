@@ -13,7 +13,7 @@ interface BookCardProps {
 
 export function BookCard({ book, onClick }: BookCardProps) {
   const [coverError, setCoverError] = useState(false);
-  const coverUrl = book.cover_url ?? getBookCoverUrl(book.id);
+  const coverUrl = getBookCoverUrl(book.id);
 
   return (
     <div

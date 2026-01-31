@@ -8,8 +8,7 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 import tempfile
 
-from ...server import mcp
-from ...server import MetadataUpdateRequest
+from ...server import mcp, MetadataUpdateRequest
 from ...logging_config import get_logger
 from ..shared.error_handling import handle_tool_error, format_error_response
 

@@ -509,6 +509,57 @@ async def manage_viewer(
                 related_tools=["query_books", "manage_viewer"],
             )
 
+        # For open_file: resolve file_path from book_id if not provided (webapp sends only book_id)
+        if operation == "open_file" and not file_path:
+            try:
+                import re
+                from sqlalchemy.orm import joinedload
+                from ...db.database import get_database
+                from ...db.models import Book
+
+                db = get_database()
+                if not db._current_db_path:
+                    return format_error_response(
+                        error_msg="No library loaded. Use manage_libraries to switch to a library.",
+                        error_code="NO_LIBRARY",
+                        error_type="ValueError",
+                        operation=operation,
+                        suggestions=["Ensure a library is loaded via manage_libraries"],
+                        related_tools=["manage_libraries"],
+                    )
+                lib_path = str(Path(db._current_db_path).parent)
+                with db.session_scope() as session:
+                    book_obj = session.query(Book).options(joinedload(Book.data)).filter(Book.id == book_id).first()
+                    if not book_obj or not book_obj.data:
+                        return format_error_response(
+                            error_msg=f"Book {book_id} has no formats to open.",
+                            error_code="NO_FORMATS",
+                            error_type="ValueError",
+                            operation=operation,
+                            suggestions=["Verify the book has file formats in the library"],
+                            related_tools=["manage_books"],
+                        )
+                    fmt = next(
+                        (f for f in book_obj.data if f.format.upper() in ("EPUB", "PDF", "MOBI", "AZW3")),
+                        book_obj.data[0],
+                    )
+                    fname = fmt.name.strip() if fmt.name and fmt.name.strip() else f"{book_obj.id}.{fmt.format.lower()}"
+                    if not fname.lower().endswith(f".{fmt.format.lower()}"):
+                        fname = f"{fname}.{fmt.format.lower()}"
+                    fname = re.sub(r'[<>:"/\\|?*]', '_', fname)
+                    file_path = str(Path(lib_path) / book_obj.path / fname)
+                    if not Path(file_path).exists():
+                        alt = Path(lib_path) / book_obj.path / (fmt.name or "")
+                        file_path = str(alt) if alt.exists() else file_path
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={"book_id": book_id},
+                    tool_name="manage_viewer",
+                    context="Resolving file path from book_id",
+                )
+
         if not file_path:
             return format_error_response(
                 error_msg=f"file_path is required for operation '{operation}'. Use 'open_random' operation if you want to search and open a random book.",

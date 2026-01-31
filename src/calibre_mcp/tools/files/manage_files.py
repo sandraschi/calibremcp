@@ -6,8 +6,7 @@ Consolidates all file-related operations into a single unified interface.
 
 from typing import Optional, List, Dict, Any
 
-from ...server import mcp
-from ...server import ConversionRequest
+from ...server import mcp, ConversionRequest
 from ...logging_config import get_logger
 from ..shared.error_handling import handle_tool_error, format_error_response
 

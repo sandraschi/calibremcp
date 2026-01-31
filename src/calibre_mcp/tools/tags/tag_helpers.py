@@ -12,6 +12,7 @@ from ...services.tag_service import tag_service
 from ...services.base_service import NotFoundError, ValidationError
 from ...models.tag import TagCreate, TagUpdate
 from ...config import CalibreConfig
+from ...db.database import db as database_singleton
 
 logger = get_logger("calibremcp.tools.tags.helpers")
 
@@ -26,13 +27,12 @@ async def list_tags_helper(
     min_book_count: Optional[int] = None,
     max_book_count: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """Helper function - NOT registered as MCP tool."""
+    """Helper function - NOT registered as MCP tool. Uses DatabaseService (same as books/authors)."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
+        if not database_singleton._engine or not database_singleton._current_db_path:
             return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
+                "error": "No library loaded",
+                "message": "Database not initialized. Use manage_libraries(operation='switch') or ensure webapp backend has loaded a library at startup.",
             }
 
         result = tag_service.get_all(

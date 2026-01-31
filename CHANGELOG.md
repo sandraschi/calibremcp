@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Logs API** - Backend `/api/logs` with tail, filter, level; reads calibremcp.log or webapp.log
+- **Logs page** - Log file viewer with filtering, live tail (polling with exponential backoff), system status view
+- **Chat personalities** - Default, Librarian, Casual preprompt presets
+- **Webapp file logging** - Backend writes to logs/webapp.log with rotation (10MB, 5 backups)
+
+### Fixed
+- **getSystemStatus URL** - Use getBaseUrl() for absolute URL (fixes "Failed to parse URL" in logs page)
+- **Books API publisher** - Added missing `publisher` query parameter to list_books
+- **Book modal metadata** - Direct BookService path for full metadata (rating, publisher, identifiers, comments/description)
 - **Export enhancements** - Stats (CSV/JSON/HTML), detail_level (minimal/standard/full), html_style (catalog/gallery/dashboard)
 - **manage_import portmanteau** - annas_search (Anna's Archive), from_url (download and add), from_path (local file)
 - **Anna's Archive client** - Search with configurable mirrors (ANNAS_MIRRORS env); docs in `docs/ANNAS_ARCHIVE_CONFIG.md`

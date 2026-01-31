@@ -1,25 +1,25 @@
 import Link from 'next/link';
-import { listTags } from '@/lib/api';
+import { listPublishers } from '@/lib/api';
 
-export default async function TagsPage({
+export default async function PublishersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; page?: string }>;
+  searchParams: Promise<{ query?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || '1'));
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  let data: { items: { id: number; name: string; book_count?: number }[]; total: number };
+  let data: { items: { id: number | null; name: string; book_count?: number }[]; total: number };
   try {
-    data = await listTags({ search: params.search, limit, offset });
+    data = await listPublishers({ query: params.query, limit, offset });
   } catch (e) {
     return (
       <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6 text-slate-100">Tags</h1>
+        <h1 className="text-3xl font-bold mb-6 text-slate-100">Publishers</h1>
         <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-slate-200">
-          <p className="font-medium">Could not load tags</p>
+          <p className="font-medium">Could not load publishers</p>
           <p className="mt-2 text-sm text-slate-400">{String((e as Error).message)}</p>
         </div>
       </div>
@@ -33,26 +33,26 @@ export default async function TagsPage({
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-slate-100">Tags</h1>
-      <form className="mb-6" action="/tags" method="get">
+      <h1 className="text-3xl font-bold mb-6 text-slate-100">Publishers</h1>
+      <form className="mb-6" action="/publishers" method="get">
         <input
           type="search"
-          name="search"
-          defaultValue={params.search}
-          placeholder="Search tags..."
+          name="query"
+          defaultValue={params.query}
+          placeholder="Search publishers..."
           className="w-full max-w-md px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
         />
       </form>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {data.items.map((t) => (
+        {data.items.map((p) => (
           <Link
-            key={t.id}
-            href={`/books?tag=${encodeURIComponent(t.name)}`}
+            key={p.id ?? p.name}
+            href={`/books?publisher=${encodeURIComponent(p.name)}`}
             className="block p-4 rounded-lg bg-slate-800 border border-slate-600 hover:border-amber/50 hover:bg-slate-700 transition-colors"
           >
-            <span className="text-slate-200 font-medium">{t.name}</span>
-            {t.book_count != null && (
-              <span className="block text-sm text-slate-500 mt-1">{t.book_count} books</span>
+            <span className="text-slate-200 font-medium">{p.name}</span>
+            {p.book_count != null && (
+              <span className="block text-sm text-slate-500 mt-1">{p.book_count} books</span>
             )}
           </Link>
         ))}
@@ -65,7 +65,7 @@ export default async function TagsPage({
           <div className="flex items-center gap-2">
             {hasPrev ? (
               <Link
-                href={`/tags?page=${page - 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ''}`}
+                href={`/publishers?page=${page - 1}${params.query ? `&query=${encodeURIComponent(params.query)}` : ''}`}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
               >
                 Previous
@@ -75,7 +75,7 @@ export default async function TagsPage({
             )}
             {hasNext ? (
               <Link
-                href={`/tags?page=${page + 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ''}`}
+                href={`/publishers?page=${page + 1}${params.query ? `&query=${encodeURIComponent(params.query)}` : ''}`}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
               >
                 Next

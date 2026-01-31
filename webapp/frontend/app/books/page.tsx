@@ -5,11 +5,18 @@ import { ErrorBanner } from '@/components/ui/error-banner';
 
 const BACKEND_HINT = 'Start backend: cd webapp/backend; python -m uvicorn app.main:app --reload --port 13000. Or run webapp\\start-local.bat from repo root.';
 
-function buildPageUrl(base: string, page: number, author?: string, tag?: string): string {
+function buildPageUrl(
+  base: string,
+  page: number,
+  author?: string,
+  tag?: string,
+  publisher?: string
+): string {
   const params = new URLSearchParams();
   if (page > 1) params.set('page', page.toString());
   if (author) params.set('author', author);
   if (tag) params.set('tag', tag);
+  if (publisher) params.set('publisher', publisher);
   const q = params.toString();
   return q ? `${base}?${q}` : base;
 }
@@ -17,7 +24,7 @@ function buildPageUrl(base: string, page: number, author?: string, tag?: string)
 export default async function BooksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ author?: string; tag?: string; page?: string }>;
+  searchParams: Promise<{ author?: string; tag?: string; publisher?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page || '1'));
@@ -31,6 +38,7 @@ export default async function BooksPage({
       offset,
       author: params.author,
       tag: params.tag,
+      publisher: params.publisher,
     });
   } catch (e) {
     return (
@@ -76,7 +84,7 @@ export default async function BooksPage({
             </span>
             {hasNext ? (
               <Link
-                href={buildPageUrl(base, page + 1, params.author, params.tag)}
+                href={buildPageUrl(base, page + 1, params.author, params.tag, params.publisher)}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
               >
                 Next

@@ -236,9 +236,11 @@ class MCPClient:
                         # Metadata management
                         "manage_metadata": "calibre_mcp.tools.metadata.manage_metadata",
                         
-                        # Authors, tags, comments
+                        # Authors, series, tags, publishers, comments
                         "manage_authors": "calibre_mcp.tools.authors.manage_authors",
+                        "manage_series": "calibre_mcp.tools.series.manage_series",
                         "manage_tags": "calibre_mcp.tools.tags.manage_tags",
+                        "manage_publishers": "calibre_mcp.tools.publishers.manage_publishers",
                         "manage_comments": "calibre_mcp.tools.comments.manage_comments",
                         
                         # File operations
@@ -503,9 +505,11 @@ def _preload_tools():
         # Metadata management
         "manage_metadata": "calibre_mcp.tools.metadata.manage_metadata",
         
-        # Authors, tags, comments
+        # Authors, series, tags, publishers, comments
         "manage_authors": "calibre_mcp.tools.authors.manage_authors",
+        "manage_series": "calibre_mcp.tools.series.manage_series",
         "manage_tags": "calibre_mcp.tools.tags.manage_tags",
+        "manage_publishers": "calibre_mcp.tools.publishers.manage_publishers",
         "manage_comments": "calibre_mcp.tools.comments.manage_comments",
         
         # File operations

@@ -22,14 +22,21 @@ Modern web application frontend for CalibreMCP server.
 - **Export** - Export to CSV or JSON with author/tag filters
 - **Chat** - AI chatbot (Ollama, LM Studio, OpenAI-compatible)
 - **Settings** - LLM provider (Ollama/LM Studio/OpenAI), base URL, model list
-- **Logs** - System status (diagnostic view)
+- **Logs** - Log file viewer (tail, filter, level filter, live tail with backoff) and System status (diagnostic)
 - **Help** - System help content
 
 ### AI / LLM
 
 - **Providers**: Ollama (default), LM Studio, OpenAI / cloud APIs
 - **Settings**: Configure base URL, API key (OpenAI), list/load models
-- **Chat**: Model selection, message history; uses backend `/api/llm/chat`
+- **Chat**: Personality presets (Default, Librarian, Casual), model selection, message history; uses backend `/api/llm/chat`
+
+### Logs
+
+- **Log file**: Reads `logs/calibremcp.log` (MCP stdio) or `logs/webapp.log` (webapp backend); configurable via `LOG_FILE` env
+- **Filtering**: Substring filter, level filter (DEBUG/INFO/WARNING/ERROR)
+- **Tail**: Configurable line count (100-10000)
+- **Live tail**: Polling with exponential backoff (2s to 30s max)
 
 ## Quick Start
 
@@ -95,6 +102,7 @@ webapp/
 │   │   │   ├── export.py
 │   │   │   ├── viewer.py
 │   │   │   ├── llm.py       # Ollama/LM Studio/OpenAI chat
+│   │   │   ├── logs.py      # Log file tail, filter, level
 │   │   │   └── ...
 │   │   └── mcp/
 │   └── requirements.txt

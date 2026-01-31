@@ -220,13 +220,20 @@ See [docs/integrations/CALIBRE_PLUGIN_DESIGN.md](docs/integrations/CALIBRE_PLUGI
 A Next.js webapp provides a full browser UI for the Calibre library.
 
 **Features:**
-- Retractable sidebar: Overview, Libraries, Books, Search, Authors, Series, Tags, Import, Export
-- AI Chat (Ollama, LM Studio, OpenAI-compatible) with Settings
-- Book modal with full metadata, Read button, author Wikipedia links
+- Retractable sidebar: Overview, Libraries, Books, Search, Authors, Series, Tags, Publishers, Import, Export, Chat, Logs, Settings, Help
+- AI Chat (Ollama, LM Studio, OpenAI-compatible) with personality presets and Settings
+- Book modal with full metadata (rating, publisher, series, identifiers, comments/description), Read button, author Wikipedia links
+- Logs page: Log file viewer with tail, filter, level filter, live tail (polling with backoff), plus System status view
 - Import (add by path), Export (CSV/JSON)
 
 **Start:** `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
 See [webapp/README.md](webapp/README.md).
+
+#### **7. Logging**
+
+- **Stdio mode** (`python -m calibre_mcp`): Writes to `logs/calibremcp.log` with rotation (10MB, 5 backups)
+- **Webapp backend**: Writes to `logs/webapp.log` with rotation
+- Log files are tail-able via the webapp Logs page
 
 ---
 

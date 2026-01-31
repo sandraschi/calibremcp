@@ -1,12 +1,12 @@
 """
 Helper functions for series management operations.
 
-These functions are NOT registered as MCP tools - they are called by
-the manage_series portmanteau tool.
+Uses DatabaseService (same as books, authors, tags, publishers).
 """
 
 from typing import Optional, Dict, Any
 
+from ...db.database import db as database_singleton
 from ...services.series_service import get_series_service
 from ...logging_config import get_logger
 from ..shared.error_handling import format_error_response
@@ -19,8 +19,18 @@ async def list_series_helper(
     limit: int = 50,
     offset: int = 0,
 ) -> Dict[str, Any]:
-    """List series with filtering and pagination."""
+    """List series with filtering and pagination. Uses DatabaseService (same as books/authors/tags)."""
     try:
+        if not database_singleton._engine or not database_singleton._current_db_path:
+            return {
+                "error": "No library loaded",
+                "message": "Database not initialized. Ensure a library is loaded at startup.",
+                "items": [],
+                "total": 0,
+                "page": 1,
+                "per_page": limit,
+                "total_pages": 0,
+            }
         svc = get_series_service()
         return svc.get_all(
             skip=offset,
