@@ -5,10 +5,11 @@ This module registers all core library operation tools with the MCP server.
 """
 
 from .library_operations import (
-    list_books_helper,  # noqa: F401
     get_book_details_helper,  # noqa: F401 - Helper function (NOT registered)
+    list_books_helper,  # noqa: F401
     test_calibre_connection,
 )
+
 # list_books_helper and get_book_details_helper are helper functions (NOT registered)
 # get_book_details migrated to manage_books(operation="details")
 

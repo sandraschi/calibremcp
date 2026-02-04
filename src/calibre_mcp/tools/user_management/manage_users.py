@@ -5,21 +5,21 @@ Migrated from UserManagerTool (MCPTool) to FastMCP 2.13+ @mcp.tool() pattern.
 Consolidates all user management and authentication operations into a single portmanteau tool.
 """
 
-from typing import Optional, Dict, Any
-from pathlib import Path
-from datetime import datetime, timedelta
-import string
 import secrets
+import string
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any
 
 import jwt
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 from .user_manager import (
     UserCreate,
-    UserUpdate,
     UserRole,
+    UserUpdate,
 )
 
 logger = get_logger("calibremcp.tools.user_management")
@@ -44,7 +44,7 @@ _jwt_algorithm = "HS256"
 _jwt_expire_minutes = 60 * 24 * 7  # 7 days
 
 
-def _generate_jwt(user_data: Dict[str, Any]) -> str:
+def _generate_jwt(user_data: dict[str, Any]) -> str:
     """Generate a JWT token for the user."""
     now = datetime.utcnow()
     expires = now + timedelta(minutes=_jwt_expire_minutes)
@@ -63,15 +63,15 @@ def _generate_jwt(user_data: Dict[str, Any]) -> str:
 @mcp.tool()
 async def manage_users(
     operation: str,
-    user_id: Optional[str] = None,
-    user_data: Optional[Dict[str, Any]] = None,
-    update_data: Optional[Dict[str, Any]] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
-    token: Optional[str] = None,
+    user_id: str | None = None,
+    user_data: dict[str, Any] | None = None,
+    update_data: dict[str, Any] | None = None,
+    username: str | None = None,
+    password: str | None = None,
+    token: str | None = None,
     page: int = 1,
     per_page: int = 20,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Manage users and authentication with multiple operations in a single unified interface.
 
@@ -440,7 +440,7 @@ async def manage_users(
         )
 
 
-async def _handle_create_user(user_data: Dict[str, Any]) -> Dict[str, Any]:
+async def _handle_create_user(user_data: dict[str, Any]) -> dict[str, Any]:
     """Handle create user operation."""
     try:
         UserCreate(**user_data)
@@ -460,7 +460,7 @@ async def _handle_create_user(user_data: Dict[str, Any]) -> Dict[str, Any]:
         )
 
 
-async def _handle_update_user(user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+async def _handle_update_user(user_id: str, update_data: dict[str, Any]) -> dict[str, Any]:
     """Handle update user operation."""
     try:
         UserUpdate(**update_data)
@@ -477,7 +477,7 @@ async def _handle_update_user(user_id: str, update_data: Dict[str, Any]) -> Dict
         )
 
 
-async def _handle_delete_user(user_id: str) -> Dict[str, Any]:
+async def _handle_delete_user(user_id: str) -> dict[str, Any]:
     """Handle delete user operation."""
     try:
         # In a real implementation, delete from database
@@ -492,7 +492,7 @@ async def _handle_delete_user(user_id: str) -> Dict[str, Any]:
         )
 
 
-async def _handle_list_users(page: int, per_page: int) -> Dict[str, Any]:
+async def _handle_list_users(page: int, per_page: int) -> dict[str, Any]:
     """Handle list users operation."""
     try:
         # Mock response - in real implementation, fetch from database
@@ -523,7 +523,7 @@ async def _handle_list_users(page: int, per_page: int) -> Dict[str, Any]:
         )
 
 
-async def _handle_get_user(user_id: str) -> Dict[str, Any]:
+async def _handle_get_user(user_id: str) -> dict[str, Any]:
     """Handle get user operation."""
     try:
         # Mock response - in real implementation, fetch from database
@@ -558,7 +558,7 @@ async def _handle_get_user(user_id: str) -> Dict[str, Any]:
         )
 
 
-async def _handle_login(username: str, password: str) -> Dict[str, Any]:
+async def _handle_login(username: str, password: str) -> dict[str, Any]:
     """Handle login operation."""
     try:
         # Mock authentication - in real implementation, verify against database
@@ -606,7 +606,7 @@ async def _handle_login(username: str, password: str) -> Dict[str, Any]:
         )
 
 
-async def _handle_verify_token(token: str) -> Dict[str, Any]:
+async def _handle_verify_token(token: str) -> dict[str, Any]:
     """Handle verify token operation."""
     try:
         payload = jwt.decode(token, _jwt_secret, algorithms=[_jwt_algorithm])

@@ -16,7 +16,7 @@ async def organize_japanese_library():
             "manage_specialized",
             {
                 "operation": "japanese_organizer",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -31,7 +31,7 @@ async def curate_it_books():
             "manage_specialized",
             {
                 "operation": "it_curator",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -46,7 +46,7 @@ async def get_reading_recommendations():
             "manage_specialized",
             {
                 "operation": "reading_recommendations",
-            }
+            },
         )
         return result
     except Exception as e:

@@ -39,8 +39,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api import (
-    annas,
     analysis,
+    annas,
     authors,
     books,
     bulk,
@@ -60,9 +60,8 @@ from .api import (
     tags,
     viewer,
 )
+from .cache import get_libraries_cache, update_current_library, update_libraries_cache
 from .config import settings
-
-from .cache import get_libraries_cache, update_libraries_cache, update_current_library
 
 # Ensure logs dir exists and add file handler for webapp (rotation via logging.handlers)
 _log_dir = project_root / "logs"
@@ -89,6 +88,7 @@ logger = logging.getLogger(__name__)
 
 try:
     from calibre_mcp.server import create_app as create_mcp_app
+
     # create_app() returns mcp.http_app() which doesn't take a path argument
     # The path is handled by FastAPI's app.mount()
     mcp_app = create_mcp_app()
@@ -103,12 +103,12 @@ except Exception as e:
 @app.on_event("startup")
 async def startup_event():
     """Initialize database and load library on startup."""
-    
+
     # Re-check path on startup (uvicorn reloader may reset it)
     _current_file = Path(__file__).resolve()
     project_root = _current_file.parent.parent.parent.parent.parent
     src_path = project_root / "src"
-    
+
     if not src_path.exists():
         current = _current_file.parent
         while current != current.parent:
@@ -117,7 +117,7 @@ async def startup_event():
                 src_path = project_root / "src"
                 break
             current = current.parent
-    
+
     if src_path.exists():
         src_str = str(src_path)
         # Set PYTHONPATH environment variable for uvicorn reloader subprocesses
@@ -128,43 +128,43 @@ async def startup_event():
         elif sys.path.index(src_str) != 0:
             sys.path.remove(src_str)
             sys.path.insert(0, src_str)
-        
+
         # Verify import works
         try:
             import calibre_mcp  # noqa: F401
+
             logger.info(f"calibre_mcp imported successfully from {src_str}")
         except ImportError as e:
             logger.error(f"Failed to import calibre_mcp: {e}")
             return
-    
+
     # Initialize database and load library
     try:
         from .mcp.client import mcp_client
-        
+
         # Step 1: List available libraries
         logger.info("Discovering Calibre libraries...")
-        libraries_result = await mcp_client.call_tool(
-            "manage_libraries",
-            {"operation": "list"}
-        )
-        
+        libraries_result = await mcp_client.call_tool("manage_libraries", {"operation": "list"})
+
         if not libraries_result.get("success", True):
-            logger.warning(f"Failed to list libraries: {libraries_result.get('error', 'Unknown error')}")
+            logger.warning(
+                f"Failed to list libraries: {libraries_result.get('error', 'Unknown error')}"
+            )
             return
-        
+
         libraries = libraries_result.get("libraries", [])
         total_libraries = libraries_result.get("total_libraries", 0)
         current_library = libraries_result.get("current_library")
         update_libraries_cache(libraries, current_library, total_libraries)
         logger.info(f"Found {total_libraries} Calibre libraries (cached for dropdown)")
-        
+
         if total_libraries == 0:
             logger.warning("No Calibre libraries found. Database will not be initialized.")
             return
-        
+
         # Step 2: Switch to a library (use current if set, otherwise first available)
         library_to_load = None
-        
+
         # Check if there's already a current library
         if current_library:
             # Verify it still exists
@@ -173,40 +173,41 @@ async def startup_event():
                     library_to_load = current_library
                     logger.info(f"Using existing current library: {current_library}")
                     break
-        
+
         # If no current library or it doesn't exist, use first available
         if not library_to_load and libraries:
             library_to_load = libraries[0].get("name")
             logger.info(f"No current library set, switching to first available: {library_to_load}")
-        
+
         if library_to_load:
             # Switch to the library (this initializes the database)
             logger.info(f"Switching to library: {library_to_load}")
             switch_result = await mcp_client.call_tool(
-                "manage_libraries",
-                {
-                    "operation": "switch",
-                    "library_name": library_to_load
-                }
+                "manage_libraries", {"operation": "switch", "library_name": library_to_load}
             )
-            
+
             if switch_result.get("success"):
                 update_current_library(library_to_load)
-                
+
                 logger.info(
                     f"SUCCESS: Library '{library_to_load}' loaded. "
                     f"Database initialized and ready for searches and book reading."
                 )
                 logger.info(f"Library path: {switch_result.get('library_path', 'N/A')}")
             else:
-                error_msg = switch_result.get("error", switch_result.get("message", "Unknown error"))
+                error_msg = switch_result.get(
+                    "error", switch_result.get("message", "Unknown error")
+                )
                 logger.error(f"Failed to switch to library '{library_to_load}': {error_msg}")
         else:
             logger.warning("No library available to load")
-            
+
     except Exception as e:
         logger.error(f"Failed to initialize database/library on startup: {e}", exc_info=True)
-        logger.warning("Server will start but database/library operations may fail until manually initialized")
+        logger.warning(
+            "Server will start but database/library operations may fail until manually initialized"
+        )
+
 
 # CORS middleware
 app.add_middleware(
@@ -266,18 +267,19 @@ async def debug_import():
         "python_path": sys.path[:10],
         "pythonpath_env": os.environ.get("PYTHONPATH", "not set"),
         "import_attempt": None,
-        "error": None
+        "error": None,
     }
-    
+
     try:
         import calibre_mcp
+
         info["import_attempt"] = "SUCCESS"
         info["calibre_mcp_file"] = calibre_mcp.__file__
         info["has_tools"] = hasattr(calibre_mcp, "tools")
     except ImportError as e:
         info["import_attempt"] = "FAILED"
         info["error"] = str(e)
-    
+
     return info
 
 
@@ -288,10 +290,8 @@ async def get_libraries_list():
     if not cache.get("loaded"):
         try:
             from .mcp.client import mcp_client
-            libraries_result = await mcp_client.call_tool(
-                "manage_libraries",
-                {"operation": "list"}
-            )
+
+            libraries_result = await mcp_client.call_tool("manage_libraries", {"operation": "list"})
             if libraries_result.get("success", True):
                 update_libraries_cache(
                     libraries_result.get("libraries", []),
@@ -306,5 +306,5 @@ async def get_libraries_list():
         "libraries": cache.get("libraries", []),
         "current_library": cache.get("current_library"),
         "total_libraries": cache.get("total_libraries", 0),
-        "loaded": cache.get("loaded", False)
+        "loaded": cache.get("loaded", False),
     }

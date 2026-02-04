@@ -4,13 +4,15 @@ Create minimal test book files (EPUB, PDF, CBZ) for testing.
 Creates very small but valid files that can be committed to GitHub.
 """
 
-from pathlib import Path
 import zipfile
+from pathlib import Path
 
 TEST_LIBRARY_DIR = Path(__file__).parent.parent / "tests" / "fixtures" / "test_library"
 
 
-def create_minimal_epub(output_path: Path, title: str = "Test Book", author: str = "Test Author", num_pages: int = 5):
+def create_minimal_epub(
+    output_path: Path, title: str = "Test Book", author: str = "Test Author", num_pages: int = 5
+):
     """Create a minimal valid EPUB file with specified number of pages."""
     # EPUB is just a ZIP file with specific structure
     with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as epub:
@@ -32,7 +34,7 @@ def create_minimal_epub(output_path: Path, title: str = "Test Book", author: str
         manifest_items = '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>'
         spine_items = ""
         nav_points = ""
-        
+
         for i in range(1, num_pages + 1):
             manifest_items += f'\n    <item id="page{i}" href="page{i}.xhtml" media-type="application/xhtml+xml"/>'
             spine_items += f'\n    <itemref idref="page{i}"/>'
@@ -103,7 +105,7 @@ def create_minimal_pdf(output_path: Path, title: str = "Test Book", num_pages: i
     parts = []
     obj_num = 1
     offsets = {}
-    
+
     # Catalog (obj 1)
     catalog_obj = f"""{obj_num} 0 obj
 <<
@@ -114,12 +116,12 @@ endobj"""
     offsets[obj_num] = len(b"%PDF-1.4\n")
     parts.append(catalog_obj.encode("utf-8"))
     obj_num += 1
-    
+
     # Pages object (obj 2)
     # We'll update this after creating all page objects
     pages_obj_num = obj_num
     obj_num += 1
-    
+
     # Font object (obj 3)
     font_obj_num = obj_num
     font_obj = f"""{font_obj_num} 0 obj
@@ -131,7 +133,7 @@ endobj"""
 endobj"""
     parts.append(font_obj.encode("utf-8"))
     obj_num += 1
-    
+
     # Create pages (each page needs 2 objects: page + content)
     page_obj_nums = []
     for page_num in range(1, num_pages + 1):
@@ -139,7 +141,7 @@ endobj"""
         content_obj_num = obj_num + 1
         page_obj_nums.append(page_obj_num)
         obj_num += 2
-        
+
         # Content stream
         page_text = f"Page {page_num} of {num_pages} - {title}"
         content_text = f"BT\n/F1 12 Tf\n100 700 Td\n({page_text}) Tj\nET"
@@ -152,7 +154,7 @@ stream
 endstream
 endobj"""
         parts.append(content_obj.encode("utf-8"))
-        
+
         # Page object
         page_obj = f"""{page_obj_num} 0 obj
 <<
@@ -168,7 +170,7 @@ endobj"""
 >>
 endobj"""
         parts.append(page_obj.encode("utf-8"))
-    
+
     # Now create Pages object with all page references
     kids_list = " ".join([f"{num} 0 R" for num in page_obj_nums])
     pages_obj = f"""{pages_obj_num} 0 obj
@@ -179,22 +181,22 @@ endobj"""
 >>
 endobj"""
     parts.insert(1, pages_obj.encode("utf-8"))  # Insert after catalog
-    
+
     # Build PDF
     pdf_header = b"%PDF-1.4\n"
     body = b"\n".join(parts)
-    
+
     # Calculate xref offsets
     xref_start = len(pdf_header) + len(body) + 1
     xref_entries = [b"0000000000 65535 f "]
     current_offset = len(pdf_header)
-    
+
     for part in parts:
-        xref_entries.append(f"{current_offset:010d} 00000 n ".encode("utf-8"))
+        xref_entries.append(f"{current_offset:010d} 00000 n ".encode())
         current_offset += len(part) + 1  # +1 for newline
-    
+
     xref_table = b"xref\n0 " + str(len(xref_entries)).encode() + b"\n" + b"\n".join(xref_entries)
-    
+
     # Trailer
     trailer = f"""trailer
 <<
@@ -204,13 +206,14 @@ endobj"""
 startxref
 {xref_start}
 %%EOF"""
-    
+
     pdf_content = pdf_header + body + b"\n" + xref_table + b"\n" + trailer.encode("utf-8")
     output_path.write_bytes(pdf_content)
 
 
 def create_minimal_cbz(output_path: Path, title: str = "Test Comic", num_pages: int = 5):
     """Create a minimal valid CBZ file (ZIP of images) with specified number of pages."""
+
     # CBZ is just a ZIP file with images
     # Create a minimal 100x100 pixel PNG (small but visible)
     # PNG signature + minimal IHDR chunk + IEND

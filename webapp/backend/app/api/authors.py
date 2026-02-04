@@ -1,9 +1,8 @@
 """Authors API endpoints."""
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Optional, Dict, Any
 
-from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
+from ..cache import _ttl_key, get_libraries_cache, get_ttl_cached, set_ttl_cached
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
 
@@ -12,7 +11,7 @@ router = APIRouter()
 
 @router.get("/")
 async def list_authors(
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
@@ -30,7 +29,7 @@ async def list_authors(
                 "query": query,
                 "limit": limit,
                 "offset": offset,
-            }
+            },
         )
         set_ttl_cached(key, result)
         return result
@@ -47,7 +46,7 @@ async def get_author(author_id: int):
             {
                 "operation": "get",
                 "author_id": author_id,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -69,7 +68,7 @@ async def get_author_books(
                 "author_id": author_id,
                 "limit": limit,
                 "offset": offset,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -84,7 +83,7 @@ async def get_author_stats():
             "manage_authors",
             {
                 "operation": "stats",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -102,7 +101,7 @@ async def get_authors_by_letter(letter: str):
             {
                 "operation": "by_letter",
                 "letter": letter.upper(),
-            }
+            },
         )
         return result
     except Exception as e:

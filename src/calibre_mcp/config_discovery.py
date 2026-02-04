@@ -5,15 +5,14 @@ This module provides functions to discover Calibre libraries by reading
 Calibre's configuration files and scanning common locations.
 """
 
-import os
 import json
+import os
 import pickle
-from pathlib import Path
-from typing import Dict, Optional
-from dataclasses import dataclass
 import platform
+from dataclasses import dataclass
+from pathlib import Path
 
-from .logging_config import get_logger, log_operation, log_error
+from .logging_config import get_logger, log_error, log_operation
 
 logger = get_logger("calibremcp.config_discovery")
 
@@ -25,8 +24,8 @@ class CalibreLibrary:
     name: str
     path: Path
     metadata_db: Path
-    book_count: Optional[int] = None
-    last_modified: Optional[str] = None
+    book_count: int | None = None
+    last_modified: str | None = None
     is_active: bool = False
 
 
@@ -36,7 +35,7 @@ class CalibreConfigDiscovery:
     def __init__(self):
         self.system = platform.system().lower()
         self.calibre_config_dir = self._get_calibre_config_dir()
-        self.discovered_libraries: Dict[str, CalibreLibrary] = {}
+        self.discovered_libraries: dict[str, CalibreLibrary] = {}
 
     def _get_calibre_config_dir(self) -> Path:
         """Get Calibre configuration directory based on OS"""
@@ -56,7 +55,7 @@ class CalibreConfigDiscovery:
         )
         return config_dir
 
-    def discover_all_libraries(self) -> Dict[str, CalibreLibrary]:
+    def discover_all_libraries(self) -> dict[str, CalibreLibrary]:
         """
         Discover all available Calibre libraries using multiple methods.
 
@@ -94,10 +93,10 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _scan_directory_for_libraries(self, base_dir: Path) -> Dict[str, CalibreLibrary]:
+    def _scan_directory_for_libraries(self, base_dir: Path) -> dict[str, CalibreLibrary]:
         """Scan a specific directory for Calibre libraries"""
         libraries = {}
-        
+
         try:
             # Only scan subdirectories for libraries (base directory itself is not a library)
             for item in base_dir.iterdir():
@@ -105,34 +104,35 @@ class CalibreConfigDiscovery:
                     item_metadata_db = item / "metadata.db"
                     if item_metadata_db.exists():
                         libraries[item.name] = CalibreLibrary(
-                            name=item.name,
-                            path=item,
-                            metadata_db=item_metadata_db,
-                            is_active=False
+                            name=item.name, path=item, metadata_db=item_metadata_db, is_active=False
                         )
         except (PermissionError, OSError) as e:
             logger.warning(f"Could not scan {base_dir} for libraries: {e}")
-        
+
         return libraries
 
-    def _discover_from_calibre_api(self) -> Dict[str, CalibreLibrary]:
+    def _discover_from_calibre_api(self) -> dict[str, CalibreLibrary]:
         """Discover libraries using Calibre's Python API (most reliable method)"""
         libraries = {}
-        
+
         try:
             # Try to import Calibre's config module to get library paths
             from calibre.utils.config import prefs
-            
+
             # Get library database from Calibre's preferences
-            library_path = prefs['library_path']
-            if library_path and Path(library_path).exists() and (Path(library_path) / "metadata.db").exists():
+            library_path = prefs["library_path"]
+            if (
+                library_path
+                and Path(library_path).exists()
+                and (Path(library_path) / "metadata.db").exists()
+            ):
                 libraries["main"] = CalibreLibrary(
                     name="main",
                     path=Path(library_path),
                     metadata_db=Path(library_path) / "metadata.db",
-                    is_active=True
+                    is_active=True,
                 )
-            
+
             # Get all libraries from Calibre's library database
             try:
                 # Calibre stores library info in library_infos.pickle
@@ -140,6 +140,7 @@ class CalibreConfigDiscovery:
                 if library_infos_path.exists():
                     with open(library_infos_path, "rb") as f:
                         import pickle
+
                         lib_infos = pickle.load(f)
                         for lib_name, lib_info in lib_infos.items():
                             if isinstance(lib_info, dict) and "path" in lib_info:
@@ -149,20 +150,20 @@ class CalibreConfigDiscovery:
                                         name=lib_name,
                                         path=lib_path,
                                         metadata_db=lib_path / "metadata.db",
-                                        is_active=lib_info.get("is_active", False)
+                                        is_active=lib_info.get("is_active", False),
                                     )
             except Exception as e:
                 logger.debug(f"Could not read library_infos.pickle via Calibre API: {e}")
-                
+
         except ImportError:
             # Calibre Python API not available - this is expected if Calibre is not installed as Python package
             logger.debug("Calibre Python API not available, falling back to config file parsing")
         except Exception as e:
             logger.warning(f"Error discovering libraries via Calibre API: {e}")
-        
+
         return libraries
 
-    def _discover_from_calibre_config(self) -> Dict[str, CalibreLibrary]:
+    def _discover_from_calibre_config(self) -> dict[str, CalibreLibrary]:
         """Discover libraries from Calibre's configuration files"""
         libraries = {}
 
@@ -180,7 +181,7 @@ class CalibreConfigDiscovery:
             global_py_json = self.calibre_config_dir / "global.py.json"
             if global_py_json.exists():
                 libraries.update(self._parse_global_py_json(global_py_json))
-            
+
             # Also try old format global.py (for backwards compatibility)
             global_py = self.calibre_config_dir / "global.py"
             if global_py.exists():
@@ -201,12 +202,12 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _parse_global_py(self, global_py: Path) -> Dict[str, CalibreLibrary]:
+    def _parse_global_py(self, global_py: Path) -> dict[str, CalibreLibrary]:
         """Parse Calibre's global.py configuration file"""
         libraries = {}
 
         try:
-            with open(global_py, "r", encoding="utf-8") as f:
+            with open(global_py, encoding="utf-8") as f:
                 content = f.read()
 
             # Look for library path patterns
@@ -232,12 +233,12 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _parse_global_py_json(self, global_py_json: Path) -> Dict[str, CalibreLibrary]:
+    def _parse_global_py_json(self, global_py_json: Path) -> dict[str, CalibreLibrary]:
         """Parse Calibre's global.py.json configuration file (JSON format)"""
         libraries = {}
 
         try:
-            with open(global_py_json, "r", encoding="utf-8") as f:
+            with open(global_py_json, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Extract library_path from JSON
@@ -256,12 +257,12 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _parse_library_db(self, library_db: Path) -> Dict[str, CalibreLibrary]:
+    def _parse_library_db(self, library_db: Path) -> dict[str, CalibreLibrary]:
         """Parse Calibre's library_infos.json file"""
         libraries = {}
 
         try:
-            with open(library_db, "r", encoding="utf-8") as f:
+            with open(library_db, encoding="utf-8") as f:
                 data = json.load(f)
 
             for library_name, library_info in data.items():
@@ -280,7 +281,7 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _parse_library_pickle(self, library_pickle: Path) -> Dict[str, CalibreLibrary]:
+    def _parse_library_pickle(self, library_pickle: Path) -> dict[str, CalibreLibrary]:
         """Parse Calibre's library_infos.pickle file"""
         libraries = {}
 
@@ -304,7 +305,7 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _scan_common_locations(self) -> Dict[str, CalibreLibrary]:
+    def _scan_common_locations(self) -> dict[str, CalibreLibrary]:
         """Scan common locations where Calibre libraries might be stored"""
         libraries = {}
 
@@ -312,19 +313,21 @@ class CalibreConfigDiscovery:
         # PRIORITY: User's actual library location first
         user_library_path = Path("L:/Multimedia Files/Written Word")
         common_bases = []
-        
+
         # Add user's actual library location FIRST (highest priority)
         if user_library_path.exists():
             common_bases.append(user_library_path)
-        
+
         # Then add other common locations (lower priority)
-        common_bases.extend([
-            Path.home() / "Documents" / "Calibre Library",
-            Path.home() / "Books" / "Calibre Library",
-            Path.home() / "Library" / "Calibre Library",  # macOS
-            Path("/opt/calibre/library"),  # Linux
-        ])
-        
+        common_bases.extend(
+            [
+                Path.home() / "Documents" / "Calibre Library",
+                Path.home() / "Books" / "Calibre Library",
+                Path.home() / "Library" / "Calibre Library",  # macOS
+                Path("/opt/calibre/library"),  # Linux
+            ]
+        )
+
         # Skip the default Windows location if it's the wrong one
         # Only add C:\Users\...\Calibre Library if it's NOT the user's home
         default_windows_path = Path("C:/Users") / os.getenv("USERNAME", "") / "Calibre Library"
@@ -358,7 +361,7 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _discover_from_environment(self) -> Dict[str, CalibreLibrary]:
+    def _discover_from_environment(self) -> dict[str, CalibreLibrary]:
         """Discover libraries from environment variables"""
         libraries = {}
 
@@ -388,8 +391,8 @@ class CalibreConfigDiscovery:
         return libraries
 
     def _scan_parent_directories(
-        self, existing_libraries: Dict[str, CalibreLibrary]
-    ) -> Dict[str, CalibreLibrary]:
+        self, existing_libraries: dict[str, CalibreLibrary]
+    ) -> dict[str, CalibreLibrary]:
         """Scan parent directories of existing libraries for additional libraries"""
         libraries = {}
 
@@ -408,7 +411,7 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def get_active_library(self) -> Optional[CalibreLibrary]:
+    def get_active_library(self) -> CalibreLibrary | None:
         """Get the currently active Calibre library"""
         for library in self.discovered_libraries.values():
             if library.is_active:
@@ -420,11 +423,11 @@ class CalibreConfigDiscovery:
 
         return None
 
-    def get_library_by_name(self, name: str) -> Optional[CalibreLibrary]:
+    def get_library_by_name(self, name: str) -> CalibreLibrary | None:
         """Get a specific library by name"""
         return self.discovered_libraries.get(name)
 
-    def get_library_by_path(self, path: Path) -> Optional[CalibreLibrary]:
+    def get_library_by_path(self, path: Path) -> CalibreLibrary | None:
         """Get a library by its path"""
         for library in self.discovered_libraries.values():
             if library.path == path:
@@ -457,7 +460,7 @@ class CalibreConfigDiscovery:
 
 
 # Global discovery instance
-_discovery_instance: Optional[CalibreConfigDiscovery] = None
+_discovery_instance: CalibreConfigDiscovery | None = None
 
 
 def get_calibre_discovery() -> CalibreConfigDiscovery:
@@ -468,19 +471,19 @@ def get_calibre_discovery() -> CalibreConfigDiscovery:
     return _discovery_instance
 
 
-def discover_calibre_libraries() -> Dict[str, CalibreLibrary]:
+def discover_calibre_libraries() -> dict[str, CalibreLibrary]:
     """Convenience function to discover all Calibre libraries"""
     discovery = get_calibre_discovery()
     return discovery.discover_all_libraries()
 
 
-def get_active_calibre_library() -> Optional[CalibreLibrary]:
+def get_active_calibre_library() -> CalibreLibrary | None:
     """Convenience function to get the active Calibre library"""
     discovery = get_calibre_discovery()
     return discovery.get_active_library()
 
 
-def get_calibre_library_by_name(name: str) -> Optional[CalibreLibrary]:
+def get_calibre_library_by_name(name: str) -> CalibreLibrary | None:
     """Convenience function to get a library by name"""
     discovery = get_calibre_discovery()
     return discovery.get_library_by_name(name)

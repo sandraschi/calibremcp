@@ -4,8 +4,8 @@ Setup complete test fixtures: database + files.
 Run this to create both the test database and all test files.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Add scripts to path
 scripts_dir = Path(__file__).parent

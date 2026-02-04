@@ -21,15 +21,17 @@ Phase 2 adds 19 additional tools:
 import os
 import sys
 
-if os.name == 'nt':  # Windows only
+if os.name == "nt":  # Windows only
     try:
         # Force binary mode for stdin/stdout to prevent CRLF conversion
         import msvcrt
+
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     except (OSError, AttributeError):
         # Fallback: just ensure no CRLF conversion
         pass
+
 
 # DevNullStdout class for stdio mode suppression
 class DevNullStdout:
@@ -45,6 +47,7 @@ class DevNullStdout:
 
     def restore(self):
         sys.stdout = self.original_stdout
+
 
 # CRITICAL: Suppress all warnings before any imports
 # MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
@@ -64,22 +67,22 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 # CRITICAL: Detect if we're running in stdio mode (MCP server)
 # MCP servers use stdio transport, so stdout must be clean for JSON-RPC
-_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, 'isatty') else True
+_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 
-from typing import Optional, List, Dict, Any, AsyncContextManager
-from pathlib import Path
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any, AsyncContextManager
 
+from dotenv import load_dotenv
 from fastmcp import FastMCP
 from pydantic import BaseModel
-from dotenv import load_dotenv
-
-# Import structured logging
-from .logging_config import get_logger, log_operation, log_error, setup_logging
 
 # Standard imports - no fallbacks needed
 from .calibre_api import CalibreAPIClient
 from .config import CalibreConfig
+
+# Import structured logging
+from .logging_config import get_logger, log_error, log_operation, setup_logging
 from .storage.persistence import CalibreMCPStorage, set_storage
 
 # Load environment variables
@@ -89,10 +92,10 @@ load_dotenv()
 logger = get_logger("calibremcp.server")
 
 # Global API client and database connections (initialized on startup)
-api_client: Optional[CalibreAPIClient] = None
+api_client: CalibreAPIClient | None = None
 current_library: str = "main"
-available_libraries: Dict[str, str] = {}
-storage: Optional[CalibreMCPStorage] = None
+available_libraries: dict[str, str] = {}
+storage: CalibreMCPStorage | None = None
 
 
 @asynccontextmanager
@@ -113,9 +116,9 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
         logger.info("FastMCP 2.13 storage initialized")
 
         # Initialize config and discover libraries FIRST
-        from .db.database import init_database
         from .config import CalibreConfig
         from .config_discovery import get_active_calibre_library
+        from .db.database import init_database
 
         config = CalibreConfig()
 
@@ -270,7 +273,7 @@ mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
 # CRITICAL: After server initialization, restore stdout for stdio mode
 # This allows the server to communicate via JSON-RPC while preventing initialization logging
 if _is_stdio_mode:
-    if hasattr(sys.stdout, 'restore'):
+    if hasattr(sys.stdout, "restore"):
         sys.stdout.restore()
         # Now we can safely write to stdout for JSON-RPC communication
 
@@ -278,14 +281,16 @@ if _is_stdio_mode:
 
     # Set up proper logging to stderr only (not stdout)
     import logging
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        stream=sys.stderr  # Critical: log to stderr, not stdout
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        stream=sys.stderr,  # Critical: log to stderr, not stdout
     )
 
 # Register prompt templates
 from .prompts import register_prompts
+
 register_prompts(mcp)
 
 
@@ -295,9 +300,9 @@ register_prompts(mcp)
 class LibrarySearchResponse(BaseModel):
     """Response model for library search operations"""
 
-    results: List[Dict[str, Any]]
+    results: list[dict[str, Any]]
     total_found: int
-    query_used: Optional[str] = None
+    query_used: str | None = None
     search_time_ms: int = 0
     library_searched: str = "main"
 
@@ -307,19 +312,19 @@ class BookDetailResponse(BaseModel):
 
     book_id: int
     title: str
-    authors: List[str]
-    series: Optional[str] = None
-    series_index: Optional[float] = None
-    rating: Optional[float] = None
-    tags: List[str] = []
-    comments: Optional[str] = None
-    published: Optional[str] = None
-    languages: List[str] = ["en"]
-    formats: List[str] = []
-    identifiers: Dict[str, str] = {}
-    last_modified: Optional[str] = None
-    cover_url: Optional[str] = None
-    download_links: Dict[str, str] = {}
+    authors: list[str]
+    series: str | None = None
+    series_index: float | None = None
+    rating: float | None = None
+    tags: list[str] = []
+    comments: str | None = None
+    published: str | None = None
+    languages: list[str] = ["en"]
+    formats: list[str] = []
+    identifiers: dict[str, str] = {}
+    last_modified: str | None = None
+    cover_url: str | None = None
+    download_links: dict[str, str] = {}
     library_name: str = "main"
 
 
@@ -328,17 +333,17 @@ class ConnectionTestResponse(BaseModel):
 
     connected: bool
     server_url: str
-    server_version: Optional[str] = None
+    server_version: str | None = None
     library_count: int = 0
     total_books: int = 0
     response_time_ms: int = 0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class LibraryListResponse(BaseModel):
     """Response model for library listing"""
 
-    libraries: List[Dict[str, Any]]
+    libraries: list[dict[str, Any]]
     current_library: str
     total_libraries: int
 
@@ -351,10 +356,10 @@ class LibraryStatsResponse(BaseModel):
     total_authors: int
     total_series: int
     total_tags: int
-    format_distribution: Dict[str, int]
-    language_distribution: Dict[str, int]
-    rating_distribution: Dict[str, int]
-    last_modified: Optional[str] = None
+    format_distribution: dict[str, int]
+    language_distribution: dict[str, int]
+    rating_distribution: dict[str, int]
+    last_modified: str | None = None
 
 
 class TagStatsResponse(BaseModel):
@@ -362,41 +367,41 @@ class TagStatsResponse(BaseModel):
 
     total_tags: int
     unique_tags: int
-    duplicate_tags: List[Dict[str, Any]]
-    unused_tags: List[str]
-    suggestions: List[Dict[str, Any]]
+    duplicate_tags: list[dict[str, Any]]
+    unused_tags: list[str]
+    suggestions: list[dict[str, Any]]
 
 
 class DuplicatesResponse(BaseModel):
     """Response model for duplicate detection"""
 
-    duplicate_groups: List[Dict[str, Any]]
+    duplicate_groups: list[dict[str, Any]]
     total_duplicates: int
-    confidence_scores: Dict[str, float]
+    confidence_scores: dict[str, float]
 
 
 class SeriesAnalysisResponse(BaseModel):
     """Response model for series analysis"""
 
-    incomplete_series: List[Dict[str, Any]]
-    reading_order_suggestions: List[Dict[str, Any]]
-    series_statistics: Dict[str, Any]
+    incomplete_series: list[dict[str, Any]]
+    reading_order_suggestions: list[dict[str, Any]]
+    series_statistics: dict[str, Any]
 
 
 class LibraryHealthResponse(BaseModel):
     """Response model for library health analysis"""
 
     health_score: float
-    issues_found: List[Dict[str, Any]]
-    recommendations: List[str]
+    issues_found: list[dict[str, Any]]
+    recommendations: list[str]
     database_integrity: bool
 
 
 class UnreadPriorityResponse(BaseModel):
     """Response model for unread priority list"""
 
-    prioritized_books: List[Dict[str, Any]]
-    priority_reasons: Dict[str, str]
+    prioritized_books: list[dict[str, Any]]
+    priority_reasons: dict[str, str]
     total_unread: int
 
 
@@ -411,8 +416,8 @@ class MetadataUpdateRequest(BaseModel):
 class MetadataUpdateResponse(BaseModel):
     """Response model for metadata updates"""
 
-    updated_books: List[int]
-    failed_updates: List[Dict[str, Any]]
+    updated_books: list[int]
+    failed_updates: list[dict[str, Any]]
     success_count: int
 
 
@@ -421,8 +426,8 @@ class ReadingStats(BaseModel):
 
     total_books_read: int
     average_rating: float
-    favorite_genres: List[str]
-    reading_patterns: Dict[str, Any]
+    favorite_genres: list[str]
+    reading_patterns: dict[str, Any]
 
 
 class ConversionRequest(BaseModel):
@@ -439,39 +444,39 @@ class ConversionResponse(BaseModel):
 
     book_id: int
     success: bool
-    output_path: Optional[str] = None
-    error_message: Optional[str] = None
+    output_path: str | None = None
+    error_message: str | None = None
 
 
 class JapaneseBookOrganization(BaseModel):
     """Response model for Japanese book organization"""
 
-    manga_series: List[Dict[str, Any]]
-    light_novels: List[Dict[str, Any]]
-    language_learning: List[Dict[str, Any]]
-    reading_recommendations: List[str]
+    manga_series: list[dict[str, Any]]
+    light_novels: list[dict[str, Any]]
+    language_learning: list[dict[str, Any]]
+    reading_recommendations: list[str]
 
 
 class ITBookCuration(BaseModel):
     """Response model for IT book curation"""
 
-    programming_languages: Dict[str, List[Dict[str, Any]]]
-    outdated_books: List[Dict[str, Any]]
-    learning_paths: List[Dict[str, Any]]
+    programming_languages: dict[str, list[dict[str, Any]]]
+    outdated_books: list[dict[str, Any]]
+    learning_paths: list[dict[str, Any]]
 
 
 class ReadingRecommendations(BaseModel):
     """Response model for reading recommendations"""
 
-    recommendations: List[Dict[str, Any]]
-    reasoning: Dict[str, str]
-    confidence_scores: Dict[str, float]
+    recommendations: list[dict[str, Any]]
+    reasoning: dict[str, str]
+    confidence_scores: dict[str, float]
 
 
 # ==================== HELPER FUNCTIONS ====================
 
 
-async def get_api_client() -> Optional[CalibreAPIClient]:
+async def get_api_client() -> CalibreAPIClient | None:
     """
     Get or create API client instance for remote Calibre Content Server access.
 
@@ -491,7 +496,7 @@ async def get_api_client() -> Optional[CalibreAPIClient]:
     return api_client
 
 
-async def discover_libraries() -> Dict[str, str]:
+async def discover_libraries() -> dict[str, str]:
     """Discover available Calibre libraries"""
     global available_libraries
 

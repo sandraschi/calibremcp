@@ -1,6 +1,5 @@
 """Tool for updating book metadata in the Calibre library."""
 
-from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 try:
@@ -12,18 +11,18 @@ except ImportError:
 class MetadataUpdate(BaseModel):
     """Model for metadata updates."""
 
-    title: Optional[str] = None
-    authors: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    series: Optional[str] = None
-    series_index: Optional[float] = None
-    publisher: Optional[str] = None
-    published_date: Optional[str] = None
-    description: Optional[str] = None
-    identifiers: Optional[Dict[str, str]] = None
-    languages: Optional[List[str]] = None
-    rating: Optional[int] = Field(None, ge=0, le=5)
-    cover_path: Optional[str] = None
+    title: str | None = None
+    authors: list[str] | None = None
+    tags: list[str] | None = None
+    series: str | None = None
+    series_index: float | None = None
+    publisher: str | None = None
+    published_date: str | None = None
+    description: str | None = None
+    identifiers: dict[str, str] | None = None
+    languages: list[str] | None = None
+    rating: int | None = Field(None, ge=0, le=5)
+    cover_path: str | None = None
 
 
 class UpdateMetadataTool(MCPTool):
@@ -32,19 +31,19 @@ class UpdateMetadataTool(MCPTool):
     name = "update_metadata"
     description = "Update metadata for books in the Calibre library"
     parameters = [
-        Param("book_ids", List[Union[int, str]], "List of book IDs to update"),
-        Param("metadata", Dict, "Metadata fields to update"),
+        Param("book_ids", list[int | str], "List of book IDs to update"),
+        Param("metadata", dict, "Metadata fields to update"),
         Param("library_path", str, "Path to the Calibre library", required=False),
         Param("update_cover", bool, "Whether to update the book cover", default=True),
     ]
 
     async def _run(
         self,
-        book_ids: List[Union[int, str]],
-        metadata: Dict,
-        library_path: Optional[str] = None,
+        book_ids: list[int | str],
+        metadata: dict,
+        library_path: str | None = None,
         update_cover: bool = True,
-    ) -> Dict:
+    ) -> dict:
         """Update metadata for the specified books."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 

@@ -12,21 +12,22 @@ Use manage_system(operation="...") instead:
 - health_check() → manage_system(operation="health_check")
 """
 
+import inspect
 import os
 import platform
-import psutil
 import sys
-import inspect
 from datetime import datetime
-from typing import Dict, Optional, Any, List
 from enum import Enum
+from typing import Any
 
+import psutil
 
-# Import the MCP server instance and helper functions
-from ...server import mcp, get_api_client, current_library
-from ...logging_config import get_logger, log_operation, log_error
 from ...config import CalibreConfig
 from ...db.database import DatabaseService
+from ...logging_config import get_logger, log_error, log_operation
+
+# Import the MCP server instance and helper functions
+from ...server import current_library, get_api_client, mcp
 
 logger = get_logger("calibremcp.tools.system")
 
@@ -245,9 +246,7 @@ HELP_DOCS = {
 }
 
 
-async def help_helper(
-    level: HelpLevel, topic: Optional[str] = None
-) -> str:
+async def help_helper(level: HelpLevel, topic: str | None = None) -> str:
     """
     Helper for manage_system(operation='help'). Generates multi-level help content.
     Used by manage_system; not registered as a standalone MCP tool.
@@ -300,9 +299,15 @@ async def help_helper(
         if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
             content.append("## Troubleshooting")
             content.append("")
-            content.append("1. **Library not found**: manage_libraries(operation='list') to see discovered libraries")
-            content.append("2. **DB offline**: Ensure library path exists; check CALIBRE_LIBRARY_PATH")
-            content.append("3. **Open file fails**: Verify book has EPUB/PDF; check library path resolution")
+            content.append(
+                "1. **Library not found**: manage_libraries(operation='list') to see discovered libraries"
+            )
+            content.append(
+                "2. **DB offline**: Ensure library path exists; check CALIBRE_LIBRARY_PATH"
+            )
+            content.append(
+                "3. **Open file fails**: Verify book has EPUB/PDF; check library path resolution"
+            )
             content.append("")
 
         return "\n".join(content)
@@ -313,7 +318,7 @@ async def help_helper(
 
 
 # Deprecated: use manage_system(operation="help") - kept as helper only, not registered
-async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
+async def help(level: HelpLevel = HelpLevel.BASIC, topic: str | None = None) -> str:
     """
     Comprehensive help system with multiple detail levels.
 
@@ -331,9 +336,7 @@ async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) 
 
 
 # Deprecated: use manage_system(operation="status") - kept as helper only, not registered
-async def status(
-    level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None
-) -> str:
+async def status(level: StatusLevel = StatusLevel.BASIC, focus: str | None = None) -> str:
     """
     Comprehensive system status and diagnostic information.
 
@@ -428,25 +431,17 @@ async def status(
 
                 for tool in registered_tools:
                     name_lower = tool["name"].lower()
-                    if any(
-                        x in name_lower
-                        for x in ["list_books", "search_books", "get_book"]
-                    ):
+                    if any(x in name_lower for x in ["list_books", "search_books", "get_book"]):
                         tool_categories["Core Operations"].append(tool)
                     elif any(x in name_lower for x in ["library", "switch"]):
                         tool_categories["Library Management"].append(tool)
-                    elif any(
-                        x in name_lower
-                        for x in ["statistics", "analysis", "series", "tag"]
-                    ):
+                    elif any(x in name_lower for x in ["statistics", "analysis", "series", "tag"]):
                         tool_categories["Analysis"].append(tool)
                     elif "metadata" in name_lower or "update" in name_lower:
                         tool_categories["Metadata"].append(tool)
                     elif "download" in name_lower or "format" in name_lower:
                         tool_categories["Files"].append(tool)
-                    elif any(
-                        x in name_lower for x in ["help", "status", "health", "tool"]
-                    ):
+                    elif any(x in name_lower for x in ["help", "status", "health", "tool"]):
                         tool_categories["System"].append(tool)
                     else:
                         tool_categories["Other"].append(tool)
@@ -510,28 +505,18 @@ async def status(
             # Calibre connection details
             if calibre_status == "connected":
                 content.append("### Calibre Server Details")
-                content.append(
-                    f"**Server URL:** {calibre_info.get('server_url', 'Unknown')}"
-                )
-                content.append(
-                    f"**Server Version:** {calibre_info.get('version', 'Unknown')}"
-                )
-                content.append(
-                    f"**Total Books:** {calibre_info.get('total_books', 'Unknown')}"
-                )
+                content.append(f"**Server URL:** {calibre_info.get('server_url', 'Unknown')}")
+                content.append(f"**Server Version:** {calibre_info.get('version', 'Unknown')}")
+                content.append(f"**Total Books:** {calibre_info.get('total_books', 'Unknown')}")
                 content.append("")
             else:
                 content.append("### Calibre Connection Issues")
-                content.append(
-                    f"**Error:** {calibre_info.get('error', 'Unknown error')}"
-                )
+                content.append(f"**Error:** {calibre_info.get('error', 'Unknown error')}")
                 content.append("")
 
             # Configuration details
             content.append("### Configuration")
-            content.append(
-                f"**Auto-discover Libraries:** {config.auto_discover_libraries}"
-            )
+            content.append(f"**Auto-discover Libraries:** {config.auto_discover_libraries}")
             content.append(f"**Server URL:** {config.server_url}")
             content.append(f"**Timeout:** {config.timeout}s")
             content.append(f"**Max Retries:** {config.max_retries}")
@@ -556,14 +541,12 @@ async def status(
         return f"Error generating status: {str(e)}"
 
 
-async def status_helper(
-    level: StatusLevel, focus: Optional[str] = None
-) -> str:
+async def status_helper(level: StatusLevel, focus: str | None = None) -> str:
     """Helper for manage_system(operation='status')."""
     return await status(level=level, focus=focus)
 
 
-def _get_registered_tools() -> List[Dict[str, Any]]:
+def _get_registered_tools() -> list[dict[str, Any]]:
     """
     Get all registered tools from the MCP server.
 
@@ -608,7 +591,7 @@ def _get_registered_tools() -> List[Dict[str, Any]]:
     return tools
 
 
-def _get_tool_by_name(tool_name: str) -> Optional[Dict[str, Any]]:
+def _get_tool_by_name(tool_name: str) -> dict[str, Any] | None:
     """
     Get detailed information about a specific tool.
 
@@ -649,9 +632,7 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
         tool_help("list_libraries", level="expert")
     """
     try:
-        log_operation(
-            logger, "tool_help_requested", tool_name=tool_name, level=level.value
-        )
+        log_operation(logger, "tool_help_requested", tool_name=tool_name, level=level.value)
 
         # Get tool information
         tool_info = _get_tool_by_name(tool_name)
@@ -659,14 +640,14 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
         if not tool_info:
             # Try to find similar tool names
             all_tools = _get_registered_tools()
-            similar = [
-                t["name"] for t in all_tools if tool_name.lower() in t["name"].lower()
-            ]
+            similar = [t["name"] for t in all_tools if tool_name.lower() in t["name"].lower()]
 
             if similar:
                 return f"Tool '{tool_name}' not found. Did you mean: {', '.join(similar[:5])}?"
             else:
-                return f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
+                return (
+                    f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
+                )
 
         # Build help content
         content = []
@@ -706,9 +687,7 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
                     content.append(f"### `{param['name']}`")
                     content.append("")
                     content.append(f"- **Type:** `{param['type']}`")
-                    content.append(
-                        f"- **Required:** {'Yes' if param['required'] else 'No'}"
-                    )
+                    content.append(f"- **Required:** {'Yes' if param['required'] else 'No'}")
                     if param["default"] is not None:
                         content.append(f"- **Default:** `{repr(param['default'])}`")
                     content.append("")
@@ -716,9 +695,7 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
             content.append("")
 
         # Signature
-        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT] and tool_info.get(
-            "signature"
-        ):
+        if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT] and tool_info.get("signature"):
             content.append("## Function Signature")
             content.append("")
             content.append("```python")
@@ -765,14 +742,12 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
         return f"Error generating tool help: {str(e)}"
 
 
-async def tool_help_helper(
-    tool_name: str, level: HelpLevel = HelpLevel.BASIC
-) -> str:
+async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
     """Helper for manage_system(operation='tool_help')."""
     return await tool_help(tool_name=tool_name, level=level)
 
 
-def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
+def _get_tool_examples(tool_name: str, level: HelpLevel) -> list[str]:
     """Get example usage for a tool."""
     examples = []
 
@@ -823,7 +798,7 @@ def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
     return examples
 
 
-def _get_related_tools(tool_name: str) -> List[str]:
+def _get_related_tools(tool_name: str) -> list[str]:
     """Get related tools based on functionality."""
     related_map = {
         "query_books": ["manage_books", "manage_metadata"],
@@ -837,7 +812,7 @@ def _get_related_tools(tool_name: str) -> List[str]:
     return related_map.get(tool_name, [])
 
 
-def _get_tool_tips(tool_name: str) -> List[str]:
+def _get_tool_tips(tool_name: str) -> list[str]:
     """Get expert tips for a tool."""
     tips_map = {
         "query_books": [
@@ -863,7 +838,7 @@ def _get_tool_tips(tool_name: str) -> List[str]:
 
 
 # Deprecated: use manage_system(operation="list_tools") - kept as helper only, not registered
-async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
+async def list_tools(category: str | None = None) -> dict[str, Any]:
     """
     List all available tools with their descriptions.
 
@@ -920,9 +895,7 @@ async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
                 categories["core"].append(tool)
             elif any(x in name_lower for x in ["library", "switch"]):
                 categories["library"].append(tool)
-            elif any(
-                x in name_lower for x in ["statistics", "analysis", "series", "tag"]
-            ):
+            elif any(x in name_lower for x in ["statistics", "analysis", "series", "tag"]):
                 categories["analysis"].append(tool)
             elif "metadata" in name_lower or "update" in name_lower:
                 categories["metadata"].append(tool)
@@ -938,10 +911,7 @@ async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
             "tools": filtered,
             "categories": {k: len(v) for k, v in categories.items() if v},
             "categorized_tools": {
-                k: [
-                    {"name": t["name"], "description": t["description"][:100]}
-                    for t in v
-                ]
+                k: [{"name": t["name"], "description": t["description"][:100]} for t in v]
                 for k, v in categories.items()
                 if v
             },
@@ -952,7 +922,7 @@ async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
         return {"total": 0, "tools": [], "categories": {}, "error": str(e)}
 
 
-async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
+async def list_tools_helper(category: str | None = None) -> dict[str, Any]:
     """Helper for manage_system(operation='list_tools')."""
     return await list_tools(category=category)
 
@@ -987,7 +957,7 @@ async def hello_world_helper() -> str:
 
 
 # Deprecated: use manage_system(operation="health_check") - kept as helper only, not registered
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """
     Machine-readable health check for monitoring systems.
 
@@ -1044,9 +1014,7 @@ async def health_check() -> Dict[str, Any]:
             cpu_percent = psutil.cpu_percent(interval=0.1)
 
             health_status["checks"]["system_resources"] = {
-                "status": "healthy"
-                if memory.percent < 90 and cpu_percent < 90
-                else "warning",
+                "status": "healthy" if memory.percent < 90 and cpu_percent < 90 else "warning",
                 "memory_percent": memory.percent,
                 "cpu_percent": cpu_percent,
             }
@@ -1062,9 +1030,7 @@ async def health_check() -> Dict[str, Any]:
 
         # Overall status determination
         unhealthy_checks = [
-            check
-            for check in health_status["checks"].values()
-            if check["status"] == "unhealthy"
+            check for check in health_status["checks"].values() if check["status"] == "unhealthy"
         ]
         if unhealthy_checks:
             health_status["status"] = "unhealthy"
@@ -1080,7 +1046,7 @@ async def health_check() -> Dict[str, Any]:
         }
 
 
-async def health_check_helper() -> Dict[str, Any]:
+async def health_check_helper() -> dict[str, Any]:
     """Helper for manage_system(operation='health_check')."""
     return await health_check()
 
@@ -1132,7 +1098,7 @@ async def maintenance(operation: str = "vacuum") -> str:
 
 
 # Deprecated: use manage_system - kept as helper only, not registered
-async def config_view() -> Dict[str, Any]:
+async def config_view() -> dict[str, Any]:
     """
     View non-sensitive server configuration.
     """

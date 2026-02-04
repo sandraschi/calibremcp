@@ -4,21 +4,21 @@ Helper functions for description management (Calibre comment = description).
 Read-only browse operations. For create/update/delete use manage_comments.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...services.description_service import get_description_service
 from ...logging_config import get_logger
+from ...services.description_service import get_description_service
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.descriptions")
 
 
 async def list_descriptions_helper(
-    query: Optional[str] = None,
-    has_description: Optional[bool] = None,
+    query: str | None = None,
+    has_description: bool | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """List books with description info. Optional search in description text."""
     try:
         svc = get_description_service()
@@ -38,7 +38,7 @@ async def list_descriptions_helper(
         )
 
 
-async def get_description_helper(book_id: int) -> Dict[str, Any]:
+async def get_description_helper(book_id: int) -> dict[str, Any]:
     """Get description for a book."""
     try:
         svc = get_description_service()
@@ -55,7 +55,7 @@ async def get_description_helper(book_id: int) -> Dict[str, Any]:
         )
 
 
-async def get_description_stats_helper() -> Dict[str, Any]:
+async def get_description_stats_helper() -> dict[str, Any]:
     """Get description coverage statistics."""
     try:
         svc = get_description_service()
@@ -70,7 +70,7 @@ async def get_description_stats_helper() -> Dict[str, Any]:
         )
 
 
-async def get_descriptions_by_letter_helper(letter: str) -> Dict[str, Any]:
+async def get_descriptions_by_letter_helper(letter: str) -> dict[str, Any]:
     """Get books with descriptions whose title starts with letter."""
     try:
         if len(letter) != 1 or not letter.isalpha():

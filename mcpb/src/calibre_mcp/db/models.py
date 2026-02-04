@@ -2,21 +2,22 @@
 SQLAlchemy models for Calibre database.
 """
 
+from datetime import datetime
+
 from sqlalchemy import (
     Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
     Integer,
     String,
-    Text,
-    Float,
-    DateTime,
-    ForeignKey,
     Table,
+    Text,
     UniqueConstraint,
-    Index,
 )
-from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 

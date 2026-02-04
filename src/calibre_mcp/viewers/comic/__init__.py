@@ -2,13 +2,13 @@
 Comic viewer module for CalibreMCP - Handles CBZ and CBR formats.
 """
 
-from typing import Dict, Any
-from pathlib import Path
-import zipfile
 import base64
-import re
-from enum import Enum
 import os
+import re
+import zipfile
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict
 
 try:
     import rarfile
@@ -73,7 +73,9 @@ class ComicViewer:
                 ]
             elif ext == "cbr":
                 if rarfile is None:
-                    raise ImportError("rarfile is required for CBR viewing. Install it with: pip install rarfile")
+                    raise ImportError(
+                        "rarfile is required for CBR viewing. Install it with: pip install rarfile"
+                    )
                 self._archive = rarfile.RarFile(file_path, "r")
                 self._file_list = [
                     f
@@ -108,7 +110,7 @@ class ComicViewer:
             else:
                 self._settings[key] = value
 
-    def render_page(self, page_number: int = 0) -> Dict[str, Any]:
+    def render_page(self, page_number: int = 0) -> dict[str, Any]:
         """Render a specific page of the comic."""
         if not self._archive or page_number < 0 or page_number >= len(self._file_list):
             return {
@@ -175,19 +177,19 @@ class ComicViewer:
                 "error": str(e),
             }
 
-    def next_page(self) -> Dict[str, Any]:
+    def next_page(self) -> dict[str, Any]:
         """Go to the next page."""
         if self._current_page < len(self._file_list) - 1:
             self._current_page += 1
         return self.render_page(self._current_page)
 
-    def previous_page(self) -> Dict[str, Any]:
+    def previous_page(self) -> dict[str, Any]:
         """Go to the previous page."""
         if self._current_page > 0:
             self._current_page -= 1
         return self.render_page(self._current_page)
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get metadata about the comic."""
         return self._metadata
 

@@ -3,21 +3,22 @@ SQLAlchemy and Pydantic models for Book in Calibre MCP.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any, TYPE_CHECKING
-from sqlalchemy import Integer, String, Text, Float, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING, Any, Optional
+
 from pydantic import BaseModel, Field, validator
+from sqlalchemy import DateTime, Float, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
 if TYPE_CHECKING:
     from .author import Author
-    from .series import Series
-    from .tag import Tag
-    from .rating import Rating
     from .comment import Comment
     from .data import Data
     from .identifier import Identifier
+    from .rating import Rating
+    from .series import Series
+    from .tag import Tag
 
 # Association tables are defined in models/__init__.py
 
@@ -29,41 +30,41 @@ class Book(Base, BaseMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(Text, nullable=False, index=True)
-    sort: Mapped[Optional[str]] = mapped_column(Text)
-    timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime)
-    pubdate: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    sort: Mapped[str | None] = mapped_column(Text)
+    timestamp: Mapped[datetime | None] = mapped_column(DateTime)
+    pubdate: Mapped[datetime | None] = mapped_column(DateTime)
     series_index: Mapped[float] = mapped_column(Float, default=1.0)
-    author_sort: Mapped[Optional[str]] = mapped_column(Text)
-    isbn: Mapped[Optional[str]] = mapped_column(String(32))
-    lccn: Mapped[Optional[str]] = mapped_column(String(32))
+    author_sort: Mapped[str | None] = mapped_column(Text)
+    isbn: Mapped[str | None] = mapped_column(String(32))
+    lccn: Mapped[str | None] = mapped_column(String(32))
     path: Mapped[str] = mapped_column(Text, nullable=False)
     flags: Mapped[int] = mapped_column(Integer, default=1)
-    uuid: Mapped[Optional[str]] = mapped_column(String(36))
+    uuid: Mapped[str | None] = mapped_column(String(36))
     has_cover: Mapped[bool] = mapped_column(Integer, default=0)
-    last_modified: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)
+    last_modified: Mapped[datetime | None] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
     # Relationships
-    authors: Mapped[List["Author"]] = relationship(
+    authors: Mapped[list["Author"]] = relationship(
         "Author", secondary="books_authors_link", back_populates="books"
     )
 
-    series_rel: Mapped[List["Series"]] = relationship(
+    series_rel: Mapped[list["Series"]] = relationship(
         "Series", secondary="books_series_link", back_populates="books"
     )
 
-    tags: Mapped[List["Tag"]] = relationship(
+    tags: Mapped[list["Tag"]] = relationship(
         "Tag", secondary="books_tags_link", back_populates="books"
     )
 
-    ratings: Mapped[List["Rating"]] = relationship(
+    ratings: Mapped[list["Rating"]] = relationship(
         "Rating", secondary="books_ratings_link", back_populates="books"
     )
 
-    comments: Mapped[List["Comment"]] = relationship("Comment", back_populates="book")
+    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="book")
 
-    data: Mapped[List["Data"]] = relationship("Data", back_populates="book")
+    data: Mapped[list["Data"]] = relationship("Data", back_populates="book")
 
-    identifiers: Mapped[List["Identifier"]] = relationship("Identifier", back_populates="book")
+    identifiers: Mapped[list["Identifier"]] = relationship("Identifier", back_populates="book")
 
     def __repr__(self) -> str:
         return f"<Book(id={self.id}, title='{self.title}')>"
@@ -73,7 +74,7 @@ class Book(Base, BaseMixin):
         """Get the first series this book belongs to, if any."""
         return self.series_rel[0] if self.series_rel else None
 
-    def get_cover_path(self) -> Optional[str]:
+    def get_cover_path(self) -> str | None:
         """Get the path to the book's cover image"""
         if not self.has_cover or not self.path:
             return None
@@ -85,17 +86,15 @@ class BookBase(BaseModel):
     """Base Pydantic model for Book"""
 
     title: str = Field(..., description="Title of the book")
-    sort: Optional[str] = Field(None, description="Sort title")
-    timestamp: Optional[datetime] = Field(
-        None, description="When the book was added to the library"
-    )
-    pubdate: Optional[datetime] = Field(None, description="Publication date")
+    sort: str | None = Field(None, description="Sort title")
+    timestamp: datetime | None = Field(None, description="When the book was added to the library")
+    pubdate: datetime | None = Field(None, description="Publication date")
     series_index: float = Field(1.0, description="Position in series")
     path: str = Field(..., description="Path to the book's directory")
     has_cover: bool = Field(False, description="Whether the book has a cover")
-    author_sort: Optional[str] = Field(None, description="Author sort string")
-    isbn: Optional[str] = Field(None, description="ISBN")
-    lccn: Optional[str] = Field(None, description="Library of Congress Control Number")
+    author_sort: str | None = Field(None, description="Author sort string")
+    isbn: str | None = Field(None, description="ISBN")
+    lccn: str | None = Field(None, description="Library of Congress Control Number")
 
     class Config:
         from_attributes = True  # Pydantic V2 replacement for orm_mode
@@ -105,46 +104,46 @@ class BookBase(BaseModel):
 class BookCreate(BookBase):
     """Pydantic model for creating a new book"""
 
-    author_ids: List[int] = Field(default_factory=list, description="List of author IDs")
-    series_id: Optional[int] = Field(None, description="Series ID")
-    tag_ids: List[int] = Field(default_factory=list, description="List of tag IDs")
-    rating: Optional[int] = Field(None, description="Rating (1-5)", ge=1, le=5)
+    author_ids: list[int] = Field(default_factory=list, description="List of author IDs")
+    series_id: int | None = Field(None, description="Series ID")
+    tag_ids: list[int] = Field(default_factory=list, description="List of tag IDs")
+    rating: int | None = Field(None, description="Rating (1-5)", ge=1, le=5)
 
 
 class BookUpdate(BaseModel):
     """Pydantic model for updating a book"""
 
-    title: Optional[str] = Field(None, description="Title of the book")
-    sort: Optional[str] = Field(None, description="Sort title")
-    pubdate: Optional[datetime] = Field(None, description="Publication date")
-    series_index: Optional[float] = Field(None, description="Position in series")
-    path: Optional[str] = Field(None, description="Path to the book's directory")
-    has_cover: Optional[bool] = Field(None, description="Whether the book has a cover")
-    author_sort: Optional[str] = Field(None, description="Author sort string")
-    isbn: Optional[str] = Field(None, description="ISBN")
-    lccn: Optional[str] = Field(None, description="Library of Congress Control Number")
-    author_ids: Optional[List[int]] = Field(None, description="List of author IDs")
-    series_id: Optional[int] = Field(None, description="Series ID")
-    tag_ids: Optional[List[int]] = Field(None, description="List of tag IDs")
-    rating: Optional[int] = Field(None, description="Rating (1-5)", ge=1, le=5)
+    title: str | None = Field(None, description="Title of the book")
+    sort: str | None = Field(None, description="Sort title")
+    pubdate: datetime | None = Field(None, description="Publication date")
+    series_index: float | None = Field(None, description="Position in series")
+    path: str | None = Field(None, description="Path to the book's directory")
+    has_cover: bool | None = Field(None, description="Whether the book has a cover")
+    author_sort: str | None = Field(None, description="Author sort string")
+    isbn: str | None = Field(None, description="ISBN")
+    lccn: str | None = Field(None, description="Library of Congress Control Number")
+    author_ids: list[int] | None = Field(None, description="List of author IDs")
+    series_id: int | None = Field(None, description="Series ID")
+    tag_ids: list[int] | None = Field(None, description="List of tag IDs")
+    rating: int | None = Field(None, description="Rating (1-5)", ge=1, le=5)
 
 
 class BookResponse(BookBase):
     """Pydantic model for book response"""
 
     id: int = Field(..., description="Unique identifier for the book")
-    uuid: Optional[str] = Field(None, description="Unique identifier for the book")
-    last_modified: Optional[datetime] = Field(None, description="When the book was last modified")
+    uuid: str | None = Field(None, description="Unique identifier for the book")
+    last_modified: datetime | None = Field(None, description="When the book was last modified")
 
     # Computed fields
-    authors: List[Dict[str, Any]] = Field(default_factory=list, description="List of authors")
-    series: Optional[Dict[str, Any]] = Field(None, description="Series information")
-    tags: List[Dict[str, Any]] = Field(default_factory=list, description="List of tags")
-    rating: Optional[int] = Field(None, description="Book rating (1-5)")
-    formats: List[Dict[str, Any]] = Field(default_factory=list, description="Available formats")
-    identifiers: Dict[str, str] = Field(default_factory=dict, description="Book identifiers")
-    cover_url: Optional[str] = Field(None, description="URL to the book cover image")
-    comments: Optional[str] = Field(None, description="Book comments/description")
+    authors: list[dict[str, Any]] = Field(default_factory=list, description="List of authors")
+    series: dict[str, Any] | None = Field(None, description="Series information")
+    tags: list[dict[str, Any]] = Field(default_factory=list, description="List of tags")
+    rating: int | None = Field(None, description="Book rating (1-5)")
+    formats: list[dict[str, Any]] = Field(default_factory=list, description="Available formats")
+    identifiers: dict[str, str] = Field(default_factory=dict, description="Book identifiers")
+    cover_url: str | None = Field(None, description="URL to the book cover image")
+    comments: str | None = Field(None, description="Book comments/description")
 
     @validator("formats", pre=True)
     def format_data_to_formats(cls, v, values):

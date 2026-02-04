@@ -1,7 +1,7 @@
 """Advanced bulk operations for CalibreMCP."""
 
-from typing import Dict, List, Optional, Union, Any
 import asyncio
+from typing import Any
 
 try:
     from fastmcp import MCPTool
@@ -15,7 +15,7 @@ class BulkOperationsTool(MCPTool):
     name = "bulk_operations"
     description = "Perform bulk operations on the library"
 
-    async def _run(self, operation: str, **kwargs) -> Dict:
+    async def _run(self, operation: str, **kwargs) -> dict:
         """Route to the appropriate bulk operation handler."""
         handler = getattr(self, f"bulk_{operation}", None)
         if not handler:
@@ -28,11 +28,11 @@ class BulkOperationsTool(MCPTool):
 
     async def bulk_update_metadata(
         self,
-        book_ids: List[Union[int, str]],
-        updates: Dict[str, Any],
-        library_path: Optional[str] = None,
+        book_ids: list[int | str],
+        updates: dict[str, Any],
+        library_path: str | None = None,
         batch_size: int = 10,
-    ) -> Dict:
+    ) -> dict:
         """
         Update metadata for multiple books in bulk.
 
@@ -68,11 +68,11 @@ class BulkOperationsTool(MCPTool):
 
     async def bulk_export(
         self,
-        book_ids: List[Union[int, str]],
+        book_ids: list[int | str],
         export_path: str,
-        library_path: Optional[str] = None,
+        library_path: str | None = None,
         format: str = "directory",
-    ) -> Dict:
+    ) -> dict:
         """
         Export multiple books to a specified location.
 
@@ -92,10 +92,10 @@ class BulkOperationsTool(MCPTool):
 
     async def bulk_delete(
         self,
-        book_ids: List[Union[int, str]],
-        library_path: Optional[str] = None,
+        book_ids: list[int | str],
+        library_path: str | None = None,
         delete_files: bool = True,
-    ) -> Dict:
+    ) -> dict:
         """
         Delete multiple books from the library.
 
@@ -121,11 +121,11 @@ class BulkOperationsTool(MCPTool):
 
     async def bulk_convert(
         self,
-        book_ids: List[Union[int, str]],
+        book_ids: list[int | str],
         target_format: str,
-        library_path: Optional[str] = None,
+        library_path: str | None = None,
         replace_existing: bool = False,
-    ) -> Dict:
+    ) -> dict:
         """
         Convert multiple books to a different format.
 

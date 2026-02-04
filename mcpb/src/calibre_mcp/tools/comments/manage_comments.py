@@ -4,19 +4,19 @@ Comment management portmanteau tool for CalibreMCP.
 Consolidates all comment-related CRUD operations into a single unified interface.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .comment_helpers import (
+    append_comment_helper,
     create_comment_helper,
+    delete_comment_helper,
     read_comment_helper,
     update_comment_helper,
-    delete_comment_helper,
-    append_comment_helper,
 )
 
 logger = get_logger("calibremcp.tools.comments")
@@ -25,9 +25,9 @@ logger = get_logger("calibremcp.tools.comments")
 @mcp.tool()
 async def manage_comments(
     operation: str,
-    book_id: Optional[str] = None,
-    text: Optional[str] = None,
-) -> Dict[str, Any]:
+    book_id: str | None = None,
+    text: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive comment management tool for CalibreMCP.
 
@@ -374,8 +374,11 @@ async def manage_comments(
         return handle_tool_error(
             exception=e,
             operation=operation,
-            parameters={"operation": operation, "book_id": book_id, "text": text[:100] if text else None},
+            parameters={
+                "operation": operation,
+                "book_id": book_id,
+                "text": text[:100] if text else None,
+            },
             tool_name="manage_comments",
             context="Comment management operation",
         )
-

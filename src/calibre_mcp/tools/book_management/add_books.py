@@ -2,7 +2,6 @@
 
 import hashlib
 from pathlib import Path
-from typing import List, Dict, Optional
 
 try:
     from fastmcp import MCPTool, Param
@@ -17,7 +16,7 @@ class AddBooksTool(MCPTool):
     name = "add_books"
     description = "Add new books to the Calibre library"
     parameters = [
-        Param("paths", List[str], "List of file paths to add"),
+        Param("paths", list[str], "List of file paths to add"),
         Param("library_path", str, "Path to the Calibre library", required=False),
         Param("copy_files", bool, "Whether to copy files to the library", default=True),
         Param("auto_convert", bool, "Automatically convert to preferred format", default=False),
@@ -25,11 +24,11 @@ class AddBooksTool(MCPTool):
 
     async def _run(
         self,
-        paths: List[str],
-        library_path: Optional[str] = None,
+        paths: list[str],
+        library_path: str | None = None,
         copy_files: bool = True,
         auto_convert: bool = False,
-    ) -> Dict:
+    ) -> dict:
         """Add books to the library."""
         storage = LocalStorage(library_path)
         results = {"added": [], "failed": [], "skipped": []}

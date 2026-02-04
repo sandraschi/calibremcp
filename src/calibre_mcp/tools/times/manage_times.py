@@ -5,12 +5,12 @@ Query books by added date (timestamp) or publication date (pubdate).
 Calibre's pubdate = edition date; use manage_extended_metadata for first_published.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
 from ...services.times_service import TimesService
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.times")
 
@@ -22,14 +22,14 @@ def _get_times_service() -> TimesService:
 @mcp.tool()
 async def manage_times(
     operation: str,
-    added_after: Optional[str] = None,
-    added_before: Optional[str] = None,
-    published_after: Optional[str] = None,
-    published_before: Optional[str] = None,
-    year: Optional[int] = None,
+    added_after: str | None = None,
+    added_before: str | None = None,
+    published_after: str | None = None,
+    published_before: str | None = None,
+    year: int | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Query books by date: added (timestamp) or published (pubdate/edition).
 

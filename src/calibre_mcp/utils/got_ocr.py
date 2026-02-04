@@ -5,20 +5,19 @@ Provides integration with the GOT-OCR2.0 model for advanced OCR capabilities
 including plain text OCR, formatted text preservation, and HTML rendering.
 """
 
-import asyncio
 import logging
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Optional imports - handle gracefully if dependencies are not available
 try:
-    import torch
-    from transformers import AutoModel, AutoTokenizer
-    from PIL import Image
     import numpy as np
+    import torch
+    from PIL import Image
+    from transformers import AutoModel, AutoTokenizer
 
     DEPENDENCIES_AVAILABLE = True
 except ImportError as e:
@@ -34,10 +33,11 @@ except ImportError as e:
 @dataclass
 class OCRResult:
     """Result of OCR processing."""
+
     text: str
     confidence: float = 1.0
     format: str = "text"
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class GOTOCRProcessor:
@@ -90,7 +90,7 @@ class GOTOCRProcessor:
             logger.error(f"Failed to load GOT-OCR2.0 model: {e}")
             raise
 
-    def _load_image(self, image_path: Union[str, Path]) -> Optional[Image.Image]:
+    def _load_image(self, image_path: str | Path) -> Image.Image | None:
         """Load and preprocess image."""
         try:
             image = Image.open(image_path).convert("RGB")
@@ -101,12 +101,12 @@ class GOTOCRProcessor:
 
     async def process_image(
         self,
-        image_path: Union[str, Path],
+        image_path: str | Path,
         mode: str = "ocr",
-        language: Optional[str] = None,
-        region: Optional[List[int]] = None,
-        render_html: bool = False
-    ) -> Dict[str, Any]:
+        language: str | None = None,
+        region: list[int] | None = None,
+        render_html: bool = False,
+    ) -> dict[str, Any]:
         """
         Process an image with GOT-OCR2.0.
 
@@ -124,24 +124,18 @@ class GOTOCRProcessor:
             return {
                 "success": False,
                 "error": "GOT-OCR2.0 not available",
-                "details": "Model or dependencies not loaded"
+                "details": "Model or dependencies not loaded",
             }
 
         image_path = Path(image_path)
         if not image_path.exists():
-            return {
-                "success": False,
-                "error": f"Image file not found: {image_path}"
-            }
+            return {"success": False, "error": f"Image file not found: {image_path}"}
 
         try:
             # Load image
             image = self._load_image(image_path)
             if image is None:
-                return {
-                    "success": False,
-                    "error": "Failed to load image"
-                }
+                return {"success": False, "error": "Failed to load image"}
 
             # Prepare prompt based on mode
             if mode == "format":
@@ -165,22 +159,16 @@ class GOTOCRProcessor:
                     "format": result.format,
                     "output_path": str(output_path) if output_path else None,
                     "mode": mode,
-                    "metadata": result.metadata or {}
+                    "metadata": result.metadata or {},
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "OCR processing failed"
-                }
+                return {"success": False, "error": "OCR processing failed"}
 
         except Exception as e:
             logger.error(f"GOT-OCR2.0 processing error: {e}")
-            return {
-                "success": False,
-                "error": f"OCR processing failed: {str(e)}"
-            }
+            return {"success": False, "error": f"OCR processing failed: {str(e)}"}
 
-    async def _run_inference(self, image: Image.Image, prompt: str) -> Optional[OCRResult]:
+    async def _run_inference(self, image: Image.Image, prompt: str) -> OCRResult | None:
         """Run inference with GOT-OCR2.0 model."""
         try:
             # This is a simplified implementation
@@ -193,8 +181,8 @@ class GOTOCRProcessor:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": prompt},
-                        {"type": "image", "image": image}
-                    ]
+                        {"type": "image", "image": image},
+                    ],
                 }
             ]
 
@@ -207,7 +195,7 @@ class GOTOCRProcessor:
                     text=mock_text,
                     confidence=0.95,
                     format="text",
-                    metadata={"model": "GOT-OCR2.0", "mode": "mock"}
+                    metadata={"model": "GOT-OCR2.0", "mode": "mock"},
                 )
 
         except Exception as e:
@@ -215,12 +203,8 @@ class GOTOCRProcessor:
             return None
 
     def _save_output(
-        self,
-        result: OCRResult,
-        input_path: Path,
-        mode: str,
-        render_html: bool
-    ) -> Optional[Path]:
+        self, result: OCRResult, input_path: Path, mode: str, render_html: bool
+    ) -> Path | None:
         """Save OCR output to file."""
         try:
             output_dir = input_path.parent
@@ -275,15 +259,10 @@ class GOTOCRProcessor:
 # Global instance for reuse
 _got_processor = None
 
+
 def get_got_processor() -> GOTOCRProcessor:
     """Get or create GOT-OCR processor instance."""
     global _got_processor
     if _got_processor is None:
         _got_processor = GOTOCRProcessor()
     return _got_processor
-
-
-
-
-
-

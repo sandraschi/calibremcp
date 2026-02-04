@@ -1,7 +1,8 @@
 """AI-powered book recommendation engine for CalibreMCP."""
 
-from typing import Dict, List, Optional, Any
 import logging
+from typing import Any
+
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -26,7 +27,7 @@ class RecommendationEngine(MCPTool):
         self.book_vectors = None
         self.book_ids = []
 
-    async def train_model(self, books: List[Dict]) -> Dict:
+    async def train_model(self, books: list[dict]) -> dict:
         """Train the recommendation model on the current library."""
         try:
             # Prepare text data for each book
@@ -64,7 +65,7 @@ class RecommendationEngine(MCPTool):
 
     async def get_recommendations(
         self, book_id: str, max_results: int = 5, exclude_read: bool = True
-    ) -> Dict:
+    ) -> dict:
         """Get book recommendations based on a given book ID."""
         try:
             if self.book_vectors is None:
@@ -101,8 +102,8 @@ class RecommendationEngine(MCPTool):
             return {"success": False, "error": str(e)}
 
     async def get_personalized_recommendations(
-        self, user_preferences: Dict[str, Any], max_results: int = 10
-    ) -> Dict:
+        self, user_preferences: dict[str, Any], max_results: int = 10
+    ) -> dict:
         """Get personalized recommendations based on user preferences."""
         try:
             if self.book_vectors is None:
@@ -135,7 +136,7 @@ class RecommendationEngine(MCPTool):
             )
             return {"success": False, "error": str(e)}
 
-    def _preferences_to_text(self, preferences: Dict[str, Any]) -> str:
+    def _preferences_to_text(self, preferences: dict[str, Any]) -> str:
         """Convert user preferences to a text query."""
         text_parts = []
 
@@ -168,12 +169,10 @@ class RecommendationOptions(BaseModel):
     max_results: int = Field(
         5, ge=1, le=50, description="Maximum number of recommendations to return"
     )
-    min_rating: Optional[float] = Field(None, ge=0, le=5, description="Minimum rating threshold")
+    min_rating: float | None = Field(None, ge=0, le=5, description="Minimum rating threshold")
     exclude_read: bool = Field(True, description="Exclude already read books")
-    include_tags: Optional[List[str]] = Field(
-        None, description="Only include books with these tags"
-    )
-    exclude_tags: Optional[List[str]] = Field(None, description="Exclude books with these tags")
+    include_tags: list[str] | None = Field(None, description="Only include books with these tags")
+    exclude_tags: list[str] | None = Field(None, description="Exclude books with these tags")
 
     class Config:
         schema_extra = {

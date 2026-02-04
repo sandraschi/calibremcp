@@ -4,9 +4,9 @@ Requires Calibre webapp backend (HTTP). Full implementation pending.
 """
 
 try:
-    from qt.core import QDialog, QVBoxLayout, QLabel, QPushButton
+    from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout
 except ImportError:
-    from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
+    from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout
 
 from calibre_plugins.calibre_mcp_integration.mcp_client import is_available
 

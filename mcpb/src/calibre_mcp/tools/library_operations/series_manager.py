@@ -1,6 +1,5 @@
 """Advanced series management tools for CalibreMCP."""
 
-from typing import Dict, List, Optional
 import logging
 from collections import defaultdict
 
@@ -15,13 +14,13 @@ class SeriesInfo(BaseModel):
     """Information about a book series."""
 
     name: str
-    books: List[Dict] = Field(default_factory=list)
-    total_books: Optional[int] = None
-    description: Optional[str] = None
+    books: list[dict] = Field(default_factory=list)
+    total_books: int | None = None
+    description: str | None = None
     is_complete: bool = False
-    reading_order: Optional[List[str]] = None
+    reading_order: list[str] | None = None
 
-    def add_book(self, book: Dict, index: Optional[float] = None):
+    def add_book(self, book: dict, index: float | None = None):
         """Add a book to the series."""
         if not isinstance(book, dict) or "id" not in book:
             return False
@@ -46,7 +45,7 @@ class SeriesInfo(BaseModel):
         """Sort books in the series by their series index."""
         self.books.sort(key=lambda x: float(x.get("series_index", 0)))
 
-    def get_next_book(self, current_book_id: str) -> Optional[Dict]:
+    def get_next_book(self, current_book_id: str) -> dict | None:
         """Get the next book in the series after the given book ID."""
         if not self.books:
             return None
@@ -77,7 +76,7 @@ class SeriesManager(MCPTool):
         self.logger = logging.getLogger(__name__)
         self.series_cache = {}
 
-    async def analyze_series(self, library_path: str, update_metadata: bool = False) -> Dict:
+    async def analyze_series(self, library_path: str, update_metadata: bool = False) -> dict:
         """
         Analyze all series in the library.
 
@@ -112,7 +111,7 @@ class SeriesManager(MCPTool):
 
         return {"success": True, "total_series": len(results), "series": results}
 
-    async def fix_series_metadata(self, library_path: str, dry_run: bool = True) -> Dict:
+    async def fix_series_metadata(self, library_path: str, dry_run: bool = True) -> dict:
         """
         Fix common series metadata issues.
 
@@ -214,7 +213,7 @@ class SeriesManager(MCPTool):
 
     async def merge_series(
         self, library_path: str, source_series: str, target_series: str, dry_run: bool = True
-    ) -> Dict:
+    ) -> dict:
         """
         Merge one series into another.
 
@@ -288,7 +287,7 @@ class SeriesManager(MCPTool):
             "dry_run": dry_run,
         }
 
-    async def _analyze_series(self, series_name: str, books: List[Dict]) -> SeriesInfo:
+    async def _analyze_series(self, series_name: str, books: list[dict]) -> SeriesInfo:
         """Analyze a single series."""
         series_info = SeriesInfo(name=series_name)
 

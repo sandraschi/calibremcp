@@ -1,4 +1,4 @@
-"""
+r"""
 FastMCP 2.13+ Persistent Storage Integration
 
 Uses FastMCP's built-in storage backends for persistent state management.
@@ -10,13 +10,13 @@ Claude Desktop restarts. Storage is saved to platform-appropriate directories:
 - Linux: ~/.local/share/calibre-mcp
 """
 
-from typing import Optional, Any, Dict, List
-from pathlib import Path
-import json
 import asyncio
+import json
 import os
 import platform
 import time
+from pathlib import Path
+from typing import Any
 
 from fastmcp import FastMCP
 
@@ -34,7 +34,7 @@ FAVORITES_KEY = f"{STORAGE_PREFIX}favorites"
 
 
 class CalibreMCPStorage:
-    """
+    r"""
     Wrapper around FastMCP storage for CalibreMCP persistent state.
 
     Uses DiskStore to ensure data persists across Claude Desktop and Windows restarts.
@@ -109,7 +109,7 @@ class CalibreMCPStorage:
 
             # Method 2: Via get_storage() method if available
             if hasattr(self.mcp, "get_storage"):
-                storage_getter = getattr(self.mcp, "get_storage")
+                storage_getter = self.mcp.get_storage
                 if callable(storage_getter):
                     self._storage = (
                         await storage_getter()
@@ -129,7 +129,7 @@ class CalibreMCPStorage:
             # We'll retry when actually needed
             self._initialized = False
 
-    async def get_current_library(self) -> Optional[str]:
+    async def get_current_library(self) -> str | None:
         """Get the current library name from persistent storage."""
         await self.initialize()
         if not self._storage:
@@ -152,7 +152,7 @@ class CalibreMCPStorage:
         except Exception:
             pass  # Graceful degradation
 
-    async def get_user_preferences(self) -> Dict[str, Any]:
+    async def get_user_preferences(self) -> dict[str, Any]:
         """Get user preferences from persistent storage."""
         await self.initialize()
         if not self._storage:
@@ -168,7 +168,7 @@ class CalibreMCPStorage:
         except Exception:
             return {}
 
-    async def set_user_preferences(self, prefs: Dict[str, Any]) -> None:
+    async def set_user_preferences(self, prefs: dict[str, Any]) -> None:
         """Store user preferences persistently."""
         await self.initialize()
         if not self._storage:
@@ -179,7 +179,7 @@ class CalibreMCPStorage:
         except Exception:
             pass  # Graceful degradation
 
-    async def get_session_state(self, session_id: str) -> Dict[str, Any]:
+    async def get_session_state(self, session_id: str) -> dict[str, Any]:
         """Get session-specific state."""
         await self.initialize()
         if not self._storage:
@@ -196,7 +196,7 @@ class CalibreMCPStorage:
         except Exception:
             return {}
 
-    async def set_session_state(self, session_id: str, state: Dict[str, Any]) -> None:
+    async def set_session_state(self, session_id: str, state: dict[str, Any]) -> None:
         """Store session-specific state."""
         await self.initialize()
         if not self._storage:
@@ -221,7 +221,7 @@ class CalibreMCPStorage:
             pass  # Graceful degradation
 
     async def cache_library_stats(
-        self, library_name: str, stats: Dict[str, Any], ttl: int = 3600
+        self, library_name: str, stats: dict[str, Any], ttl: int = 3600
     ) -> None:
         """Cache library statistics with TTL (default 1 hour)."""
         await self.initialize()
@@ -235,7 +235,7 @@ class CalibreMCPStorage:
         except Exception:
             pass  # Graceful degradation
 
-    async def get_cached_library_stats(self, library_name: str) -> Optional[Dict[str, Any]]:
+    async def get_cached_library_stats(self, library_name: str) -> dict[str, Any] | None:
         """Get cached library statistics if available and not expired."""
         await self.initialize()
         if not self._storage:
@@ -254,7 +254,7 @@ class CalibreMCPStorage:
 
     # ==================== SEARCH PREFERENCES ====================
 
-    async def get_search_preferences(self) -> Dict[str, Any]:
+    async def get_search_preferences(self) -> dict[str, Any]:
         """Get user's search preferences (default sort, limit, etc.)."""
         await self.initialize()
         if not self._storage:
@@ -270,7 +270,7 @@ class CalibreMCPStorage:
         except Exception:
             return {}
 
-    async def set_search_preferences(self, prefs: Dict[str, Any]) -> None:
+    async def set_search_preferences(self, prefs: dict[str, Any]) -> None:
         """Store search preferences (sort order, default limit, etc.)."""
         await self.initialize()
         if not self._storage:
@@ -287,7 +287,7 @@ class CalibreMCPStorage:
     # ==================== SEARCH HISTORY ====================
 
     async def add_search_to_history(
-        self, query: str, filters: Dict[str, Any], max_history: int = 50
+        self, query: str, filters: dict[str, Any], max_history: int = 50
     ) -> None:
         """Add a search query to history (FIFO, limited to max_history)."""
         await self.initialize()
@@ -310,7 +310,7 @@ class CalibreMCPStorage:
         except Exception:
             pass  # Graceful degradation
 
-    async def get_search_history(self, limit: int = 20) -> List[Dict[str, Any]]:
+    async def get_search_history(self, limit: int = 20) -> list[dict[str, Any]]:
         """Get recent search history."""
         await self.initialize()
         if not self._storage:
@@ -339,7 +339,7 @@ class CalibreMCPStorage:
 
     # ==================== READING PROGRESS ====================
 
-    async def get_reading_progress(self, book_id: str) -> Optional[Dict[str, Any]]:
+    async def get_reading_progress(self, book_id: str) -> dict[str, Any] | None:
         """Get reading progress for a specific book."""
         await self.initialize()
         if not self._storage:
@@ -356,7 +356,7 @@ class CalibreMCPStorage:
         except Exception:
             return None
 
-    async def set_reading_progress(self, book_id: str, progress: Dict[str, Any]) -> None:
+    async def set_reading_progress(self, book_id: str, progress: dict[str, Any]) -> None:
         """Save reading progress for a book (page, position, timestamp)."""
         await self.initialize()
         if not self._storage:
@@ -373,7 +373,7 @@ class CalibreMCPStorage:
         except Exception:
             pass  # Graceful degradation
 
-    async def get_all_reading_progress(self) -> Dict[str, Dict[str, Any]]:
+    async def get_all_reading_progress(self) -> dict[str, dict[str, Any]]:
         """Get reading progress for all books."""
         await self.initialize()
         if not self._storage:
@@ -390,7 +390,7 @@ class CalibreMCPStorage:
 
     # ==================== VIEWER PREFERENCES ====================
 
-    async def get_viewer_preferences(self) -> Dict[str, Any]:
+    async def get_viewer_preferences(self) -> dict[str, Any]:
         """Get viewer preferences (zoom, layout, reading direction, etc.)."""
         await self.initialize()
         if not self._storage:
@@ -415,7 +415,7 @@ class CalibreMCPStorage:
         except Exception:
             return {}
 
-    async def set_viewer_preferences(self, prefs: Dict[str, Any]) -> None:
+    async def set_viewer_preferences(self, prefs: dict[str, Any]) -> None:
         """Store viewer preferences."""
         await self.initialize()
         if not self._storage:
@@ -431,7 +431,7 @@ class CalibreMCPStorage:
 
     # ==================== FAVORITES ====================
 
-    async def get_favorites(self) -> Dict[str, List[str]]:
+    async def get_favorites(self) -> dict[str, list[str]]:
         """Get favorites organized by type (authors, tags, series, books)."""
         await self.initialize()
         if not self._storage:
@@ -484,10 +484,10 @@ class CalibreMCPStorage:
 
 
 # Global storage instance (initialized in server startup)
-_storage_instance: Optional[CalibreMCPStorage] = None
+_storage_instance: CalibreMCPStorage | None = None
 
 
-def get_storage(mcp: Optional[FastMCP] = None) -> Optional[CalibreMCPStorage]:
+def get_storage(mcp: FastMCP | None = None) -> CalibreMCPStorage | None:
     """Get the global storage instance."""
     global _storage_instance
     if _storage_instance is None and mcp is not None:

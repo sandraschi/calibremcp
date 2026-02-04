@@ -6,17 +6,19 @@ content analysis, and reading insights.
 """
 
 from .. import tool  # noqa: F401
+from .content_analyzer import ContentAnalysisOptions, ContentAnalyzer, ReadingHabitOptions
+from .llm_summarizer import (
+    LLMConfig,
+    check_llm_status,
+    get_summarizer,
+    summarize_book_content,
+)
+from .llm_summarizer import (
+    query_books as llm_query_books,
+)
 
 # Import the AI tools
 from .recommendation_engine import RecommendationEngine, RecommendationOptions
-from .content_analyzer import ContentAnalyzer, ContentAnalysisOptions, ReadingHabitOptions
-from .llm_summarizer import (
-    get_summarizer,
-    summarize_book_content,
-    check_llm_status,
-    query_books as llm_query_books,
-    LLMConfig,
-)
 
 # Initialize the tools
 recommendation_engine = RecommendationEngine()
@@ -123,7 +125,7 @@ async def analyze_reading_habits(*args, **kwargs):
 )
 async def llm_check_status():
     """Check local LLM availability.
-    
+
     Returns status of Ollama and available models.
     Useful to verify 4090 is ready before heavy operations.
     """
@@ -170,15 +172,15 @@ async def llm_summarize_book(
     model: str = None,
 ):
     """Generate academic-style book summary using local LLM.
-    
+
     Uses map-reduce to handle 600+ page books:
     1. Chunks the text intelligently (respects chapters)
     2. Summarizes each chunk
     3. Synthesizes into final document
-    
+
     Output includes proper citations and academic formatting.
     Perfect for sharing with friends to "rücke gerade" their understanding.
-    
+
     Runs entirely on local 4090 - your Bullshit Library stays private!
     """
     return await summarize_book_content(
@@ -208,10 +210,10 @@ async def llm_summarize_book(
 )
 async def llm_cross_book_query(query: str, book_contents: dict):
     """Query across multiple books with citations.
-    
+
     Example: "Compare German and Soviet tank doctrine in WWII"
     With contents from Guderian, Soviet military texts, academic analyses.
-    
+
     Returns answer with citations to specific books.
     The 15k book RAG dream realized!
     """

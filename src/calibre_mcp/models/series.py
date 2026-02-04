@@ -2,10 +2,11 @@
 SQLAlchemy and Pydantic models for Series in Calibre MCP.
 """
 
-from typing import List, Optional, TYPE_CHECKING
-from sqlalchemy import Integer, Text
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
+from sqlalchemy import Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
@@ -20,10 +21,10 @@ class Series(Base, BaseMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(Text, nullable=False, index=True, unique=True)
-    sort: Mapped[Optional[str]] = mapped_column(Text)
+    sort: Mapped[str | None] = mapped_column(Text)
 
     # Relationships
-    books: Mapped[List["Book"]] = relationship(
+    books: Mapped[list["Book"]] = relationship(
         "Book", secondary="books_series_link", back_populates="series_rel"
     )
 
@@ -41,7 +42,7 @@ class SeriesBase(BaseModel):
     """Base Pydantic model for Series"""
 
     name: str = Field(..., description="Name of the series")
-    sort: Optional[str] = Field(None, description="Sort name")
+    sort: str | None = Field(None, description="Sort name")
 
     class Config:
         orm_mode = True
@@ -56,8 +57,8 @@ class SeriesCreate(SeriesBase):
 class SeriesUpdate(BaseModel):
     """Pydantic model for updating a series"""
 
-    name: Optional[str] = Field(None, description="Name of the series")
-    sort: Optional[str] = Field(None, description="Sort name")
+    name: str | None = Field(None, description="Name of the series")
+    sort: str | None = Field(None, description="Sort name")
 
 
 class SeriesResponse(SeriesBase):

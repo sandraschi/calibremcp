@@ -4,7 +4,7 @@ Viewer module for CalibreMCP - Handles rendering and displaying different book f
 
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Dict, Any, Protocol
+from typing import Any, Dict, Optional, Protocol
 
 
 class ViewerType(str, Enum):
@@ -28,7 +28,7 @@ class BookViewer(Protocol):
         """Load a book file into the viewer."""
         ...
 
-    def render_page(self, page_number: int = 0) -> Dict[str, Any]:
+    def render_page(self, page_number: int = 0) -> dict[str, Any]:
         """
         Render a specific page.
 
@@ -41,7 +41,7 @@ class BookViewer(Protocol):
         """
         ...
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Extract metadata from the book."""
         ...
 
@@ -50,7 +50,7 @@ class BookViewer(Protocol):
         ...
 
 
-def get_viewer(file_path: str) -> Optional[BookViewer]:
+def get_viewer(file_path: str) -> BookViewer | None:
     """
     Get the appropriate viewer for the given file.
 
@@ -61,9 +61,9 @@ def get_viewer(file_path: str) -> Optional[BookViewer]:
         An instance of the appropriate viewer, or None if no viewer supports the format
     """
     # Lazy imports to avoid circular dependencies
+    from .comic import ComicViewer
     from .epub import EpubViewer
     from .pdf import PdfViewer
-    from .comic import ComicViewer
 
     path = Path(file_path)
     if not path.exists():

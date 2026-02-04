@@ -3,13 +3,12 @@ Utility functions for discovering and managing Calibre libraries.
 """
 
 from pathlib import Path
-from typing import Dict, Optional
 
 # Base directory containing Calibre libraries
 CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
 
 
-def discover_calibre_libraries() -> Dict[str, Path]:
+def discover_calibre_libraries() -> dict[str, Path]:
     """
     Discover all Calibre libraries in the base directory.
 
@@ -30,7 +29,7 @@ def discover_calibre_libraries() -> Dict[str, Path]:
     return libraries
 
 
-def get_library_metadata(library_path: Path) -> Dict[str, any]:
+def get_library_metadata(library_path: Path) -> dict[str, any]:
     """
     Get metadata about a specific library.
 
@@ -88,7 +87,7 @@ def get_library_metadata(library_path: Path) -> Dict[str, any]:
     return metadata
 
 
-def get_current_library() -> Optional[Path]:
+def get_current_library() -> Path | None:
     """
     Get the current active library path from configuration.
 

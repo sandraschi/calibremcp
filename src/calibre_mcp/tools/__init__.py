@@ -6,13 +6,14 @@ organized by functionality into submodules. Tools are automatically discovered
 and loaded from all subdirectories.
 """
 
-from typing import Dict, Any, Callable, Optional, TypeVar, List, Type, cast
-from functools import wraps
 import importlib
-import pkgutil
 import inspect
 import logging
+import pkgutil
+from collections.abc import Callable
+from functools import wraps
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
 # Set up logging (stderr is OK for MCP servers)
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=Callable[..., Any])
 
 # Global tool registry
-TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {}
+TOOL_REGISTRY: dict[str, dict[str, Any]] = {}
 
 # Base directory for Calibre libraries
 CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
@@ -34,7 +35,7 @@ from .base_tool import BaseTool, mcp_tool  # noqa: E402, F401
 
 
 def tool(
-    name: str, description: str, parameters: Optional[Dict[str, Any]] = None, **kwargs
+    name: str, description: str, parameters: dict[str, Any] | None = None, **kwargs
 ) -> Callable[[T], T]:
     """
     Decorator to register a function as an MCP tool.
@@ -71,7 +72,7 @@ def tool(
     return decorator
 
 
-def get_available_tools() -> List[Dict[str, Any]]:
+def get_available_tools() -> list[dict[str, Any]]:
     """
     Get a list of all available tools with their metadata.
 
@@ -88,7 +89,7 @@ def get_available_tools() -> List[Dict[str, Any]]:
     ]
 
 
-def discover_tools() -> List[Type["BaseTool"]]:
+def discover_tools() -> list[type["BaseTool"]]:
     """
     Discover and import all tool classes from subdirectories.
 
@@ -96,7 +97,7 @@ def discover_tools() -> List[Type["BaseTool"]]:
         List of tool classes that should be registered
     """
     tools_dir = Path(__file__).parent
-    tool_classes: List[Type[BaseTool]] = []
+    tool_classes: list[type[BaseTool]] = []
 
     # Import all modules in the tools directory
     for finder, name, is_pkg in pkgutil.iter_modules([str(tools_dir)]):
@@ -114,11 +115,7 @@ def discover_tools() -> List[Type["BaseTool"]]:
             else:
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
-                    if (
-                        inspect.isclass(attr)
-                        and issubclass(attr, BaseTool)
-                        and attr != BaseTool
-                    ):
+                    if inspect.isclass(attr) and issubclass(attr, BaseTool) and attr != BaseTool:
                         tool_classes.append(attr)
 
         except Exception as e:
@@ -138,6 +135,7 @@ def register_tools(mcp: Any) -> None:
         mcp: MCP server instance (FastMCP)
     """
     import time
+
     import_count = 0
     error_count = 0
 
@@ -153,46 +151,52 @@ def register_tools(mcp: Any) -> None:
 
         # Config for beta tools (CALIBRE_BETA_TOOLS=true)
         from ..config import CalibreConfig
+
         config = CalibreConfig.load_config()
         load_beta = getattr(config, "load_beta_tools", False)
 
         # Core: manage_libraries (includes test_connection, discover); no standalone core/library_discovery
         import_start = time.time()
         from .library import manage_libraries  # noqa: F401
+
         import_time = time.time() - import_start
         logger.info(f"Library tools loaded in {import_time:.2f}s")
 
         # Book management
         import_start = time.time()
         from .book_management import manage_books  # noqa: F401
+
         import_time = time.time() - import_start
         logger.info(f"Book management loaded in {import_time:.2f}s")
 
         # Metadata, tags, comments, series, publishers, authors (core)
         import_start = time.time()
-        from .metadata import manage_metadata  # noqa: F401
-        from .tags import manage_tags  # noqa: F401
-        from .comments import manage_comments  # noqa: F401
-        from .series import manage_series  # noqa: F401
-        from .publishers import manage_publishers  # noqa: F401
         from .authors import manage_authors  # noqa: F401
+        from .comments import manage_comments  # noqa: F401
+        from .metadata import manage_metadata  # noqa: F401
+        from .publishers import manage_publishers  # noqa: F401
+        from .series import manage_series  # noqa: F401
+        from .tags import manage_tags  # noqa: F401
+
         import_time = time.time() - import_start
         logger.info(f"Metadata/tags/authors loaded in {import_time:.2f}s")
 
         # Files, analysis, library operations, system, import/export, viewer
         import_start = time.time()
-        from .files import manage_files  # noqa: F401
         from .analysis import manage_analysis  # noqa: F401
+        from .files import manage_files  # noqa: F401
+        from .import_export import export_books  # noqa: F401
         from .library_operations import manage_library_operations  # noqa: F401
         from .system import manage_system  # noqa: F401
-        from .import_export import export_books  # noqa: F401
         from .viewer import manage_viewer  # noqa: F401
+
         import_time = time.time() - import_start
         logger.info(f"Files/analysis/system loaded in {import_time:.2f}s")
 
         # OCR
         import_start = time.time()
         from .ocr.calibre_ocr_tool import OCRTool
+
         OCRTool.register(mcp)
         import_time = time.time() - import_start
         logger.info(f"OCR loaded in {import_time:.2f}s")
@@ -201,17 +205,18 @@ def register_tools(mcp: Any) -> None:
         # content_sync, ai_operations, bulk_operations, organization, users, specialized, agentic
         if load_beta:
             import_start = time.time()
-            from .import_export.manage_import import manage_import  # noqa: F401
-            from .descriptions import manage_descriptions  # noqa: F401
-            from .user_comments import manage_user_comments  # noqa: F401
-            from .extended_metadata import manage_extended_metadata  # noqa: F401
-            from .times import manage_times  # noqa: F401
             from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
+            from .agentic import register_agentic_tools
             from .ai import manage_ai_operations  # noqa: F401
+            from .descriptions import manage_descriptions  # noqa: F401
+            from .extended_metadata import manage_extended_metadata  # noqa: F401
+            from .import_export.manage_import import manage_import  # noqa: F401
             from .organization import manage_organization  # noqa: F401
             from .specialized import manage_specialized  # noqa: F401
+            from .times import manage_times  # noqa: F401
+            from .user_comments import manage_user_comments  # noqa: F401
             from .user_management import manage_users  # noqa: F401
-            from .agentic import register_agentic_tools
+
             register_agentic_tools()
             import_time = time.time() - import_start
             logger.info(f"Beta tools loaded in {import_time:.2f}s (CALIBRE_BETA_TOOLS=true)")
@@ -227,9 +232,7 @@ def register_tools(mcp: Any) -> None:
         if hasattr(mcp, "_tools"):
             registered_tools_count = len(mcp._tools)
         elif hasattr(mcp, "tools"):
-            registered_tools_count = (
-                len(mcp.tools) if isinstance(mcp.tools, dict) else 0
-            )
+            registered_tools_count = len(mcp.tools) if isinstance(mcp.tools, dict) else 0
         else:
             registered_tools_count = "unknown"
     except Exception:

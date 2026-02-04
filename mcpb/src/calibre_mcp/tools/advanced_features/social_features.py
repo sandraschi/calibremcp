@@ -1,8 +1,9 @@
 """Social features for CalibreMCP."""
 
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field, HttpUrl
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field, HttpUrl
 
 try:
     from fastmcp import MCPTool
@@ -17,13 +18,13 @@ class UserProfile(BaseModel):
     user_id: str
     username: str
     display_name: str
-    avatar_url: Optional[HttpUrl] = None
-    bio: Optional[str] = None
-    location: Optional[str] = None
-    website: Optional[HttpUrl] = None
-    reading_goals: Dict[str, Any] = Field(default_factory=dict)
-    reading_stats: Dict[str, Any] = Field(default_factory=dict)
-    privacy_settings: Dict[str, bool] = Field(
+    avatar_url: HttpUrl | None = None
+    bio: str | None = None
+    location: str | None = None
+    website: HttpUrl | None = None
+    reading_goals: dict[str, Any] = Field(default_factory=dict)
+    reading_stats: dict[str, Any] = Field(default_factory=dict)
+    privacy_settings: dict[str, bool] = Field(
         default_factory=lambda: {
             "profile_public": True,
             "reading_activity_public": True,
@@ -32,7 +33,7 @@ class UserProfile(BaseModel):
             "following_public": True,
         }
     )
-    social_links: Dict[str, str] = Field(default_factory=dict)
+    social_links: dict[str, str] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -58,14 +59,14 @@ class BookReview(BaseModel):
     content: str
     is_public: bool = True
     likes: int = 0
-    liked_by: List[str] = Field(default_factory=list)  # List of user IDs
+    liked_by: list[str] = Field(default_factory=list)  # List of user IDs
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
-    def update_content(self, content: str, title: Optional[str] = None):
+    def update_content(self, content: str, title: str | None = None):
         """Update review content and title."""
         self.content = content
         if title is not None:
@@ -95,13 +96,13 @@ class ReadingList(BaseModel):
     id: str
     creator_id: str
     title: str
-    description: Optional[str] = None
-    book_ids: List[str] = Field(default_factory=list)
+    description: str | None = None
+    book_ids: list[str] = Field(default_factory=list)
     is_public: bool = True
     is_collaborative: bool = False
-    collaborators: List[str] = Field(default_factory=list)  # List of user IDs
-    tags: List[str] = Field(default_factory=list)
-    cover_image: Optional[HttpUrl] = None
+    collaborators: list[str] = Field(default_factory=list)  # List of user IDs
+    tags: list[str] = Field(default_factory=list)
+    cover_image: HttpUrl | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -160,7 +161,7 @@ class SocialFeaturesTool(MCPTool):
         self._followers = {}  # user_id -> Set[user_id] (who follows them)
         self._notifications = {}  # user_id -> List[Notification]
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate social feature handler."""
         handler = getattr(self, f"social_{action}", None)
         if not handler:
@@ -174,7 +175,7 @@ class SocialFeaturesTool(MCPTool):
     # User Profiles
     async def social_create_profile(
         self, user_id: str, username: str, display_name: str, **kwargs
-    ) -> Dict:
+    ) -> dict:
         """Create a new user profile."""
         if user_id in self._profiles:
             return {"error": f"Profile for user {user_id} already exists", "success": False}
@@ -196,7 +197,7 @@ class SocialFeaturesTool(MCPTool):
 
         return {"success": True, "profile": profile.dict()}
 
-    async def social_get_profile(self, user_id: str) -> Dict:
+    async def social_get_profile(self, user_id: str) -> dict:
         """Get a user's profile."""
         if user_id not in self._profiles:
             return {"error": f"Profile for user {user_id} not found", "success": False}
@@ -204,7 +205,7 @@ class SocialFeaturesTool(MCPTool):
         profile = self._profiles[user_id]
         return {"success": True, "profile": profile.dict()}
 
-    async def social_update_profile(self, user_id: str, updates: Dict[str, Any]) -> Dict:
+    async def social_update_profile(self, user_id: str, updates: dict[str, Any]) -> dict:
         """Update a user's profile."""
         if user_id not in self._profiles:
             return {"error": f"Profile for user {user_id} not found", "success": False}
@@ -223,7 +224,7 @@ class SocialFeaturesTool(MCPTool):
     # Reviews
     async def social_create_review(
         self, book_id: str, user_id: str, rating: float, title: str, content: str
-    ) -> Dict:
+    ) -> dict:
         """Create a new book review."""
         # Check if user has already reviewed this book
         existing_review = next(
@@ -252,7 +253,7 @@ class SocialFeaturesTool(MCPTool):
 
         return {"success": True, "review": review.dict()}
 
-    async def social_get_review(self, review_id: str) -> Dict:
+    async def social_get_review(self, review_id: str) -> dict:
         """Get a book review by ID."""
         if review_id not in self._reviews:
             return {"error": f"Review {review_id} not found", "success": False}
@@ -261,7 +262,7 @@ class SocialFeaturesTool(MCPTool):
 
     async def social_get_book_reviews(
         self, book_id: str, sort_by: str = "newest", limit: int = 10, offset: int = 0
-    ) -> Dict:
+    ) -> dict:
         """Get reviews for a book."""
         reviews = [r for r in self._reviews.values() if r.book_id == book_id and r.is_public]
 
@@ -290,8 +291,8 @@ class SocialFeaturesTool(MCPTool):
 
     # Reading Lists
     async def social_create_reading_list(
-        self, creator_id: str, title: str, description: Optional[str] = None, is_public: bool = True
-    ) -> Dict:
+        self, creator_id: str, title: str, description: str | None = None, is_public: bool = True
+    ) -> dict:
         """Create a new reading list."""
         list_id = f"rl_{len(self._reading_lists) + 1}"
         reading_list = ReadingList(
@@ -306,7 +307,7 @@ class SocialFeaturesTool(MCPTool):
 
         return {"success": True, "reading_list": reading_list.dict()}
 
-    async def social_get_reading_list(self, list_id: str) -> Dict:
+    async def social_get_reading_list(self, list_id: str) -> dict:
         """Get a reading list by ID."""
         if list_id not in self._reading_lists:
             return {"error": f"Reading list {list_id} not found", "success": False}
@@ -315,12 +316,12 @@ class SocialFeaturesTool(MCPTool):
 
     async def social_search_reading_lists(
         self,
-        query: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        user_id: Optional[str] = None,
+        query: str | None = None,
+        tags: list[str] | None = None,
+        user_id: str | None = None,
         limit: int = 10,
         offset: int = 0,
-    ) -> Dict:
+    ) -> dict:
         """Search for reading lists."""
         results = []
 
@@ -365,7 +366,7 @@ class SocialFeaturesTool(MCPTool):
         }
 
     # Following/Followers
-    async def social_follow_user(self, follower_id: str, followed_id: str) -> Dict:
+    async def social_follow_user(self, follower_id: str, followed_id: str) -> dict:
         """Follow a user."""
         if follower_id == followed_id:
             return {"error": "You cannot follow yourself", "success": False}
@@ -398,7 +399,7 @@ class SocialFeaturesTool(MCPTool):
             "following": True,
         }
 
-    async def social_unfollow_user(self, follower_id: str, followed_id: str) -> Dict:
+    async def social_unfollow_user(self, follower_id: str, followed_id: str) -> dict:
         """Unfollow a user."""
         if follower_id == followed_id:
             return {"error": "Invalid operation", "success": False}
@@ -418,7 +419,7 @@ class SocialFeaturesTool(MCPTool):
             "following": False,
         }
 
-    async def social_get_followers(self, user_id: str) -> Dict:
+    async def social_get_followers(self, user_id: str) -> dict:
         """Get a user's followers."""
         if user_id not in self._profiles:
             return {"error": "User not found", "success": False}
@@ -432,7 +433,7 @@ class SocialFeaturesTool(MCPTool):
             "count": len(followers),
         }
 
-    async def social_get_following(self, user_id: str) -> Dict:
+    async def social_get_following(self, user_id: str) -> dict:
         """Get users that a user is following."""
         if user_id not in self._profiles:
             return {"error": "User not found", "success": False}
@@ -449,7 +450,7 @@ class SocialFeaturesTool(MCPTool):
     # Notifications
     async def social_get_notifications(
         self, user_id: str, unread_only: bool = True, limit: int = 20
-    ) -> Dict:
+    ) -> dict:
         """Get notifications for a user."""
         if user_id not in self._notifications:
             return {"success": True, "notifications": [], "unread_count": 0}
@@ -479,7 +480,7 @@ class SocialFeaturesTool(MCPTool):
 
     # Helper Methods
     async def _create_notification(
-        self, user_id: str, type: str, data: Dict, from_user_id: Optional[str] = None
+        self, user_id: str, type: str, data: dict, from_user_id: str | None = None
     ):
         """Create a new notification for a user."""
         if user_id not in self._notifications:
@@ -504,7 +505,7 @@ class SocialFeaturesTool(MCPTool):
     # Activity Feed
     async def social_get_activity_feed(
         self, user_id: str, limit: int = 20, offset: int = 0
-    ) -> Dict:
+    ) -> dict:
         """Get a user's activity feed."""
         if user_id not in self._profiles:
             return {"error": "User not found", "success": False}
@@ -526,7 +527,7 @@ class SocialFeaturesTool(MCPTool):
     # Book Clubs
     async def social_create_book_club(
         self, creator_id: str, name: str, description: str, is_public: bool = True
-    ) -> Dict:
+    ) -> dict:
         """Create a new book club."""
         # In a real implementation, this would create a book club
         # For now, return a mock response
@@ -546,7 +547,7 @@ class SocialFeaturesTool(MCPTool):
             },
         }
 
-    async def social_join_book_club(self, user_id: str, club_id: str) -> Dict:
+    async def social_join_book_club(self, user_id: str, club_id: str) -> dict:
         """Join a book club."""
         # In a real implementation, this would add the user to the club
         # For now, return a mock response
@@ -569,7 +570,7 @@ class SocialFeaturesTool(MCPTool):
         start_date: str,
         end_date: str,
         is_public: bool = True,
-    ) -> Dict:
+    ) -> dict:
         """Create a new reading challenge."""
         # In a real implementation, this would create a reading challenge
         # For now, return a mock response
@@ -592,7 +593,7 @@ class SocialFeaturesTool(MCPTool):
             },
         }
 
-    async def social_join_reading_challenge(self, user_id: str, challenge_id: str) -> Dict:
+    async def social_join_reading_challenge(self, user_id: str, challenge_id: str) -> dict:
         """Join a reading challenge."""
         # In a real implementation, this would add the user to the challenge
         # For now, return a mock response

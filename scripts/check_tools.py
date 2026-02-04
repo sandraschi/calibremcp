@@ -7,8 +7,8 @@ sys.path.insert(0, "src")
 
 # Import tools to trigger registration
 from calibre_mcp import tools  # noqa: F401
-from calibre_mcp.tools import book_tools  # noqa: F401
 from calibre_mcp.server import mcp
+from calibre_mcp.tools import book_tools  # noqa: F401
 
 
 async def check_tools():

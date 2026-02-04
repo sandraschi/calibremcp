@@ -12,18 +12,18 @@ This module provides advanced features including:
 """
 
 # Import all tool classes
-from .ai_enhancements import AIEnhancementsTool
 from .advanced_search import AdvancedSearchTool
+from .ai_enhancements import AIEnhancementsTool
 from .bulk_operations import BulkOperationsTool
 from .content_sync import ContentSyncTool
-from .reading_analytics import ReadingAnalyticsTool
-from .smart_collections import SmartCollectionsTool  # Legacy (deprecated)
-from .social_features import SocialFeaturesTool
+from .manage_bulk_operations import manage_bulk_operations
+from .manage_content_sync import manage_content_sync
 
 # Import portmanteau tools
 from .manage_smart_collections import manage_smart_collections
-from .manage_bulk_operations import manage_bulk_operations
-from .manage_content_sync import manage_content_sync
+from .reading_analytics import ReadingAnalyticsTool
+from .smart_collections import SmartCollectionsTool  # Legacy (deprecated)
+from .social_features import SocialFeaturesTool
 
 # List of all available tools
 __all__ = [

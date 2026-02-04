@@ -6,12 +6,12 @@ Calibre's pubdate is edition date; first_published = original publication (e.g. 
 metadata.db schema is never modified.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
 from ...services.extended_metadata_service import extended_metadata_service
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.extended_metadata")
 
@@ -19,11 +19,11 @@ logger = get_logger("calibremcp.tools.extended_metadata")
 @mcp.tool()
 async def manage_extended_metadata(
     operation: str,
-    book_id: Optional[int] = None,
-    translator: Optional[str] = None,
-    first_published: Optional[str] = None,
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    book_id: int | None = None,
+    translator: str | None = None,
+    first_published: str | None = None,
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """
     Manage extended metadata (translator, first_published) for books.
 

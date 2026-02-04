@@ -5,9 +5,9 @@ Configuration widget for CalibreMCP Integration plugin.
 from calibre_plugins.calibre_mcp_integration.config import prefs
 
 try:
-    from qt.core import QWidget, QVBoxLayout, QLabel, QLineEdit, QGroupBox
+    from qt.core import QGroupBox, QLabel, QLineEdit, QVBoxLayout, QWidget
 except ImportError:
-    from PyQt5.Qt import QWidget, QVBoxLayout, QLabel, QLineEdit, QGroupBox
+    from PyQt5.Qt import QGroupBox, QLabel, QLineEdit, QVBoxLayout, QWidget
 
 
 class ConfigWidget(QWidget):

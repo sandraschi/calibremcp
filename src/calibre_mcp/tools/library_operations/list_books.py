@@ -5,11 +5,11 @@ This module provides functionality to list and search books in the Calibre libra
 Uses BookService for proper database queries instead of mock data.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any
 
-from ...tools.compat import MCPServerError
 from ...logging_config import get_logger
 from ...services.book_service import book_service
+from ...tools.compat import MCPServerError
 
 logger = get_logger("calibremcp.tools.library_operations")
 
@@ -24,8 +24,8 @@ async def list_books(
     offset: int = 0,
     sort_by: str = "title",
     sort_order: str = "asc",
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """
     List books in the library with optional filtering and pagination.
 
@@ -58,10 +58,10 @@ async def list_books(
         # Validate inputs
         if limit < 1 or limit > 1000:
             raise ValueError("Limit must be between 1 and 1000")
-        
+
         if offset < 0:
             raise ValueError("Offset cannot be negative")
-        
+
         # Map sort_by to BookService's expected values
         sort_field_map = {
             "title": "title",
@@ -70,17 +70,17 @@ async def list_books(
             "pubdate": "pubdate",
             "rating": "rating",
         }
-        
+
         book_sort_by = sort_field_map.get(sort_by.lower(), "title")
-        
+
         # Build BookService query parameters
         search_term = query if query else None
         author_name = author if author else None
         tag_name = tag if tag else None
-        
+
         # Note: BookService doesn't directly support format or status filtering
         # We'll filter those after getting results, or extend BookService if needed
-        
+
         # Query books using BookService
         result = book_service.list(
             skip=offset,
@@ -91,10 +91,10 @@ async def list_books(
             sort_by=book_sort_by,
             sort_order=sort_order.lower(),
         )
-        
+
         books = result.get("items", [])
         total_count = result.get("total", 0)
-        
+
         # Apply format filter if specified
         if format:
             format_upper = format.upper()
@@ -107,7 +107,7 @@ async def list_books(
             books = filtered_books
             # Recalculate total (this is approximate since we filtered after pagination)
             # In a full implementation, format filtering would be done in the database query
-        
+
         # Apply status filter if specified
         if status:
             status_lower = status.lower()
@@ -119,10 +119,10 @@ async def list_books(
             books = filtered_books
             # Recalculate total (this is approximate since we filtered after pagination)
             # In a full implementation, status filtering would be done in the database query
-        
+
         # Calculate has_more
         has_more = (offset + len(books)) < total_count
-        
+
         return {
             "books": books,
             "total_count": total_count,
@@ -130,7 +130,7 @@ async def list_books(
             "limit": limit,
             "has_more": has_more,
         }
-    
+
     except ValueError as e:
         raise MCPServerError(f"Invalid input: {str(e)}")
     except Exception as e:

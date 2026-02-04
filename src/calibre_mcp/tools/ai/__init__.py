@@ -8,19 +8,21 @@ Consolidates all AI operations into a single unified interface:
 - LLM-powered summarization and cross-book querying
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from ...server import mcp
 from ...logging_config import get_logger
+from ...server import mcp
+from .content_analyzer import ContentAnalyzer
+from .llm_summarizer import (
+    check_llm_status,
+    summarize_book_content,
+)
+from .llm_summarizer import (
+    query_books as llm_query_books,
+)
 
 # Import AI tool implementations
 from .recommendation_engine import RecommendationEngine
-from .content_analyzer import ContentAnalyzer
-from .llm_summarizer import (
-    summarize_book_content,
-    check_llm_status,
-    query_books as llm_query_books,
-)
 
 logger = get_logger("calibremcp.tools.ai")
 
@@ -29,28 +31,28 @@ logger = get_logger("calibremcp.tools.ai")
 async def manage_ai_operations(
     operation: str,
     # Recommendation parameters
-    book_id: Optional[str] = None,
-    user_preferences: Optional[Dict[str, Any]] = None,
-    recommendation_options: Optional[Dict[str, Any]] = None,
+    book_id: str | None = None,
+    user_preferences: dict[str, Any] | None = None,
+    recommendation_options: dict[str, Any] | None = None,
     # Training parameters
-    training_books: Optional[List[Dict[str, Any]]] = None,
+    training_books: list[dict[str, Any]] | None = None,
     # Content analysis parameters
-    book_content: Optional[str] = None,
-    content_analysis_options: Optional[Dict[str, Any]] = None,
+    book_content: str | None = None,
+    content_analysis_options: dict[str, Any] | None = None,
     # Reading habit parameters
-    reading_history: Optional[List[Dict[str, Any]]] = None,
-    habit_analysis_options: Optional[Dict[str, Any]] = None,
+    reading_history: list[dict[str, Any]] | None = None,
+    habit_analysis_options: dict[str, Any] | None = None,
     # LLM summarization parameters
-    text: Optional[str] = None,
-    title: Optional[str] = None,
-    author: Optional[str] = None,
+    text: str | None = None,
+    title: str | None = None,
+    author: str | None = None,
     target_pages: int = 15,
-    citation: Optional[str] = None,
-    model: Optional[str] = None,
+    citation: str | None = None,
+    model: str | None = None,
     # Cross-book query parameters
-    query: Optional[str] = None,
-    book_contents: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+    query: str | None = None,
+    book_contents: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive AI operations portmanteau tool for Calibre MCP server.
 
@@ -143,7 +145,7 @@ async def manage_ai_operations(
                 return {
                     "success": False,
                     "error": "Either book_id or user_preferences must be provided for recommendations",
-                    "message": "Please specify a book to base recommendations on, or provide user preferences."
+                    "message": "Please specify a book to base recommendations on, or provide user preferences.",
                 }
 
         elif operation == "train_model":
@@ -151,7 +153,7 @@ async def manage_ai_operations(
                 return {
                     "success": False,
                     "error": "training_books parameter required for model training",
-                    "message": "Please provide a list of books to train the recommendation model on."
+                    "message": "Please provide a list of books to train the recommendation model on.",
                 }
             return await recommendation_engine.train_model(books=training_books)
 
@@ -160,7 +162,7 @@ async def manage_ai_operations(
                 return {
                     "success": False,
                     "error": "book_content parameter required for content analysis",
-                    "message": "Please provide the text content of the book to analyze."
+                    "message": "Please provide the text content of the book to analyze.",
                 }
             return await content_analyzer.analyze_book_content(
                 book_content=book_content, options=content_analysis_options
@@ -171,7 +173,7 @@ async def manage_ai_operations(
                 return {
                     "success": False,
                     "error": "reading_history parameter required for habit analysis",
-                    "message": "Please provide reading history data to analyze patterns."
+                    "message": "Please provide reading history data to analyze patterns.",
                 }
             return await content_analyzer.analyze_reading_habits(
                 reading_history=reading_history, options=habit_analysis_options
@@ -185,7 +187,7 @@ async def manage_ai_operations(
                 return {
                     "success": False,
                     "error": "text, title, and author parameters required for summarization",
-                    "message": "Please provide the book text, title, and author for summarization."
+                    "message": "Please provide the book text, title, and author for summarization.",
                 }
             return await summarize_book_content(
                 text=text,
@@ -193,7 +195,7 @@ async def manage_ai_operations(
                 author=author,
                 target_pages=target_pages,
                 citation=citation,
-                model=model
+                model=model,
             )
 
         elif operation == "query_books":
@@ -201,18 +203,25 @@ async def manage_ai_operations(
                 return {
                     "success": False,
                     "error": "query and book_contents parameters required for cross-book querying",
-                    "message": "Please provide a question and book contents to query across."
+                    "message": "Please provide a question and book contents to query across.",
                 }
             return await llm_query_books(query=query, book_contents=book_contents)
 
         else:
-            available_ops = ["get_recommendations", "train_model", "analyze_content", "analyze_habits",
-                           "check_llm_status", "summarize_book", "query_books"]
+            available_ops = [
+                "get_recommendations",
+                "train_model",
+                "analyze_content",
+                "analyze_habits",
+                "check_llm_status",
+                "summarize_book",
+                "query_books",
+            ]
             return {
                 "success": False,
                 "error": f"Unknown operation: {operation}",
                 "message": f"Available operations: {', '.join(available_ops)}",
-                "available_operations": available_ops
+                "available_operations": available_ops,
             }
 
     except Exception as e:
@@ -221,5 +230,5 @@ async def manage_ai_operations(
             "success": False,
             "error": f"AI operation failed: {str(e)}",
             "operation": operation,
-            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details."
+            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details.",
         }

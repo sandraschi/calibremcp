@@ -7,26 +7,26 @@ from calibre_plugins.calibre_mcp_integration import db_adapter  # noqa: F401 - d
 try:
     from qt.core import (
         QDialog,
-        QVBoxLayout,
+        QGroupBox,
         QHBoxLayout,
         QLabel,
         QLineEdit,
-        QTextEdit,
-        QPushButton,
-        QGroupBox,
         QMessageBox,
+        QPushButton,
+        QTextEdit,
+        QVBoxLayout,
     )
 except ImportError:
     from PyQt5.QtWidgets import (
         QDialog,
-        QVBoxLayout,
+        QGroupBox,
         QHBoxLayout,
         QLabel,
         QLineEdit,
-        QTextEdit,
-        QPushButton,
-        QGroupBox,
         QMessageBox,
+        QPushButton,
+        QTextEdit,
+        QVBoxLayout,
     )
 
 

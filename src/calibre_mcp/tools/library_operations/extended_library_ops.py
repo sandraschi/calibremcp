@@ -1,12 +1,11 @@
 """Extended library operations for CalibreMCP."""
 
-from typing import Dict, List
 import os
-import shutil
 import re
+import shutil
 import zipfile
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 
 try:
     from fastmcp import MCPTool
@@ -24,13 +23,13 @@ class LibraryStats(BaseModel):
     total_series: int = 0
     total_tags: int = 0
     total_file_size: int = 0  # in bytes
-    formats: Dict[str, int] = Field(default_factory=dict)
-    languages: Dict[str, int] = Field(default_factory=dict)
-    publishers: Dict[str, int] = Field(default_factory=dict)
-    publication_years: Dict[int, int] = Field(default_factory=dict)
-    ratings: Dict[int, int] = Field(default_factory=dict)
-    added_dates: Dict[str, int] = Field(default_factory=dict)
-    tag_cloud: Dict[str, int] = Field(default_factory=dict)
+    formats: dict[str, int] = Field(default_factory=dict)
+    languages: dict[str, int] = Field(default_factory=dict)
+    publishers: dict[str, int] = Field(default_factory=dict)
+    publication_years: dict[int, int] = Field(default_factory=dict)
+    ratings: dict[int, int] = Field(default_factory=dict)
+    added_dates: dict[str, int] = Field(default_factory=dict)
+    tag_cloud: dict[str, int] = Field(default_factory=dict)
 
 
 class BookDuplicates(BaseModel):
@@ -38,10 +37,10 @@ class BookDuplicates(BaseModel):
 
     book_id: str
     title: str
-    authors: List[str]
-    formats: List[str]
-    file_paths: List[str]
-    file_sizes: List[int]
+    authors: list[str]
+    formats: list[str]
+    file_paths: list[str]
+    file_sizes: list[int]
     is_duplicate: bool = True
     duplicate_group: int
 
@@ -69,7 +68,7 @@ class ExtendedLibraryOperations(MCPTool):
         self._backup_configs = {}
 
     # Library Analysis
-    async def analyze_library(self, library_path: str) -> Dict:
+    async def analyze_library(self, library_path: str) -> dict:
         """Generate detailed statistics about the library."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
@@ -145,9 +144,9 @@ class ExtendedLibraryOperations(MCPTool):
     async def find_duplicates(
         self,
         library_path: str,
-        check_fields: List[str] = ["title", "authors"],
+        check_fields: list[str] = ["title", "authors"],
         min_similarity: float = 0.9,
-    ) -> Dict:
+    ) -> dict:
         """Find duplicate books in the library."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
@@ -259,7 +258,7 @@ class ExtendedLibraryOperations(MCPTool):
         }
 
     def _calculate_book_similarity(
-        self, book1: Dict, book2: Dict, check_fields: List[str]
+        self, book1: dict, book2: dict, check_fields: list[str]
     ) -> float:
         """Calculate similarity between two books (0.0 to 1.0)."""
         from difflib import SequenceMatcher
@@ -336,7 +335,7 @@ class ExtendedLibraryOperations(MCPTool):
     # Library Backup
     async def backup_library(
         self, library_path: str, backup_dir: str, max_backups: int = 5, compress: bool = True
-    ) -> Dict:
+    ) -> dict:
         """Create a backup of the library."""
         if not os.path.isdir(library_path):
             return {"error": f"Library directory not found: {library_path}", "success": False}
@@ -442,7 +441,7 @@ class ExtendedLibraryOperations(MCPTool):
             self.logger.warning(f"Error cleaning up old backups: {str(e)}")
 
     # Library Repair
-    async def repair_library(self, library_path: str) -> Dict:
+    async def repair_library(self, library_path: str) -> dict:
         """Repair common library issues."""
         results = {"success": True, "operations": [], "errors": [], "warnings": [], "fixed": 0}
 
@@ -493,7 +492,7 @@ class ExtendedLibraryOperations(MCPTool):
                 "operations": results.get("operations", []),
             }
 
-    async def _repair_metadata_db(self, library_path: str) -> Dict:
+    async def _repair_metadata_db(self, library_path: str) -> dict:
         """Check and repair the metadata database."""
         import sqlite3
 
@@ -591,7 +590,7 @@ class ExtendedLibraryOperations(MCPTool):
 
             return {"error": f"Error checking database: {str(e)}", "repaired": False}
 
-    async def _find_orphaned_files(self, library_path: str) -> Dict:
+    async def _find_orphaned_files(self, library_path: str) -> dict:
         """Find files in the library that are not referenced in the database."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 

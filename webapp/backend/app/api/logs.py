@@ -2,14 +2,14 @@
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, Query
 
 router = APIRouter()
 
+
 # Log file path: env LOG_FILE, or logs/calibremcp.log relative to project root
-def _log_path() -> Optional[Path]:
+def _log_path() -> Path | None:
     if os.environ.get("LOG_FILE"):
         p = Path(os.environ["LOG_FILE"])
         if p.is_absolute():
@@ -32,15 +32,15 @@ def _log_path() -> Optional[Path]:
 @router.get("")
 async def get_logs(
     tail: int = Query(500, ge=1, le=10000, description="Last N lines"),
-    filter: Optional[str] = Query(None, description="Substring filter"),
-    level: Optional[str] = Query(None, description="Log level filter (DEBUG,INFO,WARNING,ERROR)"),
+    filter: str | None = Query(None, description="Substring filter"),
+    level: str | None = Query(None, description="Log level filter (DEBUG,INFO,WARNING,ERROR)"),
 ):
     """Return tail of log file with optional filter and level filter. Uses rotation-safe read."""
     log_path = _log_path()
     if not log_path:
         return {"lines": [], "total": 0, "error": "No log file found"}
     try:
-        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(log_path, encoding="utf-8", errors="replace") as f:
             lines = f.readlines()
     except OSError as e:
         return {"lines": [], "total": 0, "error": str(e)}

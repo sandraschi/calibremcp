@@ -9,18 +9,17 @@ Use manage_files(operation="...") instead:
 - bulk_format_operations() → manage_files(operation="bulk", operation_type=..., ...)
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 # Import the MCP server instance
-
 # Import response models
 from ...server import ConversionRequest, ConversionResponse
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead
 async def convert_book_format_helper(
-    conversion_requests: List[ConversionRequest],
-) -> List[ConversionResponse]:
+    conversion_requests: list[ConversionRequest],
+) -> list[ConversionResponse]:
     """
     Convert books between different formats (EPUB, PDF, MOBI, etc.).
 
@@ -38,7 +37,7 @@ async def convert_book_format_helper(
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead
-async def download_book_helper(book_id: int, format_preference: str = "EPUB") -> Dict[str, Any]:
+async def download_book_helper(book_id: int, format_preference: str = "EPUB") -> dict[str, Any]:
     """
     Download a book file in the specified format.
 
@@ -79,11 +78,12 @@ async def download_book_helper(book_id: int, format_preference: str = "EPUB") ->
             print(f"PDF not available, got {result['format']} instead")
     """
     from pathlib import Path
-    from ...services.book_service import book_service
+
     from ...config import CalibreConfig
     from ...db.database import DatabaseService
-    from ...models.data import Data
     from ...logging_config import get_logger
+    from ...models.data import Data
+    from ...services.book_service import book_service
 
     logger = get_logger("calibremcp.tools.file_operations")
 
@@ -169,8 +169,8 @@ async def download_book_helper(book_id: int, format_preference: str = "EPUB") ->
 
 # NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead
 async def bulk_format_operations_helper(
-    operation_type: str, target_format: Optional[str] = None, book_ids: Optional[List[int]] = None
-) -> Dict[str, Any]:
+    operation_type: str, target_format: str | None = None, book_ids: list[int] | None = None
+) -> dict[str, Any]:
     """
     Perform bulk operations on book formats across multiple books.
 

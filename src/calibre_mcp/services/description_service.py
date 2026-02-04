@@ -5,15 +5,15 @@ Read-only operations for browsing: list, get, get_books, stats, by_letter.
 For create/update/delete use manage_comments.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any
 
+from sqlalchemy import asc, func
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, asc
 
 from ..db.database import DatabaseService
-from ..db.models import Book, Comment, Author
-from .book_service import BookService
+from ..db.models import Book, Comment
 from ..logging_config import get_logger
+from .book_service import BookService
 
 logger = get_logger("calibremcp.services.description")
 
@@ -28,11 +28,11 @@ class DescriptionService:
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        has_description: Optional[bool] = None,
+        search: str | None = None,
+        has_description: bool | None = None,
         sort_by: str = "title",
         sort_order: str = "asc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         List books with description info.
         If has_description=True, only books with non-empty descriptions.
@@ -58,9 +58,9 @@ class DescriptionService:
                 )
             elif has_description is False:
                 query = query.filter(
-                    (Comment.id.is_(None)) |
-                    (Comment.text.is_(None)) |
-                    (func.length(Comment.text) == 0)
+                    (Comment.id.is_(None))
+                    | (Comment.text.is_(None))
+                    | (func.length(Comment.text) == 0)
                 )
 
             if search:
@@ -84,7 +84,9 @@ class DescriptionService:
                 if comm is None:
                     comm = session.query(Comment).filter(Comment.book == b.id).first()
                 desc_text = (comm.text or "") if comm else ""
-                d["description_preview"] = desc_text[:200] + "..." if len(desc_text) > 200 else desc_text
+                d["description_preview"] = (
+                    desc_text[:200] + "..." if len(desc_text) > 200 else desc_text
+                )
                 d["has_description"] = bool(desc_text.strip())
                 items.append(d)
 
@@ -96,7 +98,7 @@ class DescriptionService:
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def get_by_book_id(self, book_id: int) -> Dict[str, Any]:
+    def get_by_book_id(self, book_id: int) -> dict[str, Any]:
         """Get description for a book."""
         with self.db.session_scope() as session:
             book = (
@@ -109,7 +111,10 @@ class DescriptionService:
                 return {"success": False, "error": "Book not found", "book_id": book_id}
 
             # Comment is 1:1 with book (relationship or direct query)
-            comm = getattr(book, "comments", None) or session.query(Comment).filter(Comment.book == book_id).first()
+            comm = (
+                getattr(book, "comments", None)
+                or session.query(Comment).filter(Comment.book == book_id).first()
+            )
             desc_text = (comm.text or "") if comm else ""
 
             book_service = BookService(self.db)
@@ -124,7 +129,7 @@ class DescriptionService:
                 "description_length": len(desc_text),
             }
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get description coverage statistics."""
         with self.db.session_scope() as session:
             total_books = session.query(func.count(Book.id)).scalar() or 0
@@ -155,7 +160,7 @@ class DescriptionService:
                 "avg_description_length": avg_len,
             }
 
-    def get_by_letter(self, letter: str) -> List[Dict[str, Any]]:
+    def get_by_letter(self, letter: str) -> list[dict[str, Any]]:
         """Get books whose title starts with letter and have descriptions."""
         if len(letter) != 1 or not letter.isalpha():
             return []
@@ -179,7 +184,13 @@ class DescriptionService:
             for b in books:
                 d = book_service._to_response(b)
                 comm = session.query(Comment).filter(Comment.book == b.id).first()
-                desc = (comm.text or "")[:150] + "..." if comm and comm.text and len(comm.text) > 150 else (comm.text or "") if comm else ""
+                desc = (
+                    (comm.text or "")[:150] + "..."
+                    if comm and comm.text and len(comm.text) > 150
+                    else (comm.text or "")
+                    if comm
+                    else ""
+                )
                 d["description_preview"] = desc
                 result.append(d)
             return result
@@ -188,4 +199,5 @@ class DescriptionService:
 def get_description_service() -> "DescriptionService":
     """Get description service with current database."""
     from ..db.database import get_database
+
     return DescriptionService(get_database())

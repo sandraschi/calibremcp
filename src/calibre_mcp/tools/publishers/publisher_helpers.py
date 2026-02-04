@@ -4,21 +4,21 @@ Helper functions for publisher management operations.
 Uses DatabaseService (same as books, authors, tags) for library context.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
 from ...db.database import db as database_singleton
-from ...services.publisher_service import get_publisher_service
 from ...logging_config import get_logger
+from ...services.publisher_service import get_publisher_service
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.publishers")
 
 
 async def list_publishers_helper(
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """List publishers with filtering and pagination. Uses DatabaseService (same as books/authors/tags)."""
     try:
         if not database_singleton._engine or not database_singleton._current_db_path:
@@ -50,9 +50,9 @@ async def list_publishers_helper(
 
 
 async def get_publisher_helper(
-    publisher_id: Optional[int] = None,
-    publisher_name: Optional[str] = None,
-) -> Dict[str, Any]:
+    publisher_id: int | None = None,
+    publisher_name: str | None = None,
+) -> dict[str, Any]:
     """Get publisher details by ID or name."""
     try:
         svc = get_publisher_service()
@@ -83,11 +83,11 @@ async def get_publisher_helper(
 
 
 async def get_publisher_books_helper(
-    publisher_id: Optional[int] = None,
-    publisher_name: Optional[str] = None,
+    publisher_id: int | None = None,
+    publisher_name: str | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get books by publisher."""
     try:
         svc = get_publisher_service()
@@ -118,7 +118,7 @@ async def get_publisher_books_helper(
         )
 
 
-async def get_publisher_stats_helper() -> Dict[str, Any]:
+async def get_publisher_stats_helper() -> dict[str, Any]:
     """Get publisher statistics."""
     try:
         svc = get_publisher_service()
@@ -133,7 +133,7 @@ async def get_publisher_stats_helper() -> Dict[str, Any]:
         )
 
 
-async def get_publishers_by_letter_helper(letter: str) -> Dict[str, Any]:
+async def get_publishers_by_letter_helper(letter: str) -> dict[str, Any]:
     """Get publishers by first letter of name."""
     try:
         if len(letter) != 1 or not letter.isalpha():

@@ -7,14 +7,14 @@ Consolidates all library-level operations into a single unified interface:
 - Bulk organizational tasks
 """
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from ...server import mcp
 from ...logging_config import get_logger
+from ...server import mcp
+from .list_books import list_books
 
 # Import operation implementations
 from .series_manager import SeriesManager
-from .list_books import list_books
 
 logger = get_logger("calibremcp.tools.library_operations")
 
@@ -23,12 +23,12 @@ logger = get_logger("calibremcp.tools.library_operations")
 async def manage_library_operations(
     operation: str,
     # Common parameters
-    library_path: Optional[str] = None,
+    library_path: str | None = None,
     dry_run: bool = True,
     # Series management parameters
     update_metadata: bool = False,
-    source_series: Optional[str] = None,
-    target_series: Optional[str] = None,
+    source_series: str | None = None,
+    target_series: str | None = None,
     # Book listing parameters
     query: str = "",
     author: str = "",
@@ -39,7 +39,7 @@ async def manage_library_operations(
     offset: int = 0,
     sort_by: str = "title",
     sort_order: str = "asc",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Comprehensive library operations portmanteau tool for Calibre MCP server.
 
@@ -112,19 +112,28 @@ async def manage_library_operations(
                 return {
                     "success": False,
                     "error": "source_series and target_series parameters required for merging",
-                    "message": "Please specify both source and target series names for the merge operation."
+                    "message": "Please specify both source and target series names for the merge operation.",
                 }
             series_manager = SeriesManager()
             return await series_manager.merge_series(
-                library_path=library_path, source_series=source_series,
-                target_series=target_series, dry_run=dry_run
+                library_path=library_path,
+                source_series=source_series,
+                target_series=target_series,
+                dry_run=dry_run,
             )
 
         elif operation == "list_books":
             return await list_books(
-                query=query, author=author, tag=tag, format=format_filter, status=status,
-                limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order,
-                library_path=library_path
+                query=query,
+                author=author,
+                tag=tag,
+                format=format_filter,
+                status=status,
+                limit=limit,
+                offset=offset,
+                sort_by=sort_by,
+                sort_order=sort_order,
+                library_path=library_path,
             )
 
         else:
@@ -133,7 +142,7 @@ async def manage_library_operations(
                 "success": False,
                 "error": f"Unknown operation: {operation}",
                 "message": f"Available operations: {', '.join(available_ops)}",
-                "available_operations": available_ops
+                "available_operations": available_ops,
             }
 
     except Exception as e:
@@ -142,5 +151,5 @@ async def manage_library_operations(
             "success": False,
             "error": f"Library operation failed: {str(e)}",
             "operation": operation,
-            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details."
+            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details.",
         }

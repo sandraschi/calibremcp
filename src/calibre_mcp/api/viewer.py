@@ -2,23 +2,24 @@
 Viewer API endpoints for CalibreMCP.
 """
 
+import os
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
-import os
-from typing import Optional, Dict, Any
 
-from ...viewers import get_viewer
-from ...storage import get_storage_backend
 from ...models.book import Book
+from ...storage import get_storage_backend
+from ...viewers import get_viewer
 
 router = APIRouter(tags=["viewer"])
 
 # In-memory storage for active viewers (in a real app, use Redis or similar)
-_active_viewers: Dict[str, Any] = {}
+_active_viewers: dict[str, Any] = {}
 
 
 @router.get("/view/book/{book_id}", response_class=HTMLResponse)
-async def view_book(book_id: str, page: int = 0, library_id: Optional[str] = None):
+async def view_book(book_id: str, page: int = 0, library_id: str | None = None):
     """
     View a book in the web reader.
     """
@@ -50,8 +51,8 @@ async def view_book(book_id: str, page: int = 0, library_id: Optional[str] = Non
 
 @router.get("/api/viewer/page")
 async def get_page(
-    book_id: str, page: int = Query(0, ge=0), library_id: Optional[str] = None
-) -> Dict[str, Any]:
+    book_id: str, page: int = Query(0, ge=0), library_id: str | None = None
+) -> dict[str, Any]:
     """
     Get a specific page from a book.
     """
@@ -69,8 +70,8 @@ async def get_page(
 
 @router.post("/api/viewer/settings")
 async def update_viewer_settings(
-    book_id: str, settings: Dict[str, Any], library_id: Optional[str] = None
-) -> Dict[str, Any]:
+    book_id: str, settings: dict[str, Any], library_id: str | None = None
+) -> dict[str, Any]:
     """
     Update viewer settings (for comics/manga).
     """

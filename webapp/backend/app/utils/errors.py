@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 class MCPError(Exception):
     """Base exception for MCP-related errors."""
+
     pass
 
 

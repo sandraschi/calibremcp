@@ -3,13 +3,13 @@
 Script to inspect the Calibre metadata.db structure.
 """
 
+import json
 import sqlite3
 from pathlib import Path
-from typing import Dict, Any
-import json
+from typing import Any
 
 
-def get_db_schema(db_path: str) -> Dict[str, Any]:
+def get_db_schema(db_path: str) -> dict[str, Any]:
     """Extract schema information from SQLite database."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row

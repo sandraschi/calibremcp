@@ -13,8 +13,10 @@ Use manage_authors(operation="...") instead of individual tools:
 - get_authors_by_letter() → manage_authors(operation="by_letter", letter=...)
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 from .base_tool import BaseTool, mcp_tool
 
 
@@ -33,7 +35,7 @@ class Author(BaseModel):
 class AuthorSearchInput(BaseModel):
     """Input model for author search."""
 
-    query: Optional[str] = Field(None, description="Search query to filter authors by name")
+    query: str | None = Field(None, description="Search query to filter authors by name")
     limit: int = Field(50, description="Maximum number of results to return", ge=1, le=1000)
     offset: int = Field(0, description="Number of results to skip (for pagination)", ge=0)
 
@@ -41,7 +43,7 @@ class AuthorSearchInput(BaseModel):
 class AuthorSearchOutput(BaseModel):
     """Output model for paginated author search results."""
 
-    items: List[Author] = Field(..., description="List of matching authors")
+    items: list[Author] = Field(..., description="List of matching authors")
     total: int = Field(..., description="Total number of matching authors")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Number of items per page")
@@ -52,7 +54,7 @@ class AuthorBooksOutput(BaseModel):
     """Output model for an author's books."""
 
     author: Author = Field(..., description="Author information")
-    books: List[Dict[str, Any]] = Field(..., description="List of books by this author")
+    books: list[dict[str, Any]] = Field(..., description="List of books by this author")
     total: int = Field(..., description="Total number of books by this author")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Number of items per page")
@@ -63,8 +65,8 @@ class AuthorStats(BaseModel):
     """Author statistics model."""
 
     total_authors: int = Field(..., description="Total number of authors")
-    top_authors: List[Dict[str, Any]] = Field(..., description="Authors with most books")
-    authors_by_letter: List[Dict[str, Any]] = Field(..., description="Author count by first letter")
+    top_authors: list[dict[str, Any]] = Field(..., description="Authors with most books")
+    authors_by_letter: list[dict[str, Any]] = Field(..., description="Author count by first letter")
 
 
 class AuthorTools(BaseTool):
@@ -77,8 +79,8 @@ class AuthorTools(BaseTool):
         output_model=AuthorSearchOutput,
     )
     async def list_authors(
-        self, query: Optional[str] = None, limit: int = 50, offset: int = 0
-    ) -> Dict[str, Any]:
+        self, query: str | None = None, limit: int = 50, offset: int = 0
+    ) -> dict[str, Any]:
         """
         Search and list authors with optional name filtering.
 
@@ -100,7 +102,7 @@ class AuthorTools(BaseTool):
         description="Get detailed information about an author by ID",
         output_model=Author,
     )
-    async def get_author(self, author_id: int) -> Optional[Dict[str, Any]]:
+    async def get_author(self, author_id: int) -> dict[str, Any] | None:
         """
         Get detailed information about a specific author.
 
@@ -124,7 +126,7 @@ class AuthorTools(BaseTool):
     )
     async def get_author_books(
         self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get all books written by a specific author.
 
@@ -176,7 +178,7 @@ class AuthorTools(BaseTool):
         description="Get statistics about authors in the library",
         output_model=AuthorStats,
     )
-    async def get_author_stats(self) -> Dict[str, Any]:
+    async def get_author_stats(self) -> dict[str, Any]:
         """
         Get statistics about authors in the library.
 
@@ -193,9 +195,9 @@ class AuthorTools(BaseTool):
     @mcp_tool(
         name="get_authors_by_letter",
         description="Get authors whose names start with a specific letter",
-        output_model=List[Author],
+        output_model=list[Author],
     )
-    async def get_authors_by_letter(self, letter: str) -> List[Dict[str, Any]]:
+    async def get_authors_by_letter(self, letter: str) -> list[dict[str, Any]]:
         """
         Get all authors whose names start with the specified letter.
 

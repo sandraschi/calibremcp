@@ -9,23 +9,25 @@ Use manage_metadata(operation="...") instead:
 - fix_metadata_issues() → manage_metadata(operation="fix_issues")
 """
 
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import Any
+
+from ...logging_config import get_logger
 
 # Import the MCP server instance
-
 # Import response models
 from ...server import MetadataUpdateRequest, MetadataUpdateResponse, TagStatsResponse
 
 # Import services
 from ...services.book_service import book_service
-from ...logging_config import get_logger
 
 logger = get_logger("calibremcp.tools.metadata_management")
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_metadata portmanteau tool instead
-async def update_book_metadata_helper(updates: List[MetadataUpdateRequest]) -> MetadataUpdateResponse:
+async def update_book_metadata_helper(
+    updates: list[MetadataUpdateRequest],
+) -> MetadataUpdateResponse:
     """
     Update metadata for single or multiple books.
 
@@ -67,11 +69,11 @@ async def update_book_metadata_helper(updates: List[MetadataUpdateRequest]) -> M
             {"book_id": 125, "field": "tag_ids", "value": [1, 2, 3]}
         ])
     """
-    updated_books: List[int] = []
-    failed_updates: List[Dict[str, Any]] = []
+    updated_books: list[int] = []
+    failed_updates: list[dict[str, Any]] = []
 
     # Group updates by book_id to batch them
-    updates_by_book: Dict[int, Dict[str, Any]] = {}
+    updates_by_book: dict[int, dict[str, Any]] = {}
 
     for update in updates:
         book_id = update.book_id

@@ -1,7 +1,6 @@
 """System management API endpoints."""
 
 from fastapi import APIRouter, Query
-from typing import Optional
 
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
@@ -12,7 +11,7 @@ router = APIRouter()
 @router.get("/help")
 async def get_help(
     level: str = Query("basic", regex="^(basic|intermediate|advanced|expert)$"),
-    topic: Optional[str] = None,
+    topic: str | None = None,
 ):
     """Get comprehensive help system."""
     try:
@@ -22,7 +21,7 @@ async def get_help(
                 "operation": "help",
                 "level": level,
                 "topic": topic,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -32,7 +31,7 @@ async def get_help(
 @router.get("/status")
 async def get_system_status(
     status_level: str = Query("basic", regex="^(basic|intermediate|advanced|diagnostic)$"),
-    focus: Optional[str] = None,
+    focus: str | None = None,
 ):
     """Get system status and diagnostic information."""
     try:
@@ -42,7 +41,7 @@ async def get_system_status(
                 "operation": "status",
                 "status_level": status_level,
                 "focus": focus,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -50,7 +49,7 @@ async def get_system_status(
 
 
 @router.get("/tools")
-async def list_tools(category: Optional[str] = None):
+async def list_tools(category: str | None = None):
     """List all available tools."""
     try:
         result = await mcp_client.call_tool(
@@ -58,7 +57,7 @@ async def list_tools(category: Optional[str] = None):
             {
                 "operation": "list_tools",
                 "category": category,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -78,7 +77,7 @@ async def get_tool_help(
                 "operation": "tool_help",
                 "tool_name": tool_name,
                 "tool_help_level": tool_help_level,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -93,7 +92,7 @@ async def health_check():
             "manage_system",
             {
                 "operation": "health_check",
-            }
+            },
         )
         return result
     except Exception as e:

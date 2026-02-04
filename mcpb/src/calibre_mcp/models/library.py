@@ -3,10 +3,11 @@ SQLAlchemy and Pydantic models for Library in Calibre MCP.
 """
 
 from datetime import datetime
-from typing import Optional, Dict, TYPE_CHECKING
-from sqlalchemy import Integer, Text, Boolean, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
+from sqlalchemy import Boolean, DateTime, Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, BaseMixin
 
@@ -25,7 +26,7 @@ class Library(Base, BaseMixin):
     is_local: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
     # Relationships
     # NOTE: Calibre's actual database schema does NOT have a library table or foreign key.
@@ -56,7 +57,7 @@ class Library(Base, BaseMixin):
         return len({author.id for book in self.books for author in book.authors})
 
     @property
-    def format_counts(self) -> Dict[str, int]:
+    def format_counts(self) -> dict[str, int]:
         """Get count of books by format"""
         if not hasattr(self, "books") or not self.books:
             return {}
@@ -97,10 +98,10 @@ class LibraryCreate(LibraryBase):
 class LibraryUpdate(BaseModel):
     """Pydantic model for updating a library"""
 
-    name: Optional[str] = Field(None, description="Name of the library")
-    path: Optional[str] = Field(None, description="Path or URL to the library")
-    is_local: Optional[bool] = Field(None, description="Whether this is a local library")
-    is_active: Optional[bool] = Field(None, description="Whether the library is active")
+    name: str | None = Field(None, description="Name of the library")
+    path: str | None = Field(None, description="Path or URL to the library")
+    is_local: bool | None = Field(None, description="Whether this is a local library")
+    is_active: bool | None = Field(None, description="Whether the library is active")
 
 
 class LibraryResponse(LibraryBase):
@@ -111,11 +112,11 @@ class LibraryResponse(LibraryBase):
     book_count: int = Field(0, description="Number of books in the library")
     author_count: int = Field(0, description="Number of unique authors")
     total_size: int = Field(0, description="Total size of the library in bytes")
-    format_counts: Dict[str, int] = Field(
+    format_counts: dict[str, int] = Field(
         default_factory=dict, description="Count of books by format"
     )
     created_at: datetime = Field(..., description="When the library was created")
-    updated_at: Optional[datetime] = Field(None, description="When the library was last updated")
+    updated_at: datetime | None = Field(None, description="When the library was last updated")
 
     @classmethod
     def from_orm(cls, obj):
@@ -132,7 +133,7 @@ class LibraryResponse(LibraryBase):
 class LibraryInfo(LibraryResponse):
     """Legacy Pydantic model for library information"""
 
-    last_updated: Optional[datetime] = Field(None, alias="updated_at")
+    last_updated: datetime | None = Field(None, alias="updated_at")
 
     class Config(LibraryResponse.Config):
         fields = {"updated_at": {"exclude": True}}

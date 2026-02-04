@@ -3,10 +3,11 @@ SQLAlchemy and Pydantic models for Data (book formats) in Calibre MCP.
 """
 
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, String, Text, ForeignKey, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
@@ -28,7 +29,7 @@ class Data(Base, BaseMixin):
     name: Mapped[str] = mapped_column(Text, default="")
 
     # File modification time
-    mtime: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.utcnow)
+    mtime: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Relationships
     book: Mapped["Book"] = relationship("Book", back_populates="data")
@@ -67,8 +68,8 @@ class DataResponse(DataBase):
 
     id: int = Field(..., description="Unique identifier for the data entry")
     book_id: int = Field(..., description="ID of the book this data belongs to")
-    mtime: Optional[datetime] = Field(None, description="Last modification time")
-    file_path: Optional[str] = Field(None, description="Relative path to the file")
+    mtime: datetime | None = Field(None, description="Last modification time")
+    file_path: str | None = Field(None, description="Relative path to the file")
 
     @classmethod
     def from_orm(cls, obj):

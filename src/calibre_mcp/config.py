@@ -7,19 +7,18 @@ Now includes automatic Calibre library discovery.
 
 import json
 import os
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
-from .logging_config import get_logger, log_operation, log_error
 from .config_discovery import (
     CalibreLibrary,
     discover_calibre_libraries,
     get_active_calibre_library,
 )
-
+from .logging_config import get_logger, log_error, log_operation
 
 logger = get_logger("calibremcp.config")
 
@@ -29,7 +28,7 @@ class RemoteServerConfig(BaseModel):
 
     url: HttpUrl
     display_name: str = ""
-    username: Optional[str] = None  # Not stored here, only in keyring
+    username: str | None = None  # Not stored here, only in keyring
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 
@@ -40,13 +39,13 @@ class CalibreConfig(BaseModel):
     model_config = {"from_attributes": True, "populate_by_name": True}
 
     # Library configuration - now auto-discovered
-    local_library_path: Optional[Path] = Field(
+    local_library_path: Path | None = Field(
         default=None,
         description="Path to local Calibre library (auto-discovered if not specified)",
     )
 
     # Discovered libraries
-    discovered_libraries: Dict[str, CalibreLibrary] = Field(
+    discovered_libraries: dict[str, CalibreLibrary] = Field(
         default_factory=dict, description="Automatically discovered Calibre libraries"
     )
 
@@ -55,16 +54,14 @@ class CalibreConfig(BaseModel):
         default=True, description="Automatically discover Calibre libraries on startup"
     )
 
-    library_discovery_paths: List[Path] = Field(
+    library_discovery_paths: list[Path] = Field(
         default_factory=list,
         description="Additional paths to scan for Calibre libraries",
     )
 
     # Disable remote access by default
-    default_remote: Optional[str] = Field(
-        None, description="Default remote server name to use"
-    )
-    remotes: Dict[str, RemoteServerConfig] = Field(
+    default_remote: str | None = Field(None, description="Default remote server name to use")
+    remotes: dict[str, RemoteServerConfig] = Field(
         default_factory=dict, description="Configured remote servers"
     )
 
@@ -72,15 +69,9 @@ class CalibreConfig(BaseModel):
     use_remote: bool = Field(
         default=False, description="Set to True to enable remote server access"
     )
-    server_url: str = Field(
-        default="http://localhost:8080", description="Calibre server URL"
-    )
-    username: Optional[str] = Field(
-        default=None, description="Calibre username (if auth enabled)"
-    )
-    password: Optional[str] = Field(
-        default=None, description="Calibre password (if auth enabled)"
-    )
+    server_url: str = Field(default="http://localhost:8080", description="Calibre server URL")
+    username: str | None = Field(default=None, description="Calibre username (if auth enabled)")
+    password: str | None = Field(default=None, description="Calibre password (if auth enabled)")
 
     # Request settings
     timeout: int = Field(default=30, description="Request timeout in seconds")
@@ -121,7 +112,7 @@ class CalibreConfig(BaseModel):
         return max(1, min(1000, v))
 
     @classmethod
-    def load_config(cls, config_file: Optional[str] = None) -> "CalibreConfig":
+    def load_config(cls, config_file: str | None = None) -> "CalibreConfig":
         """
         Load configuration from file and environment variables.
 
@@ -147,10 +138,10 @@ class CalibreConfig(BaseModel):
             config_path = Path(config_file)
             if config_path.exists():
                 try:
-                    with open(config_path, "r", encoding="utf-8") as f:
+                    with open(config_path, encoding="utf-8") as f:
                         file_data = json.load(f)
                         config_data.update(file_data)
-                except (json.JSONDecodeError, IOError) as e:
+                except (OSError, json.JSONDecodeError) as e:
                     log_operation(
                         logger,
                         "config_load_warning",
@@ -237,7 +228,7 @@ class CalibreConfig(BaseModel):
 
         return config
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert config to dictionary"""
         return self.model_dump()
 
@@ -262,7 +253,7 @@ class CalibreConfig(BaseModel):
             with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(config_dict, f, indent=2, ensure_ascii=False)
             return True
-        except IOError as e:
+        except OSError as e:
             log_error(logger, "config_save_error", e, config_file=str(config_file))
             return False
 
@@ -276,13 +267,13 @@ class CalibreConfig(BaseModel):
         """Get base API URL for Calibre server"""
         return f"{self.server_url}/ajax"
 
-    def get_auth(self) -> Optional[tuple]:
+    def get_auth(self) -> tuple | None:
         """Get authentication tuple for requests"""
         if self.has_auth:
             return (self.username, self.password)
         return None
 
-    def discover_libraries(self) -> Dict[str, CalibreLibrary]:
+    def discover_libraries(self) -> dict[str, CalibreLibrary]:
         """
         Discover all available Calibre libraries.
 
@@ -303,9 +294,7 @@ class CalibreConfig(BaseModel):
                     if path.exists() and path.is_dir():
                         # Check if this path itself is a library
                         if (path / "metadata.db").exists():
-                            lib_name = (
-                                path.name if path.name != "Written Word" else "main"
-                            )
+                            lib_name = path.name if path.name != "Written Word" else "main"
                             libraries[lib_name] = CalibreLibrary(
                                 name=lib_name,
                                 path=path,
@@ -369,13 +358,13 @@ class CalibreConfig(BaseModel):
             log_error(logger, "library_discovery_error", e)
             return {}
 
-    def get_library_by_name(self, name: str) -> Optional[CalibreLibrary]:
+    def get_library_by_name(self, name: str) -> CalibreLibrary | None:
         """Get a specific library by name"""
         if not self.discovered_libraries:
             self.discover_libraries()
         return self.discovered_libraries.get(name)
 
-    def get_active_library(self) -> Optional[CalibreLibrary]:
+    def get_active_library(self) -> CalibreLibrary | None:
         """Get the currently active library"""
         if not self.discovered_libraries:
             self.discover_libraries()
@@ -397,7 +386,7 @@ class CalibreConfig(BaseModel):
 
         return None
 
-    def list_libraries(self) -> List[Dict[str, Any]]:
+    def list_libraries(self) -> list[dict[str, Any]]:
         """Get a list of all discovered libraries with metadata"""
         if not self.discovered_libraries:
             self.discover_libraries()

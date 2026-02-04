@@ -69,13 +69,12 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # MCP servers use stdio transport, so stdout must be clean for JSON-RPC
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 
-from typing import Optional, List, Dict, Any, AsyncContextManager
-from pathlib import Path
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any, AsyncContextManager
 
 from fastmcp import FastMCP
 from pydantic import BaseModel
-from dotenv import load_dotenv
 
 # Load environment variables first
 # load_dotenv()  # Temporarily disabled for testing
@@ -87,7 +86,7 @@ logger = logging.getLogger("calibremcp.server")  # Temporary logger until proper
 # Global API client and database connections (initialized on startup)
 api_client = None  # CalibreAPIClient
 current_library: str = "main"
-available_libraries: Dict[str, str] = {}
+available_libraries: dict[str, str] = {}
 storage = None  # CalibreMCPStorage
 
 
@@ -124,9 +123,9 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
         logger.info("FastMCP 2.13 storage initialized")
 
         # Initialize config and discover libraries FIRST
-        from .db.database import init_database
         from .config import CalibreConfig
         from .config_discovery import get_active_calibre_library
+        from .db.database import init_database
 
         config = CalibreConfig()
 
@@ -165,10 +164,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             library_name_loaded = persisted_library
             logger.info(f"Using persisted library: {persisted_library}")
         # Try config.local_library_path
-        elif (
-            config.local_library_path
-            and (config.local_library_path / "metadata.db").exists()
-        ):
+        elif config.local_library_path and (config.local_library_path / "metadata.db").exists():
             library_to_load = config.local_library_path
             # Find library name from discovered libraries
             for name, path in libraries.items():
@@ -188,9 +184,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             ):
                 library_to_load = active_lib.path
                 library_name_loaded = active_lib.name
-                logger.info(
-                    f"Using active Calibre library: {active_lib.name} at {active_lib.path}"
-                )
+                logger.info(f"Using active Calibre library: {active_lib.name} at {active_lib.path}")
         # Fallback to first discovered library
         if not library_to_load and libraries:
             first_lib_path = list(libraries.values())[0]
@@ -215,9 +209,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                     try:
                         await storage.set_current_library(current_library)
                     except Exception as storage_e:
-                        logger.warning(
-                            f"Could not persist library to storage: {storage_e}"
-                        )
+                        logger.warning(f"Could not persist library to storage: {storage_e}")
                     logger.info(
                         f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
                     )
@@ -272,6 +264,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
 # Lazy MCP instance creation - created only when needed
 _mcp_instance = None
 
+
 def get_mcp() -> FastMCP:
     """Get or create the MCP instance lazily"""
     global _mcp_instance
@@ -279,10 +272,12 @@ def get_mcp() -> FastMCP:
         _mcp_instance = FastMCP("CalibreMCP Phase 2")
     return _mcp_instance
 
+
 # For backward compatibility, provide mcp as a property
 @property
 def mcp() -> FastMCP:
     return get_mcp()
+
 
 # CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
 # We should not set up additional logging to stderr as it would override the redirection
@@ -314,9 +309,9 @@ class LibrarySearchResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    results: List[Dict[str, Any]]
+    results: list[dict[str, Any]]
     total_found: int
-    query_used: Optional[str] = None
+    query_used: str | None = None
     search_time_ms: int = 0
     library_searched: str = "main"
 
@@ -328,19 +323,19 @@ class BookDetailResponse(BaseModel):
 
     book_id: int
     title: str
-    authors: List[str]
-    series: Optional[str] = None
-    series_index: Optional[float] = None
-    rating: Optional[float] = None
-    tags: List[str] = []
-    comments: Optional[str] = None
-    published: Optional[str] = None
-    languages: List[str] = ["en"]
-    formats: List[str] = []
-    identifiers: Dict[str, str] = {}
-    last_modified: Optional[str] = None
-    cover_url: Optional[str] = None
-    download_links: Dict[str, str] = {}
+    authors: list[str]
+    series: str | None = None
+    series_index: float | None = None
+    rating: float | None = None
+    tags: list[str] = []
+    comments: str | None = None
+    published: str | None = None
+    languages: list[str] = ["en"]
+    formats: list[str] = []
+    identifiers: dict[str, str] = {}
+    last_modified: str | None = None
+    cover_url: str | None = None
+    download_links: dict[str, str] = {}
     library_name: str = "main"
 
 
@@ -349,11 +344,11 @@ class ConnectionTestResponse(BaseModel):
 
     connected: bool
     server_url: str
-    server_version: Optional[str] = None
+    server_version: str | None = None
     library_count: int = 0
     total_books: int = 0
     response_time_ms: int = 0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class LibraryListResponse(BaseModel):
@@ -361,7 +356,7 @@ class LibraryListResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    libraries: List[Dict[str, Any]]
+    libraries: list[dict[str, Any]]
     current_library: str
     total_libraries: int
 
@@ -376,10 +371,10 @@ class LibraryStatsResponse(BaseModel):
     total_authors: int
     total_series: int
     total_tags: int
-    format_distribution: Dict[str, int]
-    language_distribution: Dict[str, int]
-    rating_distribution: Dict[str, int]
-    last_modified: Optional[str] = None
+    format_distribution: dict[str, int]
+    language_distribution: dict[str, int]
+    rating_distribution: dict[str, int]
+    last_modified: str | None = None
 
 
 class TagStatsResponse(BaseModel):
@@ -389,9 +384,9 @@ class TagStatsResponse(BaseModel):
 
     total_tags: int
     unique_tags: int
-    duplicate_tags: List[Dict[str, Any]]
-    unused_tags: List[str]
-    suggestions: List[Dict[str, Any]]
+    duplicate_tags: list[dict[str, Any]]
+    unused_tags: list[str]
+    suggestions: list[dict[str, Any]]
 
 
 class DuplicatesResponse(BaseModel):
@@ -399,9 +394,9 @@ class DuplicatesResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    duplicate_groups: List[Dict[str, Any]]
+    duplicate_groups: list[dict[str, Any]]
     total_duplicates: int
-    confidence_scores: Dict[str, float]
+    confidence_scores: dict[str, float]
 
 
 class SeriesAnalysisResponse(BaseModel):
@@ -409,9 +404,9 @@ class SeriesAnalysisResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    incomplete_series: List[Dict[str, Any]]
-    reading_order_suggestions: List[Dict[str, Any]]
-    series_statistics: Dict[str, Any]
+    incomplete_series: list[dict[str, Any]]
+    reading_order_suggestions: list[dict[str, Any]]
+    series_statistics: dict[str, Any]
 
 
 class LibraryHealthResponse(BaseModel):
@@ -420,8 +415,8 @@ class LibraryHealthResponse(BaseModel):
     model_config = {"from_attributes": True}
 
     health_score: float
-    issues_found: List[Dict[str, Any]]
-    recommendations: List[str]
+    issues_found: list[dict[str, Any]]
+    recommendations: list[str]
     database_integrity: bool
 
 
@@ -430,8 +425,8 @@ class UnreadPriorityResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    prioritized_books: List[Dict[str, Any]]
-    priority_reasons: Dict[str, str]
+    prioritized_books: list[dict[str, Any]]
+    priority_reasons: dict[str, str]
     total_unread: int
 
 
@@ -450,8 +445,8 @@ class MetadataUpdateResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    updated_books: List[int]
-    failed_updates: List[Dict[str, Any]]
+    updated_books: list[int]
+    failed_updates: list[dict[str, Any]]
     success_count: int
 
 
@@ -462,8 +457,8 @@ class ReadingStats(BaseModel):
 
     total_books_read: int
     average_rating: float
-    favorite_genres: List[str]
-    reading_patterns: Dict[str, Any]
+    favorite_genres: list[str]
+    reading_patterns: dict[str, Any]
 
 
 class ConversionRequest(BaseModel):
@@ -484,8 +479,8 @@ class ConversionResponse(BaseModel):
 
     book_id: int
     success: bool
-    output_path: Optional[str] = None
-    error_message: Optional[str] = None
+    output_path: str | None = None
+    error_message: str | None = None
 
 
 class JapaneseBookOrganization(BaseModel):
@@ -493,10 +488,10 @@ class JapaneseBookOrganization(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    manga_series: List[Dict[str, Any]]
-    light_novels: List[Dict[str, Any]]
-    language_learning: List[Dict[str, Any]]
-    reading_recommendations: List[str]
+    manga_series: list[dict[str, Any]]
+    light_novels: list[dict[str, Any]]
+    language_learning: list[dict[str, Any]]
+    reading_recommendations: list[str]
 
 
 class ITBookCuration(BaseModel):
@@ -504,9 +499,9 @@ class ITBookCuration(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    programming_languages: Dict[str, List[Dict[str, Any]]]
-    outdated_books: List[Dict[str, Any]]
-    learning_paths: List[Dict[str, Any]]
+    programming_languages: dict[str, list[dict[str, Any]]]
+    outdated_books: list[dict[str, Any]]
+    learning_paths: list[dict[str, Any]]
 
 
 class ReadingRecommendations(BaseModel):
@@ -514,15 +509,15 @@ class ReadingRecommendations(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    recommendations: List[Dict[str, Any]]
-    reasoning: Dict[str, str]
-    confidence_scores: Dict[str, float]
+    recommendations: list[dict[str, Any]]
+    reasoning: dict[str, str]
+    confidence_scores: dict[str, float]
 
 
 # ==================== HELPER FUNCTIONS ====================
 
 
-async def get_api_client() -> Optional[CalibreAPIClient]:
+async def get_api_client() -> CalibreAPIClient | None:
     """
     Get or create API client instance for remote Calibre Content Server access.
 
@@ -542,7 +537,7 @@ async def get_api_client() -> Optional[CalibreAPIClient]:
     return api_client
 
 
-async def discover_libraries() -> Dict[str, str]:
+async def discover_libraries() -> dict[str, str]:
     """Discover available Calibre libraries"""
     global available_libraries
 
@@ -579,10 +574,7 @@ async def main():
     """Main server entry point"""
     try:
         # Import heavy modules only when actually running the server
-        from .logging_config import get_logger, log_operation, log_error, setup_logging
-        from .calibre_api import CalibreAPIClient
-        from .config import CalibreConfig
-        from .storage.persistence import CalibreMCPStorage, set_storage
+        from .logging_config import get_logger, log_error, log_operation, setup_logging
 
         # Initialize logging (stderr is OK for MCP servers, stdout reserved for JSON-RPC)
         log_file_path = Path("logs/calibremcp.log")
@@ -610,7 +602,6 @@ async def main():
 
         # Initialize server lifespan manually (deferred from module import)
         logger.info("Initializing server lifespan...")
-        from contextlib import asynccontextmanager
 
         lifespan_context = server_lifespan(mcp)
         lifespan_manager = await lifespan_context.__aenter__()
@@ -687,8 +678,8 @@ async def main():
 
 if __name__ == "__main__":
     # Handle both direct execution and module execution
-    import sys
     import asyncio
+    import sys
     from pathlib import Path
 
     # If running directly (not as module), fix imports

@@ -2,14 +2,14 @@
 EPUB Viewer for CalibreMCP with full TOC and bookmark support.
 """
 
+import hashlib
 import os
 import sqlite3
-import hashlib
-import zipfile
 import xml.etree.ElementTree as ET
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+import zipfile
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field
@@ -24,29 +24,29 @@ class EPubMetadata(BaseModel):
     language: str = "en"
     description: str = ""
     rights: str = ""
-    date: Optional[datetime] = None
-    cover_image: Optional[str] = None
+    date: datetime | None = None
+    cover_image: str | None = None
     identifier: str = ""
     file_path: str = ""
     file_hash: str = ""
     file_size: int = 0
-    spine_items: List[Dict[str, Any]] = Field(default_factory=list)
-    toc_items: List[Dict[str, Any]] = Field(default_factory=list)
+    spine_items: list[dict[str, Any]] = Field(default_factory=list)
+    toc_items: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class EPubViewerState(BaseModel):
     """Current state of the EPUB viewer."""
 
-    current_position: Dict[str, Any] = Field(default_factory=dict)
-    bookmarks: List[Dict[str, Any]] = Field(default_factory=list)
-    annotations: List[Dict[str, Any]] = Field(default_factory=list)
+    current_position: dict[str, Any] = Field(default_factory=dict)
+    bookmarks: list[dict[str, Any]] = Field(default_factory=list)
+    annotations: list[dict[str, Any]] = Field(default_factory=list)
     reading_progress: float = 0.0
     font_size: int = 16
     font_family: str = "Arial, sans-serif"
     theme: str = "light"
     line_height: float = 1.6
     margin: int = 2
-    last_read: Optional[datetime] = None
+    last_read: datetime | None = None
 
 
 class EPubViewer:
@@ -55,9 +55,9 @@ class EPubViewer:
     CONTAINER_XML = "META-INF/container.xml"
     MIMETYPE = "mimetype"
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initialize the EPUB viewer."""
-        self._file_path: Optional[Path] = None
+        self._file_path: Path | None = None
         self._metadata = EPubMetadata()
         self._state = EPubViewerState()
         self._db_path = db_path or ":memory:"
@@ -122,7 +122,7 @@ class EPubViewer:
 
         self._db_conn.commit()
 
-    def _get_file_hash(self, file_path: Union[str, Path]) -> str:
+    def _get_file_hash(self, file_path: str | Path) -> str:
         """Calculate a hash of the file for identification."""
         file_path = Path(file_path)
         hasher = hashlib.sha256()
@@ -133,7 +133,7 @@ class EPubViewer:
 
         return hasher.hexdigest()
 
-    def load(self, file_path: Union[str, Path]) -> None:
+    def load(self, file_path: str | Path) -> None:
         """Load an EPUB file."""
         file_path = Path(file_path)
         if not file_path.exists():
@@ -321,7 +321,7 @@ class EPubViewer:
             if row[0]:
                 self._state.current_position = {"cfi": row[0]}
 
-    def add_bookmark(self, cfi: str, text: str = "", note: str = "") -> Dict[str, Any]:
+    def add_bookmark(self, cfi: str, text: str = "", note: str = "") -> dict[str, Any]:
         """Add a new bookmark."""
         if not self._metadata or not self._db_conn:
             raise RuntimeError("No EPUB file loaded")
@@ -403,14 +403,14 @@ class EPubViewer:
         self._state.last_read = datetime.utcnow()
         self._state.current_position = {"cfi": cfi}
 
-    def get_spine_item(self, index: int) -> Optional[Dict[str, Any]]:
+    def get_spine_item(self, index: int) -> dict[str, Any] | None:
         """Get a spine item by index."""
         if 0 <= index < len(self._spine_itemrefs):
             item_id = self._spine_itemrefs[index]
             return self._manifest.get(item_id)
         return None
 
-    def get_spine_item_content(self, index: int) -> Optional[str]:
+    def get_spine_item_content(self, index: int) -> str | None:
         """Get the content of a spine item by index."""
         item = self.get_spine_item(index)
         if not item or not self._zip_file:
@@ -467,7 +467,7 @@ class EPubViewer:
 
         return str(soup)
 
-    def get_toc(self) -> List[Dict[str, Any]]:
+    def get_toc(self) -> list[dict[str, Any]]:
         """Get the table of contents."""
         # In a real implementation, this would parse the NCX or nav file
         # For now, return a simple TOC based on spine items

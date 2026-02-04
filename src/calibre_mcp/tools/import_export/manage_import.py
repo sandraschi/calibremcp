@@ -4,18 +4,16 @@ Import management portmanteau tool for CalibreMCP.
 Consolidates import operations: from local path, from URL, from Anna's Archive.
 """
 
-import asyncio
 import tempfile
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
 
 import httpx
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
 from ..book_management.add_book import add_book_helper
-
+from ..shared.error_handling import format_error_response, handle_tool_error
 from .annas_client import search_annas
 
 logger = get_logger("calibremcp.tools.import_export")
@@ -24,12 +22,12 @@ logger = get_logger("calibremcp.tools.import_export")
 @mcp.tool()
 async def manage_import(
     operation: str,
-    file_path: Optional[str] = None,
-    url: Optional[str] = None,
-    query: Optional[str] = None,
+    file_path: str | None = None,
+    url: str | None = None,
+    query: str | None = None,
     max_results: int = 20,
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """
     Import books from various sources.
 
@@ -123,8 +121,8 @@ async def manage_import(
 
 async def _download_and_add(
     url: str,
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """Download file from URL to temp and add via add_book_helper."""
     suffix = ""
     if ".epub" in url.lower() or "epub" in url:

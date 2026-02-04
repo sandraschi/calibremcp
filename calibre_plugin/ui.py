@@ -8,9 +8,8 @@ except ImportError:
     from PyQt5.QtWidgets import QMenu
 
 from calibre.gui2.actions import InterfaceAction
-
-from calibre_plugins.calibre_mcp_integration.dialogs.metadata_dialog import MetadataDialog
 from calibre_plugins.calibre_mcp_integration.dialogs.bulk_enrich_dialog import BulkEnrichDialog
+from calibre_plugins.calibre_mcp_integration.dialogs.metadata_dialog import MetadataDialog
 from calibre_plugins.calibre_mcp_integration.dialogs.vl_query_dialog import VLQueryDialog
 
 

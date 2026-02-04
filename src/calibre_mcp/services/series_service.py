@@ -2,16 +2,16 @@
 Service for series-related operations in the Calibre MCP application.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any
 
+from sqlalchemy import asc, desc, func
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, desc, asc
 
 from ..db.database import DatabaseService
-from ..db.models import Series, Book, books_series_link
-from .book_service import BookService
-from .base_service import NotFoundError
+from ..db.models import Book, Series, books_series_link
 from ..logging_config import get_logger
+from .base_service import NotFoundError
+from .book_service import BookService
 
 logger = get_logger("calibremcp.services.series")
 
@@ -29,10 +29,10 @@ class SeriesService:
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
+        search: str | None = None,
         sort_by: str = "name",
         sort_order: str = "asc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get paginated list of series with optional search."""
         with self._get_db_session() as session:
             query = session.query(Series)
@@ -58,12 +58,14 @@ class SeriesService:
                     .filter(books_series_link.c.series == s.id)
                     .scalar()
                 ) or 0
-                items.append({
-                    "id": s.id,
-                    "name": s.name,
-                    "sort": s.sort,
-                    "book_count": book_count,
-                })
+                items.append(
+                    {
+                        "id": s.id,
+                        "name": s.name,
+                        "sort": s.sort,
+                        "book_count": book_count,
+                    }
+                )
 
             return {
                 "items": items,
@@ -73,7 +75,7 @@ class SeriesService:
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def get_by_id(self, series_id: int) -> Dict[str, Any]:
+    def get_by_id(self, series_id: int) -> dict[str, Any]:
         """Get series details by ID."""
         with self._get_db_session() as session:
             series = session.query(Series).filter(Series.id == series_id).first()
@@ -96,7 +98,7 @@ class SeriesService:
 
     def get_books_by_series(
         self, series_id: int, limit: int = 50, offset: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get books in a series with pagination."""
         with self._get_db_session() as session:
             series = session.query(Series).filter(Series.id == series_id).first()
@@ -129,7 +131,7 @@ class SeriesService:
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def get_series_by_letter(self, letter: str) -> List[Dict[str, Any]]:
+    def get_series_by_letter(self, letter: str) -> list[dict[str, Any]]:
         """Get series whose names start with the given letter."""
         if len(letter) != 1 or not letter.isalpha():
             return []
@@ -150,15 +152,17 @@ class SeriesService:
                     .filter(books_series_link.c.series == s.id)
                     .scalar()
                 ) or 0
-                result.append({
-                    "id": s.id,
-                    "name": s.name,
-                    "sort": s.sort,
-                    "book_count": book_count,
-                })
+                result.append(
+                    {
+                        "id": s.id,
+                        "name": s.name,
+                        "sort": s.sort,
+                        "book_count": book_count,
+                    }
+                )
             return result
 
-    def get_series_stats(self) -> Dict[str, Any]:
+    def get_series_stats(self) -> dict[str, Any]:
         """Get series statistics."""
         with self._get_db_session() as session:
             total_series = session.query(func.count(Series.id)).scalar()
@@ -197,8 +201,7 @@ class SeriesService:
                     {"letter": letter, "count": count} for letter, count in letter_counts
                 ],
                 "top_series": [
-                    {"id": s.id, "name": s.name, "book_count": bc}
-                    for s, bc in top_series
+                    {"id": s.id, "name": s.name, "book_count": bc} for s, bc in top_series
                 ],
             }
 
@@ -206,4 +209,5 @@ class SeriesService:
 def get_series_service() -> SeriesService:
     """Get series service with current database."""
     from ..db.database import get_database
+
     return SeriesService(get_database())

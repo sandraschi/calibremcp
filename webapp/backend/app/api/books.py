@@ -1,11 +1,9 @@
 """Book API endpoints."""
 
-import os
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Query, Body
+from fastapi import APIRouter, Body, HTTPException, Query
 from fastapi.responses import FileResponse
-from typing import Optional, Dict, Any
 
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
@@ -57,13 +55,13 @@ async def get_book_cover(book_id: int):
 async def list_books(
     limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
-    publisher: Optional[str] = None,
-    text: Optional[str] = None,
+    author: str | None = None,
+    tag: str | None = None,
+    publisher: str | None = None,
+    text: str | None = None,
 ):
     """List books with optional filters. Unfiltered browse cached 30s."""
-    from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
+    from ..cache import _ttl_key, get_libraries_cache, get_ttl_cached, set_ttl_cached
 
     lib = get_libraries_cache().get("current_library") or ""
     unfiltered = not (author or tag or publisher or text)
@@ -83,7 +81,7 @@ async def list_books(
                 "tag": tag,
                 "publisher": publisher,
                 "text": text,
-            }
+            },
         )
         if unfiltered:
             set_ttl_cached(key, result, ttl=30)
@@ -123,7 +121,9 @@ async def get_book(book_id: int):
                     "pubdate": book_dict.get("pubdate"),
                     "timestamp": book_dict.get("timestamp"),
                     "last_modified": book_dict.get("last_modified"),
-                    "series": book_dict.get("series", {}).get("name") if isinstance(book_dict.get("series"), dict) else book_dict.get("series"),
+                    "series": book_dict.get("series", {}).get("name")
+                    if isinstance(book_dict.get("series"), dict)
+                    else book_dict.get("series"),
                     "series_index": book_dict.get("series_index"),
                     "identifiers": book_dict.get("identifiers", {}),
                     "comments": book_dict.get("comments"),
@@ -142,7 +142,7 @@ async def get_book(book_id: int):
                 "book_id": str(book_id),
                 "include_metadata": True,
                 "include_formats": True,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -158,7 +158,7 @@ async def get_book_details(book_id: int):
             {
                 "operation": "details",
                 "book_id": str(book_id),
-            }
+            },
         )
         return result
     except Exception as e:
@@ -177,7 +177,7 @@ async def add_book(data: dict = Body(...)):
                 "metadata": data.get("metadata"),
                 "fetch_metadata": data.get("fetch_metadata", True),
                 "convert_to": data.get("convert_to"),
-            }
+            },
         )
         return result
     except Exception as e:
@@ -198,7 +198,7 @@ async def update_book(book_id: int, data: dict = Body(...)):
                 "progress": data.get("progress"),
                 "cover_path": data.get("cover_path"),
                 "update_timestamp": data.get("update_timestamp", True),
-            }
+            },
         )
         return result
     except Exception as e:
@@ -220,7 +220,7 @@ async def delete_book(
                 "book_id": str(book_id),
                 "delete_files": delete_files,
                 "force": force,
-            }
+            },
         )
         return result
     except Exception as e:

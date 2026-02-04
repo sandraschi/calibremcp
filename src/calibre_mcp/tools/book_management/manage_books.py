@@ -5,17 +5,17 @@ Consolidates add_book, get_book, update_book, and delete_book
 into a single portmanteau tool with operation parameter.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import the individual tool implementations (helper functions, not registered as MCP tools)
 from .add_book import add_book_helper
+from .delete_book import delete_book_helper
 from .get_book import get_book_helper
 from .update_book import update_book_helper
-from .delete_book import delete_book_helper
 
 logger = get_logger("calibremcp.tools.book_management")
 
@@ -23,22 +23,22 @@ logger = get_logger("calibremcp.tools.book_management")
 @mcp.tool()
 async def manage_books(
     operation: str,
-    book_id: Optional[str] = None,
-    file_path: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    book_id: str | None = None,
+    file_path: str | None = None,
+    metadata: dict[str, Any] | None = None,
     fetch_metadata: bool = True,
-    convert_to: Optional[str] = None,
+    convert_to: str | None = None,
     include_metadata: bool = True,
     include_formats: bool = True,
     include_cover: bool = False,
-    status: Optional[str] = None,
-    progress: Optional[float] = None,
-    cover_path: Optional[str] = None,
+    status: str | None = None,
+    progress: float | None = None,
+    cover_path: str | None = None,
     update_timestamp: bool = True,
     delete_files: bool = True,
     force: bool = False,
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """
     Manage books in the Calibre library with multiple operations in a single unified interface.
 
@@ -371,8 +371,8 @@ async def manage_books(
                     related_tools=["query_books", "manage_books"],
                 )
             try:
-                from ...server import get_api_client, current_library
-                from ...server import BookDetailResponse
+                from ...server import BookDetailResponse, current_library, get_api_client
+
                 client = await get_api_client()
                 book_data = await client.get_book_details(int(book_id))
 

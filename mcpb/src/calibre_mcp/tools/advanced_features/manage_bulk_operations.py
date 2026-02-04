@@ -4,18 +4,18 @@ Bulk operations management portmanteau tool for CalibreMCP.
 Consolidates all bulk operation functions into a single unified interface.
 """
 
-from typing import Optional, Dict, Any, List, Union
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .bulk_operations_helpers import (
-    update_metadata_helper,
-    export_helper,
-    delete_helper,
     convert_helper,
+    delete_helper,
+    export_helper,
+    update_metadata_helper,
 )
 
 logger = get_logger("calibremcp.tools.bulk_operations")
@@ -25,20 +25,20 @@ logger = get_logger("calibremcp.tools.bulk_operations")
 async def manage_bulk_operations(
     operation: str,
     # Common parameters
-    book_ids: Optional[List[Union[int, str]]] = None,
-    library_path: Optional[str] = None,
+    book_ids: list[int | str] | None = None,
+    library_path: str | None = None,
     # Update metadata parameters
-    updates: Optional[Dict[str, Any]] = None,
+    updates: dict[str, Any] | None = None,
     batch_size: int = 10,
     # Export parameters
-    export_path: Optional[str] = None,
+    export_path: str | None = None,
     format: str = "directory",
     # Delete parameters
     delete_files: bool = True,
     # Convert parameters
-    target_format: Optional[str] = None,
-    output_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    target_format: str | None = None,
+    output_path: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive bulk operations tool for CalibreMCP.
 
@@ -186,7 +186,10 @@ async def manage_bulk_operations(
                 )
             try:
                 return await export_helper(
-                    book_ids=book_ids, export_path=export_path, library_path=library_path, format=format
+                    book_ids=book_ids,
+                    export_path=export_path,
+                    library_path=library_path,
+                    format=format,
                 )
             except Exception as e:
                 return handle_tool_error(
@@ -266,4 +269,3 @@ async def manage_bulk_operations(
             tool_name="manage_bulk_operations",
             context="Bulk operation",
         )
-

@@ -5,11 +5,11 @@ Consolidates list_libraries, switch_library, get_library_stats, and cross_librar
 into a single portmanteau tool with operation parameter.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.library_management")
 
@@ -17,10 +17,10 @@ logger = get_logger("calibremcp.tools.library_management")
 @mcp.tool()
 async def manage_libraries(
     operation: str,
-    library_name: Optional[str] = None,
-    query: Optional[str] = None,
-    libraries: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    library_name: str | None = None,
+    query: str | None = None,
+    libraries: list[str] | None = None,
+) -> dict[str, Any]:
     """
     Manage Calibre libraries with multiple operations in a single unified interface.
 
@@ -259,7 +259,7 @@ async def manage_libraries(
         )
 
 
-async def _handle_list_libraries() -> Dict[str, Any]:
+async def _handle_list_libraries() -> dict[str, Any]:
     """Handle list libraries operation."""
     # Use helper function (not registered as MCP tool)
     from .library_management import list_libraries_helper
@@ -277,7 +277,7 @@ async def _handle_list_libraries() -> Dict[str, Any]:
         )
 
 
-async def _handle_switch_library(library_name: str) -> Dict[str, Any]:
+async def _handle_switch_library(library_name: str) -> dict[str, Any]:
     """Handle switch library operation."""
     # Use helper function (not registered as MCP tool)
     from .library_management import switch_library_helper
@@ -294,7 +294,7 @@ async def _handle_switch_library(library_name: str) -> Dict[str, Any]:
         )
 
 
-async def _handle_get_library_stats(library_name: Optional[str]) -> Dict[str, Any]:
+async def _handle_get_library_stats(library_name: str | None) -> dict[str, Any]:
     """Handle get library stats operation."""
     # Use helper function (not registered as MCP tool)
     from .library_management import get_library_stats_helper
@@ -312,9 +312,7 @@ async def _handle_get_library_stats(library_name: Optional[str]) -> Dict[str, An
         )
 
 
-async def _handle_cross_library_search(
-    query: str, libraries: Optional[List[str]]
-) -> Dict[str, Any]:
+async def _handle_cross_library_search(query: str, libraries: list[str] | None) -> dict[str, Any]:
     """Handle cross-library search operation."""
     # Use helper function (not registered as MCP tool)
     from .library_management import cross_library_search_helper

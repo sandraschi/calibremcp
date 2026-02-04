@@ -12,11 +12,11 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.library_discovery")
 
@@ -31,6 +31,7 @@ class LibraryDiscoveryTool:
         """Check if a path contains a valid Calibre metadata.db."""
         try:
             import sqlite3
+
             conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=2.0)
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='books'")
@@ -41,7 +42,7 @@ class LibraryDiscoveryTool:
             self.logger.debug(f"Invalid Calibre DB {db_path}: {e}")
             return False
 
-    def _discover_via_calibre_cli(self) -> List[Dict[str, Any]]:
+    def _discover_via_calibre_cli(self) -> list[dict[str, Any]]:
         """Discover libraries using Calibre CLI if available."""
         libraries = []
 
@@ -66,19 +67,16 @@ class LibraryDiscoveryTool:
         try:
             # Try to get library list from Calibre CLI
             result = subprocess.run(
-                [calibre_exe, "--with-library"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                [calibre_exe, "--with-library"], capture_output=True, text=True, timeout=10
             )
 
             if result.returncode == 0:
                 # Parse output to find library paths
                 # This is a simplified approach - in practice, Calibre CLI output
                 # would need more sophisticated parsing
-                lines = result.stdout.split('\n')
+                lines = result.stdout.split("\n")
                 for line in lines:
-                    if 'library' in line.lower() and ('\\' in line or '/' in line):
+                    if "library" in line.lower() and ("\\" in line or "/" in line):
                         # Extract potential library path
                         # This is a placeholder - real implementation would parse properly
                         pass
@@ -88,7 +86,7 @@ class LibraryDiscoveryTool:
 
         return libraries
 
-    def _discover_via_wizfile(self) -> List[Dict[str, Any]]:
+    def _discover_via_wizfile(self) -> list[dict[str, Any]]:
         """Discover libraries using WizFile search if available."""
         libraries = []
 
@@ -99,7 +97,7 @@ class LibraryDiscoveryTool:
 
         try:
             # Create temp file for results
-            with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
                 temp_path = temp_file.name
 
             # Run WizFile search for metadata.db files
@@ -107,17 +105,18 @@ class LibraryDiscoveryTool:
                 [wizfile_path, "metadata.db", f"/export={temp_path}"],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode == 0 and os.path.exists(temp_path):
                 try:
                     import json
-                    with open(temp_path, 'r', encoding='utf-8') as f:
+
+                    with open(temp_path, encoding="utf-8") as f:
                         results = json.load(f)
 
-                    for entry in results.get('files', []):
-                        db_path = Path(entry['path'])
+                    for entry in results.get("files", []):
+                        db_path = Path(entry["path"])
                         if self._is_valid_calibre_db(str(db_path)):
                             library_path = str(db_path.parent)
                             library_id = f"wizfile_{hash(library_path) % 10000}"
@@ -128,7 +127,7 @@ class LibraryDiscoveryTool:
                                 "path": library_path,
                                 "metadata_db_path": str(db_path),
                                 "discovery_method": "wizfile",
-                                "is_valid": True
+                                "is_valid": True,
                             }
                             libraries.append(library_info)
                             self.logger.info(f"Found library via WizFile: {library_path}")
@@ -148,7 +147,7 @@ class LibraryDiscoveryTool:
 
         return libraries
 
-    def _discover_via_common_paths(self) -> List[Dict[str, Any]]:
+    def _discover_via_common_paths(self) -> list[dict[str, Any]]:
         """Discover libraries in common Calibre installation paths."""
         libraries = []
 
@@ -171,7 +170,7 @@ class LibraryDiscoveryTool:
                         "path": base_path,
                         "metadata_db_path": metadata_path,
                         "discovery_method": "common_paths",
-                        "is_valid": True
+                        "is_valid": True,
                     }
                     libraries.append(library_info)
                     self.logger.info(f"Found library in common path: {base_path}")
@@ -182,7 +181,9 @@ class LibraryDiscoveryTool:
                         sub_path = os.path.join(base_path, item)
                         if os.path.isdir(sub_path):
                             metadata_path = os.path.join(sub_path, "metadata.db")
-                            if os.path.exists(metadata_path) and self._is_valid_calibre_db(metadata_path):
+                            if os.path.exists(metadata_path) and self._is_valid_calibre_db(
+                                metadata_path
+                            ):
                                 library_id = f"common_sub_{hash(sub_path) % 10000}"
                                 library_info = {
                                     "id": library_id,
@@ -190,10 +191,12 @@ class LibraryDiscoveryTool:
                                     "path": sub_path,
                                     "metadata_db_path": metadata_path,
                                     "discovery_method": "common_paths_subdir",
-                                    "is_valid": True
+                                    "is_valid": True,
                                 }
                                 libraries.append(library_info)
-                                self.logger.info(f"Found library in common subdirectory: {sub_path}")
+                                self.logger.info(
+                                    f"Found library in common subdirectory: {sub_path}"
+                                )
                 except (OSError, PermissionError) as e:
                     self.logger.warning(f"Could not scan subdirectories of {base_path}: {e}")
 
@@ -203,8 +206,8 @@ class LibraryDiscoveryTool:
         self,
         wizfile_allowed: bool = False,
         calibre_cli_allowed: bool = False,
-        common_paths_allowed: bool = True
-    ) -> List[Dict[str, Any]]:
+        common_paths_allowed: bool = True,
+    ) -> list[dict[str, Any]]:
         """
         Discover Calibre libraries using controlled methods with explicit permissions.
 
@@ -240,7 +243,9 @@ class LibraryDiscoveryTool:
             libraries.extend(wizfile_libs)
             methods_used.append(f"wizfile ({len(wizfile_libs)} found)")
 
-        self.logger.info(f"Library discovery complete: {len(libraries)} libraries found using {', '.join(methods_used)}")
+        self.logger.info(
+            f"Library discovery complete: {len(libraries)} libraries found using {', '.join(methods_used)}"
+        )
 
         return libraries
 
@@ -254,7 +259,7 @@ async def library_discovery(
     wizfile_allowed: bool = False,
     calibre_cli_allowed: bool = False,
     common_paths_allowed: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Discover Calibre libraries with controlled permissions for external tools.
 
@@ -291,7 +296,7 @@ async def library_discovery(
         libraries = discovery_tool.discover_libraries(
             wizfile_allowed=wizfile_allowed,
             calibre_cli_allowed=calibre_cli_allowed,
-            common_paths_allowed=common_paths_allowed
+            common_paths_allowed=common_paths_allowed,
         )
 
         return {
@@ -301,28 +306,13 @@ async def library_discovery(
             "methods_used": {
                 "common_paths": common_paths_allowed,
                 "calibre_cli": calibre_cli_allowed,
-                "wizfile": wizfile_allowed
+                "wizfile": wizfile_allowed,
             },
-            "security_note": "Discovery completed with user-specified permissions only"
+            "security_note": "Discovery completed with user-specified permissions only",
         }
 
     except Exception as e:
         logger.error(f"Library discovery failed: {e}", exc_info=True)
         return format_error_response(
-            f"Library discovery failed: {str(e)}",
-            error_code="DISCOVERY_FAILED"
+            f"Library discovery failed: {str(e)}", error_code="DISCOVERY_FAILED"
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-

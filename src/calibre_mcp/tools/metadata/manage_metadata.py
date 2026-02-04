@@ -4,13 +4,13 @@ Metadata management portmanteau tool for CalibreMCP.
 Consolidates all metadata-related operations into a single unified interface.
 """
 
-from typing import Optional, List, Dict, Any
-from pathlib import Path
 import tempfile
+from pathlib import Path
+from typing import Any
 
-from ...server import mcp, MetadataUpdateRequest
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import MetadataUpdateRequest, mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from . import metadata_management
@@ -22,12 +22,12 @@ logger = get_logger("calibremcp.tools.metadata")
 async def manage_metadata(
     operation: str,
     # Update operation parameters
-    updates: Optional[List[MetadataUpdateRequest]] = None,
+    updates: list[MetadataUpdateRequest] | None = None,
     # Show operation parameters
-    query: Optional[str] = None,
-    author: Optional[str] = None,
+    query: str | None = None,
+    author: str | None = None,
     open_browser: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Comprehensive metadata management tool for CalibreMCP.
 
@@ -264,12 +264,12 @@ async def manage_metadata(
 
         elif operation == "show":
             try:
-                from ...tools.book_tools import search_books_helper
-                from ...services import book_service
-                from ...config import CalibreConfig
                 import os
                 import platform
                 import subprocess
+
+                from ...services import book_service
+                from ...tools.book_tools import search_books_helper
 
                 # Validate query parameter
                 if not query and not author:
@@ -325,7 +325,13 @@ async def manage_metadata(
                     authors_str = ", ".join(authors_list) if authors_list else "Unknown"
 
                 tags_list = book_data.get("tags", [])
-                tags_str = ", ".join([t.get("name", "") if isinstance(t, dict) else str(t) for t in tags_list]) if tags_list else "None"
+                tags_str = (
+                    ", ".join(
+                        [t.get("name", "") if isinstance(t, dict) else str(t) for t in tags_list]
+                    )
+                    if tags_list
+                    else "None"
+                )
 
                 series_info = book_data.get("series")
                 series_str = ""
@@ -345,13 +351,26 @@ async def manage_metadata(
 
                 isbn = book_data.get("isbn", "None")
                 formats_list = book_data.get("formats", [])
-                formats_str = ", ".join([f.get("format", "") if isinstance(f, dict) else str(f) for f in formats_list]) if formats_list else "None"
+                formats_str = (
+                    ", ".join(
+                        [
+                            f.get("format", "") if isinstance(f, dict) else str(f)
+                            for f in formats_list
+                        ]
+                    )
+                    if formats_list
+                    else "None"
+                )
 
                 comments = book_data.get("comments", [])
                 comment_text = ""
                 if comments:
                     if isinstance(comments, list) and comments:
-                        comment_text = comments[0].get("text", "") if isinstance(comments[0], dict) else str(comments[0])
+                        comment_text = (
+                            comments[0].get("text", "")
+                            if isinstance(comments[0], dict)
+                            else str(comments[0])
+                        )
                     elif isinstance(comments, str):
                         comment_text = comments
 
@@ -460,7 +479,7 @@ Book ID:     {book_id}
             <span class="field-value">{authors_str}</span>
         </div>
         
-        {f'<div class="field"><span class="field-label">Series:</span><span class="field-value">{series_str}</span></div>' if series_str else ''}
+        {f'<div class="field"><span class="field-label">Series:</span><span class="field-value">{series_str}</span></div>' if series_str else ""}
         
         <div class="field">
             <span class="field-label">Rating:</span>
@@ -480,18 +499,18 @@ Book ID:     {book_id}
         <div class="field">
             <span class="field-label">Tags:</span>
             <div class="tags">
-                {''.join([f'<span class="tag">{t}</span>' for t in tags_str.split(", ") if t and t != "None"])}
+                {"".join([f'<span class="tag">{t}</span>' for t in tags_str.split(", ") if t and t != "None"])}
             </div>
         </div>
         
         <div class="field">
             <span class="field-label">Formats:</span>
             <div>
-                {''.join([f'<span class="format">{f}</span>' for f in formats_str.split(", ") if f and f != "None"])}
+                {"".join([f'<span class="format">{f}</span>' for f in formats_str.split(", ") if f and f != "None"])}
             </div>
         </div>
         
-        {f'<div class="description"><strong>Description:</strong><br>{comment_text}</div>' if comment_text else ''}
+        {f'<div class="description"><strong>Description:</strong><br>{comment_text}</div>' if comment_text else ""}
         
         <div class="field" style="margin-top: 20px; border-left-color: #95a5a6;">
             <span class="field-label">Book ID:</span>
@@ -536,22 +555,22 @@ Book ID:     {book_id}
                 )
 
         else:
-                return format_error_response(
-                    error_msg=(
-                        f"Invalid operation: '{operation}'. Must be one of: "
-                        "'update', 'organize_tags', 'fix_issues', 'show'"
-                    ),
-                    error_code="INVALID_OPERATION",
-                    error_type="ValueError",
-                    operation=operation,
-                    suggestions=[
-                        "Use operation='update' to update book metadata",
-                        "Use operation='organize_tags' for AI-powered tag organization",
-                        "Use operation='fix_issues' to automatically fix metadata problems",
-                        "Use operation='show' to display book metadata",
-                    ],
-                    related_tools=["manage_metadata"],
-                )
+            return format_error_response(
+                error_msg=(
+                    f"Invalid operation: '{operation}'. Must be one of: "
+                    "'update', 'organize_tags', 'fix_issues', 'show'"
+                ),
+                error_code="INVALID_OPERATION",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Use operation='update' to update book metadata",
+                    "Use operation='organize_tags' for AI-powered tag organization",
+                    "Use operation='fix_issues' to automatically fix metadata problems",
+                    "Use operation='show' to display book metadata",
+                ],
+                related_tools=["manage_metadata"],
+            )
 
     except Exception as e:
         return handle_tool_error(
@@ -561,4 +580,3 @@ Book ID:     {book_id}
             tool_name="manage_metadata",
             context="Metadata management operation",
         )
-

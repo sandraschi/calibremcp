@@ -5,7 +5,8 @@ These functions are NOT registered as MCP tools - they are called by
 the manage_bulk_operations portmanteau tool.
 """
 
-from typing import Dict, Any, Optional, List, Union
+from typing import Any
+
 from ...logging_config import get_logger
 from ..shared.error_handling import format_error_response
 
@@ -27,11 +28,11 @@ def _get_bulk_tool() -> BulkOperationsTool:
 
 
 async def update_metadata_helper(
-    book_ids: List[Union[int, str]],
-    updates: Dict[str, Any],
-    library_path: Optional[str] = None,
+    book_ids: list[int | str],
+    updates: dict[str, Any],
+    library_path: str | None = None,
     batch_size: int = 10,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper to update metadata for multiple books."""
     try:
         tool = _get_bulk_tool()
@@ -49,11 +50,11 @@ async def update_metadata_helper(
 
 
 async def export_helper(
-    book_ids: List[Union[int, str]],
+    book_ids: list[int | str],
     export_path: str,
-    library_path: Optional[str] = None,
+    library_path: str | None = None,
     format: str = "directory",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper to export multiple books."""
     try:
         tool = _get_bulk_tool()
@@ -71,10 +72,10 @@ async def export_helper(
 
 
 async def delete_helper(
-    book_ids: List[Union[int, str]],
-    library_path: Optional[str] = None,
+    book_ids: list[int | str],
+    library_path: str | None = None,
     delete_files: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper to delete multiple books."""
     try:
         tool = _get_bulk_tool()
@@ -92,11 +93,11 @@ async def delete_helper(
 
 
 async def convert_helper(
-    book_ids: List[Union[int, str]],
+    book_ids: list[int | str],
     target_format: str,
-    library_path: Optional[str] = None,
-    output_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+    output_path: str | None = None,
+) -> dict[str, Any]:
     """Helper to convert multiple books."""
     try:
         tool = _get_bulk_tool()
@@ -114,5 +115,3 @@ async def convert_helper(
             error_type=type(e).__name__,
             operation="convert",
         )
-
-

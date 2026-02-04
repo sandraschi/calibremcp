@@ -1,10 +1,10 @@
 """Enhanced metadata and organization tools for CalibreMCP."""
 
-from typing import Dict, List, Optional, Any
-import re
 import logging
-import unicodedata
+import re
 import string
+import unicodedata
+from typing import Any
 
 try:
     from fastmcp import MCPTool
@@ -37,18 +37,18 @@ class MetadataSource(BaseModel):
     name: str
     priority: int = 0
     enabled: bool = True
-    api_key: Optional[str] = None
-    url: Optional[HttpUrl] = None
-    config: Dict[str, Any] = Field(default_factory=dict)
+    api_key: str | None = None
+    url: HttpUrl | None = None
+    config: dict[str, Any] = Field(default_factory=dict)
 
 
 class MetadataEnhancementResult(BaseModel):
     """Result of a metadata enhancement operation."""
 
     book_id: str
-    changes: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
-    warnings: List[str] = Field(default_factory=list)
-    errors: List[str] = Field(default_factory=list)
+    changes: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
     success: bool = True
 
 
@@ -56,18 +56,18 @@ class SeriesInfo(BaseModel):
     """Information about a book series."""
 
     name: str
-    index: Optional[float] = None
-    total_books: Optional[int] = None
-    description: Optional[str] = None
+    index: float | None = None
+    total_books: int | None = None
+    description: str | None = None
 
 
 class AuthorInfo(BaseModel):
     """Enhanced author information."""
 
     name: str
-    sort: Optional[str] = None
-    link: Optional[HttpUrl] = None
-    description: Optional[str] = None
+    sort: str | None = None
+    link: HttpUrl | None = None
+    description: str | None = None
 
 
 class MetadataStandardizationOptions(BaseModel):
@@ -103,9 +103,9 @@ class EnhancedMetadataTools(MCPTool):
     async def enhance_metadata(
         self,
         library_path: str,
-        book_ids: Optional[List[str]] = None,
-        options: Optional[Dict] = None,
-    ) -> Dict:
+        book_ids: list[str] | None = None,
+        options: dict | None = None,
+    ) -> dict:
         """Enhance metadata for one or more books."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
@@ -184,9 +184,9 @@ class EnhancedMetadataTools(MCPTool):
     async def standardize_metadata(
         self,
         library_path: str,
-        book_ids: Optional[List[str]] = None,
-        options: Optional[Dict] = None,
-    ) -> Dict:
+        book_ids: list[str] | None = None,
+        options: dict | None = None,
+    ) -> dict:
         """Standardize metadata across books according to specified rules."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
@@ -406,7 +406,7 @@ class EnhancedMetadataTools(MCPTool):
 
     # Helper Methods
     async def _enhance_title(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance book title metadata."""
         # This is a placeholder for actual title enhancement logic
@@ -414,53 +414,53 @@ class EnhancedMetadataTools(MCPTool):
         return False
 
     async def _enhance_authors(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance author metadata."""
         # This is a placeholder for actual author enhancement logic
         return False
 
     async def _enhance_series(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance series metadata."""
         # This is a placeholder for actual series enhancement logic
         return False
 
     async def _enhance_publisher(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance publisher metadata."""
         # This is a placeholder for actual publisher enhancement logic
         return False
 
     async def _enhance_identifiers(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance book identifiers (ISBN, etc.)."""
         # This is a placeholder for actual identifier enhancement logic
         return False
 
     async def _enhance_tags(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance book tags."""
         # This is a placeholder for actual tag enhancement logic
         return False
 
     async def _enhance_cover(
-        self, book: Dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
+        self, book: dict, result: MetadataEnhancementResult, options: MetadataEnhancementOptions
     ) -> bool:
         """Enhance book cover."""
         # This is a placeholder for actual cover enhancement logic
         return False
 
-    async def _backup_book_metadata(self, storage, book: Dict) -> bool:
+    async def _backup_book_metadata(self, storage, book: dict) -> bool:
         """Create a backup of the book's metadata."""
         # This is a placeholder for actual backup logic
         return True
 
-    def _load_default_metadata_sources(self) -> List[MetadataSource]:
+    def _load_default_metadata_sources(self) -> list[MetadataSource]:
         """Load default metadata sources."""
         return [
             MetadataSource(

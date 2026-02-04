@@ -7,13 +7,13 @@ including searching, filtering, and managing library settings.
 
 from typing import Dict
 
-# Import all library operation tools to register them
-from .list_books import list_books  # noqa: F401
-from .series_manager import SeriesManager, SeriesInfo, SeriesMergeOptions  # noqa: F401
-from .. import tool
-
 # Re-export models for convenience
 from ...models import Book, BookFormat, BookStatus  # noqa: F401
+from .. import tool
+
+# Import all library operation tools to register them
+from .list_books import list_books  # noqa: F401
+from .series_manager import SeriesInfo, SeriesManager, SeriesMergeOptions  # noqa: F401
 
 # Initialize tools
 series_manager = SeriesManager()
@@ -31,7 +31,7 @@ series_manager = SeriesManager()
         },
     },
 )
-async def analyze_series(library_path: str, update_metadata: bool = False) -> Dict:
+async def analyze_series(library_path: str, update_metadata: bool = False) -> dict:
     """Analyze all series in the library."""
     return await series_manager.analyze_series(library_path, update_metadata)
 
@@ -44,7 +44,7 @@ async def analyze_series(library_path: str, update_metadata: bool = False) -> Di
         "dry_run": {"type": "boolean", "description": "If True, only show what would be changed"},
     },
 )
-async def fix_series_metadata(library_path: str, dry_run: bool = True) -> Dict:
+async def fix_series_metadata(library_path: str, dry_run: bool = True) -> dict:
     """Fix common series metadata issues."""
     return await series_manager.fix_series_metadata(library_path, dry_run)
 
@@ -61,6 +61,6 @@ async def fix_series_metadata(library_path: str, dry_run: bool = True) -> Dict:
 )
 async def merge_series(
     library_path: str, source_series: str, target_series: str, dry_run: bool = True
-) -> Dict:
+) -> dict:
     """Merge one series into another."""
     return await series_manager.merge_series(library_path, source_series, target_series, dry_run)

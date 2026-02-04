@@ -5,7 +5,7 @@ Handles secure storage and retrieval of credentials using the system keyring.
 """
 
 import logging
-from typing import Optional, Tuple
+
 import keyring
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class AuthManager:
             logger.error(f"Failed to save credentials for {server_name}: {e}")
             raise
 
-    def get_credentials(self, server_name: str) -> Optional[Tuple[str, str]]:
+    def get_credentials(self, server_name: str) -> tuple[str, str] | None:
         """
         Retrieve stored credentials from the system keyring.
 

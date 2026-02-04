@@ -7,7 +7,6 @@ These tests verify that the server is properly set up and can handle requests.
 import os
 import sys
 from pathlib import Path
-from typing import Dict
 
 import pytest
 import pytest_asyncio
@@ -16,8 +15,8 @@ import pytest_asyncio
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Import the server module
-from calibre_mcp.server import mcp
 from calibre_mcp.config import CalibreConfig
+from calibre_mcp.server import mcp
 
 
 class TestCalibreMCPServer:
@@ -45,7 +44,7 @@ class TestCalibreMCPServer:
         print()  # Add a newline for better readability
 
         # Create a test client that calls MCP tools through the FastMCP instance
-        async def call_method(method: str, params: Dict = None) -> Dict:
+        async def call_method(method: str, params: dict = None) -> dict:
             try:
                 # Get the tool from the FastMCP instance
                 tools = await mcp.get_tools()

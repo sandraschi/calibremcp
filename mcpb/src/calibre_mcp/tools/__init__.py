@@ -6,13 +6,14 @@ organized by functionality into submodules. Tools are automatically discovered
 and loaded from all subdirectories.
 """
 
-from typing import Dict, Any, Callable, Optional, TypeVar, List, Type, cast
-from functools import wraps
 import importlib
-import pkgutil
 import inspect
 import logging
+import pkgutil
+from collections.abc import Callable
+from functools import wraps
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=Callable[..., Any])
 
 # Global tool registry
-TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {}
+TOOL_REGISTRY: dict[str, dict[str, Any]] = {}
 
 # Base directory for Calibre libraries
 CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
@@ -34,7 +35,7 @@ from .base_tool import BaseTool, mcp_tool  # noqa: E402, F401
 
 
 def tool(
-    name: str, description: str, parameters: Optional[Dict[str, Any]] = None, **kwargs
+    name: str, description: str, parameters: dict[str, Any] | None = None, **kwargs
 ) -> Callable[[T], T]:
     """
     Decorator to register a function as an MCP tool.
@@ -71,7 +72,7 @@ def tool(
     return decorator
 
 
-def get_available_tools() -> List[Dict[str, Any]]:
+def get_available_tools() -> list[dict[str, Any]]:
     """
     Get a list of all available tools with their metadata.
 
@@ -88,7 +89,7 @@ def get_available_tools() -> List[Dict[str, Any]]:
     ]
 
 
-def discover_tools() -> List[Type["BaseTool"]]:
+def discover_tools() -> list[type["BaseTool"]]:
     """
     Discover and import all tool classes from subdirectories.
 
@@ -96,7 +97,7 @@ def discover_tools() -> List[Type["BaseTool"]]:
         List of tool classes that should be registered
     """
     tools_dir = Path(__file__).parent
-    tool_classes: List[Type[BaseTool]] = []
+    tool_classes: list[type[BaseTool]] = []
 
     # Import all modules in the tools directory
     for finder, name, is_pkg in pkgutil.iter_modules([str(tools_dir)]):
@@ -137,25 +138,21 @@ def register_tools(mcp: Any) -> None:
     """
     # Import all tool modules to trigger auto-registration of @mcp.tool() decorated functions
     # These are already registered when imported (FastMCP 2.13+ behavior)
-    from .core import tools as _core_tools  # noqa: F401
-    from .library import tools as _library_tools  # noqa: F401 - Includes manage_libraries portmanteau
+    # Import advanced features portmanteau tools
+    from .advanced_features import (
+        manage_bulk_operations,  # noqa: F401 - Portmanteau tool
+        manage_content_sync,  # noqa: F401 - Portmanteau tool
+    )
+
+    # Import analysis portmanteau tools
+    from .analysis import (
+        analyze_library,  # noqa: F401 - Portmanteau tool
+        manage_analysis,  # noqa: F401 - Portmanteau tool
+    )
     from .analysis import tools as _analysis_tools  # noqa: F401
-    from .analysis import manage_analysis  # noqa: F401 - Portmanteau tool
-    from .metadata import tools as _metadata_tools  # noqa: F401
-    from .files import tools as _file_tools  # noqa: F401
-    from .specialized import tools as _specialized_tools  # noqa: F401
-    from .system import tools as _system_tools  # noqa: F401
 
-    # NOTE: Individual system tools (help, status, etc.) are deprecated
-    # They are now accessed via manage_system portmanteau tool
-    # Helper functions (help_helper, status_helper, etc.) are imported by manage_system
-    # No need to import them here - they don't have @mcp.tool() decorators
-
-    # NOTE: Individual export tools (export_books_csv, etc.) are deprecated
-    # They are now accessed via export_books portmanteau tool
-    # Helper functions are imported by export_books_portmanteau
-    # No need to import them here - they don't have @mcp.tool() decorators
-    from .ocr import tools as _ocr_tools  # noqa: F401
+    # Import authors portmanteau tool
+    from .authors import manage_authors  # noqa: F401 - Portmanteau tool
 
     # DEPRECATED: Individual tag tools removed - use manage_tags portmanteau tool instead
     # from .tag_tools import (
@@ -169,49 +166,56 @@ def register_tools(mcp: Any) -> None:
     #     get_unused_tags,
     #     delete_unused_tags,
     # )
-
     # Import book_management to register portmanteau tools
-    from .book_management import query_books, manage_books  # noqa: F401 - Portmanteau tools
+    from .book_management import manage_books, query_books  # noqa: F401 - Portmanteau tools
 
-    # Import authors portmanteau tool
-    from .authors import manage_authors  # noqa: F401 - Portmanteau tool
+    # Import comments portmanteau tool
+    from .comments import manage_comments  # noqa: F401 - Portmanteau tool
+    from .core import tools as _core_tools  # noqa: F401
+
+    # Import files portmanteau tool
+    from .files import manage_files  # noqa: F401 - Portmanteau tool
+    from .files import tools as _file_tools  # noqa: F401
+
+    # Import export portmanteau tool
+    from .import_export import export_books  # noqa: F401 - Portmanteau tool
+    from .library import (
+        tools as _library_tools,  # noqa: F401 - Includes manage_libraries portmanteau
+    )
+
+    # Import metadata portmanteau tool
+    from .metadata import manage_metadata  # noqa: F401 - Portmanteau tool
+    from .metadata import tools as _metadata_tools  # noqa: F401
+
+    # NOTE: Individual system tools (help, status, etc.) are deprecated
+    # They are now accessed via manage_system portmanteau tool
+    # Helper functions (help_helper, status_helper, etc.) are imported by manage_system
+    # No need to import them here - they don't have @mcp.tool() decorators
+    # NOTE: Individual export tools (export_books_csv, etc.) are deprecated
+    # They are now accessed via export_books portmanteau tool
+    # Helper functions are imported by export_books_portmanteau
+    # No need to import them here - they don't have @mcp.tool() decorators
+    from .ocr import tools as _ocr_tools  # noqa: F401
+
+    # Import specialized portmanteau tool
+    from .specialized import manage_specialized  # noqa: F401 - Portmanteau tool
+    from .specialized import tools as _specialized_tools  # noqa: F401
+
+    # Import system portmanteau tool
+    from .system import manage_system  # noqa: F401 - Portmanteau tool
+    from .system import tools as _system_tools  # noqa: F401
 
     # Import tags portmanteau tool
     from .tags import manage_tags  # noqa: F401 - Portmanteau tool
 
-    # Import comments portmanteau tool
-    from .comments import manage_comments  # noqa: F401 - Portmanteau tool
+    # Import user management portmanteau tool
+    from .user_management import manage_users  # noqa: F401 - Portmanteau tool
 
     # Import viewer portmanteau tool
     from .viewer import manage_viewer  # noqa: F401 - Portmanteau tool
 
-    # Import specialized portmanteau tool
-    from .specialized import manage_specialized  # noqa: F401 - Portmanteau tool
-
-    # Import metadata portmanteau tool
-    from .metadata import manage_metadata  # noqa: F401 - Portmanteau tool
-
-    # Import files portmanteau tool
-    from .files import manage_files  # noqa: F401 - Portmanteau tool
-
-    # Import system portmanteau tool
-    from .system import manage_system  # noqa: F401 - Portmanteau tool
-
-    # Import analysis portmanteau tools
-    from .analysis import analyze_library  # noqa: F401 - Portmanteau tool
-
-    # Import advanced features portmanteau tools
-    from .advanced_features import manage_bulk_operations  # noqa: F401 - Portmanteau tool
-    from .advanced_features import manage_content_sync  # noqa: F401 - Portmanteau tool
-
-    # Import user management portmanteau tool
-    from .user_management import manage_users  # noqa: F401 - Portmanteau tool
-
-    # Import export portmanteau tool
-    from .import_export import export_books  # noqa: F401 - Portmanteau tool
-
     # Only register BaseTool classes (functions with @mcp.tool() are already auto-registered)
-    tool_classes: List[Type[BaseTool]] = []
+    tool_classes: list[type[BaseTool]] = []
 
     # Import BaseTool classes that need explicit registration
     # BookTools removed - use manage_books portmanteau tool instead

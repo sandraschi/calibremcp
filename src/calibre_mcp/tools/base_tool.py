@@ -2,9 +2,11 @@
 Base classes for MCP tools.
 """
 
-from typing import Optional, Type, TypeVar, Callable
-from pydantic import BaseModel
+from collections.abc import Callable
+from typing import TypeVar
+
 from fastmcp import FastMCP
+from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -16,8 +18,8 @@ class BaseTool:
         """Initialize with a FastMCP instance."""
         self.mcp = mcp
         # Use singleton service instances (already initialized with DatabaseService)
-        from ..services.book_service import book_service
         from ..services.author_service import author_service
+        from ..services.book_service import book_service
         from ..services.library_service import library_service
 
         self.book_service = book_service
@@ -128,10 +130,10 @@ async def wrapper({params_str}):
 
 
 def mcp_tool(
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    input_model: Optional[Type[BaseModel]] = None,
-    output_model: Optional[Type[BaseModel]] = None,
+    name: str | None = None,
+    description: str | None = None,
+    input_model: type[BaseModel] | None = None,
+    output_model: type[BaseModel] | None = None,
 ):
     """
     Decorator to mark a method as an MCP tool.

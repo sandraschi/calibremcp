@@ -16,7 +16,7 @@ async def get_tag_statistics():
             "analyze_library",
             {
                 "operation": "tag_statistics",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -31,7 +31,7 @@ async def find_duplicate_books():
             "analyze_library",
             {
                 "operation": "duplicates",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -46,7 +46,7 @@ async def analyze_series():
             "analyze_library",
             {
                 "operation": "series",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -61,7 +61,7 @@ async def check_library_health():
             "analyze_library",
             {
                 "operation": "health",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -76,7 +76,7 @@ async def get_unread_priority():
             "analyze_library",
             {
                 "operation": "unread_priority",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -91,7 +91,7 @@ async def get_reading_statistics():
             "analyze_library",
             {
                 "operation": "reading_stats",
-            }
+            },
         )
         return result
     except Exception as e:

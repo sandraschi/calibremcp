@@ -5,8 +5,9 @@ Tests verify actual tool functionality with proper mocking of AI services.
 """
 
 import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 try:
     from calibre_mcp.tools.advanced_features.ai_enhancements import AIEnhancementsTool

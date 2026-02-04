@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any
 
 from ..base_tool import BaseTool, mcp_tool
 
@@ -31,17 +31,20 @@ logger = logging.getLogger(__name__)
 class OCRTool(BaseTool):
     """OCR tools for scanned document processing."""
 
-    @mcp_tool(name="calibre_ocr", description="Process scanned documents with OCR using FineReader or GOT-OCR2.0")
+    @mcp_tool(
+        name="calibre_ocr",
+        description="Process scanned documents with OCR using FineReader or GOT-OCR2.0",
+    )
     async def process_ocr(
         self,
         source: str,
         provider: str = "auto",
-        language: Optional[str] = None,
+        language: str | None = None,
         output_format: str = "pdf",
         ocr_mode: str = "ocr",
-        region: Optional[List[int]] = None,
-        render_html: bool = False
-    ) -> Dict[str, Any]:
+        region: list[int] | None = None,
+        render_html: bool = False,
+    ) -> dict[str, Any]:
         """
         Process scanned documents with OCR using FineReader or GOT-OCR2.0.
 
@@ -109,14 +112,14 @@ class OCRTool(BaseTool):
                 return {
                     "success": False,
                     "error": "No OCR providers available",
-                    "details": "Neither GOT-OCR2.0 nor FineReader CLI are available."
+                    "details": "Neither GOT-OCR2.0 nor FineReader CLI are available.",
                 }
         elif provider == "got-ocr":
             if not GOT_OCR_AVAILABLE or not GOTOCRProcessor.is_available():
                 return {
                     "success": False,
                     "error": "GOT-OCR2.0 not available",
-                    "details": "GOT-OCR2.0 dependencies or model not loaded."
+                    "details": "GOT-OCR2.0 dependencies or model not loaded.",
                 }
         elif provider == "finereader":
             if not FINEREADER_AVAILABLE or not FineReaderCLI.is_available():
@@ -133,7 +136,7 @@ class OCRTool(BaseTool):
             return {
                 "success": False,
                 "error": f"Unknown OCR provider: {provider}",
-                "details": "Supported providers: 'auto', 'finereader', 'got-ocr'"
+                "details": "Supported providers: 'auto', 'finereader', 'got-ocr'",
             }
 
         source_path = Path(source)
@@ -143,13 +146,14 @@ class OCRTool(BaseTool):
         # Route to appropriate OCR backend
         if provider == "got-ocr":
             from ...utils.got_ocr import get_got_processor
+
             processor = get_got_processor()
             result = await processor.process_image(
                 image_path=source_path,
                 mode=ocr_mode,
                 language=language,
                 region=region,
-                render_html=render_html
+                render_html=render_html,
             )
             result["provider"] = "got-ocr"
             return result
@@ -169,7 +173,4 @@ class OCRTool(BaseTool):
 
         else:
             # This should never happen due to validation above
-            return {
-                "success": False,
-                "error": f"Unsupported provider: {provider}"
-            }
+            return {"success": False, "error": f"Unsupported provider: {provider}"}

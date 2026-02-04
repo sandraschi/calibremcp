@@ -2,20 +2,21 @@
 Repository for handling library-related database operations.
 """
 
-from typing import List, Dict, Optional, Any, Tuple
 from datetime import datetime
-from sqlalchemy.orm import joinedload
+from typing import Any
+
 from sqlalchemy import func, or_
+from sqlalchemy.orm import joinedload
 
 from ...db.base_repository import BaseRepository
-from ...models.library import Library
-from ...models.book import Book
 from ...models.author import Author
-from ...models.series import Series
-from ...models.tag import Tag
-from ...models.rating import Rating
+from ...models.book import Book
 from ...models.comment import Comment
 from ...models.data import Data
+from ...models.library import Library
+from ...models.rating import Rating
+from ...models.series import Series
+from ...models.tag import Tag
 
 
 class LibraryRepository(BaseRepository[Library]):
@@ -25,22 +26,22 @@ class LibraryRepository(BaseRepository[Library]):
         """Initialize with database service."""
         super().__init__(db, Library)
 
-    def get_by_name(self, name: str) -> Optional[Library]:
+    def get_by_name(self, name: str) -> Library | None:
         """Get a library by its exact name."""
         with self._db.session_scope() as session:
             return session.query(Library).filter(Library.name == name).first()
 
-    def get_by_path(self, path: str) -> Optional[Library]:
+    def get_by_path(self, path: str) -> Library | None:
         """Get a library by its path."""
         with self._db.session_scope() as session:
             return session.query(Library).filter(Library.path == path).first()
 
-    def get_active_libraries(self) -> List[Library]:
+    def get_active_libraries(self) -> list[Library]:
         """Get all active libraries."""
         with self._db.session_scope() as session:
             return session.query(Library).filter(Library.is_active).order_by(Library.name).all()
 
-    def get_library_stats(self, library_id: int) -> Dict[str, Any]:
+    def get_library_stats(self, library_id: int) -> dict[str, Any]:
         """Get statistics for a library."""
         with self._db.session_scope() as session:
             library = session.query(Library).get(library_id)
@@ -115,7 +116,7 @@ class LibraryRepository(BaseRepository[Library]):
         series_id: int = None,
         rating_min: int = None,
         rating_max: int = None,
-    ) -> Tuple[List[Dict], int]:
+    ) -> tuple[list[dict], int]:
         """
         Get books in a library with filtering and pagination.
 
@@ -262,7 +263,7 @@ class LibraryRepository(BaseRepository[Library]):
             session.commit()
             return True
 
-    def get_recently_added(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recently_added(self, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get the most recently added books.
 
@@ -292,7 +293,7 @@ class LibraryRepository(BaseRepository[Library]):
                 for b in books
             ]
 
-    def get_recently_modified(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recently_modified(self, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get the most recently modified books.
 
@@ -322,7 +323,7 @@ class LibraryRepository(BaseRepository[Library]):
                 for b in books
             ]
 
-    def get_books_without_metadata(self, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_books_without_metadata(self, limit: int = 50) -> list[dict[str, Any]]:
         """
         Get books that are missing important metadata.
 

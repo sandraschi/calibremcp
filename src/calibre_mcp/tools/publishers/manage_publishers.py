@@ -6,18 +6,17 @@ analogous to manage_authors. Supports both Calibre publishers table and
 identifiers (type='publisher') fallback.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
-
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 from .publisher_helpers import (
-    list_publishers_helper,
-    get_publisher_helper,
     get_publisher_books_helper,
+    get_publisher_helper,
     get_publisher_stats_helper,
     get_publishers_by_letter_helper,
+    list_publishers_helper,
 )
 
 logger = get_logger("calibremcp.tools.publishers")
@@ -26,13 +25,13 @@ logger = get_logger("calibremcp.tools.publishers")
 @mcp.tool()
 async def manage_publishers(
     operation: str,
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    publisher_id: Optional[int] = None,
-    publisher_name: Optional[str] = None,
-    letter: Optional[str] = None,
-) -> Dict[str, Any]:
+    publisher_id: int | None = None,
+    publisher_name: str | None = None,
+    letter: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive publisher management tool for CalibreMCP.
 
@@ -62,9 +61,7 @@ async def manage_publishers(
     """
     try:
         if operation == "list":
-            return await list_publishers_helper(
-                query=query, limit=limit, offset=offset
-            )
+            return await list_publishers_helper(query=query, limit=limit, offset=offset)
 
         elif operation == "get":
             if publisher_id is None and not publisher_name:

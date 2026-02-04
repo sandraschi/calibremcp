@@ -2,13 +2,14 @@
 Repository for handling book-related database operations using SQLAlchemy ORM.
 """
 
-from typing import List, Dict, Optional, Any, Tuple
 from datetime import datetime
+from typing import Any
+
+from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import joinedload
-from sqlalchemy import or_, func, desc
 
 from ...db.base_repository import BaseRepository
-from ...models import Book, Author, Tag, Series, Rating, Comment, Data
+from ...models import Author, Book, Comment, Data, Rating, Series, Tag
 
 
 class BookRepository(BaseRepository[Book]):
@@ -17,7 +18,7 @@ class BookRepository(BaseRepository[Book]):
     def __init__(self, db):
         super().__init__(db, Book)
 
-    def get_book_by_id(self, book_id: int) -> Optional[Dict[str, Any]]:
+    def get_book_by_id(self, book_id: int) -> dict[str, Any] | None:
         """
         Get a book by its ID with all related data.
 
@@ -50,15 +51,15 @@ class BookRepository(BaseRepository[Book]):
 
     def search_books(
         self,
-        query: Optional[str] = None,
-        author: Optional[str] = None,
-        tag: Optional[str] = None,
-        series: Optional[str] = None,
+        query: str | None = None,
+        author: str | None = None,
+        tag: str | None = None,
+        series: str | None = None,
         limit: int = 50,
         offset: int = 0,
         sort_by: str = "title",
         sort_order: str = "asc",
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Search for books with various filters and sorting options.
 
@@ -125,7 +126,7 @@ class BookRepository(BaseRepository[Book]):
             books = query_obj.all()
             return [self._format_book(book) for book in books], total
 
-    def get_recent_books(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_books(self, limit: int = 10) -> list[dict[str, Any]]:
         """
         Get the most recently added books.
 
@@ -145,7 +146,7 @@ class BookRepository(BaseRepository[Book]):
             )
             return [self._format_book(book) for book in books]
 
-    def get_books_by_series(self, series_id: int) -> List[Dict[str, Any]]:
+    def get_books_by_series(self, series_id: int) -> list[dict[str, Any]]:
         """
         Get all books in a series, ordered by series index.
 
@@ -168,7 +169,7 @@ class BookRepository(BaseRepository[Book]):
 
     def get_books_by_author(
         self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Get books by a specific author with pagination.
 
@@ -205,7 +206,7 @@ class BookRepository(BaseRepository[Book]):
 
             return [self._format_book(book) for book in books], total
 
-    def _format_book(self, book: Book) -> Dict[str, Any]:
+    def _format_book(self, book: Book) -> dict[str, Any]:
         """
         Format a Book object into a dictionary.
 
@@ -264,7 +265,7 @@ class BookRepository(BaseRepository[Book]):
         }
         return sort_fields.get(sort_by.lower(), Book.sort)
 
-    def get_books_by_ids(self, book_ids: List[int]) -> List[Dict[str, Any]]:
+    def get_books_by_ids(self, book_ids: list[int]) -> list[dict[str, Any]]:
         """Get multiple books by their IDs."""
         if not book_ids:
             return []
@@ -300,7 +301,7 @@ class BookRepository(BaseRepository[Book]):
         results = self._fetch_all(query, book_ids)
         return [self._process_book_result(row) for row in results]
 
-    def get_library_stats(self) -> Dict[str, Any]:
+    def get_library_stats(self) -> dict[str, Any]:
         """Get library statistics."""
         stats = {}
 
@@ -349,7 +350,7 @@ class BookRepository(BaseRepository[Book]):
 
         return stats
 
-    def _process_book_result(self, row: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_book_result(self, row: dict[str, Any]) -> dict[str, Any]:
         """Process a book result row into a more usable format."""
         if not row:
             return {}

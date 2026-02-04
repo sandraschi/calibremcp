@@ -4,7 +4,7 @@ Configuration settings for the Calibre MCP Server.
 
 import os
 from pathlib import Path
-from typing import List, Optional
+
 from pydantic import BaseSettings
 
 
@@ -16,10 +16,10 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # CORS configuration
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: list[str] = ["*"]
 
     # Database configuration
-    LIBRARY_PATH: Optional[str] = None
+    LIBRARY_PATH: str | None = None
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")

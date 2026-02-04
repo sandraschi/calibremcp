@@ -8,7 +8,6 @@ search functionality, and interactive examples for all available tools.
 import logging
 from enum import Enum
 
-
 # Import the tool decorator from the parent package
 
 logger = logging.getLogger("calibremcp.tools.help")

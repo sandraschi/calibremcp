@@ -8,12 +8,10 @@ without round-trip communication.
 SEP-1577: Sampling with Tools - Server borrows client's LLM for autonomous workflows.
 """
 
-import asyncio
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from ..server import mcp
 from ..logging_config import get_logger
+from ..server import mcp
 
 logger = get_logger("calibremcp.tools.agentic_workflow")
 logger.info("Agentic workflow tool module loaded")
@@ -29,6 +27,12 @@ ConversionManager = None
 
 logger.info("Calibre managers not yet implemented - using simulation mode for agentic workflows")
 
+
+async def intelligent_query_parsing(
+    query: str,
+    parsing_prompt: str = "Parse this e-book query into structured parameters",
+    max_attempts: int = 2,
+) -> dict[str, Any]:
     """
     Use FastMCP 2.14.3 sampling to ask MCP client LLM to parse natural language queries.
 
@@ -64,11 +68,13 @@ logger.info("Calibre managers not yet implemented - using simulation mode for ag
             for prefix in ["by ", "author "]:
                 prefix_index = query_lower.find(prefix)
                 if prefix_index >= 0:
-                    author_part = query[prefix_index + len(prefix):].strip()
+                    author_part = query[prefix_index + len(prefix) :].strip()
                     # Remove common suffixes and clean up
                     for suffix in ["books", "book", "novels", "works"]:
                         author_part = author_part.replace(suffix, "").strip()
-                    if author_part and len(author_part.split()) <= 5:  # Reasonable author name length
+                    if (
+                        author_part and len(author_part.split()) <= 5
+                    ):  # Reasonable author name length
                         parsed_parameters["author"] = author_part
                         break
 
@@ -78,7 +84,7 @@ logger.info("Calibre managers not yet implemented - using simulation mode for ag
             for prefix in ["about ", "on ", "tagged as ", "tagged ", "category "]:
                 prefix_index = query_lower.find(prefix)
                 if prefix_index >= 0:
-                    tag_part = query[prefix_index + len(prefix):].strip()
+                    tag_part = query[prefix_index + len(prefix) :].strip()
                     break
 
             if tag_part:
@@ -89,8 +95,12 @@ logger.info("Calibre managers not yet implemented - using simulation mode for ag
                     parsed_parameters["tag"] = tag_part
 
         # Time patterns
-        elif any(phrase in query_lower for phrase in ["last year", "from last year", "this year", "recent", "new books"]):
+        elif any(
+            phrase in query_lower
+            for phrase in ["last year", "from last year", "this year", "recent", "new books"]
+        ):
             from datetime import datetime
+
             if "last year" in query_lower:
                 last_year = datetime.now().year - 1
                 parsed_parameters["pubdate"] = str(last_year)
@@ -102,32 +112,94 @@ logger.info("Calibre managers not yet implemented - using simulation mode for ag
                 parsed_parameters["added_after"] = "2024-01-01"
 
         # Title patterns - for queries that look like book titles
-        elif (len(query.split()) <= 6 and  # Allow slightly longer titles
-              any(word in query_lower for word in ["find", "search for", "look for"]) or
-              (len(query.split()) <= 4 and
-               not any(word in query_lower for word in ["by", "about", "books", "show", "list", "get", "tagged", "category", "author", "published", "from"]))):
-
+        elif (
+            len(query.split()) <= 6  # Allow slightly longer titles
+            and any(word in query_lower for word in ["find", "search for", "look for"])
+            or (
+                len(query.split()) <= 4
+                and not any(
+                    word in query_lower
+                    for word in [
+                        "by",
+                        "about",
+                        "books",
+                        "show",
+                        "list",
+                        "get",
+                        "tagged",
+                        "category",
+                        "author",
+                        "published",
+                        "from",
+                    ]
+                )
+            )
+        ):
             # Clean up the query to extract the title
             title_query = query
             for prefix in ["find ", "search for ", "look for "]:
                 if title_query.lower().startswith(prefix):
-                    title_query = title_query[len(prefix):].strip()
+                    title_query = title_query[len(prefix) :].strip()
                     break
 
             if title_query and title_query != query:  # Only if we actually modified it
                 parsed_parameters["title"] = title_query
-            elif len(query.split()) <= 4 and not any(word in query_lower for word in ["by", "about", "books", "show", "list", "get", "tagged", "category", "author", "published", "from"]):
+            elif len(query.split()) <= 4 and not any(
+                word in query_lower
+                for word in [
+                    "by",
+                    "about",
+                    "books",
+                    "show",
+                    "list",
+                    "get",
+                    "tagged",
+                    "category",
+                    "author",
+                    "published",
+                    "from",
+                ]
+            ):
                 # Looks like a direct title search
                 parsed_parameters["title"] = query.strip()
 
         # Genre/tag patterns for common genres
-        elif any(genre in query_lower for genre in ["mystery", "science fiction", "sci-fi", "fantasy", "romance",
-                                                    "history", "biography", "non-fiction", "fiction", "horror",
-                                                    "thriller", "crime", "detective", "adventure"]):
+        elif any(
+            genre in query_lower
+            for genre in [
+                "mystery",
+                "science fiction",
+                "sci-fi",
+                "fantasy",
+                "romance",
+                "history",
+                "biography",
+                "non-fiction",
+                "fiction",
+                "horror",
+                "thriller",
+                "crime",
+                "detective",
+                "adventure",
+            ]
+        ):
             # Extract the genre
-            for genre in ["mystery", "science fiction", "sci-fi", "fantasy", "romance",
-                         "history", "biography", "non-fiction", "fiction", "horror",
-                         "thriller", "crime", "detective", "adventure"]:
+            for genre in [
+                "mystery",
+                "science fiction",
+                "sci-fi",
+                "fantasy",
+                "romance",
+                "history",
+                "biography",
+                "non-fiction",
+                "fiction",
+                "horror",
+                "thriller",
+                "crime",
+                "detective",
+                "adventure",
+            ]:
                 if genre in query_lower:
                     parsed_parameters["tag"] = genre
                     break
@@ -140,27 +212,34 @@ logger.info("Calibre managers not yet implemented - using simulation mode for ag
             "query": query,
             "parsing_method": "basic_fallback",  # Would be "sampling" in real implementation
             "confidence": 0.7 if success else 0.0,
-            "attempts_used": 1
+            "attempts_used": 1,
         }
 
         logger.info(f"Query parsing {'successful' if success else 'failed'}", extra=result)
         return result
 
     except Exception as e:
-        logger.error(f"Intelligent query parsing failed: {e}", extra={"error": str(e), "query": query})
+        logger.error(
+            f"Intelligent query parsing failed: {e}", extra={"error": str(e), "query": query}
+        )
         return {
             "success": False,
             "parsed_parameters": {},
             "query": query,
             "error": str(e),
-            "parsing_method": "error_fallback"
+            "parsing_method": "error_fallback",
         }
 
+
 # Conversational Response Builders - Implemented directly for Calibre MCP
-def build_success_response(operation: str, summary: str, result: Any,
-                          next_steps: List[str] = None,
-                          suggestions: List[str] = None,
-                          diagnostic_info: Dict[str, Any] = None) -> Dict[str, Any]:
+def build_success_response(
+    operation: str,
+    summary: str,
+    result: Any,
+    next_steps: list[str] = None,
+    suggestions: list[str] = None,
+    diagnostic_info: dict[str, Any] = None,
+) -> dict[str, Any]:
     """
     Build a standardized success response for conversational MCP tools.
 
@@ -184,12 +263,7 @@ def build_success_response(operation: str, summary: str, result: Any,
     Returns:
         Standardized response dictionary
     """
-    response = {
-        "success": True,
-        "operation": operation,
-        "summary": summary,
-        "result": result
-    }
+    response = {"success": True, "operation": operation, "summary": summary, "result": result}
 
     if next_steps:
         response["next_steps"] = next_steps
@@ -201,10 +275,15 @@ def build_success_response(operation: str, summary: str, result: Any,
     return response
 
 
-def build_error_response(operation: str, error: str, error_code: str = "UNKNOWN_ERROR",
-                        message: str = "", recovery_options: List[str] = None,
-                        diagnostic_info: Dict[str, Any] = None,
-                        urgency: str = "medium") -> Dict[str, Any]:
+def build_error_response(
+    operation: str,
+    error: str,
+    error_code: str = "UNKNOWN_ERROR",
+    message: str = "",
+    recovery_options: list[str] = None,
+    diagnostic_info: dict[str, Any] = None,
+    urgency: str = "medium",
+) -> dict[str, Any]:
     """
     Build a standardized error response for conversational MCP tools.
 
@@ -235,7 +314,7 @@ def build_error_response(operation: str, error: str, error_code: str = "UNKNOWN_
         "operation": operation,
         "error": error,
         "error_code": error_code,
-        "urgency": urgency
+        "urgency": urgency,
     }
 
     if message:
@@ -271,16 +350,19 @@ class AgenticWorkflowTool:
 
     def is_available(self) -> bool:
         """Check if all required components are available."""
-        return all([
-            self.calibre_manager is not None,
-            self.library_ops is not None,
-            self.metadata_manager is not None,
-            self.search_ops is not None,
-            self.conversion_manager is not None
-        ])
+        return all(
+            [
+                self.calibre_manager is not None,
+                self.library_ops is not None,
+                self.metadata_manager is not None,
+                self.search_ops is not None,
+                self.conversion_manager is not None,
+            ]
+        )
 
-    async def execute_workflow(self, workflow_prompt: str, available_operations: List[str],
-                             max_iterations: int = 5) -> Dict[str, Any]:
+    async def execute_workflow(
+        self, workflow_prompt: str, available_operations: list[str], max_iterations: int = 5
+    ) -> dict[str, Any]:
         """
         Execute an agentic workflow using SEP-1577 sampling with tools.
 
@@ -308,7 +390,7 @@ class AgenticWorkflowTool:
                         "Configure the Calibre library path in settings",
                         "Verify Calibre server is running (if using remote library)",
                         "Check PYTHONPATH includes Calibre modules",
-                        "Restart MCP server after configuration changes"
+                        "Restart MCP server after configuration changes",
                     ],
                     diagnostic_info={
                         "managers_checked": {
@@ -316,19 +398,21 @@ class AgenticWorkflowTool:
                             "library_ops": self.library_ops is not None,
                             "metadata_manager": self.metadata_manager is not None,
                             "search_ops": self.search_ops is not None,
-                            "conversion_manager": self.conversion_manager is not None
+                            "conversion_manager": self.conversion_manager is not None,
                         },
                         "python_path": "D:/Dev/repos/calibre-mcp/src",
-                        "calibre_available": True  # We know Calibre is installed from earlier tests
+                        "calibre_available": True,  # We know Calibre is installed from earlier tests
                     },
-                    urgency="high"
+                    urgency="high",
                 )
 
             # For now, implement a basic workflow executor
             # In a full SEP-1577 implementation, this would use the client's LLM
             # to autonomously decide operations and sequencing
 
-            workflow_result = await self._execute_basic_workflow(workflow_prompt, available_operations)
+            workflow_result = await self._execute_basic_workflow(
+                workflow_prompt, available_operations
+            )
 
             return build_success_response(
                 operation="agentic_library_workflow",
@@ -339,17 +423,17 @@ class AgenticWorkflowTool:
                     "executed_operations": workflow_result.get("executed", []),
                     "results": workflow_result.get("results", []),
                     "iterations_used": 1,
-                    "max_iterations": max_iterations
+                    "max_iterations": max_iterations,
                 },
                 next_steps=[
                     "Review the executed operations and their results",
                     "Run additional workflows as needed",
-                    "Check library statistics for changes"
+                    "Check library statistics for changes",
                 ],
                 suggestions=[
                     "Consider running metadata enhancement workflows",
                     "Try bulk conversion operations for format consistency",
-                    "Use search operations to find specific content"
+                    "Use search operations to find specific content",
                 ],
                 diagnostic_info={
                     "workflow_type": workflow_result.get("workflow_type", "unknown"),
@@ -358,9 +442,9 @@ class AgenticWorkflowTool:
                         "library_ops": self.library_ops is not None,
                         "metadata_manager": self.metadata_manager is not None,
                         "search_ops": self.search_ops is not None,
-                        "conversion_manager": self.conversion_manager is not None
-                    }
-                }
+                        "conversion_manager": self.conversion_manager is not None,
+                    },
+                },
             )
 
         except Exception as e:
@@ -375,7 +459,7 @@ class AgenticWorkflowTool:
                     "Check library connectivity",
                     "Verify operation permissions",
                     "Ensure Calibre is running and accessible",
-                    "Check library configuration settings"
+                    "Check library configuration settings",
                 ],
                 diagnostic_info={
                     "exception_type": type(e).__name__,
@@ -384,16 +468,17 @@ class AgenticWorkflowTool:
                         "library_ops": self.library_ops is not None,
                         "metadata_manager": self.metadata_manager is not None,
                         "search_ops": self.search_ops is not None,
-                        "conversion_manager": self.conversion_manager is not None
+                        "conversion_manager": self.conversion_manager is not None,
                     },
                     "workflow_prompt": workflow_prompt,
-                    "available_operations_count": len(available_operations)
+                    "available_operations_count": len(available_operations),
                 },
-                urgency="high" if "connection" in str(e).lower() else "medium"
+                urgency="high" if "connection" in str(e).lower() else "medium",
             )
 
-    async def _execute_basic_workflow(self, workflow_prompt: str,
-                                    available_operations: List[str]) -> Dict[str, Any]:
+    async def _execute_basic_workflow(
+        self, workflow_prompt: str, available_operations: list[str]
+    ) -> dict[str, Any]:
         """
         Execute a basic workflow based on prompt analysis.
 
@@ -427,15 +512,26 @@ class AgenticWorkflowTool:
         elif any(keyword in prompt_lower for keyword in ["metadata", "enhance", "update", "fix"]):
             try:
                 # Get books with missing metadata
-                missing_metadata = await self.metadata_manager.find_books_with_missing_metadata() if self.metadata_manager else []
+                missing_metadata = (
+                    await self.metadata_manager.find_books_with_missing_metadata()
+                    if self.metadata_manager
+                    else []
+                )
                 executed.append("find_missing_metadata")
                 results.append({"operation": "find_missing_metadata", "result": missing_metadata})
 
                 # Update metadata for found books
                 if missing_metadata:
-                    updated_count = await self.metadata_manager.batch_update_metadata(missing_metadata[:5])  # Limit to 5 for safety
+                    updated_count = await self.metadata_manager.batch_update_metadata(
+                        missing_metadata[:5]
+                    )  # Limit to 5 for safety
                     executed.append("batch_update_metadata")
-                    results.append({"operation": "batch_update_metadata", "result": f"Updated {updated_count} books"})
+                    results.append(
+                        {
+                            "operation": "batch_update_metadata",
+                            "result": f"Updated {updated_count} books",
+                        }
+                    )
 
             except Exception as e:
                 logger.error(f"Error in metadata workflow: {e}")
@@ -466,18 +562,18 @@ class AgenticWorkflowTool:
         elif any(keyword in prompt_lower for keyword in ["bulk", "batch", "convert", "export"]):
             try:
                 # Get conversion capabilities
-                formats = await self.conversion_manager.get_supported_formats() if self.conversion_manager else []
+                formats = (
+                    await self.conversion_manager.get_supported_formats()
+                    if self.conversion_manager
+                    else []
+                )
                 executed.append("get_supported_formats")
                 results.append({"operation": "get_supported_formats", "result": formats})
 
             except Exception as e:
                 logger.error(f"Error in bulk workflow: {e}")
 
-        return {
-            "executed": executed,
-            "results": results,
-            "workflow_type": "basic_orchestration"
-        }
+        return {"executed": executed, "results": results, "workflow_type": "basic_orchestration"}
 
 
 # Global instance for the MCP tool
@@ -486,10 +582,8 @@ _agentic_workflow_tool = AgenticWorkflowTool()
 
 @mcp.tool()
 async def agentic_library_workflow(
-    workflow_prompt: str,
-    available_operations: List[str],
-    max_iterations: int = 5
-) -> Dict[str, Any]:
+    workflow_prompt: str, available_operations: list[str], max_iterations: int = 5
+) -> dict[str, Any]:
     """
     Execute agentic workflows for Calibre e-book library management using SEP-1577.
 
@@ -525,5 +619,5 @@ async def agentic_library_workflow(
     return await _agentic_workflow_tool.execute_workflow(
         workflow_prompt=workflow_prompt,
         available_operations=available_operations,
-        max_iterations=min(max_iterations, 10)  # Cap at 10 for safety
+        max_iterations=min(max_iterations, 10),  # Cap at 10 for safety
     )

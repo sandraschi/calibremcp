@@ -8,21 +8,21 @@ Legacy helper functions are available but NOT registered as MCP tools.
 """
 
 # Import portmanteau tools (these are registered with @mcp.tool() and visible to Claude)
-from .manage_libraries import manage_libraries
 from .library_discovery import library_discovery
 
 # Import helper functions (NOT registered - used internally by portmanteau tool)
 # These are NOT visible to Claude, only used as helpers
 from .library_management import (
+    cross_library_search_helper,  # noqa: F401
+    get_library_stats_helper,  # noqa: F401
     list_libraries_helper,  # noqa: F401
     switch_library_helper,  # noqa: F401
-    get_library_stats_helper,  # noqa: F401
-    cross_library_search_helper,  # noqa: F401
 )
+from .manage_libraries import manage_libraries
 
 # List of tools to register - ONLY portmanteau tools are registered
 # Helper functions are imported above but NOT in this list (they have no @mcp.tool() decorator)
 tools = [
-    manage_libraries,      # Portmanteau tool for library management
-    library_discovery,     # Controlled library discovery with permissions
+    manage_libraries,  # Portmanteau tool for library management
+    library_discovery,  # Controlled library discovery with permissions
 ]

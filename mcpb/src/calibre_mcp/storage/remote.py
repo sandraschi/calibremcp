@@ -4,20 +4,20 @@ Remote storage backend for Calibre MCP.
 Provides access to Calibre content server via HTTP API.
 """
 
-import aiohttp
 import logging
-from typing import List, Optional, Dict, Any, Union
+from typing import Any
 
+import aiohttp
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
+from ..auth import AuthManager
 from ..models.book import Book
 from ..models.library import LibraryInfo
-from ..auth import AuthManager
 from . import StorageBackend
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class RemoteStorage(StorageBackend):
     """Remote storage backend using Calibre Content Server API"""
 
-    def __init__(self, server_name: str, base_url: str, auth: Optional[AuthManager] = None):
+    def __init__(self, server_name: str, base_url: str, auth: AuthManager | None = None):
         """
         Initialize remote storage backend.
 
@@ -45,7 +45,7 @@ class RemoteStorage(StorageBackend):
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession()
 
-    async def _get_auth_headers(self) -> Dict[str, str]:
+    async def _get_auth_headers(self) -> dict[str, str]:
         """Get authentication headers"""
         creds = self.auth.get_credentials(self.server_name)
         if not creds:
@@ -108,7 +108,7 @@ class RemoteStorage(StorageBackend):
             logger.error(f"Remote storage request error (will retry): {method} {endpoint} - {e}")
             raise
 
-    async def list_books(self, **filters) -> List[Book]:
+    async def list_books(self, **filters) -> list[Book]:
         """List books with optional filtering"""
         params = {}
 
@@ -141,7 +141,7 @@ class RemoteStorage(StorageBackend):
             logger.error(f"Failed to list books: {e}")
             raise
 
-    async def get_book(self, book_id: Union[int, str]) -> Optional[Book]:
+    async def get_book(self, book_id: int | str) -> Book | None:
         """Get a book by ID"""
         try:
             data = await self._make_request("GET", f"/ajax/book/{book_id}")

@@ -4,7 +4,6 @@ Quick test to verify basic Calibre MCP functionality works.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
@@ -14,7 +13,8 @@ try:
     print("Testing imports...")
 
     # Test basic imports
-    from calibre_mcp import mcp, CalibreConfig, CalibreAPIClient
+    from calibre_mcp import CalibreConfig, mcp
+
     print("✓ Basic imports successful")
 
     # Test MCP instance
@@ -27,15 +27,12 @@ try:
     print(f"✓ Config loaded: {config.library_name}")
 
     # Test tool registration
-    from calibre_mcp.tools import register_tools
     print("✓ Tool registration import successful")
 
     # Test database imports
-    from calibre_mcp.db.database import init_database, get_database
     print("✓ Database imports successful")
 
     # Test service imports
-    from calibre_mcp.services.book_service import BookService
     print("✓ Service imports successful")
 
     print("\n🎉 All basic functionality tests passed!")
@@ -44,5 +41,6 @@ try:
 except Exception as e:
     print(f"❌ Test failed: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

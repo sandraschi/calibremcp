@@ -1,5 +1,7 @@
 """Count registered MCP tools."""
+
 import asyncio
+
 from calibre_mcp.server import mcp
 from calibre_mcp.tools import register_tools
 
@@ -17,4 +19,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

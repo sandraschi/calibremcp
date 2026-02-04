@@ -9,7 +9,6 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Dict
 
 import pytest
 
@@ -44,7 +43,7 @@ class TestCalibreMCPSTDIO:
         try:
             process.terminate()
             await asyncio.wait_for(process.wait(), timeout=5)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             process.kill()
             await process.wait()
 
@@ -52,7 +51,7 @@ class TestCalibreMCPSTDIO:
     async def client(self, server_process):
         """Create a test client that communicates with the server via STDIO."""
 
-        async def send_request(method: str, params: Dict = None, request_id: int = 1) -> Dict:
+        async def send_request(method: str, params: dict = None, request_id: int = 1) -> dict:
             request = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": request_id}
 
             # Send the request

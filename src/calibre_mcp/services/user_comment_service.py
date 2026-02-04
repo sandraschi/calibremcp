@@ -4,9 +4,9 @@ Service for user comments (annotations on books).
 Stored in CalibreMCP-owned SQLite, separate from Calibre's description/comment field.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 
-from ..db.user_data import get_user_data_db, UserComment
+from ..db.user_data import UserComment, get_user_data_db
 from ..logging_config import get_logger
 
 logger = get_logger("calibremcp.services.user_comment")
@@ -19,7 +19,9 @@ class UserCommentService:
         """Get current library path for comment scope (parent of metadata.db)."""
         try:
             from pathlib import Path
+
             from ..db.database import get_database
+
             db_path = get_database().get_current_path()
             if not db_path:
                 return ""
@@ -31,8 +33,8 @@ class UserCommentService:
         self,
         book_id: int,
         comment_text: str,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Create or update user comment for a book."""
         lib_path = library_path or self._get_library_path()
         if not lib_path:
@@ -61,7 +63,9 @@ class UserCommentService:
                     "id": existing.id,
                     "book_id": book_id,
                     "library_path": lib_path,
-                    "comment_text": comment_text[:200] + "..." if len(comment_text) > 200 else comment_text,
+                    "comment_text": comment_text[:200] + "..."
+                    if len(comment_text) > 200
+                    else comment_text,
                     "updated": True,
                 }
             else:
@@ -77,15 +81,17 @@ class UserCommentService:
                     "id": uc.id,
                     "book_id": book_id,
                     "library_path": lib_path,
-                    "comment_text": comment_text[:200] + "..." if len(comment_text) > 200 else comment_text,
+                    "comment_text": comment_text[:200] + "..."
+                    if len(comment_text) > 200
+                    else comment_text,
                     "created": True,
                 }
 
     def get(
         self,
         book_id: int,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Get user comment for a book."""
         lib_path = library_path or self._get_library_path()
         if not lib_path:
@@ -126,8 +132,8 @@ class UserCommentService:
     def delete(
         self,
         book_id: int,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Delete user comment for a book."""
         lib_path = library_path or self._get_library_path()
         if not lib_path:
@@ -158,8 +164,8 @@ class UserCommentService:
         self,
         book_id: int,
         text_to_append: str,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Append text to existing user comment."""
         lib_path = library_path or self._get_library_path()
         if not lib_path:

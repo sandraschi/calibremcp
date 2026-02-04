@@ -9,7 +9,7 @@ import asyncio
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from fastmcp import FastMCP, MCPServerError
 
@@ -31,7 +31,7 @@ class CalibreMCPServer:
 
     def __init__(
         self,
-        library_path: Optional[Union[str, Path]] = None,
+        library_path: str | Path | None = None,
         host: str = "localhost",
         port: int = 8000,
         debug: bool = False,
@@ -105,7 +105,7 @@ class CalibreMCPServer:
 
         logger.info(f"Registered {len(self.mcp.tools)} tools")
 
-    async def get_library_info(self) -> Dict[str, Any]:
+    async def get_library_info(self) -> dict[str, Any]:
         """Get information about the current Calibre library.
 
         This is a legacy method kept for backward compatibility.
@@ -137,7 +137,7 @@ class CalibreMCPServer:
         query: str = "",
         limit: int = 50,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """List books in the library with optional filtering.
 
         This is a legacy method kept for backward compatibility.
@@ -148,7 +148,7 @@ class CalibreMCPServer:
         book_tools = BookTools(self.mcp)
         return await book_tools.list_books(query=query, limit=limit, offset=offset)
 
-    async def get_book(self, book_id: int) -> Optional[Dict[str, Any]]:
+    async def get_book(self, book_id: int) -> dict[str, Any] | None:
         """Get details for a specific book.
 
         This is a legacy method kept for backward compatibility.

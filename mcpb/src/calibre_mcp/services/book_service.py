@@ -2,19 +2,26 @@
 Service for handling book-related operations in the Calibre MCP application.
 """
 
-from typing import Dict, List, Optional, Any, Union
 from pathlib import Path
-from sqlalchemy.orm import joinedload
+from typing import Any
+
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from ..db.database import DatabaseService
-from ..db.models import Book  # Use db.models.Book for queries (has series relationship)
+from ..db.models import (  # Use db.models for query models
+    Author,
+    Book,  # Use db.models.Book for queries (has series relationship)
+    Comment,
+    Rating,
+    Series,
+    Tag,
+)
 from ..models.book import (
     BookCreate,
-    BookUpdate,
     BookResponse,
+    BookUpdate,
 )  # Use models.book for Pydantic schemas
-from ..db.models import Author, Series, Tag, Rating, Comment  # Use db.models for query models
 from .base_service import BaseService, NotFoundError, ValidationError
 
 
@@ -53,7 +60,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         super().__init__(db, Book, BookResponse)
         self._library_path_cache = None
 
-    def _get_library_base_path(self) -> Optional[str]:
+    def _get_library_base_path(self) -> str | None:
         """
         Get the base library path from the database connection URL.
 
@@ -82,7 +89,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
         return None
 
-    def get_by_id(self, book_id: int) -> Dict[str, Any]:
+    def get_by_id(self, book_id: int) -> dict[str, Any]:
         """
         Get a book by its ID with all related data.
 
@@ -120,24 +127,24 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        author_id: Optional[int] = None,
-        author_name: Optional[str] = None,
-        authors_list: Optional[List[str]] = None,  # OR logic within list
-        exclude_authors_list: Optional[List[str]] = None,  # NOT logic - exclude these authors
-        series_id: Optional[int] = None,
-        series_name: Optional[str] = None,
-        exclude_series_list: Optional[List[str]] = None,  # NOT logic - exclude these series
-        tag_id: Optional[int] = None,
-        tag_name: Optional[str] = None,
-        tags_list: Optional[List[str]] = None,  # OR logic within list
-        exclude_tags_list: Optional[List[str]] = None,  # NOT logic - exclude these tags
-        comment: Optional[str] = None,
-        has_cover: Optional[bool] = None,
+        search: str | None = None,
+        author_id: int | None = None,
+        author_name: str | None = None,
+        authors_list: list[str] | None = None,  # OR logic within list
+        exclude_authors_list: list[str] | None = None,  # NOT logic - exclude these authors
+        series_id: int | None = None,
+        series_name: str | None = None,
+        exclude_series_list: list[str] | None = None,  # NOT logic - exclude these series
+        tag_id: int | None = None,
+        tag_name: str | None = None,
+        tags_list: list[str] | None = None,  # OR logic within list
+        exclude_tags_list: list[str] | None = None,  # NOT logic - exclude these tags
+        comment: str | None = None,
+        has_cover: bool | None = None,
         sort_by: str = "title",
         sort_order: str = "asc",
         **filters: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get a paginated list of books with optional filtering and sorting.
 
@@ -504,7 +511,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 "total_pages": (total + limit - 1) // limit if limit > 0 else 1,
             }
 
-    def create(self, book_data: BookCreate) -> Dict[str, Any]:
+    def create(self, book_data: BookCreate) -> dict[str, Any]:
         """
         Create a new book with the given data.
 
@@ -557,7 +564,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
             return self._to_response(book)
 
-    def update(self, book_id: int, book_data: Union[BookUpdate, Dict[str, Any]]) -> Dict[str, Any]:
+    def update(self, book_id: int, book_data: BookUpdate | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing book with the given data.
 
@@ -664,7 +671,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             session.commit()
             return True
 
-    def get_book_formats(self, book_id: int) -> List[Dict[str, Any]]:
+    def get_book_formats(self, book_id: int) -> list[dict[str, Any]]:
         """
         Get all available formats for a book.
 
@@ -692,7 +699,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 for data in book.data
             ]
 
-    def get_book_cover(self, book_id: int) -> Optional[bytes]:
+    def get_book_cover(self, book_id: int) -> bytes | None:
         """
         Get the cover image for a book.
 
@@ -717,7 +724,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             # You'll need to implement this based on your storage solution
             return self._get_cover_data(book_id)
 
-    def _get_cover_data(self, book_id: int) -> Optional[bytes]:
+    def _get_cover_data(self, book_id: int) -> bytes | None:
         """
         Internal method to retrieve cover data for a book.
 
@@ -734,7 +741,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         # This could read from the filesystem, a blob store, etc.
         return None
 
-    def _to_response(self, book: Book) -> Dict[str, Any]:
+    def _to_response(self, book: Book) -> dict[str, Any]:
         """
         Convert a Book model instance to a response dictionary.
 

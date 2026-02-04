@@ -6,6 +6,7 @@ all tools in the webapp preload list can be loaded without error.
 """
 
 import importlib
+
 import pytest
 
 # Tool modules as used by webapp/backend/app/mcp/client.py

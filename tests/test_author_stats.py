@@ -1,6 +1,8 @@
 """Test author stats."""
+
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from calibre_mcp.db.database import init_database
@@ -16,7 +18,6 @@ init_database(db_path)
 print("Getting author statistics...")
 stats = author_service.get_author_stats()
 print(f"Total authors: {stats['total_authors']}")
-print(f"\nTop 10 authors by book count:")
-for idx, author in enumerate(stats['top_authors'][:10], 1):
+print("\nTop 10 authors by book count:")
+for idx, author in enumerate(stats["top_authors"][:10], 1):
     print(f"  {idx}. {author['name']}: {author['book_count']} books")
-

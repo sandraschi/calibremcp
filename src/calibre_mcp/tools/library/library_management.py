@@ -5,16 +5,16 @@ These tools handle multi-library operations, switching between libraries,
 and cross-library search functionality.
 """
 
-from typing import Optional, List, Dict, Any
 import time
+from typing import Any
 
-from ...server import LibraryListResponse, LibraryStatsResponse, LibrarySearchResponse
+from ...config import CalibreConfig
+from ...logging_config import get_logger
+from ...server import LibraryListResponse, LibrarySearchResponse, LibraryStatsResponse
 
 # Import services and utilities
 from ...services.book_service import book_service
 from ...utils.library_utils import discover_calibre_libraries, get_library_metadata
-from ...config import CalibreConfig
-from ...logging_config import get_logger
 
 logger = get_logger("calibremcp.tools.library_management")
 
@@ -126,7 +126,7 @@ async def list_libraries_helper() -> LibraryListResponse:
 
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def switch_library_helper(library_name: str) -> Dict[str, Any]:
+async def switch_library_helper(library_name: str) -> dict[str, Any]:
     """
     Switch the active Calibre library for all subsequent operations.
 
@@ -210,8 +210,9 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
 
         # CRITICAL: Re-initialize database with the new library
         # The database was initialized at startup with a different library
-        from ...db.database import init_database
         from pathlib import Path
+
+        from ...db.database import init_database
 
         metadata_db = Path(library_path) / "metadata.db"
         if not metadata_db.exists():
@@ -253,10 +254,10 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
             ) from e
 
         # Update global current_library variable and persist to storage
-        from ...server import storage
-
         # Update the module-level global variable
         import calibre_mcp.server as server_module
+
+        from ...server import storage
 
         server_module.current_library = library_name
 
@@ -291,7 +292,7 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
 
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def get_library_stats_helper(library_name: Optional[str] = None) -> LibraryStatsResponse:
+async def get_library_stats_helper(library_name: str | None = None) -> LibraryStatsResponse:
     """
     Get detailed statistics for a specific library.
 
@@ -352,7 +353,7 @@ async def get_library_stats_helper(library_name: Optional[str] = None) -> Librar
         # For now, we'll use file system metadata and basic counts
 
         # Get format distribution from file system (approximate)
-        format_distribution: Dict[str, int] = {}
+        format_distribution: dict[str, int] = {}
         try:
             # Count format files in library
             for ext in [".epub", ".pdf", ".mobi", ".azw3", ".txt", ".html"]:
@@ -399,7 +400,7 @@ async def get_library_stats_helper(library_name: Optional[str] = None) -> Librar
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def cross_library_search_helper(
-    query: str, libraries: Optional[List[str]] = None
+    query: str, libraries: list[str] | None = None
 ) -> LibrarySearchResponse:
     """
     Search for books across multiple Calibre libraries simultaneously.
@@ -439,13 +440,14 @@ async def cross_library_search_helper(
 
         # Parse intelligent query to extract content_type and other hints
         from ..shared.query_parsing import parse_intelligent_query
+
         parsed = parse_intelligent_query(query)
-        
+
         # Determine which libraries to search
         # DEFAULT: Search only active library (faster, more predictable)
         # To search all libraries, explicitly pass libraries=["ALL"]
         config = CalibreConfig()
-        
+
         if libraries is None:
             # No libraries specified - search active library only
             if config.local_library_path:
@@ -459,14 +461,14 @@ async def cross_library_search_helper(
                     libraries_to_search = [active_lib_name]
                     logger.info(
                         f"Searching active library only: {active_lib_name}",
-                        extra={"library": active_lib_name, "query": query}
+                        extra={"library": active_lib_name, "query": query},
                     )
                 else:
                     # Active library path doesn't match discovered - search all as fallback
                     libraries_to_search = list(discovered_libs.keys())
                     logger.warning(
                         "Active library path not found in discovered libraries, searching all",
-                        extra={"active_path": str(config.local_library_path)}
+                        extra={"active_path": str(config.local_library_path)},
                     )
             else:
                 # No active library - search all as fallback
@@ -476,21 +478,24 @@ async def cross_library_search_helper(
             if len(libraries) == 1 and libraries[0].upper() == "ALL":
                 # Explicit request to search all libraries
                 libraries_to_search = list(discovered_libs.keys())
-                logger.info(f"Explicit 'ALL' libraries requested, searching {len(libraries_to_search)} libraries")
+                logger.info(
+                    f"Explicit 'ALL' libraries requested, searching {len(libraries_to_search)} libraries"
+                )
             else:
                 # Use provided library list (with content_type filtering if applicable)
                 if parsed.get("content_type"):
                     content_type = parsed["content_type"].lower()
                     # Match libraries by name containing the content type
                     matching_libs = [
-                        lib_name for lib_name in discovered_libs.keys()
+                        lib_name
+                        for lib_name in discovered_libs.keys()
                         if content_type in lib_name.lower()
                     ]
                     if matching_libs:
                         libraries_to_search = matching_libs
                         logger.info(
                             f"Content type '{content_type}' detected, filtering to matching libraries",
-                            extra={"content_type": content_type, "libraries": matching_libs}
+                            extra={"content_type": content_type, "libraries": matching_libs},
                         )
                     else:
                         # No matching libraries found, use provided list
@@ -498,13 +503,15 @@ async def cross_library_search_helper(
                 else:
                     # Use provided library list
                     libraries_to_search = libraries
-                
+
                 # Validate library names
                 invalid = [lib for lib in libraries_to_search if lib not in discovered_libs]
                 if invalid:
                     raise ValueError(f"Libraries not found: {', '.join(invalid)}")
         else:
-            raise ValueError(f"Invalid libraries parameter: {libraries}. Must be None or a list of library names.")
+            raise ValueError(
+                f"Invalid libraries parameter: {libraries}. Must be None or a list of library names."
+            )
 
         if not libraries_to_search:
             return LibrarySearchResponse(
@@ -512,32 +519,35 @@ async def cross_library_search_helper(
             )
 
         # Search each library and combine results
-        all_results: List[Dict[str, Any]] = []
+        all_results: list[dict[str, Any]] = []
         start_time = time.time()
-        
+
         # Store original library path to restore at the end
         original_path = config.local_library_path
         original_lib_name = None
-        
+
         # Find original library name
         for name, path in discovered_libs.items():
             if path == original_path:
                 original_lib_name = name
                 break
-        
+
         for lib_name in libraries_to_search:
             try:
                 # Temporarily switch to this library
                 library_path = discovered_libs[lib_name]
-                
-                from ...db.database import init_database, get_database, db
+
                 from pathlib import Path
-                
+
+                from ...db.database import db, init_database
+
                 metadata_db = Path(library_path) / "metadata.db"
                 if not metadata_db.exists():
-                    logger.warning(f"metadata.db not found for library '{lib_name}' at {metadata_db}")
+                    logger.warning(
+                        f"metadata.db not found for library '{lib_name}' at {metadata_db}"
+                    )
                     continue
-                
+
                 # Check if we're already connected to this library
                 current_path = db.get_current_path()
                 target_path = str(metadata_db.absolute())
@@ -546,25 +556,28 @@ async def cross_library_search_helper(
                 if current_path != target_path:
                     # Force re-initialization with this library
                     init_database(target_path, echo=False, force=True)
-                    logger.debug(f"Database switched to library: {lib_name}", extra={
-                        "library": lib_name,
-                        "path": target_path
-                    })
+                    logger.debug(
+                        f"Database switched to library: {lib_name}",
+                        extra={"library": lib_name, "path": target_path},
+                    )
                 else:
                     logger.debug(f"Already connected to library: {lib_name}, skipping re-init")
-                
+
                 config.set_active_library(lib_name)
 
                 # Perform search using book service with parsed parameters
                 # Use get_all() method (not list()) - get_all supports all search parameters
-                logger.debug(f"Searching library '{lib_name}'", extra={
-                    "library": lib_name,
-                    "search": parsed["text"],
-                    "author": parsed["author"],
-                    "tag": parsed["tag"],
-                    "series": parsed["series"]
-                })
-                
+                logger.debug(
+                    f"Searching library '{lib_name}'",
+                    extra={
+                        "library": lib_name,
+                        "search": parsed["text"],
+                        "author": parsed["author"],
+                        "tag": parsed["tag"],
+                        "series": parsed["series"],
+                    },
+                )
+
                 search_results = book_service.get_all(
                     skip=0,
                     limit=1000,  # Get all results for cross-library search
@@ -575,30 +588,36 @@ async def cross_library_search_helper(
                     rating=parsed["rating"],
                 )
 
-                logger.debug(f"Search results for '{lib_name}': {search_results.get('total', 0)} books found", extra={
-                    "library": lib_name,
-                    "total": search_results.get("total", 0),
-                    "items_count": len(search_results.get("items", []))
-                })
+                logger.debug(
+                    f"Search results for '{lib_name}': {search_results.get('total', 0)} books found",
+                    extra={
+                        "library": lib_name,
+                        "total": search_results.get("total", 0),
+                        "items_count": len(search_results.get("items", [])),
+                    },
+                )
 
                 # Add library name to each result
                 for item in search_results.get("items", []):
                     item["library_name"] = lib_name
                     all_results.append(item)
-                
+
                 # Note: Sessions are managed by scoped_session and will be cleaned up
                 # when init_database(force=True) is called for the next library
-                logger.debug(f"Search completed for library: {lib_name}", extra={
-                    "library": lib_name,
-                    "results_count": len(search_results.get("items", []))
-                })
+                logger.debug(
+                    f"Search completed for library: {lib_name}",
+                    extra={
+                        "library": lib_name,
+                        "results_count": len(search_results.get("items", [])),
+                    },
+                )
 
             except Exception as e:
-                logger.error(f"Error searching library '{lib_name}': {e}", exc_info=True, extra={
-                    "library": lib_name,
-                    "error": str(e),
-                    "error_type": type(e).__name__
-                })
+                logger.error(
+                    f"Error searching library '{lib_name}': {e}",
+                    exc_info=True,
+                    extra={"library": lib_name, "error": str(e), "error_type": type(e).__name__},
+                )
                 continue
 
         # Restore original library

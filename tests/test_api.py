@@ -4,18 +4,18 @@ Unit tests for CalibreMCP API Client
 Austrian efficiency: comprehensive testing without overthinking
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
 import json
-import sys
 import os
+import sys
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from calibre_mcp.config import CalibreConfig
 from calibre_mcp.calibre_api import CalibreAPIClient, CalibreAPIError
+from calibre_mcp.config import CalibreConfig
 
 
 class TestCalibreConfig(unittest.TestCase):

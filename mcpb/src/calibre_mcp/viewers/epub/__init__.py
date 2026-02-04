@@ -2,9 +2,10 @@
 EPUB viewer module for CalibreMCP.
 """
 
-from typing import List, Dict, Any
-from pathlib import Path
 import zipfile
+from pathlib import Path
+from typing import Any, Dict, List
+
 from bs4 import BeautifulSoup
 
 
@@ -78,7 +79,7 @@ class EpubViewer:
                 if "idref" in itemref.attrs and itemref["idref"] in self._manifest:
                     self._spine_items.append(itemref["idref"])
 
-    def render_page(self, page_number: int = 0) -> Dict[str, Any]:
+    def render_page(self, page_number: int = 0) -> dict[str, Any]:
         """Render a specific page of the EPUB."""
         if not self._spine_items or page_number >= len(self._spine_items):
             return {
@@ -137,12 +138,12 @@ class EpubViewer:
                 "error": str(e),
             }
 
-    def _get_toc(self) -> List[Dict[str, Any]]:
+    def _get_toc(self) -> list[dict[str, Any]]:
         """Generate a table of contents."""
         # This is a simplified version - a real implementation would parse the NCX or nav file
         return [{"title": f"Page {i + 1}", "page": i} for i in range(len(self._spine_items))]
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get metadata about the book."""
         return self._metadata
 

@@ -5,17 +5,18 @@ These tools handle multi-library operations, switching between libraries,
 and cross-library search functionality.
 """
 
-from typing import Optional, List, Dict, Any
 import time
+from typing import Any
+
+from ...config import CalibreConfig
+from ...logging_config import get_logger
 
 # Import response models
-from ...server import LibraryListResponse, LibraryStatsResponse, LibrarySearchResponse
+from ...server import LibraryListResponse, LibrarySearchResponse, LibraryStatsResponse
 
 # Import services and utilities
 from ...services.book_service import book_service
 from ...utils.library_utils import discover_calibre_libraries, get_library_metadata
-from ...config import CalibreConfig
-from ...logging_config import get_logger
 
 logger = get_logger("calibremcp.tools.library_management")
 
@@ -127,7 +128,7 @@ async def list_libraries_helper() -> LibraryListResponse:
 
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def switch_library_helper(library_name: str) -> Dict[str, Any]:
+async def switch_library_helper(library_name: str) -> dict[str, Any]:
     """
     Switch the active Calibre library for all subsequent operations.
 
@@ -211,8 +212,9 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
 
         # CRITICAL: Re-initialize database with the new library
         # The database was initialized at startup with a different library
-        from ...db.database import init_database
         from pathlib import Path
+
+        from ...db.database import init_database
 
         metadata_db = Path(library_path) / "metadata.db"
         if not metadata_db.exists():
@@ -254,10 +256,10 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
             ) from e
 
         # Update global current_library variable and persist to storage
-        from ...server import storage
-
         # Update the module-level global variable
         import calibre_mcp.server as server_module
+
+        from ...server import storage
 
         server_module.current_library = library_name
 
@@ -292,7 +294,7 @@ async def switch_library_helper(library_name: str) -> Dict[str, Any]:
 
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def get_library_stats_helper(library_name: Optional[str] = None) -> LibraryStatsResponse:
+async def get_library_stats_helper(library_name: str | None = None) -> LibraryStatsResponse:
     """
     Get detailed statistics for a specific library.
 
@@ -353,7 +355,7 @@ async def get_library_stats_helper(library_name: Optional[str] = None) -> Librar
         # For now, we'll use file system metadata and basic counts
 
         # Get format distribution from file system (approximate)
-        format_distribution: Dict[str, int] = {}
+        format_distribution: dict[str, int] = {}
         try:
             # Count format files in library
             for ext in [".epub", ".pdf", ".mobi", ".azw3", ".txt", ".html"]:
@@ -400,7 +402,7 @@ async def get_library_stats_helper(library_name: Optional[str] = None) -> Librar
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def cross_library_search_helper(
-    query: str, libraries: Optional[List[str]] = None
+    query: str, libraries: list[str] | None = None
 ) -> LibrarySearchResponse:
     """
     Search for books across multiple Calibre libraries simultaneously.
@@ -440,8 +442,9 @@ async def cross_library_search_helper(
 
         # Parse intelligent query to extract content_type and other hints
         from ..shared.query_parsing import parse_intelligent_query
+
         parsed = parse_intelligent_query(query)
-        
+
         # Determine which libraries to search
         if libraries is None:
             # If content_type hint is present (manga, comic, paper), filter libraries intelligently
@@ -450,21 +453,22 @@ async def cross_library_search_helper(
                 # Match libraries by name containing the content type
                 # e.g., "manga" -> match libraries with "manga" in name
                 matching_libs = [
-                    lib_name for lib_name in discovered_libs.keys()
+                    lib_name
+                    for lib_name in discovered_libs.keys()
                     if content_type in lib_name.lower()
                 ]
                 if matching_libs:
                     libraries_to_search = matching_libs
                     logger.info(
                         f"Content type '{content_type}' detected, filtering to matching libraries",
-                        extra={"content_type": content_type, "libraries": matching_libs}
+                        extra={"content_type": content_type, "libraries": matching_libs},
                     )
                 else:
                     # No matching libraries found, search all
                     libraries_to_search = list(discovered_libs.keys())
                     logger.warning(
                         f"Content type '{content_type}' detected but no matching libraries found, searching all",
-                        extra={"content_type": content_type}
+                        extra={"content_type": content_type},
                     )
             else:
                 libraries_to_search = list(discovered_libs.keys())
@@ -481,10 +485,10 @@ async def cross_library_search_helper(
             )
 
         # Search each library and combine results
-        all_results: List[Dict[str, Any]] = []
+        all_results: list[dict[str, Any]] = []
         config = CalibreConfig()
         start_time = time.time()
-        
+
         for lib_name in libraries_to_search:
             try:
                 # Temporarily switch to this library

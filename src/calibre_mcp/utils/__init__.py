@@ -6,11 +6,11 @@ File utilities are in the parent utils.py file.
 """
 
 # Import from submodules
-from .finereader import FineReaderCLI, safe_ocr_process
-
 # Re-export functions from parent utils.py module (file utilities)
 # This allows importing from calibre_mcp.utils package
 from pathlib import Path
+
+from .finereader import FineReaderCLI, safe_ocr_process
 
 # Import from the parent utils.py file (not the package)
 _parent_dir = Path(__file__).parent.parent

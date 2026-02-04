@@ -12,20 +12,21 @@ Use manage_system(operation="...") instead:
 - health_check() → manage_system(operation="health_check")
 """
 
+import inspect
 import os
 import platform
-import psutil
 import sys
-import inspect
 from datetime import datetime
-from typing import Dict, Optional, Any, List
 from enum import Enum
+from typing import Any
 
+import psutil
+
+from ...config import CalibreConfig
+from ...logging_config import get_logger, log_error, log_operation
 
 # Import the MCP server instance and helper functions
-from ...server import mcp, get_api_client, current_library
-from ...logging_config import get_logger, log_operation, log_error
-from ...config import CalibreConfig
+from ...server import current_library, get_api_client, mcp
 
 logger = get_logger("calibremcp.tools.system")
 
@@ -205,7 +206,7 @@ HELP_DOCS = {
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def help_helper(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
+async def help_helper(level: HelpLevel = HelpLevel.BASIC, topic: str | None = None) -> str:
     """
     Comprehensive help system with multiple detail levels.
 
@@ -303,7 +304,7 @@ async def help_helper(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] =
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None) -> str:
+async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: str | None = None) -> str:
     """
     Comprehensive system status and diagnostic information.
 
@@ -500,7 +501,7 @@ async def status_helper(level: StatusLevel = StatusLevel.BASIC, focus: Optional[
         return f"Error generating status: {str(e)}"
 
 
-def _get_registered_tools() -> List[Dict[str, Any]]:
+def _get_registered_tools() -> list[dict[str, Any]]:
     """
     Get all registered tools from the MCP server.
 
@@ -545,7 +546,7 @@ def _get_registered_tools() -> List[Dict[str, Any]]:
     return tools
 
 
-def _get_tool_by_name(tool_name: str) -> Optional[Dict[str, Any]]:
+def _get_tool_by_name(tool_name: str) -> dict[str, Any] | None:
     """
     Get detailed information about a specific tool.
 
@@ -696,7 +697,7 @@ async def tool_help_helper(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -
         return f"Error generating tool help: {str(e)}"
 
 
-def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
+def _get_tool_examples(tool_name: str, level: HelpLevel) -> list[str]:
     """Get example usage for a tool."""
     examples = []
 
@@ -742,7 +743,7 @@ def _get_tool_examples(tool_name: str, level: HelpLevel) -> List[str]:
     return examples
 
 
-def _get_related_tools(tool_name: str) -> List[str]:
+def _get_related_tools(tool_name: str) -> list[str]:
     """Get related tools based on functionality."""
     related_map = {
         "query_books": ["manage_books", "manage_metadata"],
@@ -756,7 +757,7 @@ def _get_related_tools(tool_name: str) -> List[str]:
     return related_map.get(tool_name, [])
 
 
-def _get_tool_tips(tool_name: str) -> List[str]:
+def _get_tool_tips(tool_name: str) -> list[str]:
     """Get expert tips for a tool."""
     tips_map = {
         "search_books": [
@@ -780,7 +781,7 @@ def _get_tool_tips(tool_name: str) -> List[str]:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
+async def list_tools_helper(category: str | None = None) -> dict[str, Any]:
     """
     List all available tools with their descriptions.
 
@@ -889,7 +890,7 @@ async def hello_world_helper() -> str:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_system portmanteau tool instead
-async def health_check_helper() -> Dict[str, Any]:
+async def health_check_helper() -> dict[str, Any]:
     """
     Machine-readable health check for monitoring systems.
 

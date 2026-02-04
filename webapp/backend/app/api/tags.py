@@ -1,9 +1,8 @@
 """Tags API endpoints."""
 
-from fastapi import APIRouter, HTTPException, Query, Body
-from typing import Optional, Dict, Any, List
+from fastapi import APIRouter, Body, Query
 
-from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
+from ..cache import _ttl_key, get_libraries_cache, get_ttl_cached, set_ttl_cached
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
 
@@ -12,21 +11,28 @@ router = APIRouter()
 
 @router.get("/")
 async def list_tags(
-    search: Optional[str] = None,
+    search: str | None = None,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     sort_by: str = Query("name", regex="^(name|book_count)$"),
     sort_order: str = Query("asc", regex="^(asc|desc)$"),
     unused_only: bool = Query(False),
-    min_book_count: Optional[int] = None,
-    max_book_count: Optional[int] = None,
+    min_book_count: int | None = None,
+    max_book_count: int | None = None,
 ):
     """List tags with filtering and pagination. Cached 60s for dropdown performance."""
     lib = get_libraries_cache().get("current_library") or ""
     key = _ttl_key(
-        "tags", lib=lib, search=search or "", limit=limit, offset=offset,
-        sort_by=sort_by, sort_order=sort_order, unused_only=unused_only,
-        min_book_count=min_book_count or 0, max_book_count=max_book_count or 0,
+        "tags",
+        lib=lib,
+        search=search or "",
+        limit=limit,
+        offset=offset,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        unused_only=unused_only,
+        min_book_count=min_book_count or 0,
+        max_book_count=max_book_count or 0,
     )
     cached = get_ttl_cached(key)
     if cached is not None:
@@ -44,7 +50,7 @@ async def list_tags(
                 "unused_only": unused_only,
                 "min_book_count": min_book_count,
                 "max_book_count": max_book_count,
-            }
+            },
         )
         set_ttl_cached(key, result)
         return result
@@ -61,7 +67,7 @@ async def get_tag(tag_id: int):
             {
                 "operation": "get",
                 "tag_id": tag_id,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -77,7 +83,7 @@ async def create_tag(name: str = Body(...)):
             {
                 "operation": "create",
                 "name": name,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -94,7 +100,7 @@ async def update_tag(tag_id: int, new_name: str = Body(...)):
                 "operation": "update",
                 "tag_id": tag_id,
                 "new_name": new_name,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -111,7 +117,7 @@ async def delete_tag(tag_id: int, force: bool = Query(False)):
                 "operation": "delete",
                 "tag_id": tag_id,
                 "force": force,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -127,7 +133,7 @@ async def find_duplicate_tags(similarity_threshold: float = Query(0.8, ge=0.0, l
             {
                 "operation": "find_duplicates",
                 "similarity_threshold": similarity_threshold,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -136,7 +142,7 @@ async def find_duplicate_tags(similarity_threshold: float = Query(0.8, ge=0.0, l
 
 @router.post("/merge")
 async def merge_tags(
-    source_tag_ids: List[int] = Body(...),
+    source_tag_ids: list[int] = Body(...),
     target_tag_id: int = Body(...),
 ):
     """Merge multiple tags into a target tag."""
@@ -147,7 +153,7 @@ async def merge_tags(
                 "operation": "merge",
                 "source_tag_ids": source_tag_ids,
                 "target_tag_id": target_tag_id,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -162,7 +168,7 @@ async def get_unused_tags():
             "manage_tags",
             {
                 "operation": "get_unused",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -177,7 +183,7 @@ async def delete_unused_tags():
             "manage_tags",
             {
                 "operation": "delete_unused",
-            }
+            },
         )
         return result
     except Exception as e:
@@ -192,7 +198,7 @@ async def get_tag_statistics():
             "manage_tags",
             {
                 "operation": "statistics",
-            }
+            },
         )
         return result
     except Exception as e:

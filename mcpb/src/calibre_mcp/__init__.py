@@ -10,26 +10,25 @@ __author__ = "Sandra"
 __description__ = "FastMCP 2.10.1 server for Calibre e-book library management"
 
 # Core exports - clean imports
+# Import tools to register them with the MCP server
+from . import tools  # noqa: F401
 from .calibre_api import CalibreAPIClient, CalibreAPIError
 from .config import CalibreConfig
-from .exceptions import CalibreError, BookNotFoundError  # noqa: F401
+from .exceptions import BookNotFoundError, CalibreError  # noqa: F401
 from .models import (
-    Book,
     Author,
-    Series,
-    Tag,
-    Rating,
+    Book,
     Comment,
     Data,
     Identifier,
     Library,
     LibraryInfo,
+    Rating,
+    Series,
+    Tag,
 )  # noqa: F401
 from .server import create_app, mcp
-from .storage import StorageBackend, LocalStorage
-
-# Import tools to register them with the MCP server
-from . import tools  # noqa: F401
+from .storage import LocalStorage, StorageBackend
 
 __all__ = [
     "mcp",

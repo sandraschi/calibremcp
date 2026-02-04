@@ -5,7 +5,7 @@ Matches CalibreMCP schema - no MCP process required.
 
 import sqlite3
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 
 def _get_db_path() -> Path:
@@ -43,7 +43,7 @@ def _ensure_tables(conn: sqlite3.Connection) -> None:
     """)
 
 
-def get_extended_metadata(book_id: int, library_path: str) -> Dict[str, Any]:
+def get_extended_metadata(book_id: int, library_path: str) -> dict[str, Any]:
     """Get translator and first_published for a book."""
     path = _get_db_path()
     conn = sqlite3.connect(str(path))

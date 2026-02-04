@@ -6,10 +6,9 @@ is enabled. The database is always named:
 - full-text-search.db
 """
 
-import sqlite3
 import logging
+import sqlite3
 from pathlib import Path
-from typing import Optional, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 FTS_DB_FILENAME = "full-text-search.db"
 
 
-def find_fts_database(metadata_db_path: Path) -> Optional[Path]:
+def find_fts_database(metadata_db_path: Path) -> Path | None:
     """
     Find the FTS database associated with a metadata.db file.
 
@@ -46,7 +45,7 @@ def find_fts_database(metadata_db_path: Path) -> Optional[Path]:
     return None
 
 
-def get_fts_table_name(fts_db_path: Path) -> Optional[str]:
+def get_fts_table_name(fts_db_path: Path) -> str | None:
     """
     Get the name of the FTS table in the FTS database.
 
@@ -94,8 +93,8 @@ def query_fts(
     search_text: str,
     limit: int = 50,
     offset: int = 0,
-    min_score: Optional[float] = None,
-) -> Tuple[List[int], int]:
+    min_score: float | None = None,
+) -> tuple[list[int], int]:
     """
     Query the FTS database for book IDs matching the search text.
 

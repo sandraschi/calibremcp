@@ -1,6 +1,9 @@
 # Setup basic logging for diagnostics
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("calibre_mcp.server")
 logger.info("SERVER.PY: Module import starting...")
 
@@ -45,6 +48,8 @@ logger.info("Stdio setup complete")
 
 # DevNullStdout class for stdio mode suppression
 logger.info("Defining DevNullStdout class...")
+
+
 class DevNullStdout:
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
@@ -59,11 +64,13 @@ class DevNullStdout:
     def restore(self):
         sys.stdout = self.original_stdout
 
+
 logger.info("DevNullStdout class defined")
 
 # CRITICAL: Suppress all warnings before any imports
 logger.info("Setting up warning suppression...")
 import warnings
+
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -78,22 +85,26 @@ logger.info(f"Stdio mode detection: {_is_stdio_mode}")
 
 # Import typing and basic modules
 logger.info("Importing typing and basic modules...")
-from typing import Optional, List, Dict, Any, AsyncContextManager
-from pathlib import Path
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any
+
 logger.info("Basic imports complete")
 
 # Import external dependencies
 logger.info("Importing FastMCP...")
 from fastmcp import FastMCP
+
 logger.info("FastMCP imported")
 
 logger.info("Importing Pydantic...")
 from pydantic import BaseModel
+
 logger.info("Pydantic imported")
 
 logger.info("Importing dotenv...")
 from dotenv import load_dotenv
+
 logger.info("dotenv imported")
 
 # Load environment variables
@@ -103,20 +114,22 @@ logger.info("Environment variables loaded")
 
 # Setup proper logging
 logger.info("Setting up proper logging system...")
-from calibre_mcp.logging_config import get_logger, log_operation, log_error, setup_logging
+from calibre_mcp.logging_config import get_logger
+
 logger = get_logger("calibremcp.server")
 logger.info("Logger setup complete")
 
 # Import CalibreAPIClient at module level (needed for type hints)
 logger.info("Importing CalibreAPIClient for type hints...")
 from calibre_mcp.calibre_api import CalibreAPIClient
+
 logger.info("SUCCESS: CalibreAPIClient imported for type hints")
 
 # Global API client and database connections (initialized on startup)
 logger.info("Setting up global variables...")
 api_client = None  # CalibreAPIClient
 current_library: str = "main"
-available_libraries: Dict[str, str] = {}
+available_libraries: dict[str, str] = {}
 storage = None  # CalibreMCPStorage
 logger.info("Global variables initialized")
 
@@ -141,6 +154,7 @@ def create_app(path: str = "/mcp"):
 async def server_lifespan(mcp_instance: FastMCP):
     """FastMCP 2.14.1+ lifespan for initialization and cleanup."""
     import logging
+
     logger = logging.getLogger("calibremcp.lifespan")
     logger.info("SERVER LIFESPAN: Starting initialization...")
 
@@ -183,7 +197,7 @@ RESPONSE FORMAT:
 PORTMANTEAU DESIGN:
 Tools are consolidated into logical groups to prevent tool explosion while maintaining full functionality.
 Each portmanteau tool handles multiple related operations through an 'operation' parameter.
-"""
+""",
 )
 logger.info("FastMCP instance created")
 
@@ -219,9 +233,9 @@ class LibrarySearchResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    results: List[Dict[str, Any]]
+    results: list[dict[str, Any]]
     total_found: int
-    query_used: Optional[str] = None
+    query_used: str | None = None
     search_time_ms: int = 0
     library_searched: str = "main"
 
@@ -233,19 +247,19 @@ class BookDetailResponse(BaseModel):
 
     book_id: int
     title: str
-    authors: List[str]
-    series: Optional[str] = None
-    series_index: Optional[float] = None
-    rating: Optional[float] = None
-    tags: List[str] = []
-    comments: Optional[str] = None
-    published: Optional[str] = None
-    languages: List[str] = ["en"]
-    formats: List[str] = []
-    identifiers: Dict[str, str] = {}
-    last_modified: Optional[str] = None
-    cover_url: Optional[str] = None
-    download_links: Dict[str, str] = {}
+    authors: list[str]
+    series: str | None = None
+    series_index: float | None = None
+    rating: float | None = None
+    tags: list[str] = []
+    comments: str | None = None
+    published: str | None = None
+    languages: list[str] = ["en"]
+    formats: list[str] = []
+    identifiers: dict[str, str] = {}
+    last_modified: str | None = None
+    cover_url: str | None = None
+    download_links: dict[str, str] = {}
     library_name: str = "main"
 
 
@@ -254,11 +268,11 @@ class ConnectionTestResponse(BaseModel):
 
     connected: bool
     server_url: str
-    server_version: Optional[str] = None
+    server_version: str | None = None
     library_count: int = 0
     total_books: int = 0
     response_time_ms: int = 0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class LibraryListResponse(BaseModel):
@@ -266,7 +280,7 @@ class LibraryListResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    libraries: List[Dict[str, Any]]
+    libraries: list[dict[str, Any]]
     current_library: str
     total_libraries: int
 
@@ -281,10 +295,10 @@ class LibraryStatsResponse(BaseModel):
     total_authors: int
     total_series: int
     total_tags: int
-    format_distribution: Dict[str, int]
-    language_distribution: Dict[str, int]
-    rating_distribution: Dict[str, int]
-    last_modified: Optional[str] = None
+    format_distribution: dict[str, int]
+    language_distribution: dict[str, int]
+    rating_distribution: dict[str, int]
+    last_modified: str | None = None
 
 
 class TagStatsResponse(BaseModel):
@@ -294,9 +308,9 @@ class TagStatsResponse(BaseModel):
 
     total_tags: int
     unique_tags: int
-    duplicate_tags: List[Dict[str, Any]]
-    unused_tags: List[str]
-    suggestions: List[Dict[str, Any]]
+    duplicate_tags: list[dict[str, Any]]
+    unused_tags: list[str]
+    suggestions: list[dict[str, Any]]
 
 
 class DuplicatesResponse(BaseModel):
@@ -304,9 +318,9 @@ class DuplicatesResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    duplicate_groups: List[Dict[str, Any]]
+    duplicate_groups: list[dict[str, Any]]
     total_duplicates: int
-    confidence_scores: Dict[str, float]
+    confidence_scores: dict[str, float]
 
 
 class SeriesAnalysisResponse(BaseModel):
@@ -314,9 +328,9 @@ class SeriesAnalysisResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    incomplete_series: List[Dict[str, Any]]
-    reading_order_suggestions: List[Dict[str, Any]]
-    series_statistics: Dict[str, Any]
+    incomplete_series: list[dict[str, Any]]
+    reading_order_suggestions: list[dict[str, Any]]
+    series_statistics: dict[str, Any]
 
 
 class LibraryHealthResponse(BaseModel):
@@ -325,8 +339,8 @@ class LibraryHealthResponse(BaseModel):
     model_config = {"from_attributes": True}
 
     health_score: float
-    issues_found: List[Dict[str, Any]]
-    recommendations: List[str]
+    issues_found: list[dict[str, Any]]
+    recommendations: list[str]
     database_integrity: bool
 
 
@@ -335,8 +349,8 @@ class UnreadPriorityResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    prioritized_books: List[Dict[str, Any]]
-    priority_reasons: Dict[str, str]
+    prioritized_books: list[dict[str, Any]]
+    priority_reasons: dict[str, str]
     total_unread: int
 
 
@@ -355,8 +369,8 @@ class MetadataUpdateResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    updated_books: List[int]
-    failed_updates: List[Dict[str, Any]]
+    updated_books: list[int]
+    failed_updates: list[dict[str, Any]]
     success_count: int
 
 
@@ -367,8 +381,8 @@ class ReadingStats(BaseModel):
 
     total_books_read: int
     average_rating: float
-    favorite_genres: List[str]
-    reading_patterns: Dict[str, Any]
+    favorite_genres: list[str]
+    reading_patterns: dict[str, Any]
 
 
 class ConversionRequest(BaseModel):
@@ -389,8 +403,8 @@ class ConversionResponse(BaseModel):
 
     book_id: int
     success: bool
-    output_path: Optional[str] = None
-    error_message: Optional[str] = None
+    output_path: str | None = None
+    error_message: str | None = None
 
 
 class JapaneseBookOrganization(BaseModel):
@@ -398,10 +412,10 @@ class JapaneseBookOrganization(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    manga_series: List[Dict[str, Any]]
-    light_novels: List[Dict[str, Any]]
-    language_learning: List[Dict[str, Any]]
-    reading_recommendations: List[str]
+    manga_series: list[dict[str, Any]]
+    light_novels: list[dict[str, Any]]
+    language_learning: list[dict[str, Any]]
+    reading_recommendations: list[str]
 
 
 class ITBookCuration(BaseModel):
@@ -409,9 +423,9 @@ class ITBookCuration(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    programming_languages: Dict[str, List[Dict[str, Any]]]
-    outdated_books: List[Dict[str, Any]]
-    learning_paths: List[Dict[str, Any]]
+    programming_languages: dict[str, list[dict[str, Any]]]
+    outdated_books: list[dict[str, Any]]
+    learning_paths: list[dict[str, Any]]
 
 
 class ReadingRecommendations(BaseModel):
@@ -419,15 +433,15 @@ class ReadingRecommendations(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    recommendations: List[Dict[str, Any]]
-    reasoning: Dict[str, str]
-    confidence_scores: Dict[str, float]
+    recommendations: list[dict[str, Any]]
+    reasoning: dict[str, str]
+    confidence_scores: dict[str, float]
 
 
 # ==================== HELPER FUNCTIONS ====================
 
 
-async def get_api_client() -> Optional[CalibreAPIClient]:
+async def get_api_client() -> CalibreAPIClient | None:
     """
     Get or create API client instance for remote Calibre Content Server access.
 
@@ -435,6 +449,7 @@ async def get_api_client() -> Optional[CalibreAPIClient]:
     For local libraries, this returns None and tools should use direct SQLite access.
     """
     from calibre_mcp.config import CalibreConfig
+
     global api_client
     config = CalibreConfig()
 
@@ -448,7 +463,7 @@ async def get_api_client() -> Optional[CalibreAPIClient]:
     return api_client
 
 
-async def discover_libraries() -> Dict[str, str]:
+async def discover_libraries() -> dict[str, str]:
     """Discover available Calibre libraries"""
     global available_libraries
 
@@ -492,29 +507,35 @@ async def main():
 
         try:
             logger.info("Importing logging_config...")
-            from calibre_mcp.logging_config import get_logger, log_operation, log_error, setup_logging
+            from calibre_mcp.logging_config import (
+                get_logger,
+                log_error,
+                log_operation,
+                setup_logging,
+            )
+
             logger.info("SUCCESS: logging_config imported")
 
             logger.info("Importing CalibreAPIClient...")
-            from calibre_mcp.calibre_api import CalibreAPIClient
             logger.info("SUCCESS: CalibreAPIClient imported")
 
             logger.info("Importing CalibreConfig...")
-            from calibre_mcp.config import CalibreConfig
             logger.info("SUCCESS: CalibreConfig imported")
 
             logger.info("Importing storage components...")
-            from calibre_mcp.storage.persistence import CalibreMCPStorage, set_storage
             logger.info("SUCCESS: Storage components imported")
 
             logger.info("Initializing user data database (SQLite for user comments, auth, etc.)...")
             from calibre_mcp.db.user_data import init_user_data_db
+
             init_user_data_db()
             logger.info("SUCCESS: User data database initialized")
 
         except Exception as import_error:
             logger.error(f"CRITICAL: Module import failed: {import_error}", exc_info=True)
-            raise RuntimeError(f"Failed to import required modules: {import_error}") from import_error
+            raise RuntimeError(
+                f"Failed to import required modules: {import_error}"
+            ) from import_error
 
         # PHASE 2: Initialize logging with timeout protection
         logger.info("PHASE 2: Initializing logging system...")
@@ -524,17 +545,16 @@ async def main():
 
             # Add timeout for logging setup (should be fast)
             import asyncio
+
             setup_result = await asyncio.wait_for(
-                asyncio.to_thread(setup_logging,
-                    level="INFO",
-                    log_file=log_file_path,
-                    enable_console=False
+                asyncio.to_thread(
+                    setup_logging, level="INFO", log_file=log_file_path, enable_console=False
                 ),
-                timeout=5.0
+                timeout=5.0,
             )
             logger.info("SUCCESS: Logging setup completed")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("WARNING: Logging setup timed out, continuing with basic logging")
         except Exception as log_error:
             logger.error(f"ERROR: Logging setup failed: {log_error}", exc_info=True)
@@ -555,7 +575,7 @@ async def main():
                 collection_size="1000+ books",
                 fastmcp_version="2.14.1+",
                 python_version=f"{__import__('sys').version}",
-                platform=__import__('platform').platform(),
+                platform=__import__("platform").platform(),
             )
             logger.info("SUCCESS: Startup logging completed")
         except Exception as log_op_error:
@@ -583,6 +603,7 @@ async def main():
             async def register_tools_with_timeout():
                 logger.info("Starting tool registration...")
                 from calibre_mcp.tools import register_tools
+
                 logger.info("Tools module imported, calling register_tools...")
                 register_tools(mcp)
                 logger.info("register_tools() completed")
@@ -590,7 +611,7 @@ async def main():
             await asyncio.wait_for(register_tools_with_timeout(), timeout=30.0)
             logger.info("SUCCESS: Tool registration completed")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("CRITICAL: Tool registration timed out after 30 seconds")
             logger.error("This usually indicates a hanging import in one of the tool modules")
             logger.error("Check for circular imports or heavy initialization in tool modules")
@@ -617,8 +638,8 @@ async def main():
         import calibre_mcp
 
         if hasattr(calibre_mcp, "_original_stdout") and calibre_mcp._original_stdout:
-            __import__('sys').stdout.flush()
-            __import__('sys').stdout = calibre_mcp._original_stdout
+            __import__("sys").stdout.flush()
+            __import__("sys").stdout = calibre_mcp._original_stdout
 
             # Re-configure binary mode for Windows if needed
             if os.name == "nt":
@@ -635,7 +656,9 @@ async def main():
             # Log what we're about to do
             logger.info("Calling mcp.run_stdio_async()...")
             logger.info(f"MCP instance: {type(mcp).__name__}")
-            logger.info(f"MCP lifespan configured: {hasattr(mcp, '_lifespan') and mcp._lifespan is not None}")
+            logger.info(
+                f"MCP lifespan configured: {hasattr(mcp, '_lifespan') and mcp._lifespan is not None}"
+            )
 
             # Run the FastMCP server using the SOTA-recommended async stdio transport
             await mcp.run_stdio_async()
@@ -651,7 +674,7 @@ async def main():
                 logger.error(f"Platform: {__import__('platform').platform()}")
 
                 # Check if MCP has tools registered
-                if hasattr(mcp, '_tools'):
+                if hasattr(mcp, "_tools"):
                     tool_count = len(mcp._tools)
                     logger.error(f"MCP tools registered: {tool_count}")
                 else:
@@ -672,13 +695,14 @@ async def main():
             # Try to log to file if logging system is available
             try:
                 log_error(logger, "server_startup_error", e)
-            except Exception as log_error:
+            except Exception:
                 # Last resort logging
                 logger.error(f"CRITICAL ERROR: {e}")
         else:
             # No logger available, print to stderr
             # Last resort logging - no logger available
             import sys
+
             sys.stderr.write(f"CRITICAL ERROR (no logger): {e}\n")
 
         # Re-raise to let FastMCP handle it properly
@@ -687,8 +711,8 @@ async def main():
 
 if __name__ == "__main__":
     # Handle both direct execution and module execution
-    import sys
     import asyncio
+    import sys
     from pathlib import Path
 
     # If running directly (not as module), fix imports

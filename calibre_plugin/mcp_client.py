@@ -6,7 +6,7 @@ Used for bulk enrich, VL from query when backend is running on port 13000.
 import json
 import urllib.error
 import urllib.request
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def _get_base_url() -> str:
@@ -30,10 +30,10 @@ def is_available() -> bool:
 
 
 def call_search(
-    query: Optional[str] = None,
-    author: Optional[str] = None,
+    query: str | None = None,
+    author: str | None = None,
     limit: int = 100,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Call /api/search. Returns result with items/results/books list or None on failure."""
     try:
         from urllib.parse import urlencode

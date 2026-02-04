@@ -1,7 +1,5 @@
 """Anna's Archive search API."""
 
-from typing import Optional, List
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -13,7 +11,7 @@ class AnnasSearchRequest(BaseModel):
 
     query: str
     max_results: int = 20
-    mirrors: Optional[List[str]] = None
+    mirrors: list[str] | None = None
 
 
 @router.post("/search")

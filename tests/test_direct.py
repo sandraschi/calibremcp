@@ -4,13 +4,13 @@ Direct test of Calibre MCP functionality without MCP tools.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
 project_root = Path(__file__).parent
 src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
+
 
 def test_direct():
     """Test Calibre MCP functionality directly."""
@@ -22,8 +22,9 @@ def test_direct():
         # Test 1: Basic imports
         print("\n📦 TEST 1: Basic Imports")
         from calibre_mcp.config import CalibreConfig
-        from calibre_mcp.db.database import init_database, get_database
+        from calibre_mcp.db.database import get_database, init_database
         from calibre_mcp.services.book_service import BookService
+
         print("✓ Imports successful")
 
         # Test 2: Config
@@ -49,17 +50,17 @@ def test_direct():
 
             # Test basic query
             result = book_service.get_all(limit=5)
-            books = result.get('items', [])
+            books = result.get("items", [])
             print(f"✓ Found {len(books)} books")
             if books:
                 for book in books[:3]:
-                    title = book.get('title', 'Unknown')
-                    authors = ', '.join(book.get('authors', []))
+                    title = book.get("title", "Unknown")
+                    authors = ", ".join(book.get("authors", []))
                     print(f"  - {title} by {authors}")
 
             # Test search
             result = book_service.get_all(search="the", limit=3)
-            books = result.get('items', [])
+            books = result.get("items", [])
             print(f"✓ Search 'the' found {len(books)} books")
 
         print("\n" + "=" * 40)
@@ -69,8 +70,10 @@ def test_direct():
     except Exception as e:
         print(f"\n❌ TEST FAILED: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     success = test_direct()

@@ -5,19 +5,20 @@ These functions are NOT registered as MCP tools - they are called by
 the manage_authors portmanteau tool.
 """
 
-from typing import Optional, Dict, Any
-from ...services.author_service import author_service
+from typing import Any
+
 from ...logging_config import get_logger
+from ...services.author_service import author_service
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.authors")
 
 
 async def list_authors_helper(
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Helper function to list authors with filtering and pagination.
 
@@ -50,7 +51,7 @@ async def list_authors_helper(
         )
 
 
-async def get_author_helper(author_id: int) -> Dict[str, Any]:
+async def get_author_helper(author_id: int) -> dict[str, Any]:
     """
     Helper function to get author details by ID.
 
@@ -81,7 +82,7 @@ async def get_author_books_helper(
     author_id: int,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Helper function to get books by author.
 
@@ -98,9 +99,7 @@ async def get_author_books_helper(
         author = author_service.get_by_id(author_id)
 
         # Get author's books
-        result = author_service.get_books_by_author(
-            author_id=author_id, limit=limit, offset=offset
-        )
+        result = author_service.get_books_by_author(author_id=author_id, limit=limit, offset=offset)
 
         return {
             "author": author,
@@ -124,7 +123,7 @@ async def get_author_books_helper(
         )
 
 
-async def get_author_stats_helper() -> Dict[str, Any]:
+async def get_author_stats_helper() -> dict[str, Any]:
     """
     Helper function to get author statistics.
 
@@ -144,7 +143,7 @@ async def get_author_stats_helper() -> Dict[str, Any]:
         )
 
 
-async def get_authors_by_letter_helper(letter: str) -> Dict[str, Any]:
+async def get_authors_by_letter_helper(letter: str) -> dict[str, Any]:
     """
     Helper function to get authors by first letter.
 
@@ -177,4 +176,3 @@ async def get_authors_by_letter_helper(letter: str) -> Dict[str, Any]:
             error_type=type(e).__name__,
             operation="by_letter",
         )
-

@@ -4,9 +4,9 @@ Tests for the Calibre MCP server implementation.
 Tests verify FastMCP 2.13+ server initialization and tool registration.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from fastmcp import FastMCP
 
 # Import the actual server
@@ -79,10 +79,10 @@ def test_tools_are_registered():
 
 def test_search_books_tool_exists():
     """Test that search_books tool is accessible."""
-    from calibre_mcp.tools.book_tools import search_books
-
     # Verify it's a coroutine function
     import inspect
+
+    from calibre_mcp.tools.book_tools import search_books
 
     assert inspect.iscoroutinefunction(search_books)
 
@@ -93,10 +93,10 @@ def test_search_books_tool_exists():
 
 def test_list_libraries_tool_exists():
     """Test that list_libraries tool is accessible."""
-    from calibre_mcp.tools.library.library_management import list_libraries
-
     # Verify it's a coroutine function
     import inspect
+
+    from calibre_mcp.tools.library.library_management import list_libraries
 
     assert inspect.iscoroutinefunction(list_libraries)
 

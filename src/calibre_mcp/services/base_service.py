@@ -2,9 +2,11 @@
 Base service class for all MCP services.
 """
 
-from typing import Any, Dict, List, Optional, Generic, Type, Tuple, TypeVar, Union, Callable
-from pydantic import BaseModel, ValidationError
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
+
 from fastapi import HTTPException, status
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
 from ..db.database import DatabaseService
@@ -46,7 +48,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
     """
 
     def __init__(
-        self, db: DatabaseService, model: Type[ModelType], response_schema: Type[ResponseSchemaType]
+        self, db: DatabaseService, model: type[ModelType], response_schema: type[ResponseSchemaType]
     ):
         """Initialize with database service and model classes."""
         self.db = db
@@ -66,8 +68,8 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
             raise ServiceError(f"Database error: {str(e)}", status_code=500) from e
 
     def _paginate_results(
-        self, items: List[Any], total: int, page: int = 1, per_page: int = 50
-    ) -> Dict[str, Any]:
+        self, items: list[Any], total: int, page: int = 1, per_page: int = 50
+    ) -> dict[str, Any]:
         """
         Helper method to paginate query results.
 
@@ -88,7 +90,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
             "total_pages": (total + per_page - 1) // per_page if total > 0 else 1,
         }
 
-    def _process_filters(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_filters(self, filters: dict[str, Any]) -> dict[str, Any]:
         """
         Process and validate filter parameters.
 
@@ -100,7 +102,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
         """
         return {k: v for k, v in filters.items() if v is not None}
 
-    def _validate_create_data(self, data: CreateSchemaType) -> Dict[str, Any]:
+    def _validate_create_data(self, data: CreateSchemaType) -> dict[str, Any]:
         """
         Validate and prepare data for creation.
 
@@ -118,9 +120,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
         except ValidationError as e:
             raise ValidationError(str(e))
 
-    def _validate_update_data(
-        self, data: Union[UpdateSchemaType, Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _validate_update_data(self, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
         """
         Validate and prepare data for update.
 
@@ -140,9 +140,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
         except ValidationError as e:
             raise ValidationError(str(e))
 
-    def _to_response(
-        self, obj: ModelType, schema: Optional[Type[BaseModel]] = None
-    ) -> Dict[str, Any]:
+    def _to_response(self, obj: ModelType, schema: type[BaseModel] | None = None) -> dict[str, Any]:
         """
         Convert a model instance to a response dictionary.
 
@@ -158,8 +156,8 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
         return schema.from_orm(obj).dict()
 
     def _to_response_list(
-        self, items: List[ModelType], schema: Optional[Type[BaseModel]] = None
-    ) -> List[Dict[str, Any]]:
+        self, items: list[ModelType], schema: type[BaseModel] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Convert a list of model instances to a list of response dictionaries.
 
@@ -204,7 +202,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
 
         return wrapper
 
-    def get(self, id: int) -> Dict[str, Any]:
+    def get(self, id: int) -> dict[str, Any]:
         """
         Retrieve a single item by ID.
 
@@ -225,7 +223,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
 
     def get_multi(
         self, skip: int = 0, limit: int = 100, **filters: Any
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Retrieve multiple items with optional filtering and pagination.
 
@@ -250,7 +248,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
 
             return self._to_response_list(items), total
 
-    def create(self, data: CreateSchemaType) -> Dict[str, Any]:
+    def create(self, data: CreateSchemaType) -> dict[str, Any]:
         """
         Create a new item.
 
@@ -267,7 +265,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def update(self, id: int, data: Union[UpdateSchemaType, Dict[str, Any]]) -> Dict[str, Any]:
+    def update(self, id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing item.
 

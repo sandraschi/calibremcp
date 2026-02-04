@@ -1,7 +1,6 @@
 """Comments API endpoints."""
 
-from fastapi import APIRouter, HTTPException, Body
-from typing import Dict, Any
+from fastapi import APIRouter, Body
 
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
@@ -18,7 +17,7 @@ async def get_comment(book_id: str):
             {
                 "operation": "read",
                 "book_id": book_id,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -35,7 +34,7 @@ async def create_comment(book_id: str, text: str = Body(...)):
                 "operation": "create",
                 "book_id": book_id,
                 "text": text,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -52,7 +51,7 @@ async def update_comment(book_id: str, text: str = Body(...)):
                 "operation": "update",
                 "book_id": book_id,
                 "text": text,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -69,7 +68,7 @@ async def append_comment(book_id: str, text: str = Body(...)):
                 "operation": "append",
                 "book_id": book_id,
                 "text": text,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -85,7 +84,7 @@ async def delete_comment(book_id: str):
             {
                 "operation": "delete",
                 "book_id": book_id,
-            }
+            },
         )
         return result
     except Exception as e:

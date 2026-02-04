@@ -3,8 +3,10 @@ Service for handling book viewing operations.
 """
 
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 from ..viewers import get_viewer
 
 
@@ -19,10 +21,10 @@ class ViewerState(BaseModel):
         "fit-width", description="Zoom mode (fit-width, fit-height, fit-both, original, custom)"
     )
     zoom_level: float = Field(1.0, ge=0.1, le=5.0, description="Zoom level (1.0 = 100%)")
-    scroll_position: Tuple[float, float] = Field(
+    scroll_position: tuple[float, float] = Field(
         (0, 0), description="Current scroll position (x, y)"
     )
-    bookmarks: List[Dict[str, Any]] = Field(default_factory=list, description="List of bookmarks")
+    bookmarks: list[dict[str, Any]] = Field(default_factory=list, description="List of bookmarks")
     reading_progress: float = Field(
         0.0, ge=0.0, le=100.0, description="Reading progress percentage"
     )
@@ -37,10 +39,10 @@ class ViewerPage(BaseModel):
     """A page in the viewer."""
 
     number: int = Field(..., ge=0, description="Page number (0-based)")
-    width: Optional[int] = Field(None, description="Page width in pixels")
-    height: Optional[int] = Field(None, description="Page height in pixels")
-    url: Optional[str] = Field(None, description="URL to access the page image")
-    thumbnail_url: Optional[str] = Field(None, description="URL to access the thumbnail")
+    width: int | None = Field(None, description="Page width in pixels")
+    height: int | None = Field(None, description="Page height in pixels")
+    url: str | None = Field(None, description="URL to access the page image")
+    thumbnail_url: str | None = Field(None, description="URL to access the thumbnail")
 
 
 class ViewerMetadata(BaseModel):
@@ -51,16 +53,16 @@ class ViewerMetadata(BaseModel):
     series: str = Field("", description="Series name")
     volume: str = Field("", description="Volume number")
     publisher: str = Field("", description="Publisher name")
-    year: Optional[int] = Field(None, description="Publication year")
+    year: int | None = Field(None, description="Publication year")
     page_count: int = Field(0, description="Total number of pages")
     format: str = Field("", description="File format (epub, pdf, cbz, etc.)")
-    cover_url: Optional[str] = Field(None, description="URL to the cover image")
+    cover_url: str | None = Field(None, description="URL to the cover image")
 
 
 class ViewerService:
     """Service for handling book viewing operations."""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initialize the viewer service."""
         self._viewers = {}
         self._states = {}  # Track viewer state per book
@@ -249,7 +251,7 @@ class ViewerService:
         if book_id in self._viewers:
             viewer = self._viewers.pop(book_id)
             viewer.close()
-        
+
         # Clean up state
         if book_id in self._states:
             del self._states[book_id]

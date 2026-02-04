@@ -4,12 +4,12 @@ Configuration settings for the Calibre MCP Server.
 
 import os
 from pathlib import Path
-from typing import List, Optional
+
+from dotenv import load_dotenv
 
 # import sys # Removed unused
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -24,10 +24,10 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # CORS configuration
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: list[str] = ["*"]
 
     # Database configuration (accepts CALIBRE_LIBRARY_PATH or LIBRARY_PATH)
-    LIBRARY_PATH: Optional[str] = Field(
+    LIBRARY_PATH: str | None = Field(
         None,
         validation_alias=AliasChoices("CALIBRE_LIBRARY_PATH", "LIBRARY_PATH"),
     )

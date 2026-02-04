@@ -1,10 +1,10 @@
 """AI-powered content analysis for CalibreMCP."""
 
-from typing import Dict, List
-import logging
 import hashlib
+import logging
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
+
 import spacy
 
 try:
@@ -43,7 +43,7 @@ class ContentAnalyzer(MCPTool):
         analyze_entities: bool = True,
         analyze_sentiment: bool = True,
         analyze_themes: bool = True,
-    ) -> Dict:
+    ) -> dict:
         """
         Analyze the content of a book using NLP.
 
@@ -98,8 +98,8 @@ class ContentAnalyzer(MCPTool):
             return {"success": False, "error": str(e)}
 
     async def analyze_reading_habits(
-        self, reading_history: List[Dict], time_period: str = "all"
-    ) -> Dict:
+        self, reading_history: list[dict], time_period: str = "all"
+    ) -> dict:
         """
         Analyze reading habits from reading history data.
 
@@ -172,7 +172,7 @@ class ContentAnalyzer(MCPTool):
             self.logger.error(f"Error analyzing reading habits: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    def _get_text_statistics(self, doc) -> Dict:
+    def _get_text_statistics(self, doc) -> dict:
         """Calculate basic text statistics."""
         sentences = list(doc.sents)
         words = [token.text for token in doc if not token.is_punct and not token.is_space]
@@ -189,7 +189,7 @@ class ContentAnalyzer(MCPTool):
             else 0,
         }
 
-    def _extract_entities(self, doc) -> Dict:
+    def _extract_entities(self, doc) -> dict:
         """Extract named entities from the document."""
         entities = defaultdict(list)
 
@@ -212,7 +212,7 @@ class ContentAnalyzer(MCPTool):
             "total_entities": sum(entity_counts.values()),
         }
 
-    def _analyze_sentiment(self, doc) -> Dict:
+    def _analyze_sentiment(self, doc) -> dict:
         """Perform basic sentiment analysis on the document."""
         # This is a simplified sentiment analysis
         # In a production system, you might want to use a pre-trained sentiment analysis model
@@ -245,7 +245,7 @@ class ContentAnalyzer(MCPTool):
             else "neutral",
         }
 
-    def _extract_themes(self, doc) -> Dict:
+    def _extract_themes(self, doc) -> dict:
         """Extract key themes and topics from the document."""
         # Extract noun chunks as potential themes
         noun_chunks = list(doc.noun_chunks)
@@ -263,7 +263,7 @@ class ContentAnalyzer(MCPTool):
 
         return {"themes": themes, "named_entities": entities}
 
-    def _analyze_reading_times(self, reading_history: List[Dict]) -> Dict:
+    def _analyze_reading_times(self, reading_history: list[dict]) -> dict:
         """Analyze reading times and patterns."""
         if not reading_history:
             return {}
@@ -318,7 +318,7 @@ class ContentAnalyzer(MCPTool):
             else "unknown",
         }
 
-    def _calculate_consistency(self, reading_history: List[Dict]) -> Dict:
+    def _calculate_consistency(self, reading_history: list[dict]) -> dict:
         """Calculate reading consistency metrics."""
         if not reading_history:
             return {}

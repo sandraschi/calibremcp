@@ -1,10 +1,10 @@
 """Tool for exporting Calibre library data and books."""
 
-import shutil
 import json
-from pathlib import Path
-from typing import Dict, List, Optional, Union
+import shutil
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
 try:
     from fastmcp import MCPTool, Param
@@ -25,7 +25,7 @@ class ExportLibraryTool(MCPTool):
         Param("include_covers", bool, "Whether to include book covers", default=True),
         Param(
             "book_ids",
-            Optional[List[Union[int, str]]],
+            Optional[list[int | str]],
             "Specific book IDs to export (all if None)",
             default=None,
         ),
@@ -36,14 +36,14 @@ class ExportLibraryTool(MCPTool):
     async def _run(
         self,
         export_path: str,
-        library_path: Optional[str] = None,
+        library_path: str | None = None,
         include_books: bool = True,
         include_metadata: bool = True,
         include_covers: bool = True,
-        book_ids: Optional[List[Union[int, str]]] = None,
+        book_ids: list[int | str] | None = None,
         format: str = "directory",
-        progress_callback: Optional[str] = None,
-    ) -> Dict:
+        progress_callback: str | None = None,
+    ) -> dict:
         """Export the library to the specified location."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
@@ -145,7 +145,7 @@ class ExportLibraryTool(MCPTool):
         return results
 
     def _update_progress(
-        self, callback_url: Optional[str], current: int, total: int, message: str
+        self, callback_url: str | None, current: int, total: int, message: str
     ) -> None:
         """Send progress updates if a callback URL is provided."""
         if not callback_url:

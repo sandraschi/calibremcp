@@ -5,18 +5,18 @@ Consolidates search_books, list_books, get_books_by_author, get_books_by_series
 into a single portmanteau tool with operation parameter.
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error
-from ..shared.query_parsing import parse_intelligent_query
+from ...server import mcp
+from ..book_tools import get_books_by_author_helper as _get_books_by_author_helper
+from ..book_tools import get_books_by_series_helper as _get_books_by_series_helper
 
 # Import helper functions (NOT registered as MCP tools)
 from ..book_tools import search_books_helper as _search_books_helper
 from ..core.library_operations import list_books_helper as _list_books_helper
-from ..book_tools import get_books_by_author_helper as _get_books_by_author_helper
-from ..book_tools import get_books_by_series_helper as _get_books_by_series_helper
+from ..shared.error_handling import handle_tool_error
+from ..shared.query_parsing import parse_intelligent_query
 
 logger = get_logger("calibremcp.tools.book_management")
 
@@ -25,35 +25,35 @@ logger = get_logger("calibremcp.tools.book_management")
 async def query_books(
     operation: str,
     # Search parameters (all passed through to search_books_helper)
-    author: Optional[str] = None,
-    authors: Optional[List[str]] = None,
-    exclude_authors: Optional[List[str]] = None,
-    author_id: Optional[int] = None,
-    series_id: Optional[int] = None,
-    series: Optional[str] = None,
-    exclude_series: Optional[List[str]] = None,
-    text: Optional[str] = None,
-    title: Optional[str] = None,  # Direct title search (bypasses FTS)
-    query: Optional[str] = None,
-    tag: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    exclude_tags: Optional[List[str]] = None,
-    publisher: Optional[str] = None,
-    publishers: Optional[List[str]] = None,
-    has_publisher: Optional[bool] = None,
-    rating: Optional[int] = None,
-    min_rating: Optional[int] = None,
-    max_rating: Optional[int] = None,
-    unrated: Optional[bool] = None,
-    pubdate_start: Optional[str] = None,
-    pubdate_end: Optional[str] = None,
-    added_after: Optional[str] = None,
-    added_before: Optional[str] = None,
-    min_size: Optional[int] = None,
-    max_size: Optional[int] = None,
-    formats: Optional[List[str]] = None,
-    comment: Optional[str] = None,
-    has_empty_comments: Optional[bool] = None,
+    author: str | None = None,
+    authors: list[str] | None = None,
+    exclude_authors: list[str] | None = None,
+    author_id: int | None = None,
+    series_id: int | None = None,
+    series: str | None = None,
+    exclude_series: list[str] | None = None,
+    text: str | None = None,
+    title: str | None = None,  # Direct title search (bypasses FTS)
+    query: str | None = None,
+    tag: str | None = None,
+    tags: list[str] | None = None,
+    exclude_tags: list[str] | None = None,
+    publisher: str | None = None,
+    publishers: list[str] | None = None,
+    has_publisher: bool | None = None,
+    rating: int | None = None,
+    min_rating: int | None = None,
+    max_rating: int | None = None,
+    unrated: bool | None = None,
+    pubdate_start: str | None = None,
+    pubdate_end: str | None = None,
+    added_after: str | None = None,
+    added_before: str | None = None,
+    min_size: int | None = None,
+    max_size: int | None = None,
+    formats: list[str] | None = None,
+    comment: str | None = None,
+    has_empty_comments: bool | None = None,
     # Display/formatting
     format_table: bool = False,
     limit: int = 50,
@@ -61,7 +61,7 @@ async def query_books(
     # Auto-open functionality
     auto_open: bool = False,
     auto_open_format: str = "EPUB",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Query and search books in the Calibre library with comprehensive filtering options.
 
@@ -378,38 +378,62 @@ async def query_books(
         if operation == "search":
             # Intelligently parse query to extract author, tag, pubdate, etc.
             search_text = text or query
-            parsed = parse_intelligent_query(search_text) if search_text else {
-                "text": "", "author": None, "tag": None, "pubdate": None, 
-                "rating": None, "series": None, "content_type": None,
-                "added_after": None, "added_before": None,
-            }
-            
+            parsed = (
+                parse_intelligent_query(search_text)
+                if search_text
+                else {
+                    "text": "",
+                    "author": None,
+                    "tag": None,
+                    "pubdate": None,
+                    "rating": None,
+                    "series": None,
+                    "content_type": None,
+                    "added_after": None,
+                    "added_before": None,
+                }
+            )
+
             # Use parsed values if no explicit parameters provided
             final_author = author or parsed["author"]
             final_tag = tag or parsed["tag"]
             final_series = series or parsed["series"]
-            final_text = parsed["text"] if (parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"] or parsed["added_after"]) else search_text
-            
+            final_text = (
+                parsed["text"]
+                if (
+                    parsed["author"]
+                    or parsed["tag"]
+                    or parsed["series"]
+                    or parsed["pubdate"]
+                    or parsed["rating"]
+                    or parsed["added_after"]
+                )
+                else search_text
+            )
+
             # Parse pubdate if found
             final_pubdate_start = pubdate_start
             final_pubdate_end = pubdate_end
             if parsed["pubdate"] and not pubdate_start and not pubdate_end:
                 final_pubdate_start = f"{parsed['pubdate']}-01-01"
                 final_pubdate_end = f"{parsed['pubdate']}-12-31"
-            
+
             # Use parsed rating if found
             final_rating = rating or parsed["rating"]
-            
+
             # Use parsed date filters if found
             final_added_after = added_after or parsed["added_after"]
             final_added_before = added_before or parsed["added_before"]
-            
+
             # Handle content_type hint for library selection
             # If content_type is "manga", "comic", or "paper", we could filter by library
             # For now, we'll just log it - library selection happens at a higher level
             if parsed["content_type"]:
-                logger.info(f"Content type hint detected: {parsed['content_type']}", extra={"content_type": parsed["content_type"]})
-            
+                logger.info(
+                    f"Content type hint detected: {parsed['content_type']}",
+                    extra={"content_type": parsed["content_type"]},
+                )
+
             # Use search_books helper - pass ALL search parameters
             result = await _search_books_helper(
                 # Text/search (after removing structured params if parsed)
@@ -459,28 +483,33 @@ async def query_books(
             # Auto-open functionality: if enabled and exactly 1 result found
             if auto_open and result.get("total") == 1 and result.get("items"):
                 book = result["items"][0]
-                logger.info(f"Auto-opening unique search result: {book['title']}", extra={"book_id": book["id"], "auto_open_format": auto_open_format})
+                logger.info(
+                    f"Auto-opening unique search result: {book['title']}",
+                    extra={"book_id": book["id"], "auto_open_format": auto_open_format},
+                )
 
                 # Find the preferred format
                 file_path = None
-                for fmt in book.get('formats', []):
-                    if isinstance(fmt, dict) and fmt.get('format', '').upper() == auto_open_format.upper():
-                        file_path = fmt.get('path')
+                for fmt in book.get("formats", []):
+                    if (
+                        isinstance(fmt, dict)
+                        and fmt.get("format", "").upper() == auto_open_format.upper()
+                    ):
+                        file_path = fmt.get("path")
                         break
 
                 # Fallback to first available format
-                if not file_path and book.get('formats'):
-                    first_format = book['formats'][0]
+                if not file_path and book.get("formats"):
+                    first_format = book["formats"][0]
                     if isinstance(first_format, dict):
-                        file_path = first_format.get('path')
+                        file_path = first_format.get("path")
 
                 if file_path:
                     try:
                         from ..viewer.manage_viewer import manage_viewer
+
                         open_result = await manage_viewer.fn(
-                            operation="open_file",
-                            book_id=book['id'],
-                            file_path=file_path
+                            operation="open_file", book_id=book["id"], file_path=file_path
                         )
 
                         # Add viewer info to the result
@@ -490,16 +519,25 @@ async def query_books(
                             "id": book["id"],
                             "title": book["title"],
                             "format": auto_open_format,
-                            "file_path": file_path
+                            "file_path": file_path,
                         }
 
-                        logger.info("Book auto-opened successfully", extra={"book_id": book["id"], "file_path": file_path})
+                        logger.info(
+                            "Book auto-opened successfully",
+                            extra={"book_id": book["id"], "file_path": file_path},
+                        )
 
                     except Exception as open_error:
-                        logger.warning(f"Auto-open failed: {open_error}", extra={"book_id": book["id"], "error": str(open_error)})
+                        logger.warning(
+                            f"Auto-open failed: {open_error}",
+                            extra={"book_id": book["id"], "error": str(open_error)},
+                        )
                         result["auto_open_error"] = str(open_error)
                 else:
-                    logger.warning("No suitable format found for auto-open", extra={"book_id": book["id"], "preferred_format": auto_open_format})
+                    logger.warning(
+                        "No suitable format found for auto-open",
+                        extra={"book_id": book["id"], "preferred_format": auto_open_format},
+                    )
 
             return result
 
@@ -513,6 +551,7 @@ async def query_books(
         elif operation == "recent":
             # Get recently added books
             from calibre_mcp.services.book_service import book_service
+
             books = book_service.get_recent_books(limit=limit)
             return {
                 "success": True,

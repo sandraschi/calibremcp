@@ -14,24 +14,24 @@ Use manage_analysis(operation="...") instead:
 - reading_statistics() → manage_analysis(operation="reading_stats")
 """
 
-from typing import Dict, List, Any
 from difflib import SequenceMatcher
-
-# Import the MCP server instance
-from ...server import (
-    mcp,
-    TagStatsResponse,
-    DuplicatesResponse,
-    SeriesAnalysisResponse,
-    LibraryHealthResponse,
-    UnreadPriorityResponse,
-    ReadingStats,
-)
+from typing import Any
 
 # Import services and models
 from ...db.database import DatabaseService
-from ...models.tag import Tag
 from ...logging_config import get_logger
+from ...models.tag import Tag
+
+# Import the MCP server instance
+from ...server import (
+    DuplicatesResponse,
+    LibraryHealthResponse,
+    ReadingStats,
+    SeriesAnalysisResponse,
+    TagStatsResponse,
+    UnreadPriorityResponse,
+    mcp,
+)
 
 logger = get_logger("calibremcp.tools.library_analysis")
 
@@ -79,8 +79,8 @@ async def get_tag_statistics() -> TagStatsResponse:
             )
 
             total_tags = len(tags)
-            unused_tags: List[str] = []
-            tag_usage: Dict[str, int] = {}
+            unused_tags: list[str] = []
+            tag_usage: dict[str, int] = {}
 
             # Count usage for each tag
             for tag in tags:
@@ -90,7 +90,7 @@ async def get_tag_statistics() -> TagStatsResponse:
                     unused_tags.append(tag.name)
 
             # Find duplicate/similar tags using similarity matching
-            duplicate_groups: List[Dict[str, Any]] = []
+            duplicate_groups: list[dict[str, Any]] = []
             processed = set()
             similarity_threshold = 0.85  # 85% similarity
 
@@ -107,9 +107,7 @@ async def get_tag_statistics() -> TagStatsResponse:
                         continue
 
                     # Calculate similarity (case-insensitive)
-                    similarity = SequenceMatcher(
-                        None, tag1.name.lower(), tag2.name.lower()
-                    ).ratio()
+                    similarity = SequenceMatcher(None, tag1.name.lower(), tag2.name.lower()).ratio()
 
                     if similarity >= similarity_threshold:
                         similar_tags.append(tag2.name)
@@ -123,15 +121,13 @@ async def get_tag_statistics() -> TagStatsResponse:
                             "tags": similar_tags,
                             "similarity_score": similarity_threshold,
                             "recommended": similar_tags[0],  # Use most popular
-                            "total_usage": sum(
-                                tag_usage.get(t, 0) for t in similar_tags
-                            ),
+                            "total_usage": sum(tag_usage.get(t, 0) for t in similar_tags),
                         }
                     )
                     processed.add(tag1.name)
 
             # Generate suggestions
-            suggestions: List[Dict[str, Any]] = []
+            suggestions: list[dict[str, Any]] = []
 
             # Suggest merging duplicate tags
             for dup_group in duplicate_groups:
@@ -182,8 +178,9 @@ async def find_duplicate_books() -> DuplicatesResponse:
     """
     Find potentially duplicate books using title/author fuzzy matching.
     """
-    from ...models.book import Book
     from sqlalchemy import func
+
+    from ...models.book import Book
 
     db = DatabaseService()
     duplicate_groups = []
@@ -192,9 +189,7 @@ async def find_duplicate_books() -> DuplicatesResponse:
         with db.get_session() as session:
             # Find exact title/author duplicates first (most common)
             dupes = (
-                session.query(
-                    Book.title, Book.author_sort, func.count("*").label("cnt")
-                )
+                session.query(Book.title, Book.author_sort, func.count("*").label("cnt"))
                 .group_by(Book.title, Book.author_sort)
                 .having(func.count("*") > 1)
                 .all()
@@ -211,8 +206,7 @@ async def find_duplicate_books() -> DuplicatesResponse:
                         "title": title,
                         "author": author,
                         "books": [
-                            {"id": b.id, "formats": [f.format for f in b.formats]}
-                            for b in books
+                            {"id": b.id, "formats": [f.format for f in b.formats]} for b in books
                         ],
                         "confidence": 1.0,
                     }
@@ -225,9 +219,7 @@ async def find_duplicate_books() -> DuplicatesResponse:
         )
     except Exception as e:
         logger.error(f"Duplicate check failed: {e}")
-        return DuplicatesResponse(
-            duplicate_groups=[], total_duplicates=0, confidence_scores={}
-        )
+        return DuplicatesResponse(duplicate_groups=[], total_duplicates=0, confidence_scores={})
 
 
 @mcp.tool()
@@ -259,8 +251,9 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
         for suggestion in analysis['reading_order_suggestions']:
             print(f"{suggestion['series_name']}: Start with {suggestion['first_book']}")
     """
-    from ...models.series import Series
     from sqlalchemy.orm import joinedload
+
+    from ...models.series import Series
 
     db = DatabaseService()
 
@@ -269,8 +262,8 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
             # Get all series with their books
             series_list = session.query(Series).options(joinedload(Series.books)).all()
 
-            incomplete_series: List[Dict[str, Any]] = []
-            reading_order_suggestions: List[Dict[str, Any]] = []
+            incomplete_series: list[dict[str, Any]] = []
+            reading_order_suggestions: list[dict[str, Any]] = []
 
             total_series = len(series_list)
             total_books_in_series = 0
@@ -285,11 +278,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
 
                 # Get series_index values
                 indices = sorted(
-                    [
-                        book.series_index
-                        for book in books
-                        if book.series_index is not None
-                    ]
+                    [book.series_index for book in books if book.series_index is not None]
                 )
 
                 if not indices:
@@ -352,9 +341,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
 
                 # Generate reading order suggestion
                 # Sort books by series_index
-                sorted_books = sorted(
-                    books, key=lambda b: b.series_index if b.series_index else 0
-                )
+                sorted_books = sorted(books, key=lambda b: b.series_index if b.series_index else 0)
                 first_book = sorted_books[0] if sorted_books else None
 
                 reading_order_suggestions.append(
@@ -364,9 +351,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                         "first_book": {
                             "id": first_book.id if first_book else None,
                             "title": first_book.title if first_book else "Unknown",
-                            "series_index": first_book.series_index
-                            if first_book
-                            else None,
+                            "series_index": first_book.series_index if first_book else None,
                         },
                         "total_books": len(books),
                         "reading_order": [
@@ -379,9 +364,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                         ],
                         "is_complete": len(missing_indices) == 0,
                         "completion_percentage": round(
-                            (actual_count / expected_count * 100)
-                            if expected_count > 0
-                            else 0,
+                            (actual_count / expected_count * 100) if expected_count > 0 else 0,
                             1,
                         ),
                     }
@@ -392,9 +375,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                 "total_series": total_series,
                 "total_books_in_series": total_books_in_series,
                 "series_with_gaps": series_with_gaps,
-                "average_books_per_series": round(
-                    total_books_in_series / total_series, 2
-                )
+                "average_books_per_series": round(total_books_in_series / total_series, 2)
                 if total_series > 0
                 else 0,
                 "complete_series_count": total_series - series_with_gaps,
@@ -429,9 +410,9 @@ async def analyze_library_health() -> LibraryHealthResponse:
     """
     Analyze library health: check for missing files and DB integrity.
     """
-    from ...models.book import Book
+
     from ...config import CalibreConfig
-    from pathlib import Path
+    from ...models.book import Book
 
     config = CalibreConfig()
     lib_path = config.local_library_path
@@ -483,9 +464,7 @@ async def analyze_library_health() -> LibraryHealthResponse:
 
         recommendations = []
         if missing_files > 0:
-            recommendations.append(
-                f"Restore {missing_files} missing files from backup."
-            )
+            recommendations.append(f"Restore {missing_files} missing files from backup.")
         else:
             recommendations.append("Library is physically healthy.")
 
@@ -528,10 +507,8 @@ async def unread_priority_list() -> UnreadPriorityResponse:
                 priority_reasons={"quality": "Sorted by highest rating"},
                 total_unread=len(books),
             )
-    except Exception as e:
-        return UnreadPriorityResponse(
-            prioritized_books=[], priority_reasons={}, total_unread=0
-        )
+    except Exception:
+        return UnreadPriorityResponse(prioritized_books=[], priority_reasons={}, total_unread=0)
 
 
 @mcp.tool()
@@ -539,8 +516,9 @@ async def reading_statistics() -> ReadingStats:
     """
     Generate reading analytics.
     """
-    from ...models.book import Book
     from sqlalchemy import func
+
+    from ...models.book import Book
 
     db = DatabaseService()
     try:

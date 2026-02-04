@@ -2,9 +2,10 @@
 Repository for handling author-related database operations.
 """
 
-from typing import List, Dict, Optional, Any, Tuple
+from typing import Any
+
+from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, desc
 
 from ...db.base_repository import BaseRepository
 from ...models.author import Author
@@ -19,12 +20,12 @@ class AuthorRepository(BaseRepository[Author]):
         """Initialize with database service."""
         super().__init__(db, Author)
 
-    def get_by_name(self, name: str) -> Optional[Author]:
+    def get_by_name(self, name: str) -> Author | None:
         """Get an author by their exact name."""
         with self._db.session_scope() as session:
             return session.query(Author).filter(Author.name == name).first()
 
-    def search(self, query: str, limit: int = 10) -> List[Author]:
+    def search(self, query: str, limit: int = 10) -> list[Author]:
         """Search for authors by name."""
         with self._db.session_scope() as session:
             return (
@@ -46,7 +47,7 @@ class AuthorRepository(BaseRepository[Author]):
                 or 0
             )
 
-    def get_books(self, author_id: int, limit: int = 10, offset: int = 0) -> List[Dict]:
+    def get_books(self, author_id: int, limit: int = 10, offset: int = 0) -> list[dict]:
         """Get books by an author with pagination."""
         with self._db.session_scope() as session:
             books = (
@@ -61,7 +62,7 @@ class AuthorRepository(BaseRepository[Author]):
             )
             return [{"id": b.id, "title": b.title, "sort": b.sort} for b in books]
 
-    def get_series(self, author_id: int) -> List[Dict]:
+    def get_series(self, author_id: int) -> list[dict]:
         """Get all series by an author."""
         with self._db.session_scope() as session:
             series = (
@@ -75,7 +76,7 @@ class AuthorRepository(BaseRepository[Author]):
             )
             return [{"id": s.id, "name": s.name, "book_count": count} for s, count in series]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get author statistics."""
         with self._db.session_scope() as session:
             stats = {}
@@ -98,7 +99,7 @@ class AuthorRepository(BaseRepository[Author]):
 
             return stats
 
-    def get_author_stats(self) -> Dict[str, Any]:
+    def get_author_stats(self) -> dict[str, Any]:
         """
         Get statistics about authors in the library.
 
@@ -150,7 +151,7 @@ class AuthorRepository(BaseRepository[Author]):
                 },
             }
 
-    def _format_author(self, author: Author, book_count: int = 0) -> Dict[str, Any]:
+    def _format_author(self, author: Author, book_count: int = 0) -> dict[str, Any]:
         """
         Format an Author object into a dictionary.
 
@@ -187,7 +188,7 @@ class AuthorRepository(BaseRepository[Author]):
 
     def get_books_by_author(
         self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Get books by a specific author with pagination.
 
@@ -247,7 +248,7 @@ class AuthorRepository(BaseRepository[Author]):
 
             return formatted_books, total
 
-    def search_authors(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def search_authors(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
         """Search for authors by name."""
         search_term = f"%{query}%"
         query_sql = """
@@ -262,7 +263,7 @@ class AuthorRepository(BaseRepository[Author]):
         results = self._fetch_all(query_sql, (search_term, search_term, limit))
         return [self._process_author_result(row) for row in results]
 
-    def _process_author_result(self, row: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_author_result(self, row: dict[str, Any]) -> dict[str, Any]:
         """Process an author result row into a more usable format."""
         if not row:
             return {}
@@ -275,7 +276,7 @@ class AuthorRepository(BaseRepository[Author]):
             "book_count": row.get("book_count", 0),
         }
 
-    def _process_book_result(self, row: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_book_result(self, row: dict[str, Any]) -> dict[str, Any]:
         """Process a book result row into a more usable format."""
         if not row:
             return {}

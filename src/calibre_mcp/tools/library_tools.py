@@ -5,8 +5,8 @@ Provides functionality to manage Calibre libraries including CRUD operations,
 statistics, and search capabilities through the FastMCP interface.
 """
 
-from typing import Dict, Optional, Any
 from enum import Enum
+from typing import Any
 
 try:
     from fastmcp import MCPTool
@@ -15,8 +15,8 @@ except ImportError:
 
 from ..db.database import Database
 from ..models.library import LibraryCreate
-from ..services.library_service import library_service as lib_service
 from ..services.base_service import NotFoundError, ValidationError
+from ..services.library_service import library_service as lib_service
 
 
 class LibrarySortField(str, Enum):
@@ -46,7 +46,7 @@ class LibraryTools(MCPTool):
         super().__init__(*args, **kwargs)
         self.db = Database()
 
-    async def _run(self, action: str, **kwargs) -> Dict[str, Any]:
+    async def _run(self, action: str, **kwargs) -> dict[str, Any]:
         """Route to the appropriate handler based on action."""
         handler = getattr(self, f"handle_{action}", None)
         if not handler:
@@ -69,11 +69,11 @@ class LibraryTools(MCPTool):
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        is_active: Optional[bool] = None,
+        search: str | None = None,
+        is_active: bool | None = None,
         sort_by: LibrarySortField = LibrarySortField.NAME,
         sort_order: SortOrder = SortOrder.ASC,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         List libraries with pagination, filtering, and sorting.
 
@@ -97,7 +97,7 @@ class LibraryTools(MCPTool):
             sort_order=sort_order.value,
         )
 
-    async def handle_get(self, library_id: int) -> Dict[str, Any]:
+    async def handle_get(self, library_id: int) -> dict[str, Any]:
         """
         Get a library by ID.
 
@@ -109,7 +109,7 @@ class LibraryTools(MCPTool):
         """
         return lib_service.get_by_id(library_id)
 
-    async def handle_create(self, library: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_create(self, library: dict[str, Any]) -> dict[str, Any]:
         """
         Create a new library.
 
@@ -123,7 +123,7 @@ class LibraryTools(MCPTool):
         library_data = LibraryCreate(**library)
         return lib_service.create(library_data)
 
-    async def handle_update(self, library_id: int, updates: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_update(self, library_id: int, updates: dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing library.
 
@@ -136,7 +136,7 @@ class LibraryTools(MCPTool):
         """
         return lib_service.update(library_id, updates)
 
-    async def handle_delete(self, library_id: int) -> Dict[str, Any]:
+    async def handle_delete(self, library_id: int) -> dict[str, Any]:
         """
         Delete a library.
 
@@ -149,7 +149,7 @@ class LibraryTools(MCPTool):
         success = lib_service.delete(library_id)
         return {"success": success, "message": "Library deleted successfully"}
 
-    async def handle_stats(self, library_id: Optional[int] = None) -> Dict[str, Any]:
+    async def handle_stats(self, library_id: int | None = None) -> dict[str, Any]:
         """
         Get statistics for a library or all libraries.
 
@@ -163,7 +163,7 @@ class LibraryTools(MCPTool):
 
     async def handle_search(
         self, library_id: int, query: str, limit: int = 50, offset: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Search within a library.
 

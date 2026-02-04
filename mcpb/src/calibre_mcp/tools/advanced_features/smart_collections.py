@@ -1,9 +1,10 @@
 """Smart collections and dynamic grouping for CalibreMCP."""
 
-from typing import Dict, List, Optional, Union, Any
-from pydantic import BaseModel, Field, validator
-from datetime import datetime, timedelta
 import re
+from datetime import datetime, timedelta
+from typing import Any
+
+from pydantic import BaseModel, Field, validator
 
 try:
     from fastmcp import MCPTool
@@ -50,11 +51,11 @@ class SmartCollection(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
-    rules: List[Union[Dict, CollectionRule]]
+    description: str | None = None
+    rules: list[dict | CollectionRule]
     match_all: bool = True  # If False, use OR logic instead of AND
-    icon: Optional[str] = None
-    color: Optional[str] = None
+    icon: str | None = None
+    color: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -80,7 +81,7 @@ class SmartCollectionsTool(MCPTool):
         super().__init__(*args, **kwargs)
         self._collections = {}  # In-memory storage (replace with database in production)
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate collection handler."""
         handler = getattr(self, f"collection_{action}", None)
         if not handler:
@@ -92,7 +93,7 @@ class SmartCollectionsTool(MCPTool):
             return {"error": str(e), "success": False}
 
     # CRUD Operations
-    async def collection_create(self, collection_data: Dict) -> Dict:
+    async def collection_create(self, collection_data: dict) -> dict:
         """Create a new smart collection."""
         # Convert rules to CollectionRule objects
         rules = []
@@ -111,14 +112,14 @@ class SmartCollectionsTool(MCPTool):
         self._collections[collection.id] = collection
         return {"success": True, "collection": collection.dict()}
 
-    async def collection_get(self, collection_id: str) -> Dict:
+    async def collection_get(self, collection_id: str) -> dict:
         """Get a smart collection by ID."""
         if collection_id not in self._collections:
             return {"error": f"Collection {collection_id} not found", "success": False}
 
         return {"success": True, "collection": self._collections[collection_id].to_dict()}
 
-    async def collection_update(self, collection_id: str, updates: Dict) -> Dict:
+    async def collection_update(self, collection_id: str, updates: dict) -> dict:
         """Update a smart collection."""
         if collection_id not in self._collections:
             return {"error": f"Collection {collection_id} not found", "success": False}
@@ -144,7 +145,7 @@ class SmartCollectionsTool(MCPTool):
 
         return {"success": True, "collection": collection.to_dict()}
 
-    async def collection_delete(self, collection_id: str) -> Dict:
+    async def collection_delete(self, collection_id: str) -> dict:
         """Delete a smart collection."""
         if collection_id not in self._collections:
             return {"error": f"Collection {collection_id} not found", "success": False}
@@ -152,7 +153,7 @@ class SmartCollectionsTool(MCPTool):
         del self._collections[collection_id]
         return {"success": True}
 
-    async def collection_list(self) -> Dict:
+    async def collection_list(self) -> dict:
         """List all smart collections."""
         return {
             "success": True,
@@ -163,10 +164,10 @@ class SmartCollectionsTool(MCPTool):
     async def collection_query(
         self,
         collection_id: str,
-        library_path: Optional[str] = None,
+        library_path: str | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> Dict:
+    ) -> dict:
         """Query books that match a smart collection's rules."""
         if collection_id not in self._collections:
             return {"error": f"Collection {collection_id} not found", "success": False}
@@ -199,7 +200,7 @@ class SmartCollectionsTool(MCPTool):
         }
 
     # Helper Methods
-    def _matches_rules(self, book, rules: List[CollectionRule], match_all: bool = True) -> bool:
+    def _matches_rules(self, book, rules: list[CollectionRule], match_all: bool = True) -> bool:
         """Check if a book matches all the rules of a collection."""
         if not rules:
             return True
@@ -280,7 +281,7 @@ class SmartCollectionsTool(MCPTool):
             return False
 
     # Special Collection Types
-    async def collection_create_series(self, name: str, series_name: str, **kwargs) -> Dict:
+    async def collection_create_series(self, name: str, series_name: str, **kwargs) -> dict:
         """Create a collection for a book series."""
         collection = {
             "name": name,
@@ -292,7 +293,7 @@ class SmartCollectionsTool(MCPTool):
 
     async def collection_create_recently_added(
         self, name: str = "Recently Added", days: int = 30, **kwargs
-    ) -> Dict:
+    ) -> dict:
         """Create a collection for recently added books."""
         cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
 
@@ -305,7 +306,7 @@ class SmartCollectionsTool(MCPTool):
         }
         return await self.collection_create(collection)
 
-    async def collection_create_unread(self, name: str = "Unread", **kwargs) -> Dict:
+    async def collection_create_unread(self, name: str = "Unread", **kwargs) -> dict:
         """Create a collection for unread books."""
         collection = {
             "name": name,
@@ -318,7 +319,7 @@ class SmartCollectionsTool(MCPTool):
 
     async def collection_create_ai_recommended(
         self, name: str = "AI Recommendations", **kwargs
-    ) -> Dict:
+    ) -> dict:
         """Create a collection with AI-recommended books."""
         # This would integrate with the AI enhancements tool
         # For now, it's a placeholder that returns an empty collection

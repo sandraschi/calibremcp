@@ -2,17 +2,17 @@
 Database service for managing SQLAlchemy connections and sessions.
 """
 
-import os
 import logging
-from typing import TypeVar, Any, Optional
+import os
 from contextlib import contextmanager
+from typing import Any, TypeVar
 
 from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .models import Base
-from .repositories import BookRepository, AuthorRepository, LibraryRepository
+from .repositories import AuthorRepository, BookRepository, LibraryRepository
 
 T = TypeVar("T")
 
@@ -59,8 +59,8 @@ class DatabaseService:
                 return
             else:
                 logger.warning(
-                    f"Database initialized with different path. Use force=True to switch.",
-                    extra={"service": "database", "action": "skip_reinit_different_path"}
+                    "Database initialized with different path. Use force=True to switch.",
+                    extra={"service": "database", "action": "skip_reinit_different_path"},
                 )
                 return
 
@@ -83,12 +83,15 @@ class DatabaseService:
                     # Store original URL if it's not a file path
                     self._current_db_path = db_url
         except (OSError, ValueError, TypeError) as e:
-            logger.error(f"Failed to process database URL: {e}", extra={
-                "service": "database",
-                "action": "process_db_url_failed",
-                "db_url": str(db_url),
-                "error": str(e)
-            })
+            logger.error(
+                f"Failed to process database URL: {e}",
+                extra={
+                    "service": "database",
+                    "action": "process_db_url_failed",
+                    "db_url": str(db_url),
+                    "error": str(e),
+                },
+            )
             raise ValueError(f"Invalid database URL: {db_url}") from e
 
         self._engine = create_engine(
@@ -173,7 +176,7 @@ class DatabaseService:
         self._repositories = {}
         self._current_db_path = None
 
-    def get_current_path(self) -> Optional[str]:
+    def get_current_path(self) -> str | None:
         """Get the current database path, if initialized."""
         return self._current_db_path
 

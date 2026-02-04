@@ -6,10 +6,9 @@ is enabled. The database is always named:
 - full-text-search.db
 """
 
-import sqlite3
 import logging
+import sqlite3
 from pathlib import Path
-from typing import Optional, List, Tuple, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 FTS_DB_FILENAME = "full-text-search.db"
 
 
-def find_fts_database(metadata_db_path: Path) -> Optional[Path]:
+def find_fts_database(metadata_db_path: Path) -> Path | None:
     """
     Find the FTS database associated with a metadata.db file.
 
@@ -46,7 +45,7 @@ def find_fts_database(metadata_db_path: Path) -> Optional[Path]:
     return None
 
 
-def get_fts_table_name(fts_db_path: Path) -> Optional[str]:
+def get_fts_table_name(fts_db_path: Path) -> str | None:
     """
     Get the name of the FTS table in the FTS database.
 
@@ -94,9 +93,9 @@ def query_fts(
     search_text: str,
     limit: int = 50,
     offset: int = 0,
-    min_score: Optional[float] = None,
+    min_score: float | None = None,
     include_snippets: bool = True,
-) -> Tuple[List[int], int, Dict[int, str]]:
+) -> tuple[list[int], int, dict[int, str]]:
     """
     Query the FTS database for book IDs matching the search text.
 
@@ -188,15 +187,19 @@ def query_fts(
                             cursor.execute(query_with_snippets, (fts_query, limit, offset))
                             results = cursor.fetchall()
                             book_ids = [row[0] for row in results]
-                            snippets = {row[0]: row[1] for row in results if row[1] and row[1].strip()}
+                            snippets = {
+                                row[0]: row[1] for row in results if row[1] and row[1].strip()
+                            }
                             if snippets:
                                 break  # Success, use this column index
                         except sqlite3.Error:
                             continue  # Try next column index
-                    
+
                     # If snippet extraction failed, fall back to simple query
                     if not snippets:
-                        logger.debug("Snippet extraction failed for all columns, using simple query")
+                        logger.debug(
+                            "Snippet extraction failed for all columns, using simple query"
+                        )
                         query = f"""
                             SELECT DISTINCT {book_id_col} FROM {fts_table}
                             WHERE {fts_table} MATCH ?
@@ -281,7 +284,9 @@ def query_fts(
                 WHERE searchable_text LIKE ?
                 LIMIT ? OFFSET ?
             """
-            cursor.execute(query, (search_text_clean, search_text_clean, like_pattern, limit, offset))
+            cursor.execute(
+                query, (search_text_clean, search_text_clean, like_pattern, limit, offset)
+            )
             results = cursor.fetchall()
             book_ids = [row[0] for row in results]
             snippets = {row[0]: row[1] for row in results if row[1] and row[1].strip()}

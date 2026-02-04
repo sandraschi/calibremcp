@@ -2,11 +2,12 @@
 Data models for Calibre MCP server.
 """
 
-from typing import List, Optional, Dict, Any
+import os
 from datetime import date, datetime
 from enum import Enum
 from pathlib import Path
-import os
+from typing import Any
+
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 
@@ -56,28 +57,28 @@ class BookMetadata(BaseModel):
     """Book metadata model."""
 
     title: str
-    authors: List[str] = []
-    identifiers: List[BookIdentifier] = []
-    formats: List[BookFormat] = []
-    languages: List[str] = []
-    publisher: Optional[str] = None
-    pubdate: Optional[date] = None
-    series: Optional[str] = None
-    series_index: Optional[float] = None
-    rating: Optional[float] = Field(None, ge=0, le=5)
-    tags: List[str] = []
-    description: Optional[str] = None
-    comments: Optional[str] = None
-    cover_url: Optional[HttpUrl] = None
-    thumbnail_url: Optional[HttpUrl] = None
+    authors: list[str] = []
+    identifiers: list[BookIdentifier] = []
+    formats: list[BookFormat] = []
+    languages: list[str] = []
+    publisher: str | None = None
+    pubdate: date | None = None
+    series: str | None = None
+    series_index: float | None = None
+    rating: float | None = Field(None, ge=0, le=5)
+    tags: list[str] = []
+    description: str | None = None
+    comments: str | None = None
+    cover_url: HttpUrl | None = None
+    thumbnail_url: HttpUrl | None = None
     status: BookStatus = BookStatus.UNREAD
     progress: float = Field(0.0, ge=0.0, le=100.0)
-    last_read: Optional[datetime] = None
+    last_read: datetime | None = None
     date_added: datetime = Field(default_factory=datetime.utcnow)
     last_modified: datetime = Field(default_factory=datetime.utcnow)
-    size: Optional[int] = None  # in bytes
-    file_path: Optional[Path] = None
-    custom_fields: Dict[str, Any] = {}
+    size: int | None = None  # in bytes
+    file_path: Path | None = None
+    custom_fields: dict[str, Any] = {}
 
     @field_validator("authors", "tags", "languages")
     @classmethod
@@ -107,7 +108,7 @@ class Book(BookMetadata):
 class BookListResponse(BaseModel):
     """Response model for listing books."""
 
-    books: List[Book]
+    books: list[Book]
     total_count: int
     offset: int
     limit: int
@@ -116,10 +117,10 @@ class BookListResponse(BaseModel):
 class BookAddRequest(BaseModel):
     """Request model for adding a new book."""
 
-    file_path: Optional[Path] = None
-    file_data: Optional[bytes] = None  # For direct file uploads
-    format: Optional[BookFormat] = None
-    metadata: Optional[BookMetadata] = None
+    file_path: Path | None = None
+    file_data: bytes | None = None  # For direct file uploads
+    format: BookFormat | None = None
+    metadata: BookMetadata | None = None
     fetch_metadata: bool = True
 
     @field_validator("file_path")
@@ -141,32 +142,32 @@ class BookUpdateRequest(BaseModel):
 
     metadata: BookMetadata
     update_file: bool = False
-    file_path: Optional[Path] = None
-    file_data: Optional[bytes] = None
-    format: Optional[BookFormat] = None
+    file_path: Path | None = None
+    file_data: bytes | None = None
+    format: BookFormat | None = None
 
 
 class SearchQuery(BaseModel):
     """Search query model."""
 
-    query: Optional[str] = None
-    title: Optional[str] = None
-    author: Optional[str] = None
-    tags: List[str] = []
-    series: Optional[str] = None
-    publisher: Optional[str] = None
-    format: Optional[BookFormat] = None
-    language: Optional[str] = None
-    status: Optional[BookStatus] = None
-    min_rating: Optional[float] = Field(None, ge=0, le=5)
-    max_rating: Optional[float] = Field(None, ge=0, le=5)
-    added_after: Optional[date] = None
-    added_before: Optional[date] = None
-    modified_after: Optional[date] = None
-    modified_before: Optional[date] = None
-    read_status: Optional[BookStatus] = None
-    has_cover: Optional[bool] = None
-    has_description: Optional[bool] = None
+    query: str | None = None
+    title: str | None = None
+    author: str | None = None
+    tags: list[str] = []
+    series: str | None = None
+    publisher: str | None = None
+    format: BookFormat | None = None
+    language: str | None = None
+    status: BookStatus | None = None
+    min_rating: float | None = Field(None, ge=0, le=5)
+    max_rating: float | None = Field(None, ge=0, le=5)
+    added_after: date | None = None
+    added_before: date | None = None
+    modified_after: date | None = None
+    modified_before: date | None = None
+    read_status: BookStatus | None = None
+    has_cover: bool | None = None
+    has_description: bool | None = None
     sort_by: str = "title"
     sort_desc: bool = False
 
@@ -188,9 +189,9 @@ class User(BaseModel):
     email: str
     role: UserRole = UserRole.READER
     is_active: bool = True
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
     date_joined: datetime = Field(default_factory=datetime.utcnow)
-    preferences: Dict[str, Any] = {}
+    preferences: dict[str, Any] = {}
 
 
 class Collection(BaseModel):
@@ -198,8 +199,8 @@ class Collection(BaseModel):
 
     id: int
     name: str
-    description: Optional[str] = None
-    books: List[int] = []  # List of book IDs
+    description: str | None = None
+    books: list[int] = []  # List of book IDs
     is_public: bool = False
     created_by: int  # User ID
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -213,9 +214,9 @@ class Annotation(BaseModel):
     book_id: int
     user_id: int
     content: str
-    location: Optional[str] = None  # Page number, location, etc.
-    note: Optional[str] = None
+    location: str | None = None  # Page number, location, etc.
+    note: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     modified_at: datetime = Field(default_factory=datetime.utcnow)
-    color: Optional[str] = None  # For highlights
+    color: str | None = None  # For highlights
     is_public: bool = False

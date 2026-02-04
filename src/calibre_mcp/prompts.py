@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 
 def register_prompts(mcp: FastMCP) -> None:
     """Register all prompt templates with the FastMCP server."""
-    
+
     # Reading Recommendations
     @mcp.prompt()
     def reading_recommendations() -> str:
@@ -130,4 +130,3 @@ def register_prompts(mcp: FastMCP) -> None:
     def smart_collections() -> str:
         """Create smart collections for your library. Set up dynamic collections based on tags, ratings, dates, or reading status that update automatically."""
         return """Create smart collections for my library. Set up dynamic collections based on criteria like tags, ratings, publication dates, or reading status. Help me organize books into logical groups that update automatically as my library changes."""
-

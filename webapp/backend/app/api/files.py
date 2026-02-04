@@ -1,7 +1,8 @@
 """File operations API endpoints."""
 
-from fastapi import APIRouter, HTTPException, Query, Body
-from typing import Optional, Dict, Any, List
+from typing import Any
+
+from fastapi import APIRouter, Body, Query
 
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
@@ -11,7 +12,7 @@ router = APIRouter()
 
 @router.post("/convert")
 async def convert_book(
-    conversion_requests: List[Dict[str, Any]] = Body(...),
+    conversion_requests: list[dict[str, Any]] = Body(...),
 ):
     """Convert book formats."""
     try:
@@ -20,7 +21,7 @@ async def convert_book(
             {
                 "operation": "convert",
                 "conversion_requests": conversion_requests,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -40,7 +41,7 @@ async def download_book(
                 "operation": "download",
                 "book_id": book_id,
                 "format_preference": format_preference,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -50,8 +51,8 @@ async def download_book(
 @router.post("/bulk")
 async def bulk_file_operations(
     operation_type: str = Body(..., regex="^(convert|validate|cleanup)$"),
-    target_format: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
+    target_format: str | None = None,
+    book_ids: list[int] | None = None,
 ):
     """Perform bulk file operations."""
     try:
@@ -62,7 +63,7 @@ async def bulk_file_operations(
                 "operation_type": operation_type,
                 "target_format": target_format,
                 "book_ids": book_ids,
-            }
+            },
         )
         return result
     except Exception as e:

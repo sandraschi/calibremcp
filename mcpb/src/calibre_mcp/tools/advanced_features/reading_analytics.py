@@ -1,10 +1,10 @@
 """Reading analytics and statistics for CalibreMCP."""
 
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta, date
-from collections import defaultdict
-from pydantic import BaseModel, Field
 import statistics
+from collections import defaultdict
+from datetime import date, datetime, timedelta
+
+from pydantic import BaseModel, Field
 
 try:
     from fastmcp import MCPTool
@@ -19,10 +19,10 @@ class ReadingSession(BaseModel):
     book_id: str
     start_time: datetime
     end_time: datetime
-    pages_read: Optional[int] = None
-    location: Optional[str] = None  # For e-books with location-based progress
-    progress_start: Optional[float] = None  # 0.0 to 1.0
-    progress_end: Optional[float] = None  # 0.0 to 1.0
+    pages_read: int | None = None
+    location: str | None = None  # For e-books with location-based progress
+    progress_start: float | None = None  # 0.0 to 1.0
+    progress_end: float | None = None  # 0.0 to 1.0
 
     @property
     def duration_minutes(self) -> float:
@@ -30,7 +30,7 @@ class ReadingSession(BaseModel):
         return (self.end_time - self.start_time).total_seconds() / 60
 
     @property
-    def pages_per_minute(self) -> Optional[float]:
+    def pages_per_minute(self) -> float | None:
         """Calculate reading speed in pages per minute."""
         if self.pages_read and self.duration_minutes > 0:
             return self.pages_read / self.duration_minutes
@@ -46,7 +46,7 @@ class ReadingGoal(BaseModel):
     metric: str  # 'books', 'pages', 'minutes', 'days'
     period: str  # 'day', 'week', 'month', 'year', 'custom'
     start_date: date
-    end_date: Optional[date] = None  # For custom periods
+    end_date: date | None = None  # For custom periods
     current_progress: int = 0
     is_completed: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -69,14 +69,14 @@ class ReadingGoal(BaseModel):
         return max(0, self.target - self.current_progress)
 
     @property
-    def days_remaining(self) -> Optional[int]:
+    def days_remaining(self) -> int | None:
         """Get days remaining until the goal deadline."""
         if not self.end_date:
             return None
         return max(0, (self.end_date - date.today()).days)
 
     @property
-    def daily_target(self) -> Optional[float]:
+    def daily_target(self) -> float | None:
         """Get daily target to reach the goal."""
         if not self.end_date:
             return None
@@ -98,7 +98,7 @@ class ReadingAnalyticsTool(MCPTool):
         self._sessions = []  # In-memory storage (replace with database in production)
         self._goals = {}  # In-memory storage for reading goals
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate analytics handler."""
         handler = getattr(self, f"analytics_{action}", None)
         if not handler:
@@ -110,14 +110,14 @@ class ReadingAnalyticsTool(MCPTool):
             return {"error": str(e), "success": False}
 
     # Session Tracking
-    async def analytics_start_session(self, book_id: str, **kwargs) -> Dict:
+    async def analytics_start_session(self, book_id: str, **kwargs) -> dict:
         """Start a new reading session."""
         session_id = f"sess_{len(self._sessions) + 1}"
         session = {"id": session_id, "book_id": book_id, "start_time": datetime.utcnow(), **kwargs}
         self._sessions.append(session)
         return {"success": True, "session_id": session_id}
 
-    async def analytics_end_session(self, session_id: str, **kwargs) -> Dict:
+    async def analytics_end_session(self, session_id: str, **kwargs) -> dict:
         """End an active reading session."""
         for session in self._sessions:
             if session.get("id") == session_id and "end_time" not in session:
@@ -133,10 +133,10 @@ class ReadingAnalyticsTool(MCPTool):
     # Reading Statistics
     async def analytics_get_stats(
         self,
-        user_id: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> Dict:
+        user_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> dict:
         """Get comprehensive reading statistics."""
         sessions = self._filter_sessions(user_id, start_date, end_date)
 
@@ -184,7 +184,7 @@ class ReadingAnalyticsTool(MCPTool):
         return {"success": True, "stats": stats}
 
     # Reading Goals
-    async def analytics_create_goal(self, goal_data: Dict) -> Dict:
+    async def analytics_create_goal(self, goal_data: dict) -> dict:
         """Create a new reading goal."""
         goal = ReadingGoal(**goal_data)
 
@@ -195,7 +195,7 @@ class ReadingAnalyticsTool(MCPTool):
         self._goals[goal.id] = goal
         return {"success": True, "goal": goal.dict()}
 
-    async def analytics_update_goal_progress(self, goal_id: str, progress: int) -> Dict:
+    async def analytics_update_goal_progress(self, goal_id: str, progress: int) -> dict:
         """Update progress for a reading goal."""
         if goal_id not in self._goals:
             return {"error": f"Goal {goal_id} not found", "success": False}
@@ -205,14 +205,14 @@ class ReadingAnalyticsTool(MCPTool):
 
         return {"success": True, "goal": goal.dict()}
 
-    async def analytics_get_goals(self, include_completed: bool = True) -> Dict:
+    async def analytics_get_goals(self, include_completed: bool = True) -> dict:
         """Get all reading goals."""
         goals = [g.dict() for g in self._goals.values() if include_completed or not g.is_completed]
 
         return {"success": True, "goals": goals}
 
     # Reading Habits
-    async def analytics_reading_habits(self, user_id: Optional[str] = None, days: int = 30) -> Dict:
+    async def analytics_reading_habits(self, user_id: str | None = None, days: int = 30) -> dict:
         """Analyze reading habits over time."""
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
@@ -267,10 +267,10 @@ class ReadingAnalyticsTool(MCPTool):
     # Helper Methods
     def _filter_sessions(
         self,
-        user_id: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> List[Dict]:
+        user_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> list[dict]:
         """Filter sessions based on criteria."""
         filtered = self._sessions
 
@@ -285,7 +285,7 @@ class ReadingAnalyticsTool(MCPTool):
 
         return filtered
 
-    def _calculate_favorite_times(self, sessions: List[Dict]) -> Dict:
+    def _calculate_favorite_times(self, sessions: list[dict]) -> dict:
         """Calculate favorite reading times."""
         if not sessions:
             return {}
@@ -304,7 +304,7 @@ class ReadingAnalyticsTool(MCPTool):
             "most_common_hour": top_hours[0][0] if top_hours else None,
         }
 
-    async def _calculate_reading_streak(self, user_id: Optional[str] = None) -> Dict:
+    async def _calculate_reading_streak(self, user_id: str | None = None) -> dict:
         """Calculate current reading streak in days."""
         sessions = self._filter_sessions(user_id)
         if not sessions:
@@ -332,9 +332,9 @@ class ReadingAnalyticsTool(MCPTool):
 
     async def _count_books_completed(
         self,
-        user_id: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        user_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> int:
         """Count books marked as completed."""
         # In a real implementation, this would query the database
@@ -343,10 +343,10 @@ class ReadingAnalyticsTool(MCPTool):
 
     def _calculate_pages_per_day(
         self,
-        sessions: List[Dict],
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> Dict:
+        sessions: list[dict],
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> dict:
         """Calculate pages read per day."""
         if not sessions:
             return {}
@@ -366,7 +366,7 @@ class ReadingAnalyticsTool(MCPTool):
             "total": sum(d["pages"] for d in result),
         }
 
-    def _update_reading_goals(self, session: Dict) -> None:
+    def _update_reading_goals(self, session: dict) -> None:
         """Update reading goals based on session data."""
         for goal in self._goals.values():
             if goal.is_completed:

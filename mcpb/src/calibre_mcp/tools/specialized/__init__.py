@@ -10,8 +10,8 @@ from .manage_specialized import manage_specialized  # noqa: F401
 
 # Helper functions are imported but NOT registered (they have no @mcp.tool() decorator)
 from .specialized_tools import (
-    japanese_book_organizer_helper,  # noqa: F401
     it_book_curator_helper,  # noqa: F401
+    japanese_book_organizer_helper,  # noqa: F401
     reading_recommendations_helper,  # noqa: F401
 )
 

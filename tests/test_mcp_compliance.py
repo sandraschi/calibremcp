@@ -33,7 +33,7 @@ class TestFastMCP212Compliance:
         """Test that the server has all required metadata."""
         # Check that the server has the required attributes
         assert hasattr(mcp, "name")
-        
+
         # Verify metadata values
         assert mcp.name == "CalibreMCP Phase 2"
 

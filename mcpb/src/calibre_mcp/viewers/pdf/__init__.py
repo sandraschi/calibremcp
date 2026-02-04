@@ -2,9 +2,9 @@
 PDF viewer module for CalibreMCP.
 """
 
-from typing import List, Dict, Any
-from pathlib import Path
 import base64
+from pathlib import Path
+from typing import Any, Dict, List
 
 try:
     import fitz  # PyMuPDF
@@ -31,7 +31,9 @@ class PdfViewer:
     def load(self, file_path: str) -> None:
         """Load a PDF file."""
         if fitz is None:
-            raise ImportError("PyMuPDF (fitz) is required for PDF viewing. Install it with: pip install PyMuPDF")
+            raise ImportError(
+                "PyMuPDF (fitz) is required for PDF viewing. Install it with: pip install PyMuPDF"
+            )
         self._file_path = Path(file_path)
         self._doc = fitz.open(file_path)
         self._extract_metadata()
@@ -54,7 +56,7 @@ class PdfViewer:
             "page_count": len(self._doc) if self._doc else 0,
         }
 
-    def render_page(self, page_number: int = 0, zoom: float = 1.5) -> Dict[str, Any]:
+    def render_page(self, page_number: int = 0, zoom: float = 1.5) -> dict[str, Any]:
         """Render a specific page of the PDF."""
         if not self._doc or page_number < 0 or page_number >= len(self._doc):
             return {
@@ -102,7 +104,7 @@ class PdfViewer:
                 "error": str(e),
             }
 
-    def _get_toc(self) -> List[Dict[str, Any]]:
+    def _get_toc(self) -> list[dict[str, Any]]:
         """Get the table of contents."""
         if not self._doc:
             return []
@@ -112,7 +114,7 @@ class PdfViewer:
             toc.append({"title": f"Page {i + 1}", "page": i})
         return toc
 
-    def search_text(self, query: str) -> List[Dict[str, Any]]:
+    def search_text(self, query: str) -> list[dict[str, Any]]:
         """Search for text in the PDF."""
         if not self._doc:
             return []
@@ -133,7 +135,7 @@ class PdfViewer:
 
         return results
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get metadata about the PDF."""
         return self._metadata
 

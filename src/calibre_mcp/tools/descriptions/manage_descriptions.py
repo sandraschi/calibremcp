@@ -6,17 +6,16 @@ browse/query operations analogous to manage_authors.
 For create/update/delete use manage_comments.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
-
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 from .description_helpers import (
-    list_descriptions_helper,
     get_description_helper,
     get_description_stats_helper,
     get_descriptions_by_letter_helper,
+    list_descriptions_helper,
 )
 
 logger = get_logger("calibremcp.tools.descriptions")
@@ -25,13 +24,13 @@ logger = get_logger("calibremcp.tools.descriptions")
 @mcp.tool()
 async def manage_descriptions(
     operation: str,
-    query: Optional[str] = None,
-    has_description: Optional[bool] = None,
+    query: str | None = None,
+    has_description: bool | None = None,
     limit: int = 50,
     offset: int = 0,
-    book_id: Optional[int] = None,
-    letter: Optional[str] = None,
-) -> Dict[str, Any]:
+    book_id: int | None = None,
+    letter: str | None = None,
+) -> dict[str, Any]:
     """
     Browse and query book descriptions (Calibre comment field).
 

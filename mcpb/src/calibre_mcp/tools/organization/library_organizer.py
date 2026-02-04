@@ -1,14 +1,14 @@
 """Advanced library organization tools for CalibreMCP."""
 
-from typing import Dict, List, Optional, Any, Union
+import fnmatch
+import logging
 import os
 import re
 import shutil
-import logging
-from datetime import datetime
-from collections import defaultdict
 import string
-import fnmatch
+from collections import defaultdict
+from datetime import datetime
+from typing import Any
 
 try:
     from fastmcp import MCPTool
@@ -24,10 +24,10 @@ class OrganizationRule(BaseModel):
     name: str
     enabled: bool = True
     priority: int = 0
-    conditions: List[Dict[str, Any]] = Field(default_factory=list)
-    actions: List[Dict[str, Any]] = Field(default_factory=list)
+    conditions: list[dict[str, Any]] = Field(default_factory=list)
+    actions: list[dict[str, Any]] = Field(default_factory=list)
 
-    def matches(self, book: Dict) -> bool:
+    def matches(self, book: dict) -> bool:
         """Check if a book matches this rule's conditions."""
         if not self.enabled:
             return False
@@ -94,8 +94,8 @@ class OrganizationPlan(BaseModel):
     """Plan for organizing the library."""
 
     name: str
-    description: Optional[str] = None
-    rules: List[OrganizationRule] = Field(default_factory=list)
+    description: str | None = None
+    rules: list[OrganizationRule] = Field(default_factory=list)
     dry_run: bool = True
     backup_before: bool = True
 
@@ -105,7 +105,7 @@ class OrganizationPlan(BaseModel):
         # Sort rules by priority (highest first)
         self.rules.sort(key=lambda r: r.priority, reverse=True)
 
-    def get_matching_rules(self, book: Dict) -> List[OrganizationRule]:
+    def get_matching_rules(self, book: dict) -> list[OrganizationRule]:
         """Get all rules that match the given book."""
         return [rule for rule in self.rules if rule.matches(book)]
 
@@ -114,9 +114,9 @@ class OrganizationResult(BaseModel):
     """Result of an organization operation."""
 
     book_id: str
-    actions: List[Dict[str, Any]] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
-    errors: List[str] = Field(default_factory=list)
+    actions: list[dict[str, Any]] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
     success: bool = True
 
 
@@ -130,15 +130,15 @@ class LibraryOrganizer(MCPTool):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(__name__)
-        self._saved_plans: Dict[str, OrganizationPlan] = {}
+        self._saved_plans: dict[str, OrganizationPlan] = {}
 
     # Organization Methods
     async def organize_library(
         self,
         library_path: str,
-        plan: Optional[Union[Dict, str]] = None,
-        book_ids: Optional[List[str]] = None,
-    ) -> Dict:
+        plan: dict | str | None = None,
+        book_ids: list[str] | None = None,
+    ) -> dict:
         """
         Organize the library according to the specified plan.
 
@@ -260,7 +260,7 @@ class LibraryOrganizer(MCPTool):
             "dry_run": org_plan.dry_run,
         }
 
-    async def save_organization_plan(self, plan: Dict) -> Dict:
+    async def save_organization_plan(self, plan: dict) -> dict:
         """Save an organization plan for future use."""
         try:
             org_plan = OrganizationPlan(**plan)
@@ -269,7 +269,7 @@ class LibraryOrganizer(MCPTool):
         except Exception as e:
             return {"error": f"Invalid plan: {str(e)}", "success": False}
 
-    async def get_organization_plans(self) -> Dict:
+    async def get_organization_plans(self) -> dict:
         """Get all saved organization plans."""
         return {
             "success": True,
@@ -278,14 +278,14 @@ class LibraryOrganizer(MCPTool):
             ],
         }
 
-    async def get_organization_plan(self, name: str) -> Dict:
+    async def get_organization_plan(self, name: str) -> dict:
         """Get a specific organization plan by name."""
         if name not in self._saved_plans:
             return {"error": f"No plan named '{name}' found", "success": False}
 
         return {"success": True, "plan": self._saved_plans[name].dict()}
 
-    async def delete_organization_plan(self, name: str) -> Dict:
+    async def delete_organization_plan(self, name: str) -> dict:
         """Delete a saved organization plan."""
         if name in self._saved_plans:
             del self._saved_plans[name]
@@ -301,7 +301,7 @@ class LibraryOrganizer(MCPTool):
         target_dir: str,
         create_subdirs: bool = True,
         dry_run: bool = True,
-    ) -> Dict:
+    ) -> dict:
         """
         Organize files in the library based on a pattern.
 
@@ -413,13 +413,13 @@ class LibraryOrganizer(MCPTool):
     async def clean_tags(
         self,
         library_path: str,
-        book_ids: Optional[List[str]] = None,
+        book_ids: list[str] | None = None,
         merge_similar: bool = True,
         min_length: int = 2,
         max_length: int = 50,
         remove_empty: bool = True,
         dry_run: bool = True,
-    ) -> Dict:
+    ) -> dict:
         """
         Clean and standardize tags across the library.
 
@@ -535,8 +535,8 @@ class LibraryOrganizer(MCPTool):
 
     # Helper Methods
     async def _apply_action(
-        self, storage, book: Dict, action_type: str, params: Dict, dry_run: bool = True
-    ) -> Dict:
+        self, storage, book: dict, action_type: str, params: dict, dry_run: bool = True
+    ) -> dict:
         """Apply an organization action to a book."""
         result = {"modified": False}
 
@@ -616,7 +616,7 @@ class LibraryOrganizer(MCPTool):
 
         return plan
 
-    async def _create_backup(self, library_path: str, suffix: str = "") -> Dict:
+    async def _create_backup(self, library_path: str, suffix: str = "") -> dict:
         """Create a backup of the library."""
         # This is a simplified version - in a real implementation, you might want to use
         # the backup functionality from extended_library_ops.py
@@ -650,7 +650,7 @@ class LibraryOrganizer(MCPTool):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def _find_similar_tags(self, tags: List[str], threshold: float = 0.8) -> Dict[str, str]:
+    def _find_similar_tags(self, tags: list[str], threshold: float = 0.8) -> dict[str, str]:
         """Find similar tags that should be merged."""
         from difflib import SequenceMatcher
 

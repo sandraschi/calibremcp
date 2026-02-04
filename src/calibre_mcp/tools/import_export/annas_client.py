@@ -6,7 +6,7 @@ HTML parsing may break if Anna's changes their page structure.
 """
 
 import os
-from typing import List, Dict, Any, Optional
+from typing import Any
 from urllib.parse import quote_plus
 
 import httpx
@@ -22,7 +22,7 @@ DEFAULT_MIRRORS = [
 ]
 
 
-def _get_mirrors() -> List[str]:
+def _get_mirrors() -> list[str]:
     """Get mirror list from env or default."""
     raw = os.environ.get("ANNAS_MIRRORS", "")
     if raw.strip():
@@ -34,8 +34,8 @@ async def search_annas(
     query: str,
     max_results: int = 20,
     timeout: float = 30.0,
-    mirrors: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    mirrors: list[str] | None = None,
+) -> dict[str, Any]:
     """
     Search Anna's Archive for books.
 
@@ -97,7 +97,7 @@ async def search_annas(
     }
 
 
-def _parse_search_results(html: str, base_url: str, max_results: int) -> List[Dict[str, Any]]:
+def _parse_search_results(html: str, base_url: str, max_results: int) -> list[dict[str, Any]]:
     """
     Parse Anna's search results HTML.
 

@@ -5,12 +5,12 @@ User comments are annotations/notes on books stored in CalibreMCP's own SQLite D
 distinct from Calibre's description/comment field (the book synopsis).
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
 from ...services.user_comment_service import user_comment_service
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.user_comments")
 
@@ -18,10 +18,10 @@ logger = get_logger("calibremcp.tools.user_comments")
 @mcp.tool()
 async def manage_user_comments(
     operation: str,
-    book_id: Optional[int] = None,
-    text: Optional[str] = None,
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    book_id: int | None = None,
+    text: str | None = None,
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """
     Manage user comments (annotations) on books.
 
@@ -142,7 +142,10 @@ async def manage_user_comments(
         return handle_tool_error(
             exception=e,
             operation=operation,
-            parameters={"book_id": book_id, "text": text[:50] + "..." if text and len(text) > 50 else text},
+            parameters={
+                "book_id": book_id,
+                "text": text[:50] + "..." if text and len(text) > 50 else text,
+            },
             tool_name="manage_user_comments",
             context="Managing user comments on books",
         )

@@ -2,10 +2,11 @@
 SQLAlchemy and Pydantic models for Identifiers in Calibre MCP.
 """
 
-from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, String, Text, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field, validator
+from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
@@ -71,7 +72,7 @@ class IdentifierCreate(IdentifierBase):
 class IdentifierUpdate(BaseModel):
     """Pydantic model for updating an identifier"""
 
-    val: Optional[str] = Field(None, description="The identifier value")
+    val: str | None = Field(None, description="The identifier value")
 
     @validator("val")
     def validate_val(cls, v):

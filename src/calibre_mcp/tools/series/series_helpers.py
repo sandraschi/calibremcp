@@ -4,21 +4,21 @@ Helper functions for series management operations.
 Uses DatabaseService (same as books, authors, tags, publishers).
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
 from ...db.database import db as database_singleton
-from ...services.series_service import get_series_service
 from ...logging_config import get_logger
+from ...services.series_service import get_series_service
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.series")
 
 
 async def list_series_helper(
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """List series with filtering and pagination. Uses DatabaseService (same as books/authors/tags)."""
     try:
         if not database_singleton._engine or not database_singleton._current_db_path:
@@ -49,7 +49,7 @@ async def list_series_helper(
         )
 
 
-async def get_series_helper(series_id: int) -> Dict[str, Any]:
+async def get_series_helper(series_id: int) -> dict[str, Any]:
     """Get series details by ID."""
     try:
         svc = get_series_service()
@@ -72,7 +72,7 @@ async def get_series_books_helper(
     series_id: int,
     limit: int = 50,
     offset: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get books in a series."""
     try:
         svc = get_series_service()
@@ -95,7 +95,7 @@ async def get_series_books_helper(
         )
 
 
-async def get_series_stats_helper() -> Dict[str, Any]:
+async def get_series_stats_helper() -> dict[str, Any]:
     """Get series statistics."""
     try:
         svc = get_series_service()
@@ -110,7 +110,7 @@ async def get_series_stats_helper() -> Dict[str, Any]:
         )
 
 
-async def get_series_by_letter_helper(letter: str) -> Dict[str, Any]:
+async def get_series_by_letter_helper(letter: str) -> dict[str, Any]:
     """Get series by first letter of name."""
     try:
         if len(letter) != 1 or not letter.isalpha():

@@ -17,7 +17,7 @@ def check_logs(tail: int = 50, errors_only: bool = False):
         return 0
 
     try:
-        with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
+        with open(log_file, encoding="utf-8", errors="ignore") as f:
             lines = f.readlines()
 
         if errors_only:

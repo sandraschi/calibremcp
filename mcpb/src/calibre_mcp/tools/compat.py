@@ -5,7 +5,8 @@ FastMCP 2.13+ doesn't have MCPTool base class - tools should use @mcp.tool() dec
 This shim provides temporary compatibility while tools are migrated.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any
+
 from fastmcp import FastMCP
 
 
@@ -19,11 +20,11 @@ class MCPTool:
 
     def __init__(self, *args, **kwargs):
         """Initialize compatibility shim."""
-        self.mcp: Optional[FastMCP] = None
+        self.mcp: FastMCP | None = None
         if args and isinstance(args[0], FastMCP):
             self.mcp = args[0]
 
-    async def _run(self, action: str, **kwargs) -> Dict[str, Any]:
+    async def _run(self, action: str, **kwargs) -> dict[str, Any]:
         """
         Route to appropriate handler based on action.
 

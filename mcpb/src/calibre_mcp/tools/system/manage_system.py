@@ -4,11 +4,11 @@ System management portmanteau tool for CalibreMCP.
 Consolidates all system-related operations into a single unified interface.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from . import system_tools
@@ -20,17 +20,17 @@ logger = get_logger("calibremcp.tools.system")
 async def manage_system(
     operation: str,
     # Help operation parameters
-    level: Optional[str] = "basic",
-    topic: Optional[str] = None,
+    level: str | None = "basic",
+    topic: str | None = None,
     # Status operation parameters
-    status_level: Optional[str] = "basic",
-    focus: Optional[str] = None,
+    status_level: str | None = "basic",
+    focus: str | None = None,
     # Tool help operation parameters
-    tool_name: Optional[str] = None,
-    tool_help_level: Optional[str] = "basic",
+    tool_name: str | None = None,
+    tool_help_level: str | None = "basic",
     # List tools operation parameters
-    category: Optional[str] = None,
-) -> Dict[str, Any]:
+    category: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive system management tool for CalibreMCP.
 
@@ -256,7 +256,9 @@ async def manage_system(
 
             try:
                 tool_hlp_lvl = HelpLevel(tool_help_level) if tool_help_level else HelpLevel.BASIC
-                result = await system_tools.tool_help_helper(tool_name=tool_name, level=tool_hlp_lvl)
+                result = await system_tools.tool_help_helper(
+                    tool_name=tool_name, level=tool_hlp_lvl
+                )
                 return {"content": result, "tool_name": tool_name, "level": tool_help_level}
             except Exception as e:
                 return handle_tool_error(
@@ -296,7 +298,9 @@ async def manage_system(
         elif operation == "health_check":
             try:
                 result = await system_tools.health_check_helper()
-                return result if isinstance(result, dict) else {"status": "unknown", "result": result}
+                return (
+                    result if isinstance(result, dict) else {"status": "unknown", "result": result}
+                )
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -339,4 +343,3 @@ async def manage_system(
             tool_name="manage_system",
             context="System management operation",
         )
-

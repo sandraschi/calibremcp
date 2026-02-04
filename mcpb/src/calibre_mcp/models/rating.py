@@ -2,10 +2,11 @@
 SQLAlchemy and Pydantic models for Ratings in Calibre MCP.
 """
 
-from typing import List, TYPE_CHECKING
-from sqlalchemy import Integer, Float
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field, validator
+from sqlalchemy import Float, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
@@ -22,7 +23,7 @@ class Rating(Base, BaseMixin):
     rating: Mapped[float] = mapped_column(Float, nullable=False, index=True)
 
     # Relationships
-    books: Mapped[List["Book"]] = relationship(
+    books: Mapped[list["Book"]] = relationship(
         "Book", secondary="books_ratings_link", back_populates="ratings"
     )
 

@@ -1,13 +1,13 @@
 """Tool for managing CalibreMCP users and permissions."""
 
-from typing import Dict, Optional
-from enum import Enum
-from pydantic import BaseModel, EmailStr, Field, validator, ConfigDict, field_serializer
-from datetime import datetime, timedelta
-from pathlib import Path
 import secrets
 import string
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+
 import jwt
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, validator
 
 try:
     from fastmcp import MCPTool
@@ -37,7 +37,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
     role: UserRole = UserRole.READER
-    full_name: Optional[str] = None
+    full_name: str | None = None
     is_active: bool = True
 
     @validator("password")
@@ -54,11 +54,11 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """Model for updating an existing user."""
 
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    role: Optional[UserRole] = None
-    full_name: Optional[str] = None
-    is_active: Optional[bool] = None
+    email: EmailStr | None = None
+    password: str | None = None
+    role: UserRole | None = None
+    full_name: str | None = None
+    is_active: bool | None = None
 
     @validator("password")
     def validate_password(cls, v):
@@ -76,13 +76,13 @@ class UserResponse(BaseModel):
     username: str
     email: str
     role: UserRole
-    full_name: Optional[str]
+    full_name: str | None
     is_active: bool
     created_at: datetime
-    last_login: Optional[datetime]
+    last_login: datetime | None
 
     @field_serializer("created_at", "last_login")
-    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+    def serialize_datetime(self, value: datetime | None) -> str | None:
         """Serialize datetime fields to ISO format strings."""
         return value.isoformat() if value else None
 
@@ -114,7 +114,7 @@ class UserManagerTool(MCPTool):
         secret_path.write_text(secret, encoding="utf-8")
         return secret
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate handler method."""
         handler = getattr(self, f"handle_{action}", None)
         if not handler:
@@ -126,7 +126,7 @@ class UserManagerTool(MCPTool):
             return {"error": str(e), "success": False}
 
     # User Management
-    async def handle_create_user(self, user_data: Dict) -> Dict:
+    async def handle_create_user(self, user_data: dict) -> dict:
         """Create a new user."""
         UserCreate(**user_data)
 
@@ -148,7 +148,7 @@ class UserManagerTool(MCPTool):
         # For now, just return a mock response
         return {"success": True, "user_id": "mock_user_id", "message": "User created successfully"}
 
-    async def handle_update_user(self, user_id: str, update_data: Dict) -> Dict:
+    async def handle_update_user(self, user_id: str, update_data: dict) -> dict:
         """Update an existing user."""
         # update = UserUpdate(**update_data)
 
@@ -162,7 +162,7 @@ class UserManagerTool(MCPTool):
 
         return {"success": True, "message": "User updated successfully"}
 
-    async def handle_delete_user(self, user_id: str) -> Dict:
+    async def handle_delete_user(self, user_id: str) -> dict:
         """Delete a user."""
         # In a real implementation, delete from database
         # await self._delete_user_from_db(user_id)
@@ -170,7 +170,7 @@ class UserManagerTool(MCPTool):
         return {"success": True, "message": "User deleted successfully"}
 
     # Authentication
-    async def handle_login(self, username: str, password: str) -> Dict:
+    async def handle_login(self, username: str, password: str) -> dict:
         """Authenticate a user and return a JWT token."""
         # In a real implementation, get user from database
         # user = await self._get_user_by_username(username)
@@ -207,7 +207,7 @@ class UserManagerTool(MCPTool):
             },
         }
 
-    async def handle_verify_token(self, token: str) -> Dict:
+    async def handle_verify_token(self, token: str) -> dict:
         """Verify a JWT token and return user data if valid."""
         try:
             payload = jwt.decode(token, self._jwt_secret, algorithms=[self._jwt_algorithm])
@@ -227,7 +227,7 @@ class UserManagerTool(MCPTool):
             return {"success": True, "valid": False, "error": "Invalid token"}
 
     # Helper methods
-    def _generate_jwt(self, user_data: Dict) -> str:
+    def _generate_jwt(self, user_data: dict) -> str:
         """Generate a JWT token for the user."""
         now = datetime.utcnow()
         expires = now + timedelta(minutes=self._jwt_expire_minutes)
@@ -243,7 +243,7 @@ class UserManagerTool(MCPTool):
         return jwt.encode(payload, self._jwt_secret, algorithm=self._jwt_algorithm)
 
     # User listing and details
-    async def handle_list_users(self, page: int = 1, per_page: int = 20) -> Dict:
+    async def handle_list_users(self, page: int = 1, per_page: int = 20) -> dict:
         """List all users with pagination."""
         # In a real implementation, fetch from database with pagination
         # users = await self._get_users_from_db(page, per_page)
@@ -268,7 +268,7 @@ class UserManagerTool(MCPTool):
             "pagination": {"page": page, "per_page": per_page, "total": 1, "total_pages": 1},
         }
 
-    async def handle_get_user(self, user_id: str) -> Dict:
+    async def handle_get_user(self, user_id: str) -> dict:
         """Get details for a specific user."""
         # In a real implementation, fetch from database
         # user = await self._get_user_by_id(user_id)

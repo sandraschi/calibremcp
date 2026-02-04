@@ -2,20 +2,21 @@
 Manga/Comic viewer for CalibreMCP with support for CBZ, CBR, and other formats.
 """
 
-import os
-import io
-import zipfile
-import rarfile
 import hashlib
+import io
+import logging
+import os
 import sqlite3
 import tempfile
-from pathlib import Path
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union, Any
+import zipfile
 from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any
+
+import rarfile
 from PIL import Image
 from pydantic import BaseModel
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +56,9 @@ class ComicMetadata(BaseModel):
     number: str = ""
     summary: str = ""
     publisher: str = ""
-    year: Optional[int] = None
-    month: Optional[int] = None
-    day: Optional[int] = None
+    year: int | None = None
+    month: int | None = None
+    day: int | None = None
     page_count: int = 0
     file_path: str = ""
     file_hash: str = ""
@@ -74,9 +75,9 @@ class ComicViewerState(BaseModel):
     page_layout: PageLayout = PageLayout.SINGLE
     zoom_mode: ZoomMode = ZoomMode.FIT_WIDTH
     zoom_level: float = 1.0
-    scroll_position: Tuple[float, float] = (0, 0)
-    bookmarks: List[Dict[str, Any]] = []
-    last_read: Optional[datetime] = None
+    scroll_position: tuple[float, float] = (0, 0)
+    bookmarks: list[dict[str, Any]] = []
+    last_read: datetime | None = None
     reading_progress: float = 0.0
     show_controls: bool = True
     show_thumbnails: bool = True
@@ -91,14 +92,14 @@ class MangaViewer:
     SUPPORTED_FORMATS = ["cbz", "cbr", "zip", "rar"]
     IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp", "bmp"}
 
-    def __init__(self, db_path: Optional[str] = None):
-        self._file_path: Optional[Path] = None
+    def __init__(self, db_path: str | None = None):
+        self._file_path: Path | None = None
         self._metadata = ComicMetadata()
         self._state = ComicViewerState()
         self._db_path = db_path or ":memory:"
         self._db_conn = None
         self._archive = None
-        self._pages: List[Dict[str, Any]] = []
+        self._pages: list[dict[str, Any]] = []
         self._temp_dir = None
         self._initialize_database()
 
@@ -137,7 +138,7 @@ class MangaViewer:
 
         self._db_conn.commit()
 
-    def _get_file_hash(self, file_path: Union[str, Path]) -> str:
+    def _get_file_hash(self, file_path: str | Path) -> str:
         """Calculate a hash of the file for identification."""
         file_path = Path(file_path)
         hasher = hashlib.sha256()
@@ -148,7 +149,7 @@ class MangaViewer:
 
         return hasher.hexdigest()
 
-    def load(self, file_path: Union[str, Path]) -> None:
+    def load(self, file_path: str | Path) -> None:
         """Load a comic/manga file."""
         file_path = Path(file_path)
         if not file_path.exists():
@@ -232,7 +233,7 @@ class MangaViewer:
                                 "format": img.format,
                             }
                         )
-                    except (IOError, OSError):
+                    except OSError:
                         continue
 
             except Exception as e:
@@ -265,7 +266,7 @@ class MangaViewer:
                                 "format": img.format,
                             }
                         )
-                    except (IOError, OSError):
+                    except OSError:
                         continue
 
             except Exception as e:
@@ -378,7 +379,7 @@ class MangaViewer:
 
         self._db_conn.commit()
 
-    def add_bookmark(self, page_number: int, name: str = "") -> Dict[str, Any]:
+    def add_bookmark(self, page_number: int, name: str = "") -> dict[str, Any]:
         """Add a new bookmark."""
         if not self._metadata or not self._db_conn or not self._pages:
             raise RuntimeError("No comic file loaded")
@@ -433,7 +434,7 @@ class MangaViewer:
 
         return deleted
 
-    def get_page(self, page_number: int) -> Optional[Dict[str, Any]]:
+    def get_page(self, page_number: int) -> dict[str, Any] | None:
         """Get a page by index."""
         if not self._pages or page_number < 0 or page_number >= len(self._pages):
             return None
@@ -441,8 +442,8 @@ class MangaViewer:
         return self._pages[page_number]
 
     def get_page_image(
-        self, page_number: int, max_size: Optional[Tuple[int, int]] = None
-    ) -> Optional[bytes]:
+        self, page_number: int, max_size: tuple[int, int] | None = None
+    ) -> bytes | None:
         """Get a page image, optionally resized."""
         page = self.get_page(page_number)
         if not page:
@@ -470,7 +471,7 @@ class MangaViewer:
             logger.error(f"Error processing page {page_number}: {e}")
             return None
 
-    def get_cover_image(self) -> Optional[bytes]:
+    def get_cover_image(self) -> bytes | None:
         """Get the cover image."""
         if not self._pages:
             return None
@@ -501,7 +502,7 @@ class MangaViewer:
 
         return False
 
-    def set_reading_direction(self, direction: Union[str, ReadingDirection]) -> None:
+    def set_reading_direction(self, direction: str | ReadingDirection) -> None:
         """Set the reading direction."""
         if isinstance(direction, str):
             direction = ReadingDirection(direction.lower())
@@ -510,7 +511,7 @@ class MangaViewer:
             self._state.reading_direction = direction
             self.save_reading_progress()
 
-    def set_page_layout(self, layout: Union[str, PageLayout]) -> None:
+    def set_page_layout(self, layout: str | PageLayout) -> None:
         """Set the page layout mode."""
         if isinstance(layout, str):
             layout = PageLayout(layout.lower())
@@ -519,7 +520,7 @@ class MangaViewer:
             self._state.page_layout = layout
             self.save_reading_progress()
 
-    def set_zoom_mode(self, zoom_mode: Union[str, ZoomMode]) -> None:
+    def set_zoom_mode(self, zoom_mode: str | ZoomMode) -> None:
         """Set the zoom mode."""
         if isinstance(zoom_mode, str):
             zoom_mode = ZoomMode(zoom_mode.lower())

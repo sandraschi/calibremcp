@@ -8,25 +8,24 @@ NOTE: These helpers delegate to the functions in library_analysis.py which
 are kept for backward compatibility but are no longer registered as tools.
 """
 
-
-from ...server import (
-    TagStatsResponse,
-    DuplicatesResponse,
-    SeriesAnalysisResponse,
-    LibraryHealthResponse,
-    UnreadPriorityResponse,
-    ReadingStats,
-)
 from ...logging_config import get_logger
+from ...server import (
+    DuplicatesResponse,
+    LibraryHealthResponse,
+    ReadingStats,
+    SeriesAnalysisResponse,
+    TagStatsResponse,
+    UnreadPriorityResponse,
+)
 
 # Import the deprecated individual tools as helpers (they no longer have @mcp.tool())
 from .library_analysis import (
-    get_tag_statistics,
+    analyze_library_health,
     find_duplicate_books,
     get_series_analysis,
-    analyze_library_health,
-    unread_priority_list,
+    get_tag_statistics,
     reading_statistics,
+    unread_priority_list,
 )
 
 logger = get_logger("calibremcp.tools.analysis")

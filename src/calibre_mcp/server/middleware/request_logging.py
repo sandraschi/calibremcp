@@ -2,8 +2,9 @@
 Request logging middleware for the Calibre MCP Server.
 """
 
-import time
 import logging
+import time
+
 from fastapi import Request
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ class RequestLoggingMiddleware:
         finally:
             # Calculate request duration
             process_time = (time.time() - start_time) * 1000
-            formatted_process_time = "{0:.2f}".format(process_time)
+            formatted_process_time = f"{process_time:.2f}"
 
             # Log response
             status_code = 500

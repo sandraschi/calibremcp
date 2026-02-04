@@ -4,17 +4,17 @@ Book export portmanteau tool for CalibreMCP.
 Consolidates all book export operations into a single unified interface.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .export_helpers import (
     export_csv_helper,
-    export_json_helper,
     export_html_helper,
+    export_json_helper,
     export_pandoc_helper,
 )
 
@@ -25,19 +25,19 @@ logger = get_logger("calibremcp.tools.export")
 async def export_books(
     operation: str,
     # Common parameters
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     open_file: bool = True,
     # CSV-specific parameters
-    include_fields: Optional[List[str]] = None,
+    include_fields: list[str] | None = None,
     # JSON-specific parameters
     pretty: bool = True,
     # Pandoc-specific parameters
     format_type: str = "docx",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Comprehensive book export tool for CalibreMCP.
 
@@ -339,4 +339,3 @@ async def export_books(
             tool_name="export_books",
             context="Book export operation",
         )
-

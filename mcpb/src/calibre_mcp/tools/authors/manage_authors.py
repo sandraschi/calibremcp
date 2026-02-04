@@ -4,19 +4,19 @@ Author management portmanteau tool for CalibreMCP.
 Consolidates all author-related operations into a single unified interface.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .author_helpers import (
-    list_authors_helper,
-    get_author_helper,
     get_author_books_helper,
+    get_author_helper,
     get_author_stats_helper,
     get_authors_by_letter_helper,
+    list_authors_helper,
 )
 
 logger = get_logger("calibremcp.tools.authors")
@@ -26,18 +26,18 @@ logger = get_logger("calibremcp.tools.authors")
 async def manage_authors(
     operation: str,
     # List operation parameters
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
     # Get operation parameters
-    author_id: Optional[int] = None,
+    author_id: int | None = None,
     # Get books operation parameters
     # (uses author_id from above)
     # Stats operation parameters
     # (no parameters needed)
     # By letter operation parameters
-    letter: Optional[str] = None,
-) -> Dict[str, Any]:
+    letter: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive author management tool for CalibreMCP.
 
@@ -341,4 +341,3 @@ async def manage_authors(
             tool_name="manage_authors",
             context="Author management operation",
         )
-

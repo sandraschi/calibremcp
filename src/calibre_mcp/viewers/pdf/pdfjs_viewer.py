@@ -2,12 +2,12 @@
 Enhanced PDF Viewer using PDF.js for CalibreMCP.
 """
 
+import hashlib
 import json
 import sqlite3
-import hashlib
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple, Union
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -18,24 +18,24 @@ class Bookmark(BaseModel):
     id: str
     title: str
     page_number: int
-    parent_id: Optional[str] = None
-    children: List["Bookmark"] = Field(default_factory=list)
+    parent_id: str | None = None
+    children: list["Bookmark"] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     modified_at: datetime = Field(default_factory=datetime.utcnow)
-    custom_data: Dict[str, Any] = Field(default_factory=dict)
+    custom_data: dict[str, Any] = Field(default_factory=dict)
 
 
 class PDFMetadata(BaseModel):
     """PDF metadata extracted from the document."""
 
-    title: Optional[str] = None
-    author: Optional[str] = None
-    subject: Optional[str] = None
-    keywords: Optional[str] = None
-    creator: Optional[str] = None
-    producer: Optional[str] = None
-    creation_date: Optional[datetime] = None
-    modification_date: Optional[datetime] = None
+    title: str | None = None
+    author: str | None = None
+    subject: str | None = None
+    keywords: str | None = None
+    creator: str | None = None
+    producer: str | None = None
+    creation_date: datetime | None = None
+    modification_date: datetime | None = None
     page_count: int = 0
     file_size: int = 0
     file_path: str
@@ -47,12 +47,12 @@ class PDFViewerState(BaseModel):
 
     current_page: int = 0
     zoom_level: float = 1.0
-    scroll_position: Tuple[float, float] = (0, 0)
+    scroll_position: tuple[float, float] = (0, 0)
     view_mode: str = "single"  # single, double, continuous
     rotation: int = 0  # 0, 90, 180, 270
-    bookmarks: List[Bookmark] = Field(default_factory=list)
-    toc: List[Dict[str, Any]] = Field(default_factory=list)
-    annotations: List[Dict[str, Any]] = Field(default_factory=list)
+    bookmarks: list[Bookmark] = Field(default_factory=list)
+    toc: list[dict[str, Any]] = Field(default_factory=list)
+    annotations: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class PDFViewer:
@@ -60,15 +60,15 @@ class PDFViewer:
 
     SUPPORTED_FORMATS = ["pdf"]
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initialize the PDF viewer.
 
         Args:
             db_path: Path to the SQLite database for storing bookmarks and annotations.
                      If None, uses in-memory storage.
         """
-        self._file_path: Optional[Path] = None
-        self._metadata: Optional[PDFMetadata] = None
+        self._file_path: Path | None = None
+        self._metadata: PDFMetadata | None = None
         self._state = PDFViewerState()
         self._db_path = db_path or ":memory:"
         self._db_conn = None
@@ -121,7 +121,7 @@ class PDFViewer:
 
         self._db_conn.commit()
 
-    def _get_file_hash(self, file_path: Union[str, Path]) -> str:
+    def _get_file_hash(self, file_path: str | Path) -> str:
         """Calculate a hash of the file for identification."""
         file_path = Path(file_path)
         hasher = hashlib.sha256()
@@ -214,8 +214,8 @@ class PDFViewer:
                 ]
 
     def _process_toc(
-        self, toc_items: List[Tuple[int, str, int, Dict[str, Any]]]
-    ) -> List[Dict[str, Any]]:
+        self, toc_items: list[tuple[int, str, int, dict[str, Any]]]
+    ) -> list[dict[str, Any]]:
         """Process the raw TOC items into a hierarchical structure."""
 
         def build_hierarchy(items, level=1):
@@ -334,8 +334,8 @@ class PDFViewer:
         self,
         title: str,
         page_number: int,
-        parent_id: Optional[str] = None,
-        custom_data: Optional[Dict[str, Any]] = None,
+        parent_id: str | None = None,
+        custom_data: dict[str, Any] | None = None,
     ) -> Bookmark:
         """Add a new bookmark."""
         if not self._metadata or not self._db_conn:
@@ -422,15 +422,15 @@ class PDFViewer:
 
         return deleted
 
-    def get_bookmarks(self) -> List[Bookmark]:
+    def get_bookmarks(self) -> list[Bookmark]:
         """Get all bookmarks."""
         return self._state.bookmarks
 
-    def get_toc(self) -> List[Dict[str, Any]]:
+    def get_toc(self) -> list[dict[str, Any]]:
         """Get the table of contents."""
         return self._state.toc
 
-    def get_metadata(self) -> Optional[PDFMetadata]:
+    def get_metadata(self) -> PDFMetadata | None:
         """Get PDF metadata."""
         return self._metadata
 

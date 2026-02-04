@@ -1,7 +1,6 @@
 """Viewer API endpoints."""
 
-from fastapi import APIRouter, Query, Body
-from typing import Optional
+from fastapi import APIRouter, Body, Query
 
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
@@ -11,9 +10,9 @@ router = APIRouter()
 
 @router.post("/open-random")
 async def open_random_book(
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
-    series: Optional[str] = None,
+    author: str | None = None,
+    tag: str | None = None,
+    series: str | None = None,
     format_preference: str = Query("EPUB", description="Preferred file format"),
 ):
     """Open a random book matching criteria."""
@@ -26,7 +25,7 @@ async def open_random_book(
                 "tag": tag,
                 "series": series,
                 "format_preference": format_preference,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -43,7 +42,7 @@ async def open_book(data: dict = Body(...)):
                 "operation": "open",
                 "book_id": data.get("book_id"),
                 "file_path": data.get("file_path"),
-            }
+            },
         )
         return result
     except Exception as e:
@@ -65,7 +64,7 @@ async def get_page(
                 "book_id": book_id,
                 "file_path": file_path,
                 "page_number": page_number,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -85,7 +84,7 @@ async def get_viewer_metadata(
                 "operation": "get_metadata",
                 "book_id": book_id,
                 "file_path": file_path,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -105,7 +104,7 @@ async def get_viewer_state(
                 "operation": "get_state",
                 "book_id": book_id,
                 "file_path": file_path,
-            }
+            },
         )
         return result
     except Exception as e:
@@ -127,7 +126,7 @@ async def update_viewer_state(data: dict = Body(...)):
                 "page_layout": data.get("page_layout"),
                 "zoom_mode": data.get("zoom_mode"),
                 "zoom_level": data.get("zoom_level"),
-            }
+            },
         )
         return result
     except Exception as e:
@@ -144,7 +143,7 @@ async def close_viewer(data: dict = Body(...)):
                 "operation": "close",
                 "book_id": data.get("book_id"),
                 "file_path": data.get("file_path"),
-            }
+            },
         )
         return result
     except Exception as e:
@@ -161,7 +160,7 @@ async def open_book_file(data: dict = Body(...)):
                 "operation": "open_file",
                 "book_id": data.get("book_id"),
                 "file_path": data.get("file_path"),
-            }
+            },
         )
         return result
     except Exception as e:

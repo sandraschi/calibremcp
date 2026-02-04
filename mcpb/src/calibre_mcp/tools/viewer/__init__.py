@@ -16,4 +16,3 @@ __all__ = [
     "manage_viewer",  # Portmanteau tool - registered with @mcp.tool()
     # Helper functions are NOT in this list (they have no @mcp.tool() decorator)
 ]
-

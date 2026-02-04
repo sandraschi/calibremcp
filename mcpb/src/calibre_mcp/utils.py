@@ -2,9 +2,9 @@
 Utility functions for Calibre MCP server.
 """
 
+import mimetypes
 import os
 import tempfile
-import mimetypes
 
 try:
     import magic
@@ -12,7 +12,6 @@ except ImportError:
     magic = None  # Optional dependency
 import hashlib
 from pathlib import Path
-from typing import Optional, Tuple, Union
 
 # Optional dependencies - imported only when needed
 try:
@@ -22,8 +21,9 @@ except ImportError:
     aiofiles = None  # Optional dependency
 
 try:
-    from PIL import Image, ImageOps
     from io import BytesIO
+
+    from PIL import Image, ImageOps
 except ImportError:
     Image = None  # Optional dependency
 
@@ -38,8 +38,8 @@ except ImportError:
     epub = None  # Optional dependency
 
 try:
-    from calibre.ebooks.metadata import get_metadata
     from calibre.ebooks.conversion import initialize_converters
+    from calibre.ebooks.metadata import get_metadata
 except ImportError:
     get_metadata = None
     initialize_converters = None  # Optional dependency
@@ -51,11 +51,11 @@ if initialize_converters is not None:
 # Import models with error handling
 try:
     # Try importing from models.py (flat structure)
-    from ..models import BookFormat, BookMetadata, BookIdentifier  # type: ignore
+    from ..models import BookFormat, BookIdentifier, BookMetadata  # type: ignore
 except ImportError:
     try:
         # Try importing from models package
-        from .models import BookFormat, BookMetadata, BookIdentifier  # type: ignore
+        from .models import BookFormat, BookIdentifier, BookMetadata  # type: ignore
     except ImportError:
         # Models not available - define minimal types
         from enum import Enum
@@ -92,7 +92,7 @@ class FileProcessingError(Exception):
     pass
 
 
-async def detect_file_type(file_path: Union[str, Path]) -> Tuple[str, str]:
+async def detect_file_type(file_path: str | Path) -> tuple[str, str]:
     """
     Detect the MIME type and file extension of a file.
 
@@ -179,7 +179,7 @@ def get_book_format_from_extension(extension: str) -> BookFormat:
         raise FileTypeNotSupportedError(f"Unsupported book format: {extension}")
 
 
-async def extract_metadata(file_path: Union[str, Path]) -> BookMetadata:
+async def extract_metadata(file_path: str | Path) -> BookMetadata:
     """
     Extract metadata from a book file.
 
@@ -264,10 +264,10 @@ async def extract_metadata(file_path: Union[str, Path]) -> BookMetadata:
 
 
 async def generate_thumbnail(
-    file_path: Union[str, Path],
-    size: Tuple[int, int] = (200, 300),
-    output_path: Optional[Union[str, Path]] = None,
-) -> Optional[Path]:
+    file_path: str | Path,
+    size: tuple[int, int] = (200, 300),
+    output_path: str | Path | None = None,
+) -> Path | None:
     """
     Generate a thumbnail for a book.
 
@@ -330,10 +330,10 @@ async def generate_thumbnail(
 
 
 async def convert_book(
-    input_path: Union[str, Path],
+    input_path: str | Path,
     output_format: BookFormat,
-    output_path: Optional[Union[str, Path]] = None,
-    metadata: Optional[BookMetadata] = None,
+    output_path: str | Path | None = None,
+    metadata: BookMetadata | None = None,
 ) -> Path:
     """
     Convert a book to another format.
@@ -414,7 +414,7 @@ async def convert_book(
         raise FileProcessingError(f"Failed to convert {input_path} to {output_format.value}: {e}")
 
 
-async def calculate_file_hash(file_path: Union[str, Path], algorithm: str = "sha256") -> str:
+async def calculate_file_hash(file_path: str | Path, algorithm: str = "sha256") -> str:
     """
     Calculate the hash of a file.
 

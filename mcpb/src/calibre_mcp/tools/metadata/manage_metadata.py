@@ -4,12 +4,11 @@ Metadata management portmanteau tool for CalibreMCP.
 Consolidates all metadata-related operations into a single unified interface.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any
 
-from ...server import mcp
-from ...server import MetadataUpdateRequest
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import MetadataUpdateRequest, mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from . import metadata_management
@@ -21,8 +20,8 @@ logger = get_logger("calibremcp.tools.metadata")
 async def manage_metadata(
     operation: str,
     # Update operation parameters
-    updates: Optional[List[MetadataUpdateRequest]] = None,
-) -> Dict[str, Any]:
+    updates: list[MetadataUpdateRequest] | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive metadata management tool for CalibreMCP.
 
@@ -240,4 +239,3 @@ async def manage_metadata(
             tool_name="manage_metadata",
             context="Metadata management operation",
         )
-

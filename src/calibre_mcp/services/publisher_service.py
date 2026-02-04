@@ -5,17 +5,17 @@ Uses Calibre's publishers table and books_publishers_link.
 Falls back to identifiers table (type='publisher') if publishers table does not exist.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any
 
-from sqlalchemy.orm import joinedload
-from sqlalchemy import func, desc, asc
+from sqlalchemy import asc, desc, func
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import joinedload
 
 from ..db.database import DatabaseService
 from ..db.models import Book, Identifier
-from .book_service import BookService
-from .base_service import NotFoundError
 from ..logging_config import get_logger
+from .base_service import NotFoundError
+from .book_service import BookService
 
 logger = get_logger("calibremcp.services.publisher")
 
@@ -41,8 +41,10 @@ class PublisherService:
     def _get_publisher_model(self, session):
         """Get Publisher model if publishers table exists."""
         try:
-            from ..db.models import Publisher, books_publishers_link
             from sqlalchemy import text
+
+            from ..db.models import Publisher, books_publishers_link
+
             result = session.execute(
                 text("SELECT name FROM sqlite_master WHERE type='table' AND name='publishers'")
             )
@@ -56,22 +58,29 @@ class PublisherService:
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
+        search: str | None = None,
         sort_by: str = "name",
         sort_order: str = "asc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get paginated list of publishers."""
         with self._get_db_session() as session:
             Publisher, books_publishers_link = self._get_publisher_model(session)
             if Publisher is not None:
                 return self._get_all_from_table(
-                    session, Publisher, books_publishers_link, skip, limit, search, sort_by, sort_order
+                    session,
+                    Publisher,
+                    books_publishers_link,
+                    skip,
+                    limit,
+                    search,
+                    sort_by,
+                    sort_order,
                 )
             return self._get_all_from_identifiers(session, skip, limit, search, sort_by, sort_order)
 
     def _get_all_from_table(
         self, session, Publisher, books_publishers_link, skip, limit, search, sort_by, sort_order
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         query = session.query(Publisher)
         if search:
             query = query.filter(Publisher.name.ilike(f"%{search}%"))
@@ -90,7 +99,14 @@ class PublisherService:
                 .filter(books_publishers_link.c.publisher == p.id)
                 .scalar()
             ) or 0
-            items.append({"id": p.id, "name": p.name, "sort": getattr(p, "sort", None), "book_count": book_count})
+            items.append(
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "sort": getattr(p, "sort", None),
+                    "book_count": book_count,
+                }
+            )
         return {
             "items": items,
             "total": total,
@@ -101,7 +117,7 @@ class PublisherService:
 
     def _get_all_from_identifiers(
         self, session, skip, limit, search, sort_by, sort_order
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         subq = (
             session.query(Identifier.val.label("name"), func.count(Identifier.book).label("bc"))
             .filter(Identifier.type == "publisher")
@@ -126,10 +142,11 @@ class PublisherService:
             "total_pages": (total + limit - 1) // limit if total > 0 else 1,
         }
 
-    def get_by_id(self, publisher_id: int) -> Dict[str, Any]:
+    def get_by_id(self, publisher_id: int) -> dict[str, Any]:
         """Get publisher details by ID (publishers table only)."""
         with self._get_db_session() as session:
             from ..db.models import Publisher, books_publishers_link
+
             pub = session.query(Publisher).filter(Publisher.id == publisher_id).first()
             if not pub:
                 raise NotFoundError(f"Publisher with ID {publisher_id} not found")
@@ -141,7 +158,7 @@ class PublisherService:
             ) or 0
             return {"id": pub.id, "name": pub.name, "sort": pub.sort, "book_count": book_count}
 
-    def get_by_name(self, name: str) -> Dict[str, Any]:
+    def get_by_name(self, name: str) -> dict[str, Any]:
         """Get publisher by name (works with both publishers table and identifiers)."""
         with self._get_db_session() as session:
             Publisher, books_publishers_link = self._get_publisher_model(session)
@@ -168,11 +185,11 @@ class PublisherService:
 
     def get_books_by_publisher(
         self,
-        publisher_id: Optional[int] = None,
-        publisher_name: Optional[str] = None,
+        publisher_id: int | None = None,
+        publisher_name: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get books by publisher (ID or name)."""
         with self._get_db_session() as session:
             Publisher, books_publishers_link = self._get_publisher_model(session)
@@ -247,7 +264,7 @@ class PublisherService:
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def get_by_letter(self, letter: str) -> List[Dict[str, Any]]:
+    def get_by_letter(self, letter: str) -> list[dict[str, Any]]:
         """Get publishers whose names start with the given letter."""
         if len(letter) != 1 or not letter.isalpha():
             return []
@@ -268,19 +285,25 @@ class PublisherService:
                         .filter(books_publishers_link.c.publisher == p.id)
                         .scalar()
                     ) or 0
-                    result.append({"id": p.id, "name": p.name, "sort": p.sort, "book_count": book_count})
+                    result.append(
+                        {"id": p.id, "name": p.name, "sort": p.sort, "book_count": book_count}
+                    )
                 return result
             rows = (
-                session.query(Identifier.val.label("name"), func.count(Identifier.book).label("book_count"))
+                session.query(
+                    Identifier.val.label("name"), func.count(Identifier.book).label("book_count")
+                )
                 .filter(Identifier.type == "publisher")
                 .filter(Identifier.val.ilike(f"{letter.lower()}%"))
                 .group_by(Identifier.val)
                 .order_by(Identifier.val)
                 .all()
             )
-            return [{"id": None, "name": r.name, "sort": None, "book_count": r.book_count} for r in rows]
+            return [
+                {"id": None, "name": r.name, "sort": None, "book_count": r.book_count} for r in rows
+            ]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get publisher statistics."""
         with self._get_db_session() as session:
             Publisher, books_publishers_link = self._get_publisher_model(session)
@@ -314,7 +337,9 @@ class PublisherService:
                 return {
                     "total_publishers": total,
                     "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],
-                    "top_publishers": [{"id": p.id, "name": p.name, "book_count": bc} for p, bc in top],
+                    "top_publishers": [
+                        {"id": p.id, "name": p.name, "book_count": bc} for p, bc in top
+                    ],
                 }
             total = (
                 session.query(func.count(func.distinct(Identifier.val)))
@@ -336,7 +361,9 @@ class PublisherService:
                 .all()
             )
             top = (
-                session.query(Identifier.val.label("name"), func.count(Identifier.book).label("book_count"))
+                session.query(
+                    Identifier.val.label("name"), func.count(Identifier.book).label("book_count")
+                )
                 .filter(Identifier.type == "publisher")
                 .filter(Identifier.val.isnot(None))
                 .filter(Identifier.val != "")
@@ -355,4 +382,5 @@ class PublisherService:
 def get_publisher_service() -> PublisherService:
     """Get publisher service with current database."""
     from ..db.database import get_database
+
     return PublisherService(get_database())

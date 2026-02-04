@@ -1,6 +1,8 @@
 """Test database init with actual library."""
+
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from calibre_mcp.db.database import init_database
@@ -18,4 +20,3 @@ stats = tag_service.get_tag_statistics()
 print(f"Total tags: {stats['total_tags']}")
 print(f"Used tags: {stats['used_tags_count']}")
 print(f"Unused tags: {stats['unused_tags_count']}")
-

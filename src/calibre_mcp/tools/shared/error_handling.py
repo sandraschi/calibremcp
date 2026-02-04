@@ -5,8 +5,8 @@ All tools MUST use these functions to return AI-friendly error responses
 that follow the .cursorrules Error Messages requirements.
 """
 
-from typing import Dict, Any, Optional, List
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,12 +15,12 @@ def format_error_response(
     error_msg: str,
     error_code: str,
     error_type: str,
-    operation: Optional[str] = None,
-    parameters: Optional[Dict[str, Any]] = None,
-    suggestions: Optional[List[str]] = None,
-    related_tools: Optional[List[str]] = None,
-    diagnostic_info: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    operation: str | None = None,
+    parameters: dict[str, Any] | None = None,
+    suggestions: list[str] | None = None,
+    related_tools: list[str] | None = None,
+    diagnostic_info: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Format a standardized error response for MCP tools.
 
@@ -53,7 +53,7 @@ def format_error_response(
             "diagnostic": {...}
         }
     """
-    response: Dict[str, Any] = {
+    response: dict[str, Any] = {
         "success": False,
         "error": error_msg,
         "error_code": error_code,
@@ -84,11 +84,11 @@ def format_error_response(
 
 def handle_tool_error(
     exception: Exception,
-    operation: Optional[str] = None,
-    parameters: Optional[Dict[str, Any]] = None,
+    operation: str | None = None,
+    parameters: dict[str, Any] | None = None,
     tool_name: str = "tool",
-    context: Optional[str] = None,
-) -> Dict[str, Any]:
+    context: str | None = None,
+) -> dict[str, Any]:
     """
     Handle exceptions in tools and return standardized error response.
 
@@ -167,7 +167,7 @@ def handle_tool_error(
         default_tools = ["manage_libraries", "query_books"]
 
     # Build diagnostic information
-    diagnostic: Dict[str, Any] = {
+    diagnostic: dict[str, Any] = {
         "error_type": error_type,
         "error_message": error_msg,
     }

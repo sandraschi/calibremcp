@@ -13,18 +13,18 @@ Use export_books(operation="...") instead:
 """
 
 import csv
-import json
-import shutil
-import os
-import subprocess
-import platform
 import html as html_module
-from pathlib import Path
-from typing import List, Optional, Dict, Any
+import json
+import os
+import platform
+import shutil
+import subprocess
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
-from ...services.book_service import book_service
 from ...logging_config import get_logger
+from ...services.book_service import book_service
 
 logger = get_logger("calibremcp.tools.export")
 
@@ -73,9 +73,9 @@ def _open_file_with_app(file_path: Path) -> bool:
 
 
 def _generate_intelligent_filename(
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
+    author: str | None = None,
+    tag: str | None = None,
+    book_ids: list[int] | None = None,
     format_ext: str = "csv",
 ) -> str:
     """
@@ -138,14 +138,14 @@ def _generate_intelligent_filename(
 
 # NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_csv(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
-    include_fields: Optional[List[str]] = None,
+    include_fields: list[str] | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export books to CSV format.
 
@@ -350,14 +350,14 @@ async def export_books_csv(
 
 # NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_json(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     pretty: bool = True,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export books to JSON format.
 
@@ -497,13 +497,13 @@ async def export_books_json(
 
 # NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_html(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export books to a beautiful HTML format with embedded CSS styling.
 
@@ -647,10 +647,10 @@ async def export_books_html(
 
 
 def _generate_styled_html(
-    books: List[Dict[str, Any]],
-    author: Optional[str],
-    tag: Optional[str],
-    book_ids: Optional[List[int]],
+    books: list[dict[str, Any]],
+    author: str | None,
+    tag: str | None,
+    book_ids: list[int] | None,
     export_date: str,
     export_date_formatted: str,
 ) -> str:
@@ -1100,14 +1100,14 @@ def _generate_styled_html(
 
 # NOTE: @mcp.tool() decorator removed - use export_books portmanteau tool instead
 async def export_books_pandoc(
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     format_type: str = "docx",
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 100,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Export books to various formats using Pandoc (if available).
 

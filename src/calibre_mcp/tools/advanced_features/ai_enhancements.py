@@ -1,9 +1,9 @@
 """AI-powered enhancements for CalibreMCP."""
 
-from typing import Dict, List, Optional, Any, Union
 import json
 import logging
 import os
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
@@ -46,7 +46,7 @@ class BookRecommendation(BaseModel):
     author: str
     score: float = Field(..., ge=0, le=1)
     reason: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class AIEnhancementsTool(MCPTool):
@@ -60,7 +60,7 @@ class AIEnhancementsTool(MCPTool):
         self._ai_model = None
         self._embedding_model = None
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate AI enhancement handler."""
         handler = getattr(self, f"ai_{action}", None)
         if not handler:
@@ -72,8 +72,8 @@ class AIEnhancementsTool(MCPTool):
             return {"error": str(e), "success": False}
 
     async def ai_generate_metadata(
-        self, book_id: Union[int, str], fields: List[str] = None, library_path: Optional[str] = None
-    ) -> Dict:
+        self, book_id: int | str, fields: list[str] = None, library_path: str | None = None
+    ) -> dict:
         """
         Generate missing metadata for a book using AI.
 
@@ -114,8 +114,8 @@ class AIEnhancementsTool(MCPTool):
         }
 
     async def ai_recommend_books(
-        self, book_id: Union[int, str], limit: int = 5, library_path: Optional[str] = None
-    ) -> Dict:
+        self, book_id: int | str, limit: int = 5, library_path: str | None = None
+    ) -> dict:
         """
         Get book recommendations based on a book.
 
@@ -175,9 +175,7 @@ class AIEnhancementsTool(MCPTool):
             "recommendations": [rec.dict() for rec in recommendations],
         }
 
-    async def ai_summarize_book(
-        self, book_id: Union[int, str], library_path: Optional[str] = None
-    ) -> Dict:
+    async def ai_summarize_book(self, book_id: int | str, library_path: str | None = None) -> dict:
         """
         Generate a summary of a book's content.
 
@@ -210,8 +208,8 @@ class AIEnhancementsTool(MCPTool):
         }
 
     async def ai_extract_quotes(
-        self, book_id: Union[int, str], max_quotes: int = 5, library_path: Optional[str] = None
-    ) -> Dict:
+        self, book_id: int | str, max_quotes: int = 5, library_path: str | None = None
+    ) -> dict:
         """
         Extract notable quotes from a book using AI.
 
@@ -239,7 +237,7 @@ class AIEnhancementsTool(MCPTool):
         }
 
     # Helper methods
-    def _get_missing_fields(self, metadata) -> List[str]:
+    def _get_missing_fields(self, metadata) -> list[str]:
         """Determine which metadata fields are missing or empty."""
         required_fields = ["title", "authors", "publisher", "published_date", "description"]
         missing = []
@@ -294,7 +292,7 @@ class AIEnhancementsTool(MCPTool):
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10), reraise=True
     )
-    async def _generate_metadata(self, metadata, fields: List[str]) -> Dict:
+    async def _generate_metadata(self, metadata, fields: list[str]) -> dict:
         """Generate metadata using AI.
 
         Args:
@@ -378,7 +376,7 @@ class AIEnhancementsTool(MCPTool):
             )
             raise AIServiceError("Failed to connect to AI service") from e
 
-    def _build_metadata_prompt(self, metadata, fields: List[str]) -> str:
+    def _build_metadata_prompt(self, metadata, fields: list[str]) -> str:
         """Build a prompt for the AI to generate metadata."""
         prompt_parts = [
             "You are a helpful assistant that generates book metadata. "
@@ -413,7 +411,7 @@ class AIEnhancementsTool(MCPTool):
         prompt_parts.append("\nRespond with a JSON object containing only the requested fields.")
         return "\n".join(prompt_parts)
 
-    def _parse_ai_response(self, content: str, fields: List[str]) -> Dict:
+    def _parse_ai_response(self, content: str, fields: list[str]) -> dict:
         """Parse the AI response into a structured dictionary.
 
         Args:
@@ -457,7 +455,7 @@ class AIEnhancementsTool(MCPTool):
             )
             raise AIServiceError("Failed to parse AI response") from e
 
-    async def _get_book_embedding(self, metadata) -> List[float]:
+    async def _get_book_embedding(self, metadata) -> list[float]:
         """Get an embedding vector for a book's metadata.
 
         Args:
@@ -540,7 +538,7 @@ class AIEnhancementsTool(MCPTool):
             )
             raise AIServiceError("Failed to generate embedding") from e
 
-    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+    def _cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """Calculate cosine similarity between two vectors."""
         import numpy as np
 

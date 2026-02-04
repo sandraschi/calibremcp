@@ -1,9 +1,8 @@
 """Publishers API endpoints. Uses DatabaseService (same as books, authors, tags)."""
 
 from fastapi import APIRouter, Query
-from typing import Optional
 
-from ..cache import get_libraries_cache, get_ttl_cached, set_ttl_cached, _ttl_key
+from ..cache import _ttl_key, get_libraries_cache, get_ttl_cached, set_ttl_cached
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
 
@@ -12,7 +11,7 @@ router = APIRouter()
 
 @router.get("/")
 async def list_publishers(
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):

@@ -6,12 +6,12 @@ Handles:
 - Flowing text format for single book (with full description)
 """
 
-from typing import List, Dict, Any
 import textwrap
+from typing import Any
 
 
 def format_book_table(
-    items: List[Dict[str, Any]],
+    items: list[dict[str, Any]],
     total: int,
     page: int,
     total_pages: int,
@@ -107,7 +107,7 @@ def format_book_table(
     return "\n".join(table_lines)
 
 
-def format_book_details(book: Dict[str, Any]) -> str:
+def format_book_details(book: dict[str, Any]) -> str:
     """
     Format a single book in flowing text with full description.
 

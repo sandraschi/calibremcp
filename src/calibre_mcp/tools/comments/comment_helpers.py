@@ -5,9 +5,10 @@ These functions are NOT registered as MCP tools - they are called by
 the manage_comments portmanteau tool.
 """
 
-from typing import Dict, Any
-from ...logging_config import get_logger
+from typing import Any
+
 from ...calibre_api import CalibreAPIError
+from ...logging_config import get_logger
 
 logger = get_logger("calibremcp.tools.comments")
 
@@ -35,7 +36,7 @@ def _normalize_comment(comment: Any) -> str:
     return str(comment) if comment else ""
 
 
-async def create_comment_helper(book_id: int, text: str) -> Dict[str, Any]:
+async def create_comment_helper(book_id: int, text: str) -> dict[str, Any]:
     """
     Create a new comment for a book.
 
@@ -102,7 +103,7 @@ async def create_comment_helper(book_id: int, text: str) -> Dict[str, Any]:
         raise CalibreAPIError(f"Failed to create comment: {str(e)}")
 
 
-async def read_comment_helper(book_id: int) -> Dict[str, Any]:
+async def read_comment_helper(book_id: int) -> dict[str, Any]:
     """
     Read comment for a book.
 
@@ -164,7 +165,7 @@ async def read_comment_helper(book_id: int) -> Dict[str, Any]:
         raise CalibreAPIError(f"Failed to read comment: {str(e)}")
 
 
-async def update_comment_helper(book_id: int, text: str) -> Dict[str, Any]:
+async def update_comment_helper(book_id: int, text: str) -> dict[str, Any]:
     """
     Update comment for a book (upsert behavior - creates if doesn't exist).
 
@@ -230,7 +231,7 @@ async def update_comment_helper(book_id: int, text: str) -> Dict[str, Any]:
         raise CalibreAPIError(f"Failed to update comment: {str(e)}")
 
 
-async def delete_comment_helper(book_id: int) -> Dict[str, Any]:
+async def delete_comment_helper(book_id: int) -> dict[str, Any]:
     """
     Delete comment for a book.
 
@@ -282,7 +283,7 @@ async def delete_comment_helper(book_id: int) -> Dict[str, Any]:
         raise CalibreAPIError(f"Failed to delete comment: {str(e)}")
 
 
-async def append_comment_helper(book_id: int, text: str) -> Dict[str, Any]:
+async def append_comment_helper(book_id: int, text: str) -> dict[str, Any]:
     """
     Append text to existing comment for a book.
 
@@ -358,4 +359,3 @@ async def append_comment_helper(book_id: int, text: str) -> Dict[str, Any]:
             exc_info=True,
         )
         raise CalibreAPIError(f"Failed to append comment: {str(e)}")
-

@@ -2,23 +2,23 @@
 Data models for Calibre MCP.
 """
 
-from sqlalchemy import Table, Column, Integer, ForeignKey
+# Import Pydantic models (BookFormat, BookStatus) from the parent package's models.py
+# These are in the Pydantic models.py file, not SQLAlchemy models
+from pathlib import Path
+
+from sqlalchemy import Column, ForeignKey, Integer, Table
 from sqlalchemy.orm import relationship
 
+from .author import Author
 from .base import Base
 from .book import Book
-from .author import Author
-from .series import Series
-from .tag import Tag
-from .rating import Rating
 from .comment import Comment
 from .data import Data
 from .identifier import Identifier
 from .library import Library, LibraryInfo
-
-# Import Pydantic models (BookFormat, BookStatus) from the parent package's models.py
-# These are in the Pydantic models.py file, not SQLAlchemy models
-from pathlib import Path
+from .rating import Rating
+from .series import Series
+from .tag import Tag
 
 if __name__ != "__main__":
     # Find the parent calibre_mcp package directory

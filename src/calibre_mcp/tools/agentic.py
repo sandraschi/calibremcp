@@ -5,8 +5,7 @@ FastMCP 2.14.3 sampling capabilities for autonomous library management workflows
 Provides conversational tool returns and intelligent orchestration.
 """
 
-import asyncio
-from typing import Any, Dict, List
+from typing import Any
 
 from ..server import mcp
 
@@ -17,9 +16,9 @@ def register_agentic_tools():
     @mcp.tool()
     async def agentic_calibre_workflow(
         workflow_prompt: str,
-        available_tools: List[str],
+        available_tools: list[str],
         max_iterations: int = 5,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute agentic Calibre workflows using FastMCP 2.14.3 sampling with tools.
 
         This tool demonstrates SEP-1577 by enabling the server's LLM to autonomously
@@ -45,7 +44,7 @@ def register_agentic_tools():
                 "prompt": workflow_prompt,
                 "available_tools": available_tools,
                 "max_iterations": max_iterations,
-                "analysis": "LLM will autonomously orchestrate Calibre library operations"
+                "analysis": "LLM will autonomously orchestrate Calibre library operations",
             }
 
             # This would use FastMCP 2.14.3 sampling to execute complex workflows
@@ -62,8 +61,8 @@ def register_agentic_tools():
                     "Complex multi-step workflows",
                     "Conversational responses",
                     "Error recovery and validation",
-                    "Parallel processing support"
-                ]
+                    "Parallel processing support",
+                ],
             }
 
             return result
@@ -72,16 +71,16 @@ def register_agentic_tools():
             return {
                 "success": False,
                 "error": f"Failed to execute agentic workflow: {str(e)}",
-                "message": "An error occurred while setting up the agentic workflow."
+                "message": "An error occurred while setting up the agentic workflow.",
             }
 
     @mcp.tool()
     async def intelligent_library_processing(
-        books: List[Dict[str, Any]],
+        books: list[dict[str, Any]],
         processing_goal: str,
-        available_operations: List[str],
+        available_operations: list[str],
         processing_strategy: str = "adaptive",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Intelligent batch book processing using FastMCP 2.14.3 sampling with tools.
 
         This tool uses the client's LLM to intelligently decide how to process batches
@@ -108,7 +107,7 @@ def register_agentic_tools():
                 "book_count": len(books),
                 "available_operations": available_operations,
                 "strategy": processing_strategy,
-                "analysis": "LLM will analyze each book and choose optimal processing operations"
+                "analysis": "LLM will analyze each book and choose optimal processing operations",
             }
 
             result = {
@@ -124,8 +123,8 @@ def register_agentic_tools():
                     "Automatic operation selection",
                     "Adaptive batching strategies",
                     "Quality validation",
-                    "Error recovery"
-                ]
+                    "Error recovery",
+                ],
             }
 
             return result
@@ -134,14 +133,14 @@ def register_agentic_tools():
             return {
                 "success": False,
                 "error": f"Failed to initiate intelligent processing: {str(e)}",
-                "message": "An error occurred while setting up intelligent library processing."
+                "message": "An error occurred while setting up intelligent library processing.",
             }
 
     @mcp.tool()
     async def conversational_calibre_assistant(
         user_query: str,
         context_level: str = "comprehensive",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Conversational Calibre assistant with natural language responses.
 
         Provides human-like interaction for Calibre library management with detailed
@@ -159,13 +158,15 @@ def register_agentic_tools():
             response_templates = {
                 "basic": "I can help you manage your Calibre e-book library.",
                 "comprehensive": "I'm your Calibre library assistant. I can help you browse books, manage metadata, organize collections, search content, and convert formats.",
-                "detailed": "Welcome to CalibreMCP! I'm equipped with comprehensive e-book library management capabilities including book browsing, metadata editing, format conversion, content searching, collection management, and intelligent library organization workflows."
+                "detailed": "Welcome to CalibreMCP! I'm equipped with comprehensive e-book library management capabilities including book browsing, metadata editing, format conversion, content searching, collection management, and intelligent library organization workflows.",
             }
 
             result = {
                 "success": True,
                 "operation": "conversational_assistance",
-                "message": response_templates.get(context_level, response_templates["comprehensive"]),
+                "message": response_templates.get(
+                    context_level, response_templates["comprehensive"]
+                ),
                 "user_query": user_query,
                 "context_level": context_level,
                 "suggestions": [
@@ -173,14 +174,14 @@ def register_agentic_tools():
                     "Search for specific books or authors",
                     "Manage book metadata and tags",
                     "Convert between different formats",
-                    "Organize books into collections"
+                    "Organize books into collections",
                 ],
                 "next_steps": [
                     "Use 'manage_library' to browse your books",
                     "Use 'manage_books' to edit metadata",
                     "Use 'search_books' to find content",
-                    "Use 'manage_collections' to organize books"
-                ]
+                    "Use 'manage_collections' to organize books",
+                ],
             }
 
             return result
@@ -189,5 +190,5 @@ def register_agentic_tools():
             return {
                 "success": False,
                 "error": f"Failed to provide conversational assistance: {str(e)}",
-                "message": "I encountered an error while processing your request."
+                "message": "I encountered an error while processing your request.",
             }

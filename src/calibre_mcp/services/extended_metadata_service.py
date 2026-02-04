@@ -4,9 +4,9 @@ Service for extended book metadata (translator, first_published).
 Stored in CalibreMCP-owned SQLite. Calibre's metadata.db schema is not modified.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any
 
-from ..db.user_data import get_user_data_db, BookExtendedMetadata
+from ..db.user_data import BookExtendedMetadata, get_user_data_db
 from ..logging_config import get_logger
 
 logger = get_logger("calibremcp.services.extended_metadata")
@@ -19,7 +19,9 @@ class ExtendedMetadataService:
         """Get current library path (parent of metadata.db)."""
         try:
             from pathlib import Path
+
             from ..db.database import get_database
+
             db_path = get_database().get_current_path()
             if not db_path:
                 return ""
@@ -30,8 +32,8 @@ class ExtendedMetadataService:
     def get(
         self,
         book_id: int,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Get extended metadata for a book."""
         lib_path = library_path or self._get_library_path()
         if not lib_path:
@@ -74,27 +76,31 @@ class ExtendedMetadataService:
         self,
         book_id: int,
         translator: str,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Set or update translator for a book."""
-        return self._upsert(book_id, translator=translator.strip() or None, library_path=library_path)
+        return self._upsert(
+            book_id, translator=translator.strip() or None, library_path=library_path
+        )
 
     def set_first_published(
         self,
         book_id: int,
         first_published: str,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Set or update first published (e.g. '1599', '44 BC')."""
-        return self._upsert(book_id, first_published=first_published.strip() or None, library_path=library_path)
+        return self._upsert(
+            book_id, first_published=first_published.strip() or None, library_path=library_path
+        )
 
     def upsert(
         self,
         book_id: int,
-        translator: Optional[str] = None,
-        first_published: Optional[str] = None,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        translator: str | None = None,
+        first_published: str | None = None,
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Create or update extended metadata. Partial updates supported."""
         return self._upsert(
             book_id,
@@ -106,10 +112,10 @@ class ExtendedMetadataService:
     def _upsert(
         self,
         book_id: int,
-        translator: Optional[str] = None,
-        first_published: Optional[str] = None,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        translator: str | None = None,
+        first_published: str | None = None,
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         lib_path = library_path or self._get_library_path()
         if not lib_path:
             return {
@@ -162,8 +168,8 @@ class ExtendedMetadataService:
     def delete(
         self,
         book_id: int,
-        library_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        library_path: str | None = None,
+    ) -> dict[str, Any]:
         """Remove extended metadata for a book."""
         lib_path = library_path or self._get_library_path()
         if not lib_path:

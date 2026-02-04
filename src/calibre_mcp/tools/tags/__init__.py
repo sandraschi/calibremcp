@@ -11,5 +11,3 @@ from .manage_tags import manage_tags  # noqa: F401
 # They are used internally by the portmanteau tool
 
 __all__ = ["manage_tags"]
-
-

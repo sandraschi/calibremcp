@@ -3,14 +3,15 @@ Main entry point for the Calibre MCP Server.
 """
 
 import logging
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import books, metadata, library, search, users
-from .middleware import RequestLoggingMiddleware
 from .core.exception_handlers import add_exception_handlers
+from .middleware import RequestLoggingMiddleware
+from .routers import books, library, metadata, search, users
 
 # Configure logging
 logging.basicConfig(

@@ -5,7 +5,8 @@ These functions are NOT registered as MCP tools - they are called by
 the manage_content_sync portmanteau tool.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any
+
 from ...logging_config import get_logger
 from ..shared.error_handling import format_error_response
 
@@ -29,9 +30,9 @@ def _get_sync_tool() -> ContentSyncTool:
 async def register_device_helper(
     name: str,
     device_type: str,
-    device_id: Optional[str] = None,
-    sync_settings: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    device_id: str | None = None,
+    sync_settings: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Helper to register a device."""
     try:
         tool = _get_sync_tool()
@@ -48,7 +49,7 @@ async def register_device_helper(
         )
 
 
-async def update_device_helper(device_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+async def update_device_helper(device_id: str, updates: dict[str, Any]) -> dict[str, Any]:
     """Helper to update device information."""
     try:
         tool = _get_sync_tool()
@@ -63,7 +64,7 @@ async def update_device_helper(device_id: str, updates: Dict[str, Any]) -> Dict[
         )
 
 
-async def get_device_helper(device_id: str) -> Dict[str, Any]:
+async def get_device_helper(device_id: str) -> dict[str, Any]:
     """Helper to get device information."""
     try:
         tool = _get_sync_tool()
@@ -81,8 +82,8 @@ async def get_device_helper(device_id: str) -> Dict[str, Any]:
 async def start_sync_helper(
     device_id: str,
     sync_type: str = "full",
-    library_path: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+) -> dict[str, Any]:
     """Helper to start a sync job."""
     try:
         tool = _get_sync_tool()
@@ -99,7 +100,7 @@ async def start_sync_helper(
         )
 
 
-async def get_sync_status_helper(job_id: str) -> Dict[str, Any]:
+async def get_sync_status_helper(job_id: str) -> dict[str, Any]:
     """Helper to get sync job status."""
     try:
         tool = _get_sync_tool()
@@ -114,7 +115,7 @@ async def get_sync_status_helper(job_id: str) -> Dict[str, Any]:
         )
 
 
-async def cancel_sync_helper(job_id: str) -> Dict[str, Any]:
+async def cancel_sync_helper(job_id: str) -> dict[str, Any]:
     """Helper to cancel a sync job."""
     try:
         tool = _get_sync_tool()
@@ -127,5 +128,3 @@ async def cancel_sync_helper(job_id: str) -> Dict[str, Any]:
             error_type=type(e).__name__,
             operation="cancel",
         )
-
-

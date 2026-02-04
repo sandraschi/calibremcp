@@ -4,20 +4,20 @@ Analysis management portmanteau tool for CalibreMCP.
 Consolidates all analysis and statistics operations into a single unified interface.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .analysis_helpers import (
-    get_tag_statistics_helper,
+    analyze_library_health_helper,
     find_duplicate_books_helper,
     get_series_analysis_helper,
-    analyze_library_health_helper,
-    unread_priority_list_helper,
+    get_tag_statistics_helper,
     reading_statistics_helper,
+    unread_priority_list_helper,
 )
 
 logger = get_logger("calibremcp.tools.analysis")
@@ -26,10 +26,10 @@ logger = get_logger("calibremcp.tools.analysis")
 @mcp.tool()
 async def manage_analysis(
     operation: str,
-    limit: Optional[int] = None,
-    threshold: Optional[float] = None,
-    book_id: Optional[int] = None,
-) -> Dict[str, Any]:
+    limit: int | None = None,
+    threshold: float | None = None,
+    book_id: int | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive analysis and statistics tool for CalibreMCP.
 

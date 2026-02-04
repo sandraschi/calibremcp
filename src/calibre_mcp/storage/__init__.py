@@ -15,12 +15,12 @@ class StorageBackend(ABC):
     """Abstract base class for storage backends"""
 
     @abstractmethod
-    async def list_books(self, **filters) -> List[Book]:
+    async def list_books(self, **filters) -> list[Book]:
         """List books with optional filtering"""
         pass
 
     @abstractmethod
-    async def get_book(self, book_id: Union[int, str]) -> Optional[Book]:
+    async def get_book(self, book_id: int | str) -> Book | None:
         """Get a book by ID"""
         pass
 
@@ -35,7 +35,7 @@ from .local import LocalStorage  # noqa: E402
 from .remote import RemoteStorage  # noqa: E402
 
 
-def get_storage_backend(server_name: Optional[str] = None, **kwargs) -> StorageBackend:
+def get_storage_backend(server_name: str | None = None, **kwargs) -> StorageBackend:
     """
     Factory function to get the appropriate storage backend.
 

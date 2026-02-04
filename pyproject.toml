@@ -69,8 +69,13 @@ target-version = ["py311"]
 line-length = 100
 target-version = "py311"
 
-# Per-file ignores for intentional import order (MCP stdio protocol requires warning suppression before imports)
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
+ignore = ["E501", "B008", "C901", "B904"]
+exclude = ["__pycache__", ".git", ".venv", "venv", "dist", "build"]
+
 [tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]  # Allow assert in tests
 "src/calibre_mcp/__main__.py" = ["E402"]  # Imports after warning suppression for MCP stdio protocol
 "src/calibre_mcp/server.py" = ["E402"]  # Imports after warning suppression for MCP stdio protocol
 

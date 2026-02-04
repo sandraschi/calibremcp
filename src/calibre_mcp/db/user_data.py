@@ -12,14 +12,15 @@ Database file: %APPDATA%/calibre-mcp/calibre_mcp_data.db (Windows)
 
 import os
 import platform
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Optional
 
-from sqlalchemy import create_engine, Column, Integer, Text, DateTime, String
-from sqlalchemy.orm import sessionmaker, Session, declarative_base
+from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from ..logging_config import get_logger
 
@@ -120,7 +121,7 @@ class UserDataDB:
             cls._instance._session_factory = None
         return cls._instance
 
-    def initialize(self, db_path: Optional[Path] = None) -> None:
+    def initialize(self, db_path: Path | None = None) -> None:
         """Initialize or ensure database exists and tables are created."""
         if self._engine is not None:
             return
@@ -135,9 +136,7 @@ class UserDataDB:
             pool_pre_ping=True,
         )
         Base.metadata.create_all(self._engine)
-        self._session_factory = sessionmaker(
-            autocommit=False, autoflush=False, bind=self._engine
-        )
+        self._session_factory = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
         logger.info(
             "User data database initialized",
             extra={"path": str(path), "service": "user_data_db"},

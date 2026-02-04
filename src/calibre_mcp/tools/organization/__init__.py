@@ -7,10 +7,10 @@ Consolidates all library organization operations into a single unified interface
 - Organization plan management
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from ...server import mcp
 from ...logging_config import get_logger
+from ...server import mcp
 
 # Import organization tool implementations
 from .library_organizer import LibraryOrganizer
@@ -22,22 +22,22 @@ logger = get_logger("calibremcp.tools.organization")
 async def manage_organization(
     operation: str,
     # Common parameters
-    library_path: Optional[str] = None,
-    book_ids: Optional[List[str]] = None,
+    library_path: str | None = None,
+    book_ids: list[str] | None = None,
     dry_run: bool = True,
     # Organization plan parameters
-    plan: Optional[Dict[str, Any]] = None,
-    plan_name: Optional[str] = None,
+    plan: dict[str, Any] | None = None,
+    plan_name: str | None = None,
     # File organization parameters
-    pattern: Optional[str] = None,
-    target_dir: Optional[str] = None,
+    pattern: str | None = None,
+    target_dir: str | None = None,
     create_subdirs: bool = True,
     # Tag cleaning parameters
     merge_similar: bool = True,
     min_length: int = 2,
     max_length: int = 50,
     remove_empty: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Comprehensive library organization portmanteau tool for Calibre MCP server.
 
@@ -115,7 +115,7 @@ async def manage_organization(
                 return {
                     "success": False,
                     "error": "plan parameter required for library organization",
-                    "message": "Please provide an organization plan to apply to the library."
+                    "message": "Please provide an organization plan to apply to the library.",
                 }
             return await library_organizer.organize_library(
                 library_path=library_path, plan=plan, book_ids=book_ids
@@ -126,18 +126,25 @@ async def manage_organization(
                 return {
                     "success": False,
                     "error": "pattern and target_dir parameters required for file organization",
-                    "message": "Please specify a file pattern and target directory for organization."
+                    "message": "Please specify a file pattern and target directory for organization.",
                 }
             return await library_organizer.organize_files(
-                library_path=library_path, pattern=pattern, target_dir=target_dir,
-                create_subdirs=create_subdirs, dry_run=dry_run
+                library_path=library_path,
+                pattern=pattern,
+                target_dir=target_dir,
+                create_subdirs=create_subdirs,
+                dry_run=dry_run,
             )
 
         elif operation == "clean_tags":
             return await library_organizer.clean_tags(
-                library_path=library_path, book_ids=book_ids, merge_similar=merge_similar,
-                min_length=min_length, max_length=max_length, remove_empty=remove_empty,
-                dry_run=dry_run
+                library_path=library_path,
+                book_ids=book_ids,
+                merge_similar=merge_similar,
+                min_length=min_length,
+                max_length=max_length,
+                remove_empty=remove_empty,
+                dry_run=dry_run,
             )
 
         elif operation == "save_plan":
@@ -145,7 +152,7 @@ async def manage_organization(
                 return {
                     "success": False,
                     "error": "plan parameter required for saving organization plan",
-                    "message": "Please provide an organization plan to save."
+                    "message": "Please provide an organization plan to save.",
                 }
             return await library_organizer.save_organization_plan(plan=plan)
 
@@ -157,7 +164,7 @@ async def manage_organization(
                 return {
                     "success": False,
                     "error": "plan_name parameter required for retrieving organization plan",
-                    "message": "Please specify the name of the organization plan to retrieve."
+                    "message": "Please specify the name of the organization plan to retrieve.",
                 }
             return await library_organizer.get_organization_plan(name=plan_name)
 
@@ -166,18 +173,25 @@ async def manage_organization(
                 return {
                     "success": False,
                     "error": "plan_name parameter required for deleting organization plan",
-                    "message": "Please specify the name of the organization plan to delete."
+                    "message": "Please specify the name of the organization plan to delete.",
                 }
             return await library_organizer.delete_organization_plan(name=plan_name)
 
         else:
-            available_ops = ["organize_library", "organize_files", "clean_tags", "save_plan",
-                           "get_plans", "get_plan", "delete_plan"]
+            available_ops = [
+                "organize_library",
+                "organize_files",
+                "clean_tags",
+                "save_plan",
+                "get_plans",
+                "get_plan",
+                "delete_plan",
+            ]
             return {
                 "success": False,
                 "error": f"Unknown operation: {operation}",
                 "message": f"Available operations: {', '.join(available_ops)}",
-                "available_operations": available_ops
+                "available_operations": available_ops,
             }
 
     except Exception as e:
@@ -186,5 +200,5 @@ async def manage_organization(
             "success": False,
             "error": f"Organization operation failed: {str(e)}",
             "operation": operation,
-            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details."
+            "message": f"Sorry, the {operation.replace('_', ' ')} operation encountered an error. Please check the logs for details.",
         }

@@ -1,10 +1,10 @@
 """Content synchronization for CalibreMCP."""
 
-from typing import Dict, List, Optional, Any
 import asyncio
 import hashlib
 import os
 from datetime import datetime
+from typing import Any
 
 try:
     from fastmcp import MCPTool
@@ -20,8 +20,8 @@ class SyncDevice(BaseModel):
     id: str
     name: str
     type: str  # 'web', 'mobile', 'desktop', 'ereader', 'other'
-    last_sync: Optional[datetime] = None
-    sync_settings: Dict[str, Any] = Field(default_factory=dict)
+    last_sync: datetime | None = None
+    sync_settings: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -42,10 +42,10 @@ class SyncJob(BaseModel):
     progress: float = 0.0  # 0.0 to 1.0
     total_items: int = 0
     processed_items: int = 0
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    error: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    error: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
@@ -89,7 +89,7 @@ class ContentSyncTool(MCPTool):
         self._jobs = {}  # In-memory storage for sync jobs
         self._sync_queues = {}  # For background sync tasks
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate sync handler."""
         handler = getattr(self, f"sync_{action}", None)
         if not handler:
@@ -105,9 +105,9 @@ class ContentSyncTool(MCPTool):
         self,
         name: str,
         device_type: str,
-        device_id: Optional[str] = None,
-        sync_settings: Optional[Dict] = None,
-    ) -> Dict:
+        device_id: str | None = None,
+        sync_settings: dict | None = None,
+    ) -> dict:
         """Register a new device for synchronization."""
         if not device_id:
             # Generate a device ID if not provided
@@ -120,7 +120,7 @@ class ContentSyncTool(MCPTool):
         self._devices[device_id] = device
         return {"success": True, "device": device.dict()}
 
-    async def sync_update_device(self, device_id: str, updates: Dict[str, Any]) -> Dict:
+    async def sync_update_device(self, device_id: str, updates: dict[str, Any]) -> dict:
         """Update device information and settings."""
         if device_id not in self._devices:
             return {"error": f"Device {device_id} not found", "success": False}
@@ -136,7 +136,7 @@ class ContentSyncTool(MCPTool):
 
         return {"success": True, "device": device.dict()}
 
-    async def sync_get_device(self, device_id: str) -> Dict:
+    async def sync_get_device(self, device_id: str) -> dict:
         """Get device information."""
         if device_id not in self._devices:
             return {"error": f"Device {device_id} not found", "success": False}
@@ -148,8 +148,8 @@ class ContentSyncTool(MCPTool):
         self,
         device_id: str,
         sync_type: str = "full",  # 'full', 'incremental', 'metadata_only', 'content_only'
-        library_path: Optional[str] = None,
-    ) -> Dict:
+        library_path: str | None = None,
+    ) -> dict:
         """Start a synchronization job for a device."""
         if device_id not in self._devices:
             return {"error": f"Device {device_id} not found", "success": False}
@@ -170,7 +170,7 @@ class ContentSyncTool(MCPTool):
 
         return {"success": True, "job_id": job_id}
 
-    async def sync_status(self, job_id: str) -> Dict:
+    async def sync_status(self, job_id: str) -> dict:
         """Get the status of a synchronization job."""
         if job_id not in self._jobs:
             return {"error": f"Job {job_id} not found", "success": False}
@@ -178,7 +178,7 @@ class ContentSyncTool(MCPTool):
         job = self._jobs[job_id]
         return {"success": True, "job": job.dict()}
 
-    async def sync_cancel(self, job_id: str) -> Dict:
+    async def sync_cancel(self, job_id: str) -> dict:
         """Cancel a running synchronization job."""
         if job_id not in self._jobs:
             return {"error": f"Job {job_id} not found", "success": False}
@@ -202,8 +202,8 @@ class ContentSyncTool(MCPTool):
     async def sync_connect_cloud_storage(
         self,
         provider: str,  # 'dropbox', 'google_drive', 'onedrive', 'webdav', 's3', etc.
-        credentials: Dict[str, Any],
-    ) -> Dict:
+        credentials: dict[str, Any],
+    ) -> dict:
         """Connect to a cloud storage provider."""
         # In a real implementation, this would validate the credentials
         # and establish a connection to the cloud storage provider
@@ -222,7 +222,7 @@ class ContentSyncTool(MCPTool):
 
     async def sync_upload_to_cloud(
         self, connection_id: str, local_path: str, remote_path: str
-    ) -> Dict:
+    ) -> dict:
         """Upload a file to cloud storage."""
         # In a real implementation, this would upload the file to the cloud
         # For now, just simulate the upload
@@ -240,7 +240,7 @@ class ContentSyncTool(MCPTool):
 
     async def sync_download_from_cloud(
         self, connection_id: str, remote_path: str, local_path: str
-    ) -> Dict:
+    ) -> dict:
         """Download a file from cloud storage."""
         # In a real implementation, this would download the file from the cloud
         # For now, just simulate the download
@@ -254,7 +254,7 @@ class ContentSyncTool(MCPTool):
         }
 
     # E-Reader Integration
-    async def sync_connect_ereader(self, device_id: str, device_info: Dict[str, Any]) -> Dict:
+    async def sync_connect_ereader(self, device_id: str, device_info: dict[str, Any]) -> dict:
         """Connect to an e-reader device."""
         # In a real implementation, this would detect and connect to the e-reader
         # For now, just return a success response
@@ -267,8 +267,8 @@ class ContentSyncTool(MCPTool):
         }
 
     async def sync_to_ereader(
-        self, device_id: str, book_ids: List[str], format: str = "epub"
-    ) -> Dict:
+        self, device_id: str, book_ids: list[str], format: str = "epub"
+    ) -> dict:
         """Send books to an e-reader."""
         # In a real implementation, this would transfer the books to the e-reader
         # For now, just return a success response
@@ -347,8 +347,8 @@ class ContentSyncTool(MCPTool):
         self,
         conflict_id: str,
         resolution: str,  # 'keep_local', 'keep_remote', 'keep_both', 'merge'
-        options: Optional[Dict] = None,
-    ) -> Dict:
+        options: dict | None = None,
+    ) -> dict:
         """Resolve a synchronization conflict."""
         # In a real implementation, this would handle conflict resolution
         # For now, just return a success response
@@ -363,8 +363,8 @@ class ContentSyncTool(MCPTool):
 
     # Utility Methods
     async def sync_get_changes_since(
-        self, device_id: str, last_sync_time: Optional[datetime] = None
-    ) -> Dict:
+        self, device_id: str, last_sync_time: datetime | None = None
+    ) -> dict:
         """Get changes since the last sync for a device."""
         if device_id not in self._devices:
             return {"error": f"Device {device_id} not found", "success": False}
@@ -380,7 +380,7 @@ class ContentSyncTool(MCPTool):
             "current_time": datetime.utcnow().isoformat(),
         }
 
-    async def sync_cleanup_orphaned_files(self, library_path: str, dry_run: bool = True) -> Dict:
+    async def sync_cleanup_orphaned_files(self, library_path: str, dry_run: bool = True) -> dict:
         """Clean up orphaned files in the library."""
         # In a real implementation, this would scan the library for orphaned files
         # and optionally remove them

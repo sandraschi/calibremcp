@@ -4,12 +4,11 @@ File operations portmanteau tool for CalibreMCP.
 Consolidates all file-related operations into a single unified interface.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any
 
-from ...server import mcp
-from ...server import ConversionRequest
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import ConversionRequest, mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from . import file_operations
@@ -21,15 +20,15 @@ logger = get_logger("calibremcp.tools.files")
 async def manage_files(
     operation: str,
     # Convert operation parameters
-    conversion_requests: Optional[List[ConversionRequest]] = None,
+    conversion_requests: list[ConversionRequest] | None = None,
     # Download operation parameters
-    book_id: Optional[int] = None,
+    book_id: int | None = None,
     format_preference: str = "EPUB",
     # Bulk operation parameters
-    operation_type: Optional[str] = None,
-    target_format: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-) -> Dict[str, Any]:
+    operation_type: str | None = None,
+    target_format: str | None = None,
+    book_ids: list[int] | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive file operations tool for CalibreMCP.
 
@@ -296,4 +295,3 @@ async def manage_files(
             tool_name="manage_files",
             context="File operations",
         )
-

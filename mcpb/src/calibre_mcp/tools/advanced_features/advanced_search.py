@@ -1,11 +1,12 @@
 """Advanced search functionality for CalibreMCP."""
 
-from typing import Dict, List, Optional, Union, Any
-from pydantic import BaseModel, Field, validator
-from datetime import datetime
-import re
 import math
+import re
 from collections import Counter
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field, validator
 
 try:
     from fastmcp import MCPTool
@@ -48,10 +49,10 @@ class SearchFilter(BaseModel):
 class SearchQuery(BaseModel):
     """A complete search query with multiple conditions."""
 
-    query: Optional[str] = None  # Full-text search query
-    filters: List[Union[Dict, SearchFilter]] = Field(default_factory=list)
+    query: str | None = None  # Full-text search query
+    filters: list[dict | SearchFilter] = Field(default_factory=list)
     must_match_all: bool = True  # If False, use OR logic between filters
-    fields: List[str] = Field(default_factory=list)  # Fields to return
+    fields: list[str] = Field(default_factory=list)  # Fields to return
     highlight: bool = False  # Whether to include highlighted snippets
     highlight_size: int = 200  # Approximate size of highlight snippets in characters
     highlight_tag: str = "em"  # HTML tag to use for highlighting
@@ -68,8 +69,8 @@ class SearchResult(BaseModel):
 
     id: str
     score: float
-    highlights: Dict[str, List[str]] = Field(default_factory=dict)
-    document: Dict[str, Any] = Field(default_factory=dict)
+    highlights: dict[str, list[str]] = Field(default_factory=dict)
+    document: dict[str, Any] = Field(default_factory=dict)
 
 
 class SearchResults(BaseModel):
@@ -79,8 +80,8 @@ class SearchResults(BaseModel):
     took_ms: float
     page: int
     page_size: int
-    results: List[SearchResult]
-    facets: Dict[str, Dict[str, int]] = Field(default_factory=dict)
+    results: list[SearchResult]
+    facets: dict[str, dict[str, int]] = Field(default_factory=dict)
 
     @property
     def total_pages(self) -> int:
@@ -109,7 +110,7 @@ class AdvancedSearchTool(MCPTool):
         super().__init__(*args, **kwargs)
         self._index = None  # In-memory index (replace with a real search engine in production)
 
-    async def _run(self, action: str, **kwargs) -> Dict:
+    async def _run(self, action: str, **kwargs) -> dict:
         """Route to the appropriate search handler."""
         handler = getattr(self, f"search_{action}", None)
         if not handler:
@@ -123,13 +124,13 @@ class AdvancedSearchTool(MCPTool):
     # Search Operations
     async def search_books(
         self,
-        query: Optional[Union[str, Dict]] = None,
+        query: str | dict | None = None,
         page: int = 1,
         page_size: int = 20,
-        sort: Optional[str] = None,
+        sort: str | None = None,
         sort_desc: bool = True,
-        library_path: Optional[str] = None,
-    ) -> Dict:
+        library_path: str | None = None,
+    ) -> dict:
         """
         Search books with advanced query capabilities.
 
@@ -206,10 +207,10 @@ class AdvancedSearchTool(MCPTool):
     async def search_similar(
         self,
         book_id: str,
-        fields: List[str] = ["title", "authors", "tags", "comments"],
+        fields: list[str] = ["title", "authors", "tags", "comments"],
         limit: int = 10,
-        library_path: Optional[str] = None,
-    ) -> Dict:
+        library_path: str | None = None,
+    ) -> dict:
         """
         Find books similar to the specified book.
 
@@ -270,7 +271,7 @@ class AdvancedSearchTool(MCPTool):
         }
 
     # Helper Methods
-    def _parse_query(self, query: Optional[Union[str, Dict]]) -> SearchQuery:
+    def _parse_query(self, query: str | dict | None) -> SearchQuery:
         """Parse a query into a SearchQuery object."""
         if query is None:
             return SearchQuery()
@@ -284,8 +285,8 @@ class AdvancedSearchTool(MCPTool):
         raise ValueError("Invalid query format. Must be a string or dictionary.")
 
     def _apply_filters(
-        self, books: List[Dict], filters: List[SearchFilter], must_match_all: bool = True
-    ) -> List[Dict]:
+        self, books: list[dict], filters: list[SearchFilter], must_match_all: bool = True
+    ) -> list[dict]:
         """Apply filters to a list of books."""
         if not filters:
             return books
@@ -374,7 +375,7 @@ class AdvancedSearchTool(MCPTool):
         except Exception:
             return False
 
-    def _apply_fulltext_search(self, books: List[Dict], query: str) -> List[Dict]:
+    def _apply_fulltext_search(self, books: list[dict], query: str) -> list[dict]:
         """Apply full-text search to a list of books."""
         # In a real implementation, this would use a proper search engine
         # For now, do a simple case-insensitive search in title, authors, and tags
@@ -481,7 +482,7 @@ class AdvancedSearchTool(MCPTool):
 
         return scored_books
 
-    def _sort_results(self, books: List[Dict], field: str, descending: bool = True) -> List[Dict]:
+    def _sort_results(self, books: list[dict], field: str, descending: bool = True) -> list[dict]:
         """Sort search results by a field."""
         if not books:
             return []
@@ -507,7 +508,7 @@ class AdvancedSearchTool(MCPTool):
 
         return sorted(books, key=sort_key, reverse=descending)
 
-    def _calculate_facets(self, books: List[Dict]) -> Dict[str, Dict[str, int]]:
+    def _calculate_facets(self, books: list[dict]) -> dict[str, dict[str, int]]:
         """Calculate facets for search results."""
         if not books:
             return {}
@@ -535,7 +536,7 @@ class AdvancedSearchTool(MCPTool):
 
         return facets
 
-    def _get_book_text(self, book, fields: List[str]) -> str:
+    def _get_book_text(self, book, fields: list[str]) -> str:
         """Extract text from a book for similarity comparison."""
         text_parts = []
 

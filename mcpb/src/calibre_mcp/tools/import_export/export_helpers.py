@@ -5,19 +5,19 @@ These functions are NOT registered as MCP tools - they are used internally
 by the export_books portmanteau tool.
 """
 
-from typing import List, Optional, Dict, Any
-from pathlib import Path
 import csv
 import json
-import shutil
 import os
-import subprocess
 import platform
+import shutil
+import subprocess
 import tempfile
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
-from ...services.book_service import book_service
 from ...logging_config import get_logger
+from ...services.book_service import book_service
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -53,9 +53,9 @@ def _open_file_with_app(file_path: Path) -> bool:
 
 
 def _generate_intelligent_filename(
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
+    author: str | None = None,
+    tag: str | None = None,
+    book_ids: list[int] | None = None,
     format_ext: str = "csv",
 ) -> str:
     """Generate an intelligent filename based on export parameters."""
@@ -94,11 +94,11 @@ def _generate_intelligent_filename(
 
 
 def _get_books_for_export(
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Helper to get books for export (shared logic)."""
     if book_ids:
         books = []
@@ -122,9 +122,7 @@ def _get_books_for_export(
         books = []
 
         while True:
-            result = book_service.get_all(
-                skip=offset, limit=min(search_limit, 1000), **filters
-            )
+            result = book_service.get_all(skip=offset, limit=min(search_limit, 1000), **filters)
 
             items = result.get("items", [])
             if not items:
@@ -144,14 +142,14 @@ def _get_books_for_export(
 
 
 async def export_csv_helper(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
-    include_fields: Optional[List[str]] = None,
+    include_fields: list[str] | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         if not output_path:
@@ -249,14 +247,14 @@ async def export_csv_helper(
 
 
 async def export_json_helper(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     pretty: bool = True,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         if not output_path:
@@ -313,13 +311,13 @@ async def export_json_helper(
 
 
 async def export_html_helper(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     # Import HTML generation from original file
     from .export_books import _generate_styled_html
@@ -383,14 +381,14 @@ async def export_html_helper(
 
 
 async def export_pandoc_helper(
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     format_type: str = "docx",
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 100,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         pandoc_path = shutil.which("pandoc")
@@ -609,4 +607,3 @@ async def export_pandoc_helper(
             "books_exported": 0,
             "pandoc_available": shutil.which("pandoc") is not None,
         }
-

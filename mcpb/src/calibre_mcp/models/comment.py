@@ -2,10 +2,11 @@
 SQLAlchemy and Pydantic models for Comments in Calibre MCP.
 """
 
-from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, Text, ForeignKey
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
+from sqlalchemy import ForeignKey, Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
@@ -52,7 +53,7 @@ class CommentCreate(CommentBase):
 class CommentUpdate(BaseModel):
     """Pydantic model for updating a comment"""
 
-    text: Optional[str] = Field(None, description="Comment/description text")
+    text: str | None = Field(None, description="Comment/description text")
 
 
 class CommentResponse(CommentBase):

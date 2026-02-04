@@ -14,7 +14,7 @@ Use manage_specialized(operation="...") instead of individual tools:
 # NOTE: @mcp.tool() decorators removed - use manage_specialized portmanteau tool instead
 
 # Import response models (for type hints)
-from ...server import JapaneseBookOrganization, ITBookCuration, ReadingRecommendations
+from ...server import ITBookCuration, JapaneseBookOrganization, ReadingRecommendations
 
 # NOTE: These functions are NOT registered as tools (no @mcp.tool() decorator)
 # They are kept for reference but should not be used directly

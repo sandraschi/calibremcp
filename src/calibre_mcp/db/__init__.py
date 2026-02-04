@@ -2,11 +2,11 @@
 Database connection and base repository implementation for CalibreMCP.
 """
 
-from pathlib import Path
-import sqlite3
-from typing import Dict, List, Optional, TypeVar, Generic
-from contextlib import contextmanager
 import logging
+import sqlite3
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Dict, Generic, List, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ class BaseRepository(Generic[T]):
         """Initialize with a connection manager."""
         self.conn_manager = conn_manager
 
-    def _fetch_one(self, query: str, params: tuple = ()) -> Optional[Dict]:
+    def _fetch_one(self, query: str, params: tuple = ()) -> dict | None:
         """Execute a query and return a single row as a dict."""
         try:
             cursor = self.conn_manager.conn.cursor()
@@ -108,7 +108,7 @@ class BaseRepository(Generic[T]):
         except sqlite3.Error as e:
             raise DatabaseError(f"Query failed: {e}\nQuery: {query}")
 
-    def _fetch_all(self, query: str, params: tuple = ()) -> List[Dict]:
+    def _fetch_all(self, query: str, params: tuple = ()) -> list[dict]:
         """Execute a query and return all rows as a list of dicts."""
         try:
             cursor = self.conn_manager.conn.cursor()
@@ -126,7 +126,7 @@ class BaseRepository(Generic[T]):
         except sqlite3.Error as e:
             raise DatabaseError(f"Execute failed: {e}\nQuery: {query}")
 
-    def _execute_many(self, query: str, params_list: List[tuple]) -> None:
+    def _execute_many(self, query: str, params_list: list[tuple]) -> None:
         """Execute a query multiple times with different parameters."""
         try:
             cursor = self.conn_manager.conn.cursor()

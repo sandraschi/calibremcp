@@ -4,11 +4,11 @@ Calls Calibre webapp backend /api/search, creates Calibre saved search.
 """
 
 try:
-    from qt.core import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+    from qt.core import QDialog, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout
 except ImportError:
-    from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+    from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout
 
-from calibre_plugins.calibre_mcp_integration.mcp_client import is_available, call_search
+from calibre_plugins.calibre_mcp_integration.mcp_client import call_search, is_available
 
 
 class VLQueryDialog(QDialog):

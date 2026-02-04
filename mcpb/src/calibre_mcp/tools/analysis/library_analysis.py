@@ -14,25 +14,24 @@ Use manage_analysis(operation="...") instead:
 - reading_statistics() → manage_analysis(operation="reading_stats")
 """
 
-from typing import Dict, List, Any
 from difflib import SequenceMatcher
-
-# Import the MCP server instance
-
-# Import response models
-from ...server import (
-    TagStatsResponse,
-    DuplicatesResponse,
-    SeriesAnalysisResponse,
-    LibraryHealthResponse,
-    UnreadPriorityResponse,
-    ReadingStats,
-)
+from typing import Any
 
 # Import services and models
 from ...db.database import DatabaseService
-from ...models.tag import Tag
 from ...logging_config import get_logger
+from ...models.tag import Tag
+
+# Import the MCP server instance
+# Import response models
+from ...server import (
+    DuplicatesResponse,
+    LibraryHealthResponse,
+    ReadingStats,
+    SeriesAnalysisResponse,
+    TagStatsResponse,
+    UnreadPriorityResponse,
+)
 
 logger = get_logger("calibremcp.tools.library_analysis")
 
@@ -81,8 +80,8 @@ async def get_tag_statistics() -> TagStatsResponse:
             )
 
             total_tags = len(tags)
-            unused_tags: List[str] = []
-            tag_usage: Dict[str, int] = {}
+            unused_tags: list[str] = []
+            tag_usage: dict[str, int] = {}
 
             # Count usage for each tag
             for tag in tags:
@@ -92,7 +91,7 @@ async def get_tag_statistics() -> TagStatsResponse:
                     unused_tags.append(tag.name)
 
             # Find duplicate/similar tags using similarity matching
-            duplicate_groups: List[Dict[str, Any]] = []
+            duplicate_groups: list[dict[str, Any]] = []
             processed = set()
             similarity_threshold = 0.85  # 85% similarity
 
@@ -129,7 +128,7 @@ async def get_tag_statistics() -> TagStatsResponse:
                     processed.add(tag1.name)
 
             # Generate suggestions
-            suggestions: List[Dict[str, Any]] = []
+            suggestions: list[dict[str, Any]] = []
 
             # Suggest merging duplicate tags
             for dup_group in duplicate_groups:
@@ -215,8 +214,9 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
         for suggestion in analysis['reading_order_suggestions']:
             print(f"{suggestion['series_name']}: Start with {suggestion['first_book']}")
     """
-    from ...models.series import Series
     from sqlalchemy.orm import joinedload
+
+    from ...models.series import Series
 
     db = DatabaseService()
 
@@ -225,8 +225,8 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
             # Get all series with their books
             series_list = session.query(Series).options(joinedload(Series.books)).all()
 
-            incomplete_series: List[Dict[str, Any]] = []
-            reading_order_suggestions: List[Dict[str, Any]] = []
+            incomplete_series: list[dict[str, Any]] = []
+            reading_order_suggestions: list[dict[str, Any]] = []
 
             total_series = len(series_list)
             total_books_in_series = 0

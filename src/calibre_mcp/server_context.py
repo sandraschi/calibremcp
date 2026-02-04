@@ -5,14 +5,14 @@ Extracted to break circular import: tools import from here instead of server.
 """
 
 from pathlib import Path
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from calibre_mcp.calibre_api import CalibreAPIClient
 
 api_client: Optional["CalibreAPIClient"] = None
 current_library: str = "main"
-available_libraries: Dict[str, Any] = {}
+available_libraries: dict[str, Any] = {}
 
 
 async def get_api_client() -> Optional["CalibreAPIClient"]:
@@ -32,7 +32,7 @@ async def get_api_client() -> Optional["CalibreAPIClient"]:
     return api_client
 
 
-async def discover_libraries() -> Dict[str, Any]:
+async def discover_libraries() -> dict[str, Any]:
     """Discover available Calibre libraries."""
     global available_libraries
     if available_libraries:
@@ -41,7 +41,7 @@ async def discover_libraries() -> Dict[str, Any]:
     from calibre_mcp.config import CalibreConfig
 
     config = CalibreConfig()
-    libraries: Dict[str, Any] = {}
+    libraries: dict[str, Any] = {}
     if config.local_library_path and config.local_library_path.exists():
         libraries["main"] = str(config.local_library_path)
 

@@ -4,14 +4,14 @@ FineReader CLI integration for CalibreMCP.
 This module provides OCR capabilities through ABBYY FineReader command-line interface.
 """
 
+import asyncio
+import logging
 import os
 import re
 import shutil
-import logging
-import asyncio
-from pathlib import Path
-from typing import Optional, Dict, Any, List, Union
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ class FineReaderCLI:
         return any(path.exists() for path in possible_paths)
 
     @staticmethod
-    def find_cli_path() -> Optional[Path]:
+    def find_cli_path() -> Path | None:
         """
         Find FineReader CLI path using smart detection.
 
@@ -212,12 +212,12 @@ class FineReaderCLI:
 
     async def process_document(
         self,
-        input_path: Union[str, Path],
-        output_path: Union[str, Path],
+        input_path: str | Path,
+        output_path: str | Path,
         language: str = "english",
         output_format: str = "pdf",
         preserve_layout: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Process single document with OCR.
 
@@ -328,11 +328,11 @@ class FineReaderCLI:
 
     async def batch_process(
         self,
-        input_files: List[Union[str, Path]],
-        output_dir: Union[str, Path],
+        input_files: list[str | Path],
+        output_dir: str | Path,
         language: str = "english",
         output_format: str = "pdf",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process multiple files in batch.
 
         Args:
@@ -382,7 +382,7 @@ class FineReaderCLI:
             "results": results,
         }
 
-    async def detect_language(self, input_path: Union[str, Path]) -> str:
+    async def detect_language(self, input_path: str | Path) -> str:
         """Auto-detect document language.
 
         Args:
@@ -426,7 +426,7 @@ class FineReaderCLI:
             logger.error(f"Error during language detection: {e}")
             return "english"
 
-    def _parse_detected_language(self, output: str) -> Optional[str]:
+    def _parse_detected_language(self, output: str) -> str | None:
         """Extract detected language from FineReader output.
 
         Args:
@@ -451,7 +451,7 @@ class FineReaderCLI:
         logger.warning("Could not parse detected language from output")
         return None
 
-    def is_ocr_supported(self, file_path: Union[str, Path]) -> bool:
+    def is_ocr_supported(self, file_path: str | Path) -> bool:
         """Check if file format is supported for OCR.
 
         Args:
@@ -481,11 +481,11 @@ class FineReaderCLI:
 
 
 async def safe_ocr_process(
-    file_path: Union[str, Path],
-    output_path: Union[str, Path],
+    file_path: str | Path,
+    output_path: str | Path,
     language: str = "english",
     max_retries: int = 3,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Wrap OCR processing with comprehensive error handling and retry logic.
 
     Args:

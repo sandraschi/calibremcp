@@ -4,7 +4,7 @@ Shared utilities for MCP tools.
 This package contains common utilities used across multiple tool modules.
 """
 
-from .error_handling import handle_tool_error, format_error_response
+from .error_handling import format_error_response, handle_tool_error
 from .query_parsing import parse_author_from_query, parse_intelligent_query
 
 __all__ = [

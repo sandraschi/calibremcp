@@ -4,14 +4,14 @@ Viewer management portmanteau tool for CalibreMCP.
 Consolidates all book viewer operations into a single unified interface.
 """
 
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
-from ...services.viewer_service import viewer_service
+from ...server import mcp
 from ...services import book_service
+from ...services.viewer_service import viewer_service
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.viewer")
 
@@ -24,12 +24,12 @@ async def manage_viewer(
     # Page-specific parameters
     page_number: int = 0,
     # State update parameters
-    current_page: Optional[int] = None,
-    reading_direction: Optional[str] = None,
-    page_layout: Optional[str] = None,
-    zoom_mode: Optional[str] = None,
-    zoom_level: Optional[float] = None,
-) -> Dict[str, Any]:
+    current_page: int | None = None,
+    reading_direction: str | None = None,
+    page_layout: str | None = None,
+    zoom_mode: str | None = None,
+    zoom_level: float | None = None,
+) -> dict[str, Any]:
     """
     Manage book viewer operations in the Calibre library with multiple operations in a single unified interface.
 
@@ -329,7 +329,7 @@ async def manage_viewer(
                 # Also get the rendered page content from the viewer
                 viewer = viewer_service.get_viewer(book_id, file_path)
                 page_data = viewer.render_page(page_number)
-                
+
                 return {
                     "success": True,
                     "book_id": book_id,
@@ -360,7 +360,11 @@ async def manage_viewer(
                 return handle_tool_error(
                     exception=e,
                     operation=operation,
-                    parameters={"book_id": book_id, "file_path": file_path, "page_number": page_number},
+                    parameters={
+                        "book_id": book_id,
+                        "file_path": file_path,
+                        "page_number": page_number,
+                    },
                     tool_name="manage_viewer",
                     context="Getting page from book",
                 )
@@ -603,4 +607,3 @@ async def manage_viewer(
             tool_name="manage_viewer",
             context="Viewer operation",
         )
-

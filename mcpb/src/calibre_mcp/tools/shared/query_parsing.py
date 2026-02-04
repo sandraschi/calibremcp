@@ -11,27 +11,28 @@ Handles parsing of natural language queries to extract:
 - Other intelligent patterns
 """
 
-from typing import Tuple, Optional, Dict, Any
 import re
 from datetime import datetime, timedelta
+from typing import Any
 
 try:
     from dateutil.relativedelta import relativedelta
+
     HAS_DATEUTIL = True
 except ImportError:
     HAS_DATEUTIL = False
 
 
-def _parse_time_expression(time_expr: str) -> Optional[Tuple[str, str]]:
+def _parse_time_expression(time_expr: str) -> tuple[str, str] | None:
     """
     Parse time expressions like "last month", "last week", "last year" into date ranges.
-    
+
     Returns:
         Tuple of (start_date, end_date) in YYYY-MM-DD format, or None if not recognized
     """
     time_expr_lower = time_expr.lower().strip()
     now = datetime.now()
-    
+
     # Map time expressions to date ranges
     if HAS_DATEUTIL:
         time_mappings = {
@@ -52,7 +53,7 @@ def _parse_time_expression(time_expr: str) -> Optional[Tuple[str, str]]:
             "this week": now - timedelta(days=now.weekday()),
             "this year": now.replace(month=1, day=1),
         }
-    
+
     if time_expr_lower in time_mappings:
         start_date = time_mappings[time_expr_lower]
         if "month" in time_expr_lower:
@@ -86,16 +87,16 @@ def _parse_time_expression(time_expr: str) -> Optional[Tuple[str, str]]:
                 end_date = now
         else:
             end_date = now
-        
+
         return (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))
-    
+
     return None
 
 
-def parse_intelligent_query(query: str) -> Dict[str, Any]:
+def parse_intelligent_query(query: str) -> dict[str, Any]:
     """
     Intelligently parse natural language query to extract search parameters.
-    
+
     Recognizes patterns:
     - "books by Author Name" -> author search
     - "books tagged as X" or "books with tag X" -> tag search
@@ -105,10 +106,10 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
     - "paper X", "comic X", "manga X" -> content type hint + library selection
     - "from last month" -> date range filter
     - Quoted titles like "attention is all you need"
-    
+
     Args:
         query: The search query string
-    
+
     Returns:
         Dictionary with parsed parameters:
         {
@@ -125,11 +126,17 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
     """
     if not query:
         return {
-            "text": "", "author": None, "tag": None, "pubdate": None, 
-            "rating": None, "series": None, "content_type": None,
-            "added_after": None, "added_before": None,
+            "text": "",
+            "author": None,
+            "tag": None,
+            "pubdate": None,
+            "rating": None,
+            "series": None,
+            "content_type": None,
+            "added_after": None,
+            "added_before": None,
         }
-    
+
     query_lower = query.lower().strip()
     remaining = query
     result = {
@@ -143,15 +150,15 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
         "added_after": None,
         "added_before": None,
     }
-    
+
     # Extract quoted titles first (preserve quotes for exact matching)
     quoted_title = None
     quote_match = re.search(r'["\'](.+?)["\']', query)
     if quote_match:
         quoted_title = quote_match.group(1)
         # Remove quotes from remaining but keep the title text
-        remaining = re.sub(r'["\']', '', remaining)
-    
+        remaining = re.sub(r'["\']', "", remaining)
+
     # Parse content type hints: "paper", "comic", "manga" (synonyms for "book")
     content_type_patterns = [
         (r"^(paper|papers)\s+(.+)", "paper"),
@@ -166,10 +173,12 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
         if match:
             result["content_type"] = content_type
             # Remove content type word from remaining query
-            remaining = re.sub(rf"\b({content_type}s?)\b", "", remaining, flags=re.IGNORECASE).strip()
+            remaining = re.sub(
+                rf"\b({content_type}s?)\b", "", remaining, flags=re.IGNORECASE
+            ).strip()
             query_lower = remaining.lower()
             break
-    
+
     # Parse time expressions: "from last month", "added last week", etc.
     time_patterns = [
         r"from\s+(last\s+month|last\s+week|last\s+year|this\s+month|this\s+week|this\s+year)",
@@ -188,7 +197,7 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
                 remaining = re.sub(pattern, "", remaining, flags=re.IGNORECASE).strip()
                 query_lower = remaining.lower()
                 break
-    
+
     # Parse author: "by Author Name"
     if " by " in query_lower:
         parts = query.split(" by ", 1)
@@ -196,17 +205,26 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
             remaining = parts[0].strip()
             author = parts[1].strip()
             # Remove common prefixes from remaining
-            if remaining.lower() in ("books", "book", "find", "search", "list", "get", "show", "show me"):
+            if remaining.lower() in (
+                "books",
+                "book",
+                "find",
+                "search",
+                "list",
+                "get",
+                "show",
+                "show me",
+            ):
                 remaining = ""
             result["author"] = author
             query_lower = remaining.lower()
-    
+
     elif query_lower.startswith("by "):
         author = query[3:].strip()
         result["author"] = author
         remaining = ""
         query_lower = ""
-    
+
     # Parse tag: "tagged as X" or "with tag X" or "tag X"
     tag_patterns = [
         r"tagged\s+as\s+(.+)",
@@ -223,7 +241,7 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
             result["tag"] = tag
             query_lower = remaining.lower()
             break
-    
+
     # Parse publication date: "published 1987" or "published in 1987"
     pubdate_patterns = [
         r"published\s+in\s+(\d{4})",
@@ -241,7 +259,7 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
             remaining = re.sub(pattern, "", remaining, flags=re.IGNORECASE).strip()
             query_lower = remaining.lower()
             break
-    
+
     # Parse rating: "rating 4" or "rated 4" or "4 stars"
     rating_patterns = [
         r"rating\s+(\d)",
@@ -258,7 +276,7 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
                 remaining = re.sub(pattern, "", remaining, flags=re.IGNORECASE).strip()
                 query_lower = remaining.lower()
                 break
-    
+
     # Parse series: "series X" or "in series X"
     series_patterns = [
         r"in\s+series\s+(.+)",
@@ -273,31 +291,31 @@ def parse_intelligent_query(query: str) -> Dict[str, Any]:
             remaining = re.sub(pattern, "", remaining, flags=re.IGNORECASE).strip()
             query_lower = remaining.lower()
             break
-    
+
     # Clean up remaining text
     remaining = remaining.strip()
     # Remove common prefixes
     if remaining.lower() in ("books", "book", "find", "search", "list", "get", "show", "show me"):
         remaining = ""
-    
+
     # If we extracted a quoted title, use it as the search text
     if quoted_title and not remaining:
         remaining = quoted_title
     elif quoted_title and remaining:
         # Both quoted title and other text - prioritize quoted title
         remaining = f'"{quoted_title}" {remaining}'
-    
+
     result["text"] = remaining
     return result
 
 
-def parse_author_from_query(query: str) -> Tuple[str, Optional[str]]:
+def parse_author_from_query(query: str) -> tuple[str, str | None]:
     """
     Parse author name from query if it contains "by".
-    
+
     When a user says "books by Joe Blow" or "book by Conan Doyle",
     they ALWAYS mean author search. This function extracts the author name.
-    
+
     Examples:
         "books by Conan Doyle" -> ("", "Conan Doyle")
         "book by Joe Blow" -> ("", "Joe Blow")
@@ -305,10 +323,10 @@ def parse_author_from_query(query: str) -> Tuple[str, Optional[str]]:
         "Conan Doyle" -> ("Conan Doyle", None)
         "python programming" -> ("python programming", None)
         "mystery books by Agatha Christie" -> ("mystery books", "Agatha Christie")
-    
+
     Args:
         query: The search query string
-    
+
     Returns:
         Tuple of (remaining_query, author_name)
         - remaining_query: Query text after removing author part (empty if only author)
@@ -316,9 +334,9 @@ def parse_author_from_query(query: str) -> Tuple[str, Optional[str]]:
     """
     if not query:
         return ("", None)
-    
+
     query_lower = query.lower().strip()
-    
+
     # Check for " by " pattern (with spaces)
     if " by " in query_lower:
         parts = query.split(" by ", 1)
@@ -326,15 +344,23 @@ def parse_author_from_query(query: str) -> Tuple[str, Optional[str]]:
             remaining = parts[0].strip()
             author = parts[1].strip()
             # If remaining is empty or just common verbs/nouns, return empty
-            if not remaining or remaining.lower() in ("books", "book", "find", "search", "list", "get", "show", "show me"):
+            if not remaining or remaining.lower() in (
+                "books",
+                "book",
+                "find",
+                "search",
+                "list",
+                "get",
+                "show",
+                "show me",
+            ):
                 return ("", author)
             return (remaining, author)
-    
+
     # Check for "by " at start (without leading text)
     elif query_lower.startswith("by "):
         author = query[3:].strip()  # Remove "by " prefix
         return ("", author)
-    
+
     # No "by" pattern found - return query as-is
     return (query, None)
-

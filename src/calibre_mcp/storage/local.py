@@ -4,10 +4,9 @@ Local storage backend for Calibre MCP.
 Provides direct access to Calibre's SQLite database for local libraries.
 """
 
-import sqlite3
 import logging
+import sqlite3
 from pathlib import Path
-from typing import List, Optional, Union
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 class LocalStorage(StorageBackend):
     """Local storage backend using direct SQLite access"""
 
-    def __init__(self, library_path: Optional[Path] = None):
+    def __init__(self, library_path: Path | None = None):
         """
         Initialize local storage backend.
 
@@ -40,7 +39,7 @@ class LocalStorage(StorageBackend):
 
         logger.info(f"Using Calibre library at: {self.db_path.parent}")
 
-    def _find_metadata_db(self) -> Optional[Path]:
+    def _find_metadata_db(self) -> Path | None:
         """Locate the metadata.db file"""
         # First try the explicitly provided path
         if self.library_path:
@@ -78,7 +77,7 @@ class LocalStorage(StorageBackend):
         """Get a database connection"""
         return sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
 
-    async def list_books(self, **filters) -> List[Book]:
+    async def list_books(self, **filters) -> list[Book]:
         """List books with optional filtering"""
         query = """
         SELECT id, title, sort, timestamp, pubdate, series_index, author_sort, 
@@ -143,7 +142,7 @@ class LocalStorage(StorageBackend):
 
         return books
 
-    async def get_book(self, book_id: Union[int, str]) -> Optional[Book]:
+    async def get_book(self, book_id: int | str) -> Book | None:
         """Get a book by ID"""
         query = """
         SELECT id, title, sort, timestamp, pubdate, series_index, author_sort, 

@@ -2,12 +2,13 @@
 Service for handling author-related operations in the Calibre MCP application.
 """
 
-from typing import Dict, List, Optional, Any, Union
+from typing import Any
+
+from sqlalchemy import asc, desc, func
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, desc, asc
 
 from ..db.database import DatabaseService
-from ..models.author import Author, AuthorCreate, AuthorUpdate, AuthorResponse
+from ..models.author import Author, AuthorCreate, AuthorResponse, AuthorUpdate
 from ..models.book import Book
 from .base_service import BaseService, NotFoundError, ValidationError
 
@@ -29,7 +30,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
         """
         super().__init__(db, Author, AuthorResponse)
 
-    def get_by_id(self, author_id: int) -> Dict[str, Any]:
+    def get_by_id(self, author_id: int) -> dict[str, Any]:
         """
         Get an author by ID with related data.
 
@@ -59,10 +60,10 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
+        search: str | None = None,
         sort_by: str = "name",
         sort_order: str = "asc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get a paginated list of authors with optional filtering and sorting.
 
@@ -126,7 +127,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def create(self, author_data: AuthorCreate) -> Dict[str, Any]:
+    def create(self, author_data: AuthorCreate) -> dict[str, Any]:
         """
         Create a new author.
 
@@ -163,9 +164,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
 
             return self._to_response(author)
 
-    def update(
-        self, author_id: int, author_data: Union[AuthorUpdate, Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def update(self, author_id: int, author_data: AuthorUpdate | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing author.
 
@@ -260,7 +259,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
 
     def get_books_by_author(
         self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get books by a specific author with pagination.
 
@@ -306,7 +305,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def get_authors_by_letter(self, letter: str) -> List[Dict[str, Any]]:
+    def get_authors_by_letter(self, letter: str) -> list[dict[str, Any]]:
         """
         Get all authors whose names start with the given letter.
 
@@ -329,7 +328,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
 
             return [self._to_response(author) for author in authors]
 
-    def get_author_stats(self) -> Dict[str, Any]:
+    def get_author_stats(self) -> dict[str, Any]:
         """
         Get statistics about authors in the library.
 

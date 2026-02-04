@@ -4,11 +4,11 @@ Specialized tools portmanteau for CalibreMCP.
 Consolidates specialized library organization and recommendation operations.
 """
 
-from typing import Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Note: Response models (JapaneseBookOrganization, ITBookCuration, ReadingRecommendations)
 # will be imported when operations are implemented
@@ -17,7 +17,7 @@ logger = get_logger("calibremcp.tools.specialized")
 
 
 @mcp.tool()
-async def manage_specialized(operation: str) -> Dict[str, Any]:
+async def manage_specialized(operation: str) -> dict[str, Any]:
     """
     Manage specialized library organization and recommendation operations in a single unified interface.
 
@@ -210,4 +210,3 @@ async def manage_specialized(operation: str) -> Dict[str, Any]:
             tool_name="manage_specialized",
             context="Specialized operation",
         )
-

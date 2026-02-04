@@ -4,19 +4,22 @@ MCP tools for book-related operations.
 FastMCP 2.12 compliant - all tools self-register using @mcp.tool() decorator.
 """
 
-from typing import List, Optional, Dict, Any, Union
-from pathlib import Path
-from pydantic import BaseModel, Field, validator
-from calibre_mcp.services.book_service import BookSearchResult, book_service
-from calibre_mcp.logging_config import get_logger
-from .shared.query_parsing import parse_intelligent_query
 import json
+from pathlib import Path
+from typing import Any
+
+from pydantic import BaseModel, Field, validator
+
+from calibre_mcp.logging_config import get_logger
+from calibre_mcp.services.book_service import BookSearchResult, book_service
+
+from .shared.query_parsing import parse_intelligent_query
 
 logger = get_logger("calibremcp.tools.book_tools")
 
 
 def _format_books_table(
-    items: List[Dict[str, Any]],
+    items: list[dict[str, Any]],
     total: int,
     page: int,
     total_pages: int,
@@ -177,88 +180,86 @@ def _format_books_table(
 class BookSearchInput(BaseModel):
     """Input model for advanced book search with fuzzy matching and relevance scoring."""
 
-    text: Optional[str] = Field(
+    text: str | None = Field(
         None,
         description="Search text to look for in the specified fields. Supports quoted phrases for exact matches.",
     )
-    fields: Optional[Union[str, List[str]]] = Field(
+    fields: str | list[str] | None = Field(
         ["title^3", "authors^2", "tags^2", "series^1.5", "comments^1", "publisher^1.5"],
         description="""Fields to search in with optional boosting (e.g., "title^3" boosts title matches).
         Available fields: title, authors, tags, series, comments, publisher.
         Can be a JSON array or comma-separated string.""",
     )
-    operator: Optional[str] = Field(
+    operator: str | None = Field(
         "OR", description="Search operator (AND, OR, or FUZZY)", pattern="^(?i)(AND|OR|FUZZY)$"
     )
-    fuzziness: Optional[Union[int, str]] = Field(
+    fuzziness: int | str | None = Field(
         "AUTO",
         description="""Fuzziness level for fuzzy search. Can be:
         - 'AUTO': automatic fuzziness based on term length
         - 0-2: fixed fuzziness level
         - '0': exact match only""",
     )
-    min_score: Optional[float] = Field(
+    min_score: float | None = Field(
         0.1, description="Minimum relevance score (0-1) for results to be included", ge=0.0, le=1.0
     )
-    highlight: Optional[bool] = Field(
+    highlight: bool | None = Field(
         False, description="Whether to include highlighted snippets of matching text in results"
     )
-    suggest: Optional[bool] = Field(
+    suggest: bool | None = Field(
         False, description="Whether to include search suggestions for misspelled queries"
     )
-    author: Optional[str] = Field(
+    author: str | None = Field(
         None, description="Filter by author name (case-insensitive partial match)"
     )
-    tag: Optional[str] = Field(
-        None, description="Filter by tag name (case-insensitive partial match)"
-    )
-    series: Optional[str] = Field(
+    tag: str | None = Field(None, description="Filter by tag name (case-insensitive partial match)")
+    series: str | None = Field(
         None, description="Filter by series name (case-insensitive partial match)"
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None, description="Search in book comments (case-insensitive partial match)"
     )
-    has_empty_comments: Optional[bool] = Field(
+    has_empty_comments: bool | None = Field(
         None, description="Filter books with empty (True) or non-empty (False) comments"
     )
-    rating: Optional[int] = Field(None, description="Filter by exact star rating (1-5)", ge=1, le=5)
-    min_rating: Optional[int] = Field(
+    rating: int | None = Field(None, description="Filter by exact star rating (1-5)", ge=1, le=5)
+    min_rating: int | None = Field(
         None,
         description="Filter by minimum star rating (1-5). Use with max_rating for range filtering.",
         ge=1,
         le=5,
     )
-    max_rating: Optional[int] = Field(
+    max_rating: int | None = Field(
         None,
         description="Filter by maximum star rating (1-5). Use with min_rating for range filtering.",
         ge=1,
         le=5,
     )
-    unrated: Optional[bool] = Field(None, description="Filter for books with no rating when True")
-    publisher: Optional[str] = Field(
+    unrated: bool | None = Field(None, description="Filter for books with no rating when True")
+    publisher: str | None = Field(
         None, description="Filter by publisher name (case-insensitive partial match)"
     )
-    publishers: Optional[List[str]] = Field(
+    publishers: list[str] | None = Field(
         None, description="Filter by multiple publishers (OR condition)"
     )
-    has_publisher: Optional[bool] = Field(
+    has_publisher: bool | None = Field(
         None, description="Filter books with (True) or without (False) a publisher"
     )
-    pubdate_start: Optional[str] = Field(
+    pubdate_start: str | None = Field(
         None, description="Filter by publication date (YYYY-MM-DD format), inclusive start date"
     )
-    pubdate_end: Optional[str] = Field(
+    pubdate_end: str | None = Field(
         None, description="Filter by publication date (YYYY-MM-DD format), inclusive end date"
     )
-    added_after: Optional[str] = Field(
+    added_after: str | None = Field(
         None, description="Filter by date added (YYYY-MM-DD format), inclusive start date"
     )
-    added_before: Optional[str] = Field(
+    added_before: str | None = Field(
         None, description="Filter by date added (YYYY-MM-DD format), inclusive end date"
     )
-    min_size: Optional[int] = Field(None, description="Minimum file size in bytes", ge=0)
-    max_size: Optional[int] = Field(None, description="Maximum file size in bytes", ge=0)
-    formats: Optional[Union[str, List[str]]] = Field(
+    min_size: int | None = Field(None, description="Minimum file size in bytes", ge=0)
+    max_size: int | None = Field(None, description="Maximum file size in bytes", ge=0)
+    formats: str | list[str] | None = Field(
         None, description="Filter by file formats (e.g., 'EPUB,PDF' or ['EPUB', 'PDF'])"
     )
     limit: int = Field(50, description="Maximum number of results to return", ge=1, le=1000)
@@ -303,7 +304,7 @@ class BookSearchResultOutput(BookSearchResult):
 class BookSearchOutput(BaseModel):
     """Output model for paginated book search results."""
 
-    items: List[BookSearchResultOutput] = Field(..., description="List of matching books")
+    items: list[BookSearchResultOutput] = Field(..., description="List of matching books")
     total: int = Field(..., description="Total number of matching books")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Number of items per page")
@@ -320,42 +321,42 @@ class BookDetailOutput(BookSearchResult):
 # Helper function - called by query_books portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def search_books_helper(
-    text: Optional[str] = None,
-    fields: Optional[Union[str, List[str]]] = None,
+    text: str | None = None,
+    fields: str | list[str] | None = None,
     operator: str = "OR",
-    fuzziness: Union[int, str] = "AUTO",
+    fuzziness: int | str = "AUTO",
     min_score: float = 0.1,
     highlight: bool = False,
     suggest: bool = False,
-    query: Optional[str] = None,  # For backward compatibility
-    author: Optional[str] = None,
-    authors: Optional[List[str]] = None,
-    exclude_authors: Optional[List[str]] = None,
-    tag: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    exclude_tags: Optional[List[str]] = None,
-    series: Optional[str] = None,
-    exclude_series: Optional[List[str]] = None,
-    comment: Optional[str] = None,
-    has_empty_comments: Optional[bool] = None,
-    rating: Optional[int] = None,
-    min_rating: Optional[int] = None,
-    max_rating: Optional[int] = None,
-    unrated: Optional[bool] = None,
-    publisher: Optional[str] = None,
-    publishers: Optional[List[str]] = None,
-    has_publisher: Optional[bool] = None,
-    pubdate_start: Optional[str] = None,
-    pubdate_end: Optional[str] = None,
-    added_after: Optional[str] = None,
-    added_before: Optional[str] = None,
-    min_size: Optional[int] = None,
-    max_size: Optional[int] = None,
-    formats: Optional[List[str]] = None,
+    query: str | None = None,  # For backward compatibility
+    author: str | None = None,
+    authors: list[str] | None = None,
+    exclude_authors: list[str] | None = None,
+    tag: str | None = None,
+    tags: list[str] | None = None,
+    exclude_tags: list[str] | None = None,
+    series: str | None = None,
+    exclude_series: list[str] | None = None,
+    comment: str | None = None,
+    has_empty_comments: bool | None = None,
+    rating: int | None = None,
+    min_rating: int | None = None,
+    max_rating: int | None = None,
+    unrated: bool | None = None,
+    publisher: str | None = None,
+    publishers: list[str] | None = None,
+    has_publisher: bool | None = None,
+    pubdate_start: str | None = None,
+    pubdate_end: str | None = None,
+    added_after: str | None = None,
+    added_before: str | None = None,
+    min_size: int | None = None,
+    max_size: int | None = None,
+    formats: list[str] | None = None,
     limit: int = 50,
     offset: int = 0,
     format_table: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Search and list books with various filters.
 
@@ -722,31 +723,47 @@ async def search_books_helper(
             # Try to find and load a library - SAME PRIORITY AS SERVER STARTUP
             library_to_load = None
             library_name = None
-            
+
             # 1. Try persisted library from storage (if available)
             try:
                 from ..server import storage as server_storage
+
                 if server_storage:
                     # Check if storage has get_current_library method (it's async)
-                    if hasattr(server_storage, 'get_current_library'):
+                    if hasattr(server_storage, "get_current_library"):
                         try:
                             persisted_library = await server_storage.get_current_library()
                             if persisted_library and config.discovered_libraries:
-                                persisted_lib_info = config.discovered_libraries.get(persisted_library)
-                                if persisted_lib_info and persisted_lib_info.path.exists() and (persisted_lib_info.path / "metadata.db").exists():
+                                persisted_lib_info = config.discovered_libraries.get(
+                                    persisted_library
+                                )
+                                if (
+                                    persisted_lib_info
+                                    and persisted_lib_info.path.exists()
+                                    and (persisted_lib_info.path / "metadata.db").exists()
+                                ):
                                     library_to_load = persisted_lib_info.path
                                     library_name = persisted_library
-                                    logger.info(f"Auto-initializing with persisted library: {persisted_library}")
+                                    logger.info(
+                                        f"Auto-initializing with persisted library: {persisted_library}"
+                                    )
                         except Exception as storage_e:
-                            logger.debug(f"Could not get persisted library from storage: {storage_e}")
+                            logger.debug(
+                                f"Could not get persisted library from storage: {storage_e}"
+                            )
             except (ImportError, AttributeError):
                 pass  # Storage might not be available, continue with other options
-            
+
             # 2. Try config.local_library_path
             if not library_to_load and config.local_library_path:
                 lib_path = Path(config.local_library_path)
                 metadata_db = lib_path / "metadata.db"
-                if lib_path.exists() and lib_path.is_dir() and metadata_db.exists() and metadata_db.is_file():
+                if (
+                    lib_path.exists()
+                    and lib_path.is_dir()
+                    and metadata_db.exists()
+                    and metadata_db.is_file()
+                ):
                     library_to_load = lib_path
                     # Find library name from discovered libraries
                     if config.discovered_libraries:
@@ -757,7 +774,7 @@ async def search_books_helper(
                     if not library_name:
                         library_name = library_to_load.name
                     logger.info(f"Auto-initializing with config library: {library_to_load}")
-            
+
             # 3. Try active library from Calibre config
             if not library_to_load:
                 active_lib = get_active_calibre_library()
@@ -770,7 +787,7 @@ async def search_books_helper(
                     library_to_load = active_lib.path
                     library_name = active_lib.name
                     logger.info(f"Auto-initializing with active Calibre library: {active_lib.name}")
-            
+
             # 4. Fallback to first discovered library
             if not library_to_load and config.discovered_libraries:
                 for lib_name, lib_info in config.discovered_libraries.items():
@@ -793,11 +810,18 @@ async def search_books_helper(
                     # Persist to storage if available
                     try:
                         from ..server import storage as server_storage
-                        if server_storage and library_name and hasattr(server_storage, 'set_current_library'):
+
+                        if (
+                            server_storage
+                            and library_name
+                            and hasattr(server_storage, "set_current_library")
+                        ):
                             await server_storage.set_current_library(library_name)
                     except (ImportError, AttributeError, Exception):
                         pass  # Storage might not be available
-                    logger.info(f"Auto-initialized database with library: {library_name or library_to_load.name} at {library_to_load}")
+                    logger.info(
+                        f"Auto-initialized database with library: {library_name or library_to_load.name} at {library_to_load}"
+                    )
                 except Exception as init_e:
                     logger.error(f"Auto-initialization failed: {init_e}", exc_info=True)
                     raise ValueError(
@@ -858,8 +882,19 @@ async def search_books_helper(
 
         # Intelligently parse query to extract author, tag, pubdate, etc.
         search_text = text or query  # Support both text and query parameters
-        parsed = parse_intelligent_query(search_text) if search_text else {"text": "", "author": None, "tag": None, "pubdate": None, "rating": None, "series": None}
-        
+        parsed = (
+            parse_intelligent_query(search_text)
+            if search_text
+            else {
+                "text": "",
+                "author": None,
+                "tag": None,
+                "pubdate": None,
+                "rating": None,
+                "series": None,
+            }
+        )
+
         # Use parsed values if no explicit parameters provided
         if parsed["author"] and not author:
             author = parsed["author"]
@@ -872,11 +907,17 @@ async def search_books_helper(
             pubdate_end = f"{parsed['pubdate']}-12-31"
         if parsed["rating"] and not rating:
             rating = parsed["rating"]
-        
+
         # Use remaining query text (after removing structured params) for text search
-        if parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"]:
+        if (
+            parsed["author"]
+            or parsed["tag"]
+            or parsed["series"]
+            or parsed["pubdate"]
+            or parsed["rating"]
+        ):
             search_text = parsed["text"] if parsed["text"] else None
-        
+
         # Handle text search across specified fields
         search_terms = []
         phrases = []
@@ -1229,13 +1270,12 @@ async def search_books_helper(
             "Do NOT try to configure or rewrite JSON config files."
         ) from e
 
+    # BookTools class removed - functionality migrated to manage_books portmanteau tool
+    # Use manage_books(operation="get") instead of BookTools.get_book()
+    # Use query_books(operation="recent") instead of get_recent_books()
 
-# BookTools class removed - functionality migrated to manage_books portmanteau tool
-# Use manage_books(operation="get") instead of BookTools.get_book()
-# Use query_books(operation="recent") instead of get_recent_books()
-
-# get_recent_books removed - migrated to query_books(operation="recent")
-# Use query_books(operation="recent", limit=10) instead
+    # get_recent_books removed - migrated to query_books(operation="recent")
+    # Use query_books(operation="recent", limit=10) instead
     """
     Get a list of the most recently added books in the library.
 
@@ -1266,7 +1306,7 @@ async def search_books_helper(
 
 # Helper function - called by query_books portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def get_books_by_series_helper(series_id: int) -> List[Dict[str, Any]]:
+async def get_books_by_series_helper(series_id: int) -> list[dict[str, Any]]:
     """
     Get all books that belong to a specific series, ordered by series position.
 
@@ -1305,7 +1345,7 @@ async def get_books_by_series_helper(series_id: int) -> List[Dict[str, Any]]:
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def get_books_by_author_helper(
     author_id: int, limit: int = 50, offset: int = 0
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get all books written by a specific author.
 

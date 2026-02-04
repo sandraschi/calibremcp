@@ -1,7 +1,7 @@
 """Shared cache for libraries list and API response caching."""
 
 import time
-from typing import Any, Optional
+from typing import Any
 
 # TTL cache for expensive API responses (authors, tags)
 _ttl_cache: dict[str, tuple[Any, float]] = {}
@@ -13,7 +13,7 @@ def _ttl_key(prefix: str, **kwargs: Any) -> str:
     return f"{prefix}:{':'.join(parts)}"
 
 
-def get_ttl_cached(key: str) -> Optional[Any]:
+def get_ttl_cached(key: str) -> Any | None:
     now = time.monotonic()
     if key in _ttl_cache:
         val, expires = _ttl_cache[key]

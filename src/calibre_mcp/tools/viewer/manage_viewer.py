@@ -4,14 +4,13 @@ Viewer management portmanteau tool for CalibreMCP.
 Consolidates all book viewer operations into a single unified interface.
 """
 
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
 from ...services.viewer_service import viewer_service
-from ...services import book_service
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.viewer")
 
@@ -19,22 +18,22 @@ logger = get_logger("calibremcp.tools.viewer")
 @mcp.tool()
 async def manage_viewer(
     operation: str,
-    book_id: Optional[int] = None,
-    file_path: Optional[str] = None,
+    book_id: int | None = None,
+    file_path: str | None = None,
     # Page-specific parameters
     page_number: int = 0,
     # State update parameters
-    current_page: Optional[int] = None,
-    reading_direction: Optional[str] = None,
-    page_layout: Optional[str] = None,
-    zoom_mode: Optional[str] = None,
-    zoom_level: Optional[float] = None,
+    current_page: int | None = None,
+    reading_direction: str | None = None,
+    page_layout: str | None = None,
+    zoom_mode: str | None = None,
+    zoom_level: float | None = None,
     # Search parameters for open_random operation
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
-    series: Optional[str] = None,
+    author: str | None = None,
+    tag: str | None = None,
+    series: str | None = None,
     format_preference: str = "EPUB",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Manage book viewer operations in the Calibre library with multiple operations in a single unified interface.
 
@@ -324,13 +323,15 @@ async def manage_viewer(
         # Handle open_random operation first (doesn't require book_id/file_path)
         if operation == "open_random":
             try:
-                import random
                 import os
                 import platform
+                import random
                 import subprocess
+
                 from sqlalchemy.orm import joinedload
+
                 from ...db.database import get_database
-                from ...db.models import Book, Data
+                from ...db.models import Book
                 from ...tools.book_tools import search_books_helper
 
                 # Build search parameters
@@ -388,7 +389,12 @@ async def manage_viewer(
                 # Get file path from database
                 db = get_database()
                 with db.session_scope() as session:
-                    book_obj = session.query(Book).options(joinedload(Book.data)).filter(Book.id == selected_book_id).first()
+                    book_obj = (
+                        session.query(Book)
+                        .options(joinedload(Book.data))
+                        .filter(Book.id == selected_book_id)
+                        .first()
+                    )
                     if not book_obj:
                         return format_error_response(
                             error_msg=f"Book {selected_book_id} not found in database.",
@@ -401,6 +407,7 @@ async def manage_viewer(
 
                     # Get library path
                     from ...config import CalibreConfig
+
                     config = CalibreConfig()
                     libraries = config.discover_libraries()
                     if not libraries:
@@ -440,13 +447,18 @@ async def manage_viewer(
 
                     # Build file path
                     file_format = format_obj.format.upper()
-                    file_name = format_obj.name if format_obj.name else f"{book_obj.title}.{format_obj.format.lower()}"
+                    file_name = (
+                        format_obj.name
+                        if format_obj.name
+                        else f"{book_obj.title}.{format_obj.format.lower()}"
+                    )
                     # Ensure filename has extension
                     if not file_name.lower().endswith(f".{format_obj.format.lower()}"):
                         file_name = f"{file_name}.{format_obj.format.lower()}"
                     # Clean filename
                     import re
-                    file_name = re.sub(r'[<>:"/\\|?*]', '_', file_name)
+
+                    file_name = re.sub(r'[<>:"/\\|?*]', "_", file_name)
                     file_path = Path(first_lib_path) / book_obj.path / file_name
 
                     # If file doesn't exist, try without extension
@@ -490,7 +502,12 @@ async def manage_viewer(
                 return handle_tool_error(
                     exception=e,
                     operation=operation,
-                    parameters={"author": author, "tag": tag, "series": series, "format_preference": format_preference},
+                    parameters={
+                        "author": author,
+                        "tag": tag,
+                        "series": series,
+                        "format_preference": format_preference,
+                    },
                     tool_name="manage_viewer",
                     context="Opening random book",
                 )
@@ -513,7 +530,9 @@ async def manage_viewer(
         if operation == "open_file" and not file_path:
             try:
                 import re
+
                 from sqlalchemy.orm import joinedload
+
                 from ...db.database import get_database
                 from ...db.models import Book
 
@@ -529,7 +548,12 @@ async def manage_viewer(
                     )
                 lib_path = str(Path(db._current_db_path).parent)
                 with db.session_scope() as session:
-                    book_obj = session.query(Book).options(joinedload(Book.data)).filter(Book.id == book_id).first()
+                    book_obj = (
+                        session.query(Book)
+                        .options(joinedload(Book.data))
+                        .filter(Book.id == book_id)
+                        .first()
+                    )
                     if not book_obj or not book_obj.data:
                         return format_error_response(
                             error_msg=f"Book {book_id} has no formats to open.",
@@ -540,13 +564,21 @@ async def manage_viewer(
                             related_tools=["manage_books"],
                         )
                     fmt = next(
-                        (f for f in book_obj.data if f.format.upper() in ("EPUB", "PDF", "MOBI", "AZW3")),
+                        (
+                            f
+                            for f in book_obj.data
+                            if f.format.upper() in ("EPUB", "PDF", "MOBI", "AZW3")
+                        ),
                         book_obj.data[0],
                     )
-                    fname = fmt.name.strip() if fmt.name and fmt.name.strip() else f"{book_obj.id}.{fmt.format.lower()}"
+                    fname = (
+                        fmt.name.strip()
+                        if fmt.name and fmt.name.strip()
+                        else f"{book_obj.id}.{fmt.format.lower()}"
+                    )
                     if not fname.lower().endswith(f".{fmt.format.lower()}"):
                         fname = f"{fname}.{fmt.format.lower()}"
-                    fname = re.sub(r'[<>:"/\\|?*]', '_', fname)
+                    fname = re.sub(r'[<>:"/\\|?*]', "_", fname)
                     file_path = str(Path(lib_path) / book_obj.path / fname)
                     if not Path(file_path).exists():
                         alt = Path(lib_path) / book_obj.path / (fmt.name or "")
@@ -627,7 +659,7 @@ async def manage_viewer(
                 # Also get the rendered page content from the viewer
                 viewer = viewer_service.get_viewer(book_id, file_path)
                 page_data = viewer.render_page(page_number)
-                
+
                 return {
                     "success": True,
                     "book_id": book_id,
@@ -658,7 +690,11 @@ async def manage_viewer(
                 return handle_tool_error(
                     exception=e,
                     operation=operation,
-                    parameters={"book_id": book_id, "file_path": file_path, "page_number": page_number},
+                    parameters={
+                        "book_id": book_id,
+                        "file_path": file_path,
+                        "page_number": page_number,
+                    },
                     tool_name="manage_viewer",
                     context="Getting page from book",
                 )
@@ -759,20 +795,23 @@ async def manage_viewer(
             try:
                 import os
                 import platform
-                import subprocess
                 import re
+                import subprocess
 
                 # If file_path is not provided or invalid, build from database
                 if not file_path or not Path(file_path).exists():
                     try:
+                        from sqlalchemy.orm import joinedload
+
+                        from ...config import CalibreConfig
                         from ...db.database import get_database
                         from ...db.models import Book
-                        from ...config import CalibreConfig
-                        from sqlalchemy.orm import joinedload
 
                         db = get_database()
                         config = CalibreConfig()
-                        lib_path = str(config.local_library_path) if config.local_library_path else None
+                        lib_path = (
+                            str(config.local_library_path) if config.local_library_path else None
+                        )
                         if not lib_path:
                             libraries = config.discover_libraries()
                             if libraries:
@@ -787,7 +826,17 @@ async def manage_viewer(
                                     .first()
                                 )
                                 if book_obj and book_obj.data:
-                                    preferred = ["EPUB", "PDF", "MOBI", "AZW3", "CBZ", "CBR", "TXT", "HTML", "RTF"]
+                                    preferred = [
+                                        "EPUB",
+                                        "PDF",
+                                        "MOBI",
+                                        "AZW3",
+                                        "CBZ",
+                                        "CBR",
+                                        "TXT",
+                                        "HTML",
+                                        "RTF",
+                                    ]
                                     format_obj = None
                                     for fmt_name in preferred:
                                         for d in book_obj.data:
@@ -798,15 +847,27 @@ async def manage_viewer(
                                             break
                                     if not format_obj:
                                         format_obj = book_obj.data[0]
-                                    fname = format_obj.name or f"{book_obj.title}.{format_obj.format.lower()}"
+                                    fname = (
+                                        format_obj.name
+                                        or f"{book_obj.title}.{format_obj.format.lower()}"
+                                    )
                                     if not fname.lower().endswith(f".{format_obj.format.lower()}"):
                                         fname = f"{fname}.{format_obj.format.lower()}"
-                                    fname = re.sub(r'[<>:"/\\|?*]', '_', fname)
+                                    fname = re.sub(r'[<>:"/\\|?*]', "_", fname)
                                     candidate = Path(lib_path) / book_obj.path / fname
                                     if candidate.exists():
                                         file_path = str(candidate)
-                                    elif format_obj.name and (Path(lib_path) / book_obj.path / format_obj.name).exists():
-                                        file_path = str((Path(lib_path) / book_obj.path / format_obj.name).resolve())
+                                    elif (
+                                        format_obj.name
+                                        and (
+                                            Path(lib_path) / book_obj.path / format_obj.name
+                                        ).exists()
+                                    ):
+                                        file_path = str(
+                                            (
+                                                Path(lib_path) / book_obj.path / format_obj.name
+                                            ).resolve()
+                                        )
                     except Exception as e:
                         logger.warning(
                             f"Could not resolve file path for book_id={book_id}: {e}",
@@ -922,4 +983,3 @@ async def manage_viewer(
             tool_name="manage_viewer",
             context="Viewer operation",
         )
-

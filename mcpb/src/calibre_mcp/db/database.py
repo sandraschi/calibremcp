@@ -3,15 +3,15 @@ Database service for managing SQLAlchemy connections and sessions.
 """
 
 import os
-from typing import TypeVar, Any
 from contextlib import contextmanager
+from typing import Any, TypeVar
 
 from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .models import Base
-from .repositories import BookRepository, AuthorRepository, LibraryRepository
+from .repositories import AuthorRepository, BookRepository, LibraryRepository
 
 T = TypeVar("T")
 

@@ -4,24 +4,24 @@ Tag management portmanteau tool for CalibreMCP.
 Consolidates all tag-related operations into a single unified interface.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .tag_helpers import (
-    list_tags_helper,
-    get_tag_helper,
     create_tag_helper,
-    update_tag_helper,
     delete_tag_helper,
-    find_duplicate_tags_helper,
-    merge_tags_helper,
-    get_unused_tags_helper,
     delete_unused_tags_helper,
+    find_duplicate_tags_helper,
+    get_tag_helper,
     get_tag_statistics_helper,
+    get_unused_tags_helper,
+    list_tags_helper,
+    merge_tags_helper,
+    update_tag_helper,
 )
 
 logger = get_logger("calibremcp.tools.tags")
@@ -31,29 +31,29 @@ logger = get_logger("calibremcp.tools.tags")
 async def manage_tags(
     operation: str,
     # List operation parameters
-    search: Optional[str] = None,
+    search: str | None = None,
     limit: int = 100,
     offset: int = 0,
     sort_by: str = "name",
     sort_order: str = "asc",
     unused_only: bool = False,
-    min_book_count: Optional[int] = None,
-    max_book_count: Optional[int] = None,
+    min_book_count: int | None = None,
+    max_book_count: int | None = None,
     # Get operation parameters
-    tag_id: Optional[int] = None,
-    tag_name: Optional[str] = None,
+    tag_id: int | None = None,
+    tag_name: str | None = None,
     # Create operation parameters
-    name: Optional[str] = None,
+    name: str | None = None,
     # Update operation parameters
-    new_name: Optional[str] = None,
+    new_name: str | None = None,
     # Delete operation parameters
     force: bool = False,
     # Find duplicates operation parameters
     similarity_threshold: float = 0.8,
     # Merge operation parameters
-    source_tag_ids: Optional[List[int]] = None,
-    target_tag_id: Optional[int] = None,
-) -> Dict[str, Any]:
+    source_tag_ids: list[int] | None = None,
+    target_tag_id: int | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive tag management tool for CalibreMCP.
 
@@ -626,4 +626,3 @@ async def manage_tags(
             tool_name="manage_tags",
             context="Tag management operation",
         )
-

@@ -5,40 +5,39 @@ Migrated from SmartCollectionsTool (MCPTool) to FastMCP 2.13+ @mcp.tool() patter
 Consolidates all smart collection operations into a single portmanteau tool.
 """
 
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 from .smart_collections import (
-    SmartCollection,
     CollectionRule,
+    SmartCollection,
     SmartCollectionsTool,  # Keep for backwards compatibility
 )
 
 logger = get_logger("calibremcp.tools.smart_collections")
 
 # Global instance for state (will be migrated to persistent storage)
-_collections_storage: Dict[str, SmartCollection] = {}
+_collections_storage: dict[str, SmartCollection] = {}
 
 
 @mcp.tool()
 async def manage_smart_collections(
     operation: str,
-    collection_id: Optional[str] = None,
-    collection_data: Optional[Dict[str, Any]] = None,
-    updates: Optional[Dict[str, Any]] = None,
-    library_path: Optional[str] = None,
+    collection_id: str | None = None,
+    collection_data: dict[str, Any] | None = None,
+    updates: dict[str, Any] | None = None,
+    library_path: str | None = None,
     limit: int = 100,
     offset: int = 0,
     # Specialized collection creation parameters
-    name: Optional[
-        str
-    ] = None,  # For create_series, create_recently_added, create_unread, create_ai_recommended
-    series_name: Optional[str] = None,  # For create_series
-    days: Optional[int] = None,  # For create_recently_added
-) -> Dict[str, Any]:
+    name: str
+    | None = None,  # For create_series, create_recently_added, create_unread, create_ai_recommended
+    series_name: str | None = None,  # For create_series
+    days: int | None = None,  # For create_recently_added
+) -> dict[str, Any]:
     """
     Manage smart collections with multiple operations in a single unified interface.
 
@@ -358,7 +357,9 @@ async def manage_smart_collections(
                 name = "Unread"
             try:
                 legacy_tool = SmartCollectionsTool()
-                return await legacy_tool.collection_create_unread(name=name, library_path=library_path)
+                return await legacy_tool.collection_create_unread(
+                    name=name, library_path=library_path
+                )
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -483,7 +484,7 @@ async def manage_smart_collections(
         )
 
 
-async def _handle_create(collection_data: Dict[str, Any]) -> Dict[str, Any]:
+async def _handle_create(collection_data: dict[str, Any]) -> dict[str, Any]:
     """Handle create collection operation."""
     try:
         rules = []
@@ -511,7 +512,7 @@ async def _handle_create(collection_data: Dict[str, Any]) -> Dict[str, Any]:
         )
 
 
-async def _handle_get(collection_id: str) -> Dict[str, Any]:
+async def _handle_get(collection_id: str) -> dict[str, Any]:
     """Handle get collection operation."""
     try:
         global _collections_storage
@@ -535,7 +536,7 @@ async def _handle_get(collection_id: str) -> Dict[str, Any]:
         )
 
 
-async def _handle_update(collection_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+async def _handle_update(collection_id: str, updates: dict[str, Any]) -> dict[str, Any]:
     """Handle update collection operation."""
     try:
         global _collections_storage
@@ -575,7 +576,7 @@ async def _handle_update(collection_id: str, updates: Dict[str, Any]) -> Dict[st
         )
 
 
-async def _handle_delete(collection_id: str) -> Dict[str, Any]:
+async def _handle_delete(collection_id: str) -> dict[str, Any]:
     """Handle delete collection operation."""
     try:
         global _collections_storage
@@ -601,7 +602,7 @@ async def _handle_delete(collection_id: str) -> Dict[str, Any]:
         )
 
 
-async def _handle_list() -> Dict[str, Any]:
+async def _handle_list() -> dict[str, Any]:
     """Handle list collections operation."""
     try:
         global _collections_storage
@@ -620,8 +621,8 @@ async def _handle_list() -> Dict[str, Any]:
 
 
 async def _handle_query(
-    collection_id: str, library_path: Optional[str], limit: int, offset: int
-) -> Dict[str, Any]:
+    collection_id: str, library_path: str | None, limit: int, offset: int
+) -> dict[str, Any]:
     """Handle query collection operation."""
     try:
         global _collections_storage

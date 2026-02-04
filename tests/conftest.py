@@ -4,21 +4,20 @@ Pytest configuration and fixtures for Calibre MCP tests.
 Provides fixtures for test database and library setup.
 """
 
-import pytest
-from pathlib import Path
-import sys
 import logging
+import sys
+from pathlib import Path
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from calibre_mcp.db.database import init_database, close_database
-
+from calibre_mcp.db.database import close_database, init_database
 
 # Configure logging for tests
 logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 
@@ -123,21 +122,18 @@ def portmanteau_test_data():
             "id": "123",
             "title": "Test Book",
             "authors": [{"name": "Test Author"}],
-            "formats": ["EPUB"]
+            "formats": ["EPUB"],
         },
         "library": {
             "name": "Test Library",
             "path": "/path/to/library",
             "book_count": 100,
-            "is_active": True
+            "is_active": True,
         },
         "query_result": {
-            "results": [
-                {"id": 1, "title": "Book 1"},
-                {"id": 2, "title": "Book 2"}
-            ],
-            "total": 2
-        }
+            "results": [{"id": 1, "title": "Book 1"}, {"id": 2, "title": "Book 2"}],
+            "total": 2,
+        },
     }
 
 
@@ -148,9 +144,9 @@ def reset_logging():
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     yield
-    
+
     # Cleanup after test
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)

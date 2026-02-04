@@ -16,14 +16,15 @@ Use manage_tags(operation="...") instead:
 - get_simple_tag_statistics() → manage_tags(operation="statistics")
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Any
+
 from pydantic import BaseModel, Field
 
-from ..logging_config import get_logger
-from ..services.tag_service import tag_service
-from ..services.base_service import NotFoundError, ValidationError
-from ..models.tag import TagCreate, TagUpdate
 from ..config import CalibreConfig
+from ..logging_config import get_logger
+from ..models.tag import TagCreate, TagUpdate
+from ..services.base_service import NotFoundError, ValidationError
+from ..services.tag_service import tag_service
 
 logger = get_logger("calibremcp.tools.tag_tools")
 
@@ -42,7 +43,7 @@ class TagInfo(BaseModel):
 class TagListInput(BaseModel):
     """Input model for listing tags."""
 
-    search: Optional[str] = Field(None, description="Search query to filter tags by name")
+    search: str | None = Field(None, description="Search query to filter tags by name")
     limit: int = Field(100, description="Maximum number of results to return", ge=1, le=1000)
     offset: int = Field(0, description="Number of results to skip (for pagination)", ge=0)
     sort_by: str = Field(
@@ -50,10 +51,10 @@ class TagListInput(BaseModel):
     )
     sort_order: str = Field("asc", description="Sort order (asc, desc)", pattern="^(asc|desc)$")
     unused_only: bool = Field(False, description="If True, only return tags with 0 books")
-    min_book_count: Optional[int] = Field(
+    min_book_count: int | None = Field(
         None, description="Minimum number of books using this tag", ge=0
     )
-    max_book_count: Optional[int] = Field(
+    max_book_count: int | None = Field(
         None, description="Maximum number of books using this tag", ge=0
     )
 
@@ -61,7 +62,7 @@ class TagListInput(BaseModel):
 class TagListOutput(BaseModel):
     """Output model for paginated tag list."""
 
-    items: List[TagInfo] = Field(..., description="List of matching tags")
+    items: list[TagInfo] = Field(..., description="List of matching tags")
     total: int = Field(..., description="Total number of matching tags")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Number of items per page")
@@ -83,14 +84,14 @@ class TagUpdateInput(BaseModel):
 class TagMergeInput(BaseModel):
     """Input model for merging tags."""
 
-    source_tag_ids: List[int] = Field(..., description="List of tag IDs to merge from", min_items=1)
+    source_tag_ids: list[int] = Field(..., description="List of tag IDs to merge from", min_items=1)
     target_tag_id: int = Field(..., description="Tag ID to merge into (target tag)")
 
 
 class DuplicateTagsOutput(BaseModel):
     """Output model for duplicate tags detection."""
 
-    duplicate_groups: List[Dict[str, Any]] = Field(
+    duplicate_groups: list[dict[str, Any]] = Field(
         ..., description="List of groups of similar/duplicate tags"
     )
     total_duplicates: int = Field(..., description="Total number of duplicate groups found")
@@ -103,21 +104,21 @@ class TagStatsOutput(BaseModel):
     total_tags: int = Field(..., description="Total number of tags")
     unused_tags_count: int = Field(..., description="Number of unused tags")
     used_tags_count: int = Field(..., description="Number of tags in use")
-    top_tags: List[Dict[str, Any]] = Field(..., description="Top tags by book count")
+    top_tags: list[dict[str, Any]] = Field(..., description="Top tags by book count")
     average_books_per_tag: float = Field(..., description="Average books per tag")
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
 async def list_tags(
-    search: Optional[str] = None,
+    search: str | None = None,
     limit: int = 100,
     offset: int = 0,
     sort_by: str = "name",
     sort_order: str = "asc",
     unused_only: bool = False,
-    min_book_count: Optional[int] = None,
-    max_book_count: Optional[int] = None,
-) -> Dict[str, Any]:
+    min_book_count: int | None = None,
+    max_book_count: int | None = None,
+) -> dict[str, Any]:
     """
     List all tags with filtering, sorting, and pagination.
 
@@ -194,7 +195,7 @@ async def list_tags(
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def get_tag(tag_id: Optional[int] = None, tag_name: Optional[str] = None) -> Dict[str, Any]:
+async def get_tag(tag_id: int | None = None, tag_name: str | None = None) -> dict[str, Any]:
     """
     Get details for a specific tag by ID or name.
 
@@ -245,7 +246,7 @@ async def get_tag(tag_id: Optional[int] = None, tag_name: Optional[str] = None) 
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def create_tag(name: str) -> Dict[str, Any]:
+async def create_tag(name: str) -> dict[str, Any]:
     """
     Create a new tag.
 
@@ -281,7 +282,7 @@ async def create_tag(name: str) -> Dict[str, Any]:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def update_tag(tag_id: int, name: str) -> Dict[str, Any]:
+async def update_tag(tag_id: int, name: str) -> dict[str, Any]:
     """
     Update (rename) an existing tag.
 
@@ -319,7 +320,7 @@ async def update_tag(tag_id: int, name: str) -> Dict[str, Any]:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def delete_tag(tag_id: int, force: bool = False) -> Dict[str, Any]:
+async def delete_tag(tag_id: int, force: bool = False) -> dict[str, Any]:
     """
     Delete a tag.
 
@@ -354,7 +355,7 @@ async def delete_tag(tag_id: int, force: bool = False) -> Dict[str, Any]:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def find_duplicate_tags(similarity_threshold: float = 0.8) -> Dict[str, Any]:
+async def find_duplicate_tags(similarity_threshold: float = 0.8) -> dict[str, Any]:
     """
     Find duplicate or similar tags that should be merged (tag weeding).
 
@@ -422,7 +423,7 @@ async def find_duplicate_tags(similarity_threshold: float = 0.8) -> Dict[str, An
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def merge_tags(source_tag_ids: List[int], target_tag_id: int) -> Dict[str, Any]:
+async def merge_tags(source_tag_ids: list[int], target_tag_id: int) -> dict[str, Any]:
     """
     Merge multiple source tags into a target tag (tag weeding).
 
@@ -470,7 +471,7 @@ async def merge_tags(source_tag_ids: List[int], target_tag_id: int) -> Dict[str,
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def get_unused_tags() -> Dict[str, Any]:
+async def get_unused_tags() -> dict[str, Any]:
     """
     Get all tags that are not assigned to any books.
 
@@ -507,7 +508,7 @@ async def get_unused_tags() -> Dict[str, Any]:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def delete_unused_tags() -> Dict[str, Any]:
+async def delete_unused_tags() -> dict[str, Any]:
     """
     Delete all tags that are not assigned to any books.
 
@@ -548,7 +549,7 @@ async def delete_unused_tags() -> Dict[str, Any]:
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_tags portmanteau tool instead
-async def get_simple_tag_statistics() -> Dict[str, Any]:
+async def get_simple_tag_statistics() -> dict[str, Any]:
     """
     Get comprehensive statistics about tags in the library.
 
@@ -588,4 +589,3 @@ async def get_simple_tag_statistics() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting tag statistics: {e}", exc_info=True)
         return {"error": str(e)}
-

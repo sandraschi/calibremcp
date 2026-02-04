@@ -11,11 +11,11 @@ Implements the monitoring standards from central docs:
 import json
 import logging
 import logging.config
-import uuid
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 def _is_mcp_server() -> bool:
@@ -77,7 +77,7 @@ class StructuredFormatter(logging.Formatter):
 
 
 def setup_logging(
-    level: str = "INFO", log_file: Optional[Path] = None, enable_console: Optional[bool] = None
+    level: str = "INFO", log_file: Path | None = None, enable_console: bool | None = None
 ) -> None:
     """
     Setup structured logging configuration.
@@ -180,11 +180,11 @@ def log_operation(
 def log_api_call(
     logger: logging.Logger,
     operation: str,
-    book_id: Optional[str] = None,
-    library_name: Optional[str] = None,
-    duration: Optional[float] = None,
-    status: Optional[str] = None,
-    error_code: Optional[str] = None,
+    book_id: str | None = None,
+    library_name: str | None = None,
+    duration: float | None = None,
+    status: str | None = None,
+    error_code: str | None = None,
     **kwargs: Any,
 ) -> None:
     """
@@ -218,8 +218,8 @@ def log_error(
     logger: logging.Logger,
     operation: str,
     error: Exception,
-    book_id: Optional[str] = None,
-    library_name: Optional[str] = None,
+    book_id: str | None = None,
+    library_name: str | None = None,
     **kwargs: Any,
 ) -> None:
     """

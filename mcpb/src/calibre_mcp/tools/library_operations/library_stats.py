@@ -1,6 +1,5 @@
 """Tool for retrieving statistics about the Calibre library."""
 
-from typing import Dict, Optional
 from collections import defaultdict
 from datetime import datetime
 
@@ -20,9 +19,7 @@ class LibraryStatsTool(MCPTool):
         Param("include_breakdown", bool, "Include detailed breakdowns", default=False),
     ]
 
-    async def _run(
-        self, library_path: Optional[str] = None, include_breakdown: bool = False
-    ) -> Dict:
+    async def _run(self, library_path: str | None = None, include_breakdown: bool = False) -> dict:
         """Generate library statistics."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 

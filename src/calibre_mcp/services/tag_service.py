@@ -2,14 +2,15 @@
 Service for handling tag-related operations in the Calibre MCP application.
 """
 
-from typing import Dict, List, Optional, Any, Union
-from sqlalchemy.orm import joinedload
-from sqlalchemy import func, desc, asc, or_
 from difflib import SequenceMatcher
+from typing import Any
+
+from sqlalchemy import asc, desc, func, or_
+from sqlalchemy.orm import joinedload
 
 from ..db.database import DatabaseService
-from ..models.tag import Tag, TagCreate, TagUpdate, TagResponse
 from ..models.book import Book
+from ..models.tag import Tag, TagCreate, TagResponse, TagUpdate
 from .base_service import BaseService, NotFoundError, ValidationError
 
 
@@ -30,7 +31,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
         """
         super().__init__(db, Tag, TagResponse)
 
-    def get_by_id(self, tag_id: int) -> Dict[str, Any]:
+    def get_by_id(self, tag_id: int) -> dict[str, Any]:
         """
         Get a tag by ID with related data.
 
@@ -51,7 +52,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
 
             return self._to_response(tag)
 
-    def get_by_name(self, tag_name: str) -> Optional[Dict[str, Any]]:
+    def get_by_name(self, tag_name: str) -> dict[str, Any] | None:
         """
         Get a tag by name.
 
@@ -78,13 +79,13 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
+        search: str | None = None,
         sort_by: str = "name",
         sort_order: str = "asc",
-        min_book_count: Optional[int] = None,
-        max_book_count: Optional[int] = None,
+        min_book_count: int | None = None,
+        max_book_count: int | None = None,
         unused_only: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get a paginated list of tags with optional filtering and sorting.
 
@@ -169,7 +170,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def create(self, tag_data: TagCreate) -> Dict[str, Any]:
+    def create(self, tag_data: TagCreate) -> dict[str, Any]:
         """
         Create a new tag.
 
@@ -203,7 +204,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
 
             return self._to_response(tag)
 
-    def update(self, tag_id: int, tag_data: Union[TagUpdate, Dict[str, Any]]) -> Dict[str, Any]:
+    def update(self, tag_id: int, tag_data: TagUpdate | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing tag (rename it).
 
@@ -279,7 +280,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
             session.commit()
             return True
 
-    def find_duplicates(self, similarity_threshold: float = 0.8) -> List[Dict[str, Any]]:
+    def find_duplicates(self, similarity_threshold: float = 0.8) -> list[dict[str, Any]]:
         """
         Find duplicate or similar tags that should be merged.
 
@@ -333,7 +334,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
 
             return duplicates
 
-    def merge_tags(self, source_tag_ids: List[int], target_tag_id: int) -> Dict[str, Any]:
+    def merge_tags(self, source_tag_ids: list[int], target_tag_id: int) -> dict[str, Any]:
         """
         Merge multiple source tags into a target tag.
 
@@ -400,7 +401,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
                 "books_affected": len(books_affected),
             }
 
-    def get_unused_tags(self) -> List[Dict[str, Any]]:
+    def get_unused_tags(self) -> list[dict[str, Any]]:
         """
         Get all tags that are not assigned to any books.
 
@@ -419,7 +420,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
 
             return [self._to_response(tag) for tag in unused_tags]
 
-    def delete_unused_tags(self) -> Dict[str, Any]:
+    def delete_unused_tags(self) -> dict[str, Any]:
         """
         Delete all tags that are not assigned to any books.
 
@@ -475,7 +476,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
 
         return normalized
 
-    def get_tag_statistics(self) -> Dict[str, Any]:
+    def get_tag_statistics(self) -> dict[str, Any]:
         """
         Get statistics about tags in the library.
 

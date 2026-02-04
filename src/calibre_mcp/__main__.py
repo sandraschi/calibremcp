@@ -6,9 +6,9 @@ Allows running the server with: python -m calibre_mcp
 
 # CRITICAL: Suppress ALL warnings and redirect stderr BEFORE ANY imports
 # MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
-import warnings
-import sys
 import os
+import sys
+import warnings
 
 # Suppress all warnings immediately
 warnings.filterwarnings("ignore")
@@ -40,6 +40,7 @@ if _is_stdio_transport:
 
 # Standard imports
 import asyncio
+
 from .server import main
 
 if __name__ == "__main__":

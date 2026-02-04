@@ -37,7 +37,10 @@ _original_stderr = sys.stderr
 # TEMPORARILY DISABLE all complex initialization for debugging
 # This might be causing the hang
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("calibre_mcp.init")
 logger.info("DEBUG: __init__.py starting")
 
@@ -70,31 +73,34 @@ logger.info("DEBUG: __init__.py complex initialization disabled")
 # Core exports - clean imports
 from .calibre_api import CalibreAPIClient, CalibreAPIError
 from .config import CalibreConfig
-from .exceptions import CalibreError, BookNotFoundError  # noqa: F401
+from .exceptions import BookNotFoundError, CalibreError  # noqa: F401
 from .models import (
-    Book,
     Author,
-    Series,
-    Tag,
-    Rating,
+    Book,
     Comment,
     Data,
     Identifier,
     Library,
     LibraryInfo,
+    Rating,
+    Series,
+    Tag,
 )  # noqa: F401
-from .storage import StorageBackend, LocalStorage
+from .storage import LocalStorage, StorageBackend
 
 # DO NOT import server or tools here - causes circular import deadlock
 # Server and tools are imported only when actually running the server
 # from .server import create_app, mcp
 # from . import tools  # noqa: F401
 
+
 # Lazy import for mcp instance to avoid circular imports in tests
 def _get_mcp():
     """Lazy import of mcp instance for testing."""
     from .server import mcp
+
     return mcp
+
 
 __all__ = [
     "CalibreConfig",

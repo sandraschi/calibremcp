@@ -5,20 +5,20 @@ These functions are NOT registered as MCP tools - they are used internally
 by the export_books portmanteau tool.
 """
 
-from typing import List, Optional, Dict, Any
-from pathlib import Path
-from collections import defaultdict
 import csv
 import json
-import shutil
 import os
-import subprocess
 import platform
+import shutil
+import subprocess
 import tempfile
+from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
-from ...services.book_service import book_service
 from ...logging_config import get_logger
+from ...services.book_service import book_service
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -60,9 +60,9 @@ def _open_file_with_app(file_path: Path) -> bool:
 
 
 def _generate_intelligent_filename(
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
+    author: str | None = None,
+    tag: str | None = None,
+    book_ids: list[int] | None = None,
     format_ext: str = "csv",
 ) -> str:
     """Generate an intelligent filename based on export parameters."""
@@ -101,11 +101,11 @@ def _generate_intelligent_filename(
 
 
 def _get_books_for_export(
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Helper to get books for export (shared logic)."""
     if book_ids:
         books = []
@@ -129,9 +129,7 @@ def _get_books_for_export(
         books = []
 
         while True:
-            result = book_service.get_all(
-                skip=offset, limit=min(search_limit, 1000), **filters
-            )
+            result = book_service.get_all(skip=offset, limit=min(search_limit, 1000), **filters)
 
             items = result.get("items", [])
             if not items:
@@ -151,11 +149,11 @@ def _get_books_for_export(
 
 
 def _get_library_stats_for_export(
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 10000,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute library statistics from books (for stats export)."""
     books = _get_books_for_export(book_ids=book_ids, author=author, tag=tag, limit=limit)
     if not books:
@@ -170,10 +168,10 @@ def _get_library_stats_for_export(
             "top_tags": [],
         }
 
-    authors_count: Dict[str, int] = defaultdict(int)
-    series_count: Dict[str, int] = defaultdict(int)
-    tags_count: Dict[str, int] = defaultdict(int)
-    format_dist: Dict[str, int] = defaultdict(int)
+    authors_count: dict[str, int] = defaultdict(int)
+    series_count: dict[str, int] = defaultdict(int)
+    tags_count: dict[str, int] = defaultdict(int)
+    format_dist: dict[str, int] = defaultdict(int)
 
     for book in books:
         for a in book.get("authors") or []:
@@ -188,7 +186,7 @@ def _get_library_stats_for_export(
         for fmt in book.get("formats") or []:
             format_dist[fmt.lower() if isinstance(fmt, str) else str(fmt).lower()] += 1
 
-    def top_n(d: Dict[str, int], n: int = 10) -> List[Dict[str, Any]]:
+    def top_n(d: dict[str, int], n: int = 10) -> list[dict[str, Any]]:
         sorted_items = sorted(d.items(), key=lambda x: (-x[1], x[0]))[:n]
         return [{"name": k, "count": v} for k, v in sorted_items]
 
@@ -205,7 +203,7 @@ def _get_library_stats_for_export(
     }
 
 
-def _filter_book_by_detail_level(book: Dict[str, Any], detail_level: str) -> Dict[str, Any]:
+def _filter_book_by_detail_level(book: dict[str, Any], detail_level: str) -> dict[str, Any]:
     """Return book with only fields for the given detail level."""
     fields = DETAIL_LEVEL_FIELDS.get(detail_level, DETAIL_LEVEL_FIELDS["full"])
     if fields is None:
@@ -214,15 +212,15 @@ def _filter_book_by_detail_level(book: Dict[str, Any], detail_level: str) -> Dic
 
 
 async def export_csv_helper(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
-    include_fields: Optional[List[str]] = None,
-    detail_level: Optional[str] = None,
+    include_fields: list[str] | None = None,
+    detail_level: str | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         if not output_path:
@@ -268,7 +266,11 @@ async def export_csv_helper(
             "has_cover",
             "timestamp",
         ]
-        if detail_level and detail_level in DETAIL_LEVEL_FIELDS and DETAIL_LEVEL_FIELDS[detail_level]:
+        if (
+            detail_level
+            and detail_level in DETAIL_LEVEL_FIELDS
+            and DETAIL_LEVEL_FIELDS[detail_level]
+        ):
             default_fields = DETAIL_LEVEL_FIELDS[detail_level]
         fields_to_include = include_fields if include_fields else default_fields
 
@@ -323,15 +325,15 @@ async def export_csv_helper(
 
 
 async def export_json_helper(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     pretty: bool = True,
-    detail_level: Optional[str] = None,
+    detail_level: str | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         if not output_path:
@@ -391,10 +393,10 @@ async def export_json_helper(
 
 
 def _generate_styled_html(
-    books: List[Dict[str, Any]],
-    author: Optional[str],
-    tag: Optional[str],
-    book_ids: Optional[List[int]],
+    books: list[dict[str, Any]],
+    author: str | None,
+    tag: str | None,
+    book_ids: list[int] | None,
     export_date: str,
     export_date_formatted: str,
     style: str = "catalog",
@@ -408,16 +410,14 @@ def _generate_styled_html(
         return _generate_html_dashboard(
             books, author, tag, book_ids, export_date, export_date_formatted
         )
-    return _generate_html_catalog(
-        books, author, tag, book_ids, export_date, export_date_formatted
-    )
+    return _generate_html_catalog(books, author, tag, book_ids, export_date, export_date_formatted)
 
 
 def _generate_html_catalog(
-    books: List[Dict[str, Any]],
-    author: Optional[str],
-    tag: Optional[str],
-    book_ids: Optional[List[int]],
+    books: list[dict[str, Any]],
+    author: str | None,
+    tag: str | None,
+    book_ids: list[int] | None,
     export_date: str,
     export_date_formatted: str,
 ) -> str:
@@ -445,13 +445,13 @@ def _generate_html_catalog(
         rows.append(
             f"""
         <tr>
-            <td>{book.get('id','')}</td>
-            <td>{_escape_html(book.get('title','Untitled'))}</td>
+            <td>{book.get("id", "")}</td>
+            <td>{_escape_html(book.get("title", "Untitled"))}</td>
             <td>{_escape_html(author_str)}</td>
             <td>{_escape_html(series_name)}</td>
-            <td>{book.get('rating','')}</td>
+            <td>{book.get("rating", "")}</td>
             <td>{_escape_html(tag_str)}</td>
-            <td>{book.get('pubdate','')}</td>
+            <td>{book.get("pubdate", "")}</td>
         </tr>"""
         )
 
@@ -500,10 +500,10 @@ def _escape_html(s: str) -> str:
 
 
 def _generate_html_gallery(
-    books: List[Dict[str, Any]],
-    author: Optional[str],
-    tag: Optional[str],
-    book_ids: Optional[List[int]],
+    books: list[dict[str, Any]],
+    author: str | None,
+    tag: str | None,
+    book_ids: list[int] | None,
     export_date: str,
     export_date_formatted: str,
 ) -> str:
@@ -552,16 +552,16 @@ def _generate_html_gallery(
 <body>
     <h1>Calibre Library - Gallery</h1>
     <p class="meta"><strong>{_escape_html(filter_desc)}</strong> | {export_date_formatted} | {len(books)} books</p>
-    <div class="grid">{''.join(cards)}</div>
+    <div class="grid">{"".join(cards)}</div>
 </body>
 </html>"""
 
 
 def _generate_html_dashboard(
-    books: List[Dict[str, Any]],
-    author: Optional[str],
-    tag: Optional[str],
-    book_ids: Optional[List[int]],
+    books: list[dict[str, Any]],
+    author: str | None,
+    tag: str | None,
+    book_ids: list[int] | None,
     export_date: str,
     export_date_formatted: str,
 ) -> str:
@@ -570,17 +570,19 @@ def _generate_html_dashboard(
         book_ids=book_ids, author=author, tag=tag, limit=len(books) + 1
     )
     fmt_items = "".join(
-        f"<li>{k}: {v}</li>" for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
+        f"<li>{k}: {v}</li>"
+        for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
     )
     top_authors = "".join(
-        f"<li>{x['name']} ({x['count']})</li>"
-        for x in stats.get("top_authors", [])[:10]
+        f"<li>{x['name']} ({x['count']})</li>" for x in stats.get("top_authors", [])[:10]
     )
     filter_desc = "All books"
     if author:
         filter_desc = f'Author "{author}"'
     if tag:
-        filter_desc = f'Tag "{tag}"' if filter_desc == "All books" else f'{filter_desc}, tag "{tag}"'
+        filter_desc = (
+            f'Tag "{tag}"' if filter_desc == "All books" else f'{filter_desc}, tag "{tag}"'
+        )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -605,40 +607,40 @@ def _generate_html_dashboard(
     <h1>Calibre Library Dashboard</h1>
     <p class="meta">{export_date_formatted} | {_escape_html(filter_desc)}</p>
     <div class="stats">
-        <div class="stat"><h3>Books</h3><div class="num">{stats.get('total_books', 0)}</div></div>
-        <div class="stat"><h3>Authors</h3><div class="num">{stats.get('total_authors', 0)}</div></div>
-        <div class="stat"><h3>Series</h3><div class="num">{stats.get('total_series', 0)}</div></div>
-        <div class="stat"><h3>Tags</h3><div class="num">{stats.get('total_tags', 0)}</div></div>
+        <div class="stat"><h3>Books</h3><div class="num">{stats.get("total_books", 0)}</div></div>
+        <div class="stat"><h3>Authors</h3><div class="num">{stats.get("total_authors", 0)}</div></div>
+        <div class="stat"><h3>Series</h3><div class="num">{stats.get("total_series", 0)}</div></div>
+        <div class="stat"><h3>Tags</h3><div class="num">{stats.get("total_tags", 0)}</div></div>
     </div>
     <div class="columns">
         <div>
             <h3>Format Distribution</h3>
-            <ul>{fmt_items or '<li>None</li>'}</ul>
+            <ul>{fmt_items or "<li>None</li>"}</ul>
         </div>
         <div>
             <h3>Top Authors</h3>
-            <ul>{top_authors or '<li>None</li>'}</ul>
+            <ul>{top_authors or "<li>None</li>"}</ul>
         </div>
     </div>
     <h3>Books ({len(books)})</h3>
     <ul>
-        {''.join(f"<li>{_escape_html(b.get('title','Untitled'))} - {_escape_html(', '.join(b.get('authors') or []))}</li>" for b in books[:50])}
-        {f'<li><em>... and {len(books)-50} more</em></li>' if len(books) > 50 else ''}
+        {"".join(f"<li>{_escape_html(b.get('title', 'Untitled'))} - {_escape_html(', '.join(b.get('authors') or []))}</li>" for b in books[:50])}
+        {f"<li><em>... and {len(books) - 50} more</em></li>" if len(books) > 50 else ""}
     </ul>
 </body>
 </html>"""
 
 
 async def export_html_helper(
-    output_path: Optional[str] = None,
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    output_path: str | None = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 1000,
     html_style: str = "catalog",
-    detail_level: Optional[str] = None,
+    detail_level: str | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         books = _get_books_for_export(book_ids=book_ids, author=author, tag=tag, limit=limit)
@@ -702,14 +704,14 @@ async def export_html_helper(
 
 
 async def export_pandoc_helper(
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     format_type: str = "docx",
-    book_ids: Optional[List[int]] = None,
-    author: Optional[str] = None,
-    tag: Optional[str] = None,
+    book_ids: list[int] | None = None,
+    author: str | None = None,
+    tag: str | None = None,
     limit: int = 100,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         pandoc_path = shutil.which("pandoc")
@@ -931,10 +933,10 @@ async def export_pandoc_helper(
 
 
 async def export_stats_csv_helper(
-    output_path: Optional[str] = None,
-    library_name: Optional[str] = None,
+    output_path: str | None = None,
+    library_name: str | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Export library statistics to CSV."""
     try:
         stats = _get_library_stats_for_export(limit=100000)
@@ -957,7 +959,9 @@ async def export_stats_csv_helper(
             w.writerow(["total_authors", stats.get("total_authors", 0)])
             w.writerow(["total_series", stats.get("total_series", 0)])
             w.writerow(["total_tags", stats.get("total_tags", 0)])
-            for fmt, cnt in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1]):
+            for fmt, cnt in sorted(
+                stats.get("format_distribution", {}).items(), key=lambda x: -x[1]
+            ):
                 w.writerow([f"format_{fmt}", cnt])
             for item in stats.get("top_authors", [])[:20]:
                 w.writerow([f"author:{item['name']}", item["count"]])
@@ -975,11 +979,11 @@ async def export_stats_csv_helper(
 
 
 async def export_stats_json_helper(
-    output_path: Optional[str] = None,
-    library_name: Optional[str] = None,
+    output_path: str | None = None,
+    library_name: str | None = None,
     pretty: bool = True,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Export library statistics to JSON."""
     try:
         stats = _get_library_stats_for_export(limit=100000)
@@ -1014,10 +1018,10 @@ async def export_stats_json_helper(
 
 
 async def export_stats_html_helper(
-    output_path: Optional[str] = None,
-    library_name: Optional[str] = None,
+    output_path: str | None = None,
+    library_name: str | None = None,
     open_file: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Export library statistics to standalone HTML page."""
     try:
         stats = _get_library_stats_for_export(limit=100000)
@@ -1035,9 +1039,7 @@ async def export_stats_html_helper(
 
         fmt_rows = "".join(
             f"<tr><td>{k}</td><td>{v}</td></tr>"
-            for k, v in sorted(
-                stats.get("format_distribution", {}).items(), key=lambda x: -x[1]
-            )
+            for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
         )
         top_authors = "".join(
             f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
@@ -1077,10 +1079,10 @@ async def export_stats_html_helper(
     <h1>Calibre Library Statistics</h1>
     <p class="meta">Generated {date_str}</p>
     <div class="stats">
-        <div class="stat"><div class="num">{stats.get('total_books', 0)}</div><div class="label">Books</div></div>
-        <div class="stat"><div class="num">{stats.get('total_authors', 0)}</div><div class="label">Authors</div></div>
-        <div class="stat"><div class="num">{stats.get('total_series', 0)}</div><div class="label">Series</div></div>
-        <div class="stat"><div class="num">{stats.get('total_tags', 0)}</div><div class="label">Tags</div></div>
+        <div class="stat"><div class="num">{stats.get("total_books", 0)}</div><div class="label">Books</div></div>
+        <div class="stat"><div class="num">{stats.get("total_authors", 0)}</div><div class="label">Authors</div></div>
+        <div class="stat"><div class="num">{stats.get("total_series", 0)}</div><div class="label">Series</div></div>
+        <div class="stat"><div class="num">{stats.get("total_tags", 0)}</div><div class="label">Tags</div></div>
     </div>
     <div class="columns">
         <div>
@@ -1116,4 +1118,3 @@ async def export_stats_html_helper(
     except Exception as e:
         logger.error(f"Error exporting stats to HTML: {e}", exc_info=True)
         return {"success": False, "error": str(e), "file_path": None}
-

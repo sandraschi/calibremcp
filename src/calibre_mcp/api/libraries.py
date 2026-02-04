@@ -2,14 +2,13 @@
 API endpoints for managing libraries in the Calibre MCP application.
 """
 
-from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from ..db.database import get_db
-from ..models.library import LibraryCreate, LibraryUpdate, LibraryResponse, LibraryStats
-from ..services.library_service import library_service
+from ..models.library import LibraryCreate, LibraryResponse, LibraryStats, LibraryUpdate
 from ..services.base_service import NotFoundError, ValidationError
+from ..services.library_service import library_service
 
 router = APIRouter(
     prefix="/api/v1/libraries",
@@ -28,10 +27,8 @@ router = APIRouter(
 async def list_libraries(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
-    search: Optional[str] = Query(
-        None, description="Search term to filter libraries by name or path"
-    ),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    search: str | None = Query(None, description="Search term to filter libraries by name or path"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
     sort_by: str = Query(
         "name", description="Field to sort by (name, book_count, author_count, created_at)"
     ),

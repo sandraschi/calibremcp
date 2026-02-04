@@ -14,7 +14,7 @@ src_path = repo_root / "src"
 sys.path.insert(0, str(src_path))
 
 # Initialize structured logging
-from calibre_mcp.logging_config import setup_logging, get_logger, log_operation  # noqa: E402
+from calibre_mcp.logging_config import get_logger, log_operation, setup_logging  # noqa: E402
 
 # Setup logging
 # CRITICAL: Disable console for stdio transport (JSON-RPC on stdout)

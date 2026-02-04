@@ -6,11 +6,15 @@ and retrieving book information from Calibre libraries.
 """
 
 import asyncio
-from typing import Optional
 
-from ...server import mcp, get_api_client, current_library
-from ...server import LibrarySearchResponse, BookDetailResponse, ConnectionTestResponse
 from ...logging_config import get_logger, log_error
+from ...server import (
+    BookDetailResponse,
+    ConnectionTestResponse,
+    LibrarySearchResponse,
+    current_library,
+    get_api_client,
+)
 
 logger = get_logger("calibremcp.tools.core")
 
@@ -18,7 +22,7 @@ logger = get_logger("calibremcp.tools.core")
 # Helper function - called by query_books portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def list_books_helper(
-    query: Optional[str] = None, limit: int = 50, sort: str = "title"
+    query: str | None = None, limit: int = 50, sort: str = "title"
 ) -> LibrarySearchResponse:
     """
     List books from the current Calibre library with optional filtering and sorting.
@@ -141,8 +145,8 @@ async def test_calibre_connection_helper() -> ConnectionTestResponse:
         # Check if using local library mode (client is None)
         if client is None:
             # Local library mode - check database connection instead
-            from calibre_mcp.db.database import get_database
             from calibre_mcp.config import CalibreConfig
+            from calibre_mcp.db.database import get_database
 
             config = CalibreConfig()
             db = get_database()

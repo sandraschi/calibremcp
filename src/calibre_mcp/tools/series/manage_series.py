@@ -5,18 +5,17 @@ Consolidates all series-related operations into a single unified interface,
 analogous to manage_authors.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
-
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 from .series_helpers import (
-    list_series_helper,
-    get_series_helper,
     get_series_books_helper,
-    get_series_stats_helper,
     get_series_by_letter_helper,
+    get_series_helper,
+    get_series_stats_helper,
+    list_series_helper,
 )
 
 logger = get_logger("calibremcp.tools.series")
@@ -25,12 +24,12 @@ logger = get_logger("calibremcp.tools.series")
 @mcp.tool()
 async def manage_series(
     operation: str,
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    series_id: Optional[int] = None,
-    letter: Optional[str] = None,
-) -> Dict[str, Any]:
+    series_id: int | None = None,
+    letter: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive series management tool for CalibreMCP.
 
@@ -56,9 +55,7 @@ async def manage_series(
     """
     try:
         if operation == "list":
-            return await list_series_helper(
-                query=query, limit=limit, offset=offset
-            )
+            return await list_series_helper(query=query, limit=limit, offset=offset)
 
         elif operation == "get":
             if series_id is None:
@@ -88,9 +85,7 @@ async def manage_series(
                     ],
                     related_tools=["manage_series", "query_books"],
                 )
-            return await get_series_books_helper(
-                series_id=series_id, limit=limit, offset=offset
-            )
+            return await get_series_books_helper(series_id=series_id, limit=limit, offset=offset)
 
         elif operation == "stats":
             return await get_series_stats_helper()

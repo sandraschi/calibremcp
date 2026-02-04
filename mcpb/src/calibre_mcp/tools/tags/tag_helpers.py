@@ -5,27 +5,27 @@ These functions are NOT registered as MCP tools - they are used internally
 by the manage_tags portmanteau tool.
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from ...logging_config import get_logger
-from ...services.tag_service import tag_service
-from ...services.base_service import NotFoundError, ValidationError
-from ...models.tag import TagCreate, TagUpdate
 from ...config import CalibreConfig
+from ...logging_config import get_logger
+from ...models.tag import TagCreate, TagUpdate
+from ...services.base_service import NotFoundError, ValidationError
+from ...services.tag_service import tag_service
 
 logger = get_logger("calibremcp.tools.tags.helpers")
 
 
 async def list_tags_helper(
-    search: Optional[str] = None,
+    search: str | None = None,
     limit: int = 100,
     offset: int = 0,
     sort_by: str = "name",
     sort_order: str = "asc",
     unused_only: bool = False,
-    min_book_count: Optional[int] = None,
-    max_book_count: Optional[int] = None,
-) -> Dict[str, Any]:
+    min_book_count: int | None = None,
+    max_book_count: int | None = None,
+) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -60,9 +60,7 @@ async def list_tags_helper(
         }
 
 
-async def get_tag_helper(
-    tag_id: Optional[int] = None, tag_name: Optional[str] = None
-) -> Dict[str, Any]:
+async def get_tag_helper(tag_id: int | None = None, tag_name: str | None = None) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -96,7 +94,7 @@ async def get_tag_helper(
         return {"error": str(e)}
 
 
-async def create_tag_helper(name: str) -> Dict[str, Any]:
+async def create_tag_helper(name: str) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -116,7 +114,7 @@ async def create_tag_helper(name: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
-async def update_tag_helper(tag_id: int, name: str) -> Dict[str, Any]:
+async def update_tag_helper(tag_id: int, name: str) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -138,7 +136,7 @@ async def update_tag_helper(tag_id: int, name: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
-async def delete_tag_helper(tag_id: int, force: bool = False) -> Dict[str, Any]:
+async def delete_tag_helper(tag_id: int, force: bool = False) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -158,7 +156,7 @@ async def delete_tag_helper(tag_id: int, force: bool = False) -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-async def find_duplicate_tags_helper(similarity_threshold: float = 0.8) -> Dict[str, Any]:
+async def find_duplicate_tags_helper(similarity_threshold: float = 0.8) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -186,9 +184,7 @@ async def find_duplicate_tags_helper(similarity_threshold: float = 0.8) -> Dict[
         }
 
 
-async def merge_tags_helper(
-    source_tag_ids: List[int], target_tag_id: int
-) -> Dict[str, Any]:
+async def merge_tags_helper(source_tag_ids: list[int], target_tag_id: int) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -210,7 +206,7 @@ async def merge_tags_helper(
         return {"success": False, "error": str(e)}
 
 
-async def get_unused_tags_helper() -> Dict[str, Any]:
+async def get_unused_tags_helper() -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -228,7 +224,7 @@ async def get_unused_tags_helper() -> Dict[str, Any]:
         return {"error": str(e), "unused_tags": [], "count": 0}
 
 
-async def delete_unused_tags_helper() -> Dict[str, Any]:
+async def delete_unused_tags_helper() -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -246,7 +242,7 @@ async def delete_unused_tags_helper() -> Dict[str, Any]:
         return {"success": False, "error": str(e), "deleted_count": 0, "deleted_tags": []}
 
 
-async def get_tag_statistics_helper() -> Dict[str, Any]:
+async def get_tag_statistics_helper() -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
         config = CalibreConfig()
@@ -262,5 +258,3 @@ async def get_tag_statistics_helper() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting tag statistics: {e}", exc_info=True)
         return {"error": str(e)}
-
-

@@ -2,22 +2,29 @@
 Service for handling book-related operations in the Calibre MCP application.
 """
 
-from typing import Dict, List, Optional, Any, Union
-from pathlib import Path
-from sqlalchemy.orm import joinedload
-from sqlalchemy import or_
 import time
+from pathlib import Path
+from typing import Any
+
+from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from ..db.database import DatabaseService
-from ..db.models import Book  # Use db.models.Book for queries (has series relationship)
+from ..db.models import (  # Use db.models for query models
+    Author,
+    Book,  # Use db.models.Book for queries (has series relationship)
+    Comment,
+    Rating,
+    Series,
+    Tag,
+)
+from ..logging_config import get_logger
 from ..models.book import (
     BookCreate,
-    BookUpdate,
     BookResponse,
+    BookUpdate,
 )  # Use models.book for Pydantic schemas
-from ..db.models import Author, Series, Tag, Rating, Comment  # Use db.models for query models
 from .base_service import BaseService, NotFoundError, ValidationError
-from ..logging_config import get_logger
 
 logger = get_logger("calibremcp.services.book_service")
 
@@ -57,7 +64,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         super().__init__(db, Book, BookResponse)
         self._library_path_cache = None
 
-    def _get_library_base_path(self) -> Optional[str]:
+    def _get_library_base_path(self) -> str | None:
         """
         Get the base library path from the database connection URL.
 
@@ -86,7 +93,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
         return None
 
-    def get_by_id(self, book_id: int) -> Dict[str, Any]:
+    def get_by_id(self, book_id: int) -> dict[str, Any]:
         """
         Get a book by its ID with all related data.
 
@@ -125,25 +132,25 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        title: Optional[str] = None,  # NEW: Direct title search (bypasses general search)
-        author_id: Optional[int] = None,
-        author_name: Optional[str] = None,
-        authors_list: Optional[List[str]] = None,  # OR logic within list
-        exclude_authors_list: Optional[List[str]] = None,  # NOT logic - exclude these authors
-        series_id: Optional[int] = None,
-        series_name: Optional[str] = None,
-        exclude_series_list: Optional[List[str]] = None,  # NOT logic - exclude these series
-        tag_id: Optional[int] = None,
-        tag_name: Optional[str] = None,
-        tags_list: Optional[List[str]] = None,  # OR logic within list
-        exclude_tags_list: Optional[List[str]] = None,  # NOT logic - exclude these tags
-        comment: Optional[str] = None,
-        has_cover: Optional[bool] = None,
+        search: str | None = None,
+        title: str | None = None,  # NEW: Direct title search (bypasses general search)
+        author_id: int | None = None,
+        author_name: str | None = None,
+        authors_list: list[str] | None = None,  # OR logic within list
+        exclude_authors_list: list[str] | None = None,  # NOT logic - exclude these authors
+        series_id: int | None = None,
+        series_name: str | None = None,
+        exclude_series_list: list[str] | None = None,  # NOT logic - exclude these series
+        tag_id: int | None = None,
+        tag_name: str | None = None,
+        tags_list: list[str] | None = None,  # OR logic within list
+        exclude_tags_list: list[str] | None = None,  # NOT logic - exclude these tags
+        comment: str | None = None,
+        has_cover: bool | None = None,
         sort_by: str = "title",
         sort_order: str = "asc",
         **filters: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get a paginated list of books with optional filtering and sorting.
 
@@ -188,7 +195,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 "sort_order": sort_order,
             },
         )
-        
+
         # Validate inputs
         try:
             if limit < 1 or limit > 1000:
@@ -208,7 +215,11 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             if sort_order.lower() not in ("asc", "desc"):
                 logger.warning(
                     "Invalid sort_order parameter",
-                    extra={"service": "book_service", "action": "validation_error", "sort_order": sort_order},
+                    extra={
+                        "service": "book_service",
+                        "action": "validation_error",
+                        "sort_order": sort_order,
+                    },
                 )
                 raise ValueError("sort_order must be 'asc' or 'desc'")
 
@@ -216,7 +227,12 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             if sort_by.lower() not in valid_sort_fields:
                 logger.warning(
                     "Invalid sort_by parameter",
-                    extra={"service": "book_service", "action": "validation_error", "sort_by": sort_by, "valid_fields": valid_sort_fields},
+                    extra={
+                        "service": "book_service",
+                        "action": "validation_error",
+                        "sort_by": sort_by,
+                        "valid_fields": valid_sort_fields,
+                    },
                 )
                 raise ValueError(f"sort_by must be one of {valid_sort_fields}")
         except ValueError as ve:
@@ -228,7 +244,10 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
         try:
             with self._get_db_session() as session:
-                logger.debug("Database session acquired", extra={"service": "book_service", "action": "session_acquired"})
+                logger.debug(
+                    "Database session acquired",
+                    extra={"service": "book_service", "action": "session_acquired"},
+                )
             # Start building the query
             # Only eager-load relationships for tables that definitely exist in Calibre schema
             # Many tables (identifiers, books_ratings_link, etc.) may not exist in all Calibre databases
@@ -245,10 +264,16 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
             # Apply title-specific filter (bypasses FTS for fast exact matching)
             if title:
-                logger.debug("Filtering by title", extra={"service": "book_service", "action": "filter_title", "title": title})
+                logger.debug(
+                    "Filtering by title",
+                    extra={"service": "book_service", "action": "filter_title", "title": title},
+                )
                 title_pattern = f"%{title}%"
                 query = query.filter(Book.title.ilike(title_pattern)).distinct()
-                logger.debug("Title filter applied", extra={"service": "book_service", "action": "title_filter_applied"})
+                logger.debug(
+                    "Title filter applied",
+                    extra={"service": "book_service", "action": "title_filter_applied"},
+                )
 
             # Apply search filter (title, author, series, tags)
             # NOTE: The OR logic here is ONLY within the search parameter itself
@@ -265,7 +290,11 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             if search:
                 logger.debug(
                     "Processing search query",
-                    extra={"service": "book_service", "action": "process_search", "search_term": search},
+                    extra={
+                        "service": "book_service",
+                        "action": "process_search",
+                        "search_term": search,
+                    },
                 )
                 from ..utils.fts_utils import find_fts_database, query_fts
 
@@ -278,7 +307,11 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     engine_url = str(self.db._engine.url)
                     logger.debug(
                         "Extracting metadata.db path from engine URL",
-                        extra={"service": "book_service", "action": "extract_db_path", "engine_url": engine_url},
+                        extra={
+                            "service": "book_service",
+                            "action": "extract_db_path",
+                            "engine_url": engine_url,
+                        },
                     )
                     if engine_url.startswith("sqlite:///"):
                         # Remove sqlite:/// prefix
@@ -288,7 +321,12 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         metadata_db_path = Path(db_path_str)
                         logger.debug(
                             "Metadata DB path extracted",
-                            extra={"service": "book_service", "action": "db_path_extracted", "path": str(metadata_db_path), "exists": metadata_db_path.exists()},
+                            extra={
+                                "service": "book_service",
+                                "action": "db_path_extracted",
+                                "path": str(metadata_db_path),
+                                "exists": metadata_db_path.exists(),
+                            },
                         )
 
                 # Reset FTS variables for this search (already initialized above)
@@ -297,17 +335,29 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 fts_snippets = {}
                 fts_succeeded = False
                 if metadata_db_path and metadata_db_path.exists():
-                    logger.debug("Looking for FTS database", extra={"service": "book_service", "action": "find_fts"})
+                    logger.debug(
+                        "Looking for FTS database",
+                        extra={"service": "book_service", "action": "find_fts"},
+                    )
                     fts_db_path = find_fts_database(metadata_db_path)
                     logger.debug(
                         "FTS database lookup complete",
-                        extra={"service": "book_service", "action": "fts_found", "fts_path": str(fts_db_path) if fts_db_path else None},
+                        extra={
+                            "service": "book_service",
+                            "action": "fts_found",
+                            "fts_path": str(fts_db_path) if fts_db_path else None,
+                        },
                     )
 
                     if fts_db_path:
                         logger.info(
                             "Using FTS search",
-                            extra={"service": "book_service", "action": "fts_search", "search_term": search, "fts_path": str(fts_db_path)},
+                            extra={
+                                "service": "book_service",
+                                "action": "fts_search",
+                                "search_term": search,
+                                "fts_path": str(fts_db_path),
+                            },
                         )
                         # Use FTS search - get all matching IDs first (we'll paginate later)
                         # query_fts catches exceptions internally and returns ([], 0) on failure
@@ -354,7 +404,12 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                             fts_succeeded = True
                             logger.debug(
                                 "Applied FTS filter to query",
-                                extra={"service": "book_service", "action": "fts_filter_applied", "book_ids_count": len(book_ids), "snippets_count": len(fts_snippets)},
+                                extra={
+                                    "service": "book_service",
+                                    "action": "fts_filter_applied",
+                                    "book_ids_count": len(book_ids),
+                                    "snippets_count": len(fts_snippets),
+                                },
                             )
                         else:
                             logger.debug(
@@ -365,14 +420,21 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         # We'll fall back to LIKE search to be safe (since we can't distinguish
                         # "no matches" from "FTS failed" when query_fts returns ([], 0))
                     else:
-                        logger.debug("No FTS database found, will use LIKE search", extra={"service": "book_service", "action": "no_fts"})
+                        logger.debug(
+                            "No FTS database found, will use LIKE search",
+                            extra={"service": "book_service", "action": "no_fts"},
+                        )
 
                 # Fallback to LIKE search if FTS not available or failed
                 # Only use LIKE if we didn't successfully use FTS
                 if not fts_succeeded or book_ids is None:
                     logger.info(
                         "Using LIKE search (FTS not available or failed)",
-                        extra={"service": "book_service", "action": "like_search", "search_term": search},
+                        extra={
+                            "service": "book_service",
+                            "action": "like_search",
+                            "search_term": search,
+                        },
                     )
                     search_pattern = f"%{search}%"
                     query = (
@@ -389,16 +451,30 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         )
                         .distinct()
                     )
-                    logger.debug("LIKE search filter applied", extra={"service": "book_service", "action": "like_filter_applied"})
+                    logger.debug(
+                        "LIKE search filter applied",
+                        extra={"service": "book_service", "action": "like_filter_applied"},
+                    )
 
             # Apply author filters
             if author_id:
-                logger.debug("Filtering by author_id", extra={"service": "book_service", "action": "filter_author_id", "author_id": author_id})
+                logger.debug(
+                    "Filtering by author_id",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_author_id",
+                        "author_id": author_id,
+                    },
+                )
                 query = query.filter(Book.authors.any(Author.id == author_id))
             elif authors_list:
                 logger.debug(
                     "Filtering by authors list (OR logic)",
-                    extra={"service": "book_service", "action": "filter_authors_list", "authors": authors_list},
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_authors_list",
+                        "authors": authors_list,
+                    },
                 )
                 # Multiple authors with OR logic (book by any of these authors)
                 # Within each author name, require ALL words to be present (AND logic)
@@ -425,36 +501,62 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     # Between authors, use OR logic: match any of the specified authors
                     # Use INNER join (not outer) to ensure we only get books by these authors
                     query = query.join(Book.authors).filter(or_(*author_conditions)).distinct()
-                    logger.debug("Authors list filter applied", extra={"service": "book_service", "action": "authors_filter_applied"})
+                    logger.debug(
+                        "Authors list filter applied",
+                        extra={"service": "book_service", "action": "authors_filter_applied"},
+                    )
             elif author_name:
-                logger.debug("Filtering by author name", extra={"service": "book_service", "action": "filter_author_name", "author_name": author_name})
+                logger.debug(
+                    "Filtering by author name",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_author_name",
+                        "author_name": author_name,
+                    },
+                )
                 # Single author - split into words and require ALL words to be present (AND logic)
                 # This allows "Dickson Carr" to match "John Dickson Carr" but not "John Smith" or "Jane Doe"
                 author_words = author_name.split()
                 if author_words:
                     # Use INNER join to ensure we get books by this author
                     # Build a subquery that finds books matching all author name words
-                    author_book_ids_subq = (
-                        session.query(Book.id)
-                        .join(Book.authors)
-                    )
+                    author_book_ids_subq = session.query(Book.id).join(Book.authors)
                     # Apply AND logic: author name must contain ALL search words
                     for word in author_words:
                         word_pattern = f"%{word}%"
-                        author_book_ids_subq = author_book_ids_subq.filter(Author.name.ilike(word_pattern))
-                    
+                        author_book_ids_subq = author_book_ids_subq.filter(
+                            Author.name.ilike(word_pattern)
+                        )
+
                     author_book_ids_subq = author_book_ids_subq.distinct().subquery()
                     query = query.filter(Book.id.in_(session.query(author_book_ids_subq.c.id)))
 
-                logger.debug("Author name filter applied", extra={"service": "book_service", "action": "author_filter_applied"})
+                logger.debug(
+                    "Author name filter applied",
+                    extra={"service": "book_service", "action": "author_filter_applied"},
+                )
 
             # Apply series filters
             if series_id:
-                logger.debug("Filtering by series_id", extra={"service": "book_service", "action": "filter_series_id", "series_id": series_id})
+                logger.debug(
+                    "Filtering by series_id",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_series_id",
+                        "series_id": series_id,
+                    },
+                )
                 query = query.filter(Book.series_id == series_id)
 
             if series_name:
-                logger.debug("Filtering by series name", extra={"service": "book_service", "action": "filter_series_name", "series_name": series_name})
+                logger.debug(
+                    "Filtering by series name",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_series_name",
+                        "series_name": series_name,
+                    },
+                )
                 # Build a subquery that finds books matching the series name
                 series_book_ids_subq = (
                     session.query(Book.id)
@@ -464,16 +566,26 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     .subquery()
                 )
                 query = query.filter(Book.id.in_(session.query(series_book_ids_subq.c.id)))
-                logger.debug("Series name filter applied", extra={"service": "book_service", "action": "series_filter_applied"})
+                logger.debug(
+                    "Series name filter applied",
+                    extra={"service": "book_service", "action": "series_filter_applied"},
+                )
 
             # Apply tag filters
             if tag_id:
-                logger.debug("Filtering by tag_id", extra={"service": "book_service", "action": "filter_tag_id", "tag_id": tag_id})
+                logger.debug(
+                    "Filtering by tag_id",
+                    extra={"service": "book_service", "action": "filter_tag_id", "tag_id": tag_id},
+                )
                 query = query.filter(Book.tags.any(Tag.id == tag_id))
             elif tags_list:
                 logger.debug(
                     "Filtering by tags list (OR logic)",
-                    extra={"service": "book_service", "action": "filter_tags_list", "tags": tags_list},
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_tags_list",
+                        "tags": tags_list,
+                    },
                 )
                 # Multiple tags with OR logic (book with any of these tags)
                 # Build a subquery to find books with any of the specified tags
@@ -490,9 +602,19 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         .subquery()
                     )
                     query = query.filter(Book.id.in_(session.query(tag_book_ids_subq.c.id)))
-                    logger.debug("Tags list filter applied", extra={"service": "book_service", "action": "tags_filter_applied"})
+                    logger.debug(
+                        "Tags list filter applied",
+                        extra={"service": "book_service", "action": "tags_filter_applied"},
+                    )
             elif tag_name:
-                logger.debug("Filtering by tag name", extra={"service": "book_service", "action": "filter_tag_name", "tag_name": tag_name})
+                logger.debug(
+                    "Filtering by tag name",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_tag_name",
+                        "tag_name": tag_name,
+                    },
+                )
                 # Single tag - use subquery for clean filtering
                 tag_book_ids_subq = (
                     session.query(Book.id)
@@ -502,13 +624,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     .subquery()
                 )
                 query = query.filter(Book.id.in_(session.query(tag_book_ids_subq.c.id)))
-                logger.debug("Tag name filter applied", extra={"service": "book_service", "action": "tag_filter_applied"})
+                logger.debug(
+                    "Tag name filter applied",
+                    extra={"service": "book_service", "action": "tag_filter_applied"},
+                )
 
             # Apply tag exclusions (NOT logic - exclude books with these tags)
             if exclude_tags_list:
                 logger.debug(
                     "Applying tag exclusions",
-                    extra={"service": "book_service", "action": "exclude_tags", "exclude_tags": exclude_tags_list},
+                    extra={
+                        "service": "book_service",
+                        "action": "exclude_tags",
+                        "exclude_tags": exclude_tags_list,
+                    },
                 )
                 # Build list of book IDs to exclude (books that have any of the excluded tags)
                 exclude_tag_conditions = []
@@ -525,13 +654,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         .subquery()
                     )
                     query = query.filter(~Book.id.in_(session.query(excluded_book_ids_subq.c.id)))
-                    logger.debug("Tag exclusions applied", extra={"service": "book_service", "action": "tags_excluded"})
+                    logger.debug(
+                        "Tag exclusions applied",
+                        extra={"service": "book_service", "action": "tags_excluded"},
+                    )
 
             # Apply author exclusions (NOT logic - exclude books by these authors)
             if exclude_authors_list:
                 logger.debug(
                     "Applying author exclusions",
-                    extra={"service": "book_service", "action": "exclude_authors", "exclude_authors": exclude_authors_list},
+                    extra={
+                        "service": "book_service",
+                        "action": "exclude_authors",
+                        "exclude_authors": exclude_authors_list,
+                    },
                 )
                 # Build list of book IDs to exclude (books by any of the excluded authors)
                 # Use word-based matching with AND logic for better exclusion matching
@@ -561,13 +697,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         .subquery()
                     )
                     query = query.filter(~Book.id.in_(session.query(excluded_book_ids_subq.c.id)))
-                    logger.debug("Author exclusions applied", extra={"service": "book_service", "action": "authors_excluded"})
+                    logger.debug(
+                        "Author exclusions applied",
+                        extra={"service": "book_service", "action": "authors_excluded"},
+                    )
 
             # Apply series exclusions (NOT logic - exclude books in these series)
             if exclude_series_list:
                 logger.debug(
                     "Applying series exclusions",
-                    extra={"service": "book_service", "action": "exclude_series", "exclude_series": exclude_series_list},
+                    extra={
+                        "service": "book_service",
+                        "action": "exclude_series",
+                        "exclude_series": exclude_series_list,
+                    },
                 )
                 # Build list of book IDs to exclude (books in any of the excluded series)
                 exclude_series_conditions = []
@@ -584,20 +727,45 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         .subquery()
                     )
                     query = query.filter(~Book.id.in_(session.query(excluded_book_ids_subq.c.id)))
-                    logger.debug("Series exclusions applied", extra={"service": "book_service", "action": "series_excluded"})
+                    logger.debug(
+                        "Series exclusions applied",
+                        extra={"service": "book_service", "action": "series_excluded"},
+                    )
 
             # Apply comment search
             if comment:
-                logger.debug("Filtering by comment", extra={"service": "book_service", "action": "filter_comment", "comment": comment})
+                logger.debug(
+                    "Filtering by comment",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_comment",
+                        "comment": comment,
+                    },
+                )
                 comment_pattern = f"%{comment}%"
-                query = query.join(Book.comments).filter(Comment.text.ilike(comment_pattern)).distinct()
-                logger.debug("Comment filter applied", extra={"service": "book_service", "action": "comment_filter_applied"})
+                query = (
+                    query.join(Book.comments).filter(Comment.text.ilike(comment_pattern)).distinct()
+                )
+                logger.debug(
+                    "Comment filter applied",
+                    extra={"service": "book_service", "action": "comment_filter_applied"},
+                )
 
             # Apply cover filter
             if has_cover is not None:
-                logger.debug("Filtering by cover", extra={"service": "book_service", "action": "filter_cover", "has_cover": has_cover})
+                logger.debug(
+                    "Filtering by cover",
+                    extra={
+                        "service": "book_service",
+                        "action": "filter_cover",
+                        "has_cover": has_cover,
+                    },
+                )
                 query = query.filter(Book.has_cover == has_cover)
-                logger.debug("Cover filter applied", extra={"service": "book_service", "action": "cover_filter_applied"})
+                logger.debug(
+                    "Cover filter applied",
+                    extra={"service": "book_service", "action": "cover_filter_applied"},
+                )
 
             # Apply rating filters (handle before general filter loop since it needs join)
             rating_value = filters.pop("rating", None)
@@ -634,6 +802,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
             def _parse_date(s: str):
                 from datetime import datetime
+
                 if not s or not isinstance(s, str):
                     return None
                 raw = s.strip().split("T")[0][:10]
@@ -652,6 +821,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 dt = _parse_date(pubdate_end)
                 if dt:
                     from datetime import datetime as dt_cls
+
                     end_of_day = dt_cls(dt.year, dt.month, dt.day, 23, 59, 59, 999999)
                     query = query.filter(Book.pubdate <= end_of_day)
             if added_after:
@@ -662,6 +832,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 dt = _parse_date(added_before)
                 if dt:
                     from datetime import datetime as dt_cls
+
                     end_of_day = dt_cls(dt.year, dt.month, dt.day, 23, 59, 59, 999999)
                     query = query.filter(Book.timestamp <= end_of_day)
 
@@ -732,7 +903,15 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         query = query.filter(column == value)
 
             # Apply sorting
-            logger.debug("Applying sorting", extra={"service": "book_service", "action": "apply_sorting", "sort_by": sort_by, "sort_order": sort_order})
+            logger.debug(
+                "Applying sorting",
+                extra={
+                    "service": "book_service",
+                    "action": "apply_sorting",
+                    "sort_by": sort_by,
+                    "sort_order": sort_order,
+                },
+            )
             # Note: In actual Calibre databases, rating might be stored differently.
             # Since books_ratings_link table doesn't exist in user's database,
             # we'll skip rating sort for now or use a workaround.
@@ -758,13 +937,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 query = query.order_by(sort_field, Book.sort)
             else:
                 query = query.order_by(sort_field)
-            logger.debug("Sorting applied", extra={"service": "book_service", "action": "sorting_applied"})
+            logger.debug(
+                "Sorting applied", extra={"service": "book_service", "action": "sorting_applied"}
+            )
 
             # Get total count before pagination
-            logger.debug("Counting total results", extra={"service": "book_service", "action": "count_total"})
+            logger.debug(
+                "Counting total results", extra={"service": "book_service", "action": "count_total"}
+            )
             try:
                 total = query.distinct().count()
-                logger.debug("Total count retrieved", extra={"service": "book_service", "action": "count_complete", "total": total})
+                logger.debug(
+                    "Total count retrieved",
+                    extra={"service": "book_service", "action": "count_complete", "total": total},
+                )
             except Exception as count_error:
                 logger.error(
                     "Failed to count total results",
@@ -781,13 +967,22 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             # Apply pagination
             logger.debug(
                 "Applying pagination",
-                extra={"service": "book_service", "action": "apply_pagination", "skip": skip, "limit": limit},
+                extra={
+                    "service": "book_service",
+                    "action": "apply_pagination",
+                    "skip": skip,
+                    "limit": limit,
+                },
             )
             try:
                 books = query.offset(skip).limit(limit).all()
                 logger.debug(
                     "Query executed successfully",
-                    extra={"service": "book_service", "action": "query_executed", "books_returned": len(books)},
+                    extra={
+                        "service": "book_service",
+                        "action": "query_executed",
+                        "books_returned": len(books),
+                    },
                 )
             except Exception as query_error:
                 logger.error(
@@ -803,16 +998,27 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 raise
 
             # Convert to response models
-            logger.debug("Converting books to response models", extra={"service": "book_service", "action": "convert_models"})
+            logger.debug(
+                "Converting books to response models",
+                extra={"service": "book_service", "action": "convert_models"},
+            )
             try:
                 items = []
                 for book in books:
                     book_dict = self._to_response(book)
                     # Add FTS snippet if available
                     if fts_succeeded and book.id in fts_snippets:
-                        book_dict['search_snippet'] = fts_snippets[book.id]
+                        book_dict["search_snippet"] = fts_snippets[book.id]
                     items.append(book_dict)
-                logger.debug("Models converted", extra={"service": "book_service", "action": "models_converted", "items_count": len(items), "snippets_added": sum(1 for item in items if 'search_snippet' in item)})
+                logger.debug(
+                    "Models converted",
+                    extra={
+                        "service": "book_service",
+                        "action": "models_converted",
+                        "items_count": len(items),
+                        "snippets_added": sum(1 for item in items if "search_snippet" in item),
+                    },
+                )
             except Exception as convert_error:
                 logger.error(
                     "Failed to convert books to response models",
@@ -834,7 +1040,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 "page_size": limit,
                 "total_pages": (total + limit - 1) // limit if limit > 0 else 1,
             }
-            
+
             logger.info(
                 "get_all query completed successfully",
                 extra={
@@ -863,7 +1069,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             )
             raise
 
-    def create(self, book_data: BookCreate) -> Dict[str, Any]:
+    def create(self, book_data: BookCreate) -> dict[str, Any]:
         """
         Create a new book with the given data.
 
@@ -916,7 +1122,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
             return self._to_response(book)
 
-    def update(self, book_id: int, book_data: Union[BookUpdate, Dict[str, Any]]) -> Dict[str, Any]:
+    def update(self, book_id: int, book_data: BookUpdate | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing book with the given data.
 
@@ -1023,7 +1229,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             session.commit()
             return True
 
-    def get_book_formats(self, book_id: int) -> List[Dict[str, Any]]:
+    def get_book_formats(self, book_id: int) -> list[dict[str, Any]]:
         """
         Get all available formats for a book.
 
@@ -1051,7 +1257,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 for data in book.data
             ]
 
-    def get_book_cover(self, book_id: int) -> Optional[bytes]:
+    def get_book_cover(self, book_id: int) -> bytes | None:
         """
         Get the cover image for a book.
 
@@ -1076,7 +1282,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             # You'll need to implement this based on your storage solution
             return self._get_cover_data(book_id)
 
-    def _get_cover_data(self, book_id: int) -> Optional[bytes]:
+    def _get_cover_data(self, book_id: int) -> bytes | None:
         """
         Internal method to retrieve cover data for a book.
 
@@ -1093,7 +1299,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         # This could read from the filesystem, a blob store, etc.
         return None
 
-    def _to_response(self, book: Book) -> Dict[str, Any]:
+    def _to_response(self, book: Book) -> dict[str, Any]:
         """
         Convert a Book model instance to a response dictionary.
 
@@ -1139,13 +1345,17 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
         # Rating from ratings relationship
         if hasattr(book, "ratings") and book.ratings:
-            book_dict["rating"] = book.ratings[0].rating if hasattr(book.ratings[0], "rating") else None
+            book_dict["rating"] = (
+                book.ratings[0].rating if hasattr(book.ratings[0], "rating") else None
+            )
         else:
             book_dict["rating"] = None
 
         # Publisher from publishers relationship
         if hasattr(book, "publishers") and book.publishers:
-            book_dict["publisher"] = ", ".join(p.name for p in book.publishers if getattr(p, "name", None))
+            book_dict["publisher"] = ", ".join(
+                p.name for p in book.publishers if getattr(p, "name", None)
+            )
         else:
             book_dict["publisher"] = None
 

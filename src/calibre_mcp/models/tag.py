@@ -2,10 +2,11 @@
 SQLAlchemy and Pydantic models for Tags in Calibre MCP.
 """
 
-from typing import List, Optional, TYPE_CHECKING
-from sqlalchemy import Integer, Text
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
+from sqlalchemy import Integer, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, BaseMixin
 
@@ -22,7 +23,7 @@ class Tag(Base, BaseMixin):
     name: Mapped[str] = mapped_column(Text, nullable=False, unique=True, index=True)
 
     # Relationships
-    books: Mapped[List["Book"]] = relationship(
+    books: Mapped[list["Book"]] = relationship(
         "Book", secondary="books_tags_link", back_populates="tags"
     )
 
@@ -54,7 +55,7 @@ class TagCreate(TagBase):
 class TagUpdate(BaseModel):
     """Pydantic model for updating a tag"""
 
-    name: Optional[str] = Field(None, description="New name for the tag")
+    name: str | None = Field(None, description="New name for the tag")
 
     class Config:
         orm_mode = True

@@ -2,14 +2,15 @@
 Service for handling library-level operations in the Calibre MCP application.
 """
 
-from typing import Dict, Optional, Any, Union
+from typing import Any
+
+from sqlalchemy import asc, desc, func, or_
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, desc, asc, or_
 
 from ..db.database import DatabaseService
-from ..models.library import Library, LibraryCreate, LibraryUpdate, LibraryResponse
-from ..models.book import Book
 from ..models.author import Author
+from ..models.book import Book
+from ..models.library import Library, LibraryCreate, LibraryResponse, LibraryUpdate
 from .base_service import BaseService, NotFoundError, ValidationError
 
 
@@ -30,7 +31,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
         """
         super().__init__(db, Library, LibraryResponse)
 
-    def get_by_id(self, library_id: int) -> Dict[str, Any]:
+    def get_by_id(self, library_id: int) -> dict[str, Any]:
         """
         Get a library by ID with related data.
 
@@ -60,11 +61,11 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
         self,
         skip: int = 0,
         limit: int = 100,
-        search: Optional[str] = None,
-        is_active: Optional[bool] = None,
+        search: str | None = None,
+        is_active: bool | None = None,
         sort_by: str = "name",
         sort_order: str = "asc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get a paginated list of libraries with optional filtering and sorting.
 
@@ -149,7 +150,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                 "total_pages": (total + limit - 1) // limit if total > 0 else 1,
             }
 
-    def create(self, library_data: LibraryCreate) -> Dict[str, Any]:
+    def create(self, library_data: LibraryCreate) -> dict[str, Any]:
         """
         Create a new library.
 
@@ -200,8 +201,8 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             return self._to_response(library)
 
     def update(
-        self, library_id: int, library_data: Union[LibraryUpdate, Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, library_id: int, library_data: LibraryUpdate | dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Update an existing library.
 
@@ -299,7 +300,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             session.commit()
             return True
 
-    def get_library_stats(self, library_id: Optional[int] = None) -> Dict[str, Any]:
+    def get_library_stats(self, library_id: int | None = None) -> dict[str, Any]:
         """
         Get comprehensive statistics for a library or all libraries.
 
@@ -398,7 +399,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
 
     def search_across_library(
         self, library_id: int, query: str, limit: int = 50, offset: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Search across all content in a specific library.
 
@@ -447,7 +448,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                 "total_pages": (total_books + limit - 1) // limit if total_books > 0 else 1,
             }
 
-    def _to_response(self, library: Library) -> Dict[str, Any]:
+    def _to_response(self, library: Library) -> dict[str, Any]:
         """
         Convert a Library model instance to a response dictionary.
 
@@ -500,7 +501,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
 
         return response
 
-    def get_library_health(self) -> Dict[str, Any]:
+    def get_library_health(self) -> dict[str, Any]:
         """Get library health information."""
         # This is a placeholder for more comprehensive health checks
         stats = self.get_library_stats()

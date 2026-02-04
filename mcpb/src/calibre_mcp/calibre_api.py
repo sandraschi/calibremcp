@@ -5,19 +5,19 @@ HTTP client for communicating with Calibre server REST API.
 Handles authentication, request retries, and response parsing.
 """
 
-from typing import List, Dict, Any, Optional
 import json
+from typing import Any
 
 import httpx
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
 from .config import CalibreConfig
-from .logging_config import get_logger, log_operation, log_error
+from .logging_config import get_logger, log_error, log_operation
 
 logger = get_logger("calibremcp.api")
 
@@ -38,7 +38,7 @@ class CalibreAPIClient:
 
     def __init__(self, config: CalibreConfig):
         self.config = config
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client with proper configuration"""
@@ -83,9 +83,9 @@ class CalibreAPIClient:
         self,
         endpoint: str,
         method: str = "GET",
-        params: Optional[Dict[str, Any]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Make HTTP request to Calibre server with automatic retry logic using tenacity.
 
@@ -160,7 +160,7 @@ class CalibreAPIClient:
         except CalibreAPIError:
             raise  # Re-raise API errors immediately (no retry for auth/HTTP errors)
 
-    async def test_connection(self) -> Dict[str, Any]:
+    async def test_connection(self) -> dict[str, Any]:
         """
         Test connection to Calibre server and get basic info.
 
@@ -194,8 +194,8 @@ class CalibreAPIClient:
             raise CalibreAPIError(f"Connection test failed: {str(e)}")
 
     async def search_library(
-        self, query: Optional[str] = None, limit: int = 50, sort: str = "title"
-    ) -> List[Dict[str, Any]]:
+        self, query: str | None = None, limit: int = 50, sort: str = "title"
+    ) -> list[dict[str, Any]]:
         """
         Search library with optional query and sorting.
 
@@ -233,8 +233,8 @@ class CalibreAPIClient:
             raise CalibreAPIError(f"Library search failed: {str(e)}")
 
     async def advanced_search(
-        self, text: str, fields: List[str], operator: str = "AND"
-    ) -> List[Dict[str, Any]]:
+        self, text: str, fields: list[str], operator: str = "AND"
+    ) -> list[dict[str, Any]]:
         """
         Advanced search with field targeting and boolean logic.
 
@@ -263,7 +263,7 @@ class CalibreAPIClient:
         except Exception as e:
             raise CalibreAPIError(f"Advanced search failed: {str(e)}")
 
-    async def get_book_details(self, book_id: int) -> Dict[str, Any]:
+    async def get_book_details(self, book_id: int) -> dict[str, Any]:
         """
         Get detailed information for a specific book.
 
@@ -306,7 +306,7 @@ class CalibreAPIClient:
         except Exception as e:
             raise CalibreAPIError(f"Failed to get book details: {str(e)}")
 
-    async def _get_books_metadata(self, book_ids: List[int]) -> List[Dict[str, Any]]:
+    async def _get_books_metadata(self, book_ids: list[int]) -> list[dict[str, Any]]:
         """
         Get metadata for multiple books by ID.
 
@@ -375,7 +375,7 @@ class CalibreAPIClient:
             log_error(logger, "get_books_metadata_unexpected", e, book_ids=book_ids)
             return []
 
-    def _generate_download_links(self, book_id: int, formats: Dict[str, Any]) -> Dict[str, str]:
+    def _generate_download_links(self, book_id: int, formats: dict[str, Any]) -> dict[str, str]:
         """
         Generate download URLs for all available book formats.
 

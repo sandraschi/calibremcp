@@ -4,20 +4,20 @@ Content sync management portmanteau tool for CalibreMCP.
 Consolidates all content synchronization operations into a single unified interface.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
-from ...server import mcp
 from ...logging_config import get_logger
-from ..shared.error_handling import handle_tool_error, format_error_response
+from ...server import mcp
+from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from .content_sync_helpers import (
-    register_device_helper,
-    update_device_helper,
-    get_device_helper,
-    start_sync_helper,
-    get_sync_status_helper,
     cancel_sync_helper,
+    get_device_helper,
+    get_sync_status_helper,
+    register_device_helper,
+    start_sync_helper,
+    update_device_helper,
 )
 
 logger = get_logger("calibremcp.tools.content_sync")
@@ -27,16 +27,16 @@ logger = get_logger("calibremcp.tools.content_sync")
 async def manage_content_sync(
     operation: str,
     # Device management parameters
-    name: Optional[str] = None,
-    device_type: Optional[str] = None,
-    device_id: Optional[str] = None,
-    sync_settings: Optional[Dict[str, Any]] = None,
-    updates: Optional[Dict[str, Any]] = None,
+    name: str | None = None,
+    device_type: str | None = None,
+    device_id: str | None = None,
+    sync_settings: dict[str, Any] | None = None,
+    updates: dict[str, Any] | None = None,
     # Sync operation parameters
     sync_type: str = "full",
-    library_path: Optional[str] = None,
-    job_id: Optional[str] = None,
-) -> Dict[str, Any]:
+    library_path: str | None = None,
+    job_id: str | None = None,
+) -> dict[str, Any]:
     """
     Comprehensive content synchronization tool for CalibreMCP.
 
@@ -158,7 +158,10 @@ async def manage_content_sync(
                 )
             try:
                 return await register_device_helper(
-                    name=name, device_type=device_type, device_id=device_id, sync_settings=sync_settings
+                    name=name,
+                    device_type=device_type,
+                    device_id=device_id,
+                    sync_settings=sync_settings,
                 )
             except Exception as e:
                 return handle_tool_error(
@@ -317,4 +320,3 @@ async def manage_content_sync(
             tool_name="manage_content_sync",
             context="Content sync operation",
         )
-

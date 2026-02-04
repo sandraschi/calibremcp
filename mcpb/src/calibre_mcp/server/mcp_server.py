@@ -8,13 +8,13 @@ import asyncio
 import logging
 import signal
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
-from fastmcp import MCPServer, MCPMessage
+from fastmcp import MCPMessage, MCPServer
+
 from ..tools.compat import MCPServerError
-
 from .config import settings
-from .core.exception_handlers import CalibreError, BookNotFoundError
+from .core.exception_handlers import BookNotFoundError, CalibreError
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class CalibreMCPServer(MCPServer):
     """Calibre MCP Server implementation."""
 
-    def __init__(self, library_path: Optional[str] = None, **kwargs):
+    def __init__(self, library_path: str | None = None, **kwargs):
         """Initialize the MCP server.
 
         Args:
@@ -95,11 +95,11 @@ class CalibreMCPServer(MCPServer):
 
     # Command handlers
 
-    async def handle_ping(self, message: MCPMessage) -> Dict[str, Any]:
+    async def handle_ping(self, message: MCPMessage) -> dict[str, Any]:
         """Handle ping command."""
         return {"status": "ok", "message": "pong"}
 
-    async def handle_get_books(self, message: MCPMessage) -> Dict[str, Any]:
+    async def handle_get_books(self, message: MCPMessage) -> dict[str, Any]:
         """Handle get_books command."""
         try:
             # TODO: Implement actual book listing from Calibre library
@@ -111,7 +111,7 @@ class CalibreMCPServer(MCPServer):
         except Exception as e:
             raise MCPServerError(f"Failed to get books: {str(e)}")
 
-    async def handle_get_book(self, message: MCPMessage) -> Dict[str, Any]:
+    async def handle_get_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle get_book command."""
         try:
             book_id = message.params.get("id")
@@ -131,7 +131,7 @@ class CalibreMCPServer(MCPServer):
         except Exception as e:
             raise MCPServerError(f"Failed to get book: {str(e)}")
 
-    async def handle_add_book(self, message: MCPMessage) -> Dict[str, Any]:
+    async def handle_add_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle add_book command."""
         try:
             # TODO: Implement actual book addition to Calibre library
@@ -147,7 +147,7 @@ class CalibreMCPServer(MCPServer):
         except Exception as e:
             raise MCPServerError(f"Failed to add book: {str(e)}")
 
-    async def handle_update_book(self, message: MCPMessage) -> Dict[str, Any]:
+    async def handle_update_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle update_book command."""
         try:
             book_id = message.params.get("id")
@@ -166,7 +166,7 @@ class CalibreMCPServer(MCPServer):
         except Exception as e:
             raise MCPServerError(f"Failed to update book: {str(e)}")
 
-    async def handle_delete_book(self, message: MCPMessage) -> Dict[str, Any]:
+    async def handle_delete_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle delete_book command."""
         try:
             book_id = message.params.get("id")
@@ -181,14 +181,14 @@ class CalibreMCPServer(MCPServer):
             raise MCPServerError(f"Failed to delete book: {str(e)}")
 
 
-def create_mcp_server(library_path: Optional[str] = None) -> CalibreMCPServer:
+def create_mcp_server(library_path: str | None = None) -> CalibreMCPServer:
     """Create and configure the MCP server."""
     return CalibreMCPServer(
         library_path=library_path or settings.LIBRARY_PATH, name="calibre-mcp", version="0.1.0"
     )
 
 
-def run_mcp_server(library_path: Optional[str] = None):
+def run_mcp_server(library_path: str | None = None):
     """Run the MCP server."""
     # Configure logging
     logging.basicConfig(
