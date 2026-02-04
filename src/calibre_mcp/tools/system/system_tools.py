@@ -312,7 +312,7 @@ async def help_helper(
         return f"Error generating help: {str(e)}"
 
 
-@mcp.tool()
+# Deprecated: use manage_system(operation="help") - kept as helper only, not registered
 async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) -> str:
     """
     Comprehensive help system with multiple detail levels.
@@ -330,7 +330,7 @@ async def help(level: HelpLevel = HelpLevel.BASIC, topic: Optional[str] = None) 
     return await help_helper(level=level, topic=topic)
 
 
-@mcp.tool()
+# Deprecated: use manage_system(operation="status") - kept as helper only, not registered
 async def status(
     level: StatusLevel = StatusLevel.BASIC, focus: Optional[str] = None
 ) -> str:
@@ -625,7 +625,7 @@ def _get_tool_by_name(tool_name: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-@mcp.tool()
+# Deprecated: use manage_system(operation="tool_help") - kept as helper only, not registered
 async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
     """
     Get detailed help for a specific tool.
@@ -862,7 +862,7 @@ def _get_tool_tips(tool_name: str) -> List[str]:
     return tips_map.get(tool_name, [])
 
 
-@mcp.tool()
+# Deprecated: use manage_system(operation="list_tools") - kept as helper only, not registered
 async def list_tools(category: Optional[str] = None) -> Dict[str, Any]:
     """
     List all available tools with their descriptions.
@@ -957,7 +957,7 @@ async def list_tools_helper(category: Optional[str] = None) -> Dict[str, Any]:
     return await list_tools(category=category)
 
 
-@mcp.tool()
+# Deprecated: use manage_system(operation="hello_world") - kept as helper only, not registered
 async def hello_world() -> str:
     """
     A simple hello world tool for testing and demonstration purposes.
@@ -986,7 +986,7 @@ async def hello_world_helper() -> str:
     return await hello_world()
 
 
-@mcp.tool()
+# Deprecated: use manage_system(operation="health_check") - kept as helper only, not registered
 async def health_check() -> Dict[str, Any]:
     """
     Machine-readable health check for monitoring systems.
@@ -1085,7 +1085,7 @@ async def health_check_helper() -> Dict[str, Any]:
     return await health_check()
 
 
-@mcp.tool()
+# Deprecated: use manage_system - kept as helper only, not registered
 async def ping() -> str:
     """
     Verify connectivity to the Calibre database and API.
@@ -1101,7 +1101,7 @@ async def ping() -> str:
         return f"Ping failed: {str(e)}"
 
 
-@mcp.tool()
+# Deprecated: use manage_system - kept as helper only, not registered
 async def version() -> str:
     """
     Get the current version of the CalibreMCP server.
@@ -1109,7 +1109,7 @@ async def version() -> str:
     return "12.1.0-SOTA"
 
 
-@mcp.tool()
+# Deprecated: use manage_system - kept as helper only, not registered
 async def maintenance(operation: str = "vacuum") -> str:
     """
     Perform database maintenance operations.
@@ -1131,7 +1131,7 @@ async def maintenance(operation: str = "vacuum") -> str:
         return f"Maintenance failed: {str(e)}"
 
 
-@mcp.tool()
+# Deprecated: use manage_system - kept as helper only, not registered
 async def config_view() -> Dict[str, Any]:
     """
     View non-sensitive server configuration.

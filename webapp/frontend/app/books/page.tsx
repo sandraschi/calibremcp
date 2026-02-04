@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getBooks } from '@/lib/api';
+import { getBooks, type BookListResponse } from '@/lib/api';
 import { BookGrid } from '@/components/books/book-grid';
 import { ErrorBanner } from '@/components/ui/error-banner';
 
@@ -31,7 +31,7 @@ export default async function BooksPage({
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  let data: { items?: unknown[]; total?: number };
+  let data: BookListResponse;
   try {
     data = await getBooks({
       limit,

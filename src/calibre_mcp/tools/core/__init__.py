@@ -6,14 +6,10 @@ This module registers all core library operation tools with the MCP server.
 
 from .library_operations import (
     list_books_helper,  # noqa: F401
-    get_book_details_helper,  # noqa: F401 - Helper function (NOT registered)
-    test_calibre_connection,
+    get_book_details_helper,  # noqa: F401
+    test_calibre_connection_helper,  # noqa: F401
 )
-# list_books_helper and get_book_details_helper are helper functions (NOT registered)
-# get_book_details migrated to manage_books(operation="details")
+# test_connection merged into manage_libraries(operation="test_connection")
+# Core module not loaded by default - manage_libraries provides consolidated interface
 
-# List of tools to register (only @mcp.tool() decorated functions)
-tools = [
-    test_calibre_connection,  # Registered with @mcp.tool() - diagnostic tool
-    # get_book_details removed - use manage_books(operation="details") instead
-]
+tools: list = []

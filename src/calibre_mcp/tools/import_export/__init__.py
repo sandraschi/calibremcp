@@ -1,11 +1,9 @@
 """
 Import/Export tools for Calibre MCP server.
 
-This module provides export_books and manage_import portmanteau tools.
+Core: export_books only. manage_import available when CALIBRE_BETA_TOOLS=true.
 """
 
-# Import portmanteau tools (registered with @mcp.tool())
 from .export_books_portmanteau import export_books  # noqa: F401
-from .manage_import import manage_import  # noqa: F401
 
-__all__ = ["export_books", "manage_import"]
+__all__ = ["export_books"]

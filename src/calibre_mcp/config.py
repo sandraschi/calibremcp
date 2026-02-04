@@ -93,6 +93,13 @@ class CalibreConfig(BaseModel):
     # Library settings
     library_name: str = Field(default="main", description="Primary library name")
 
+    # Tool loading: when True, load experimental/beta tools (content_sync, ai_operations,
+    # bulk_operations, organization, users, specialized, agentic)
+    load_beta_tools: bool = Field(
+        default=False,
+        description="Load experimental tools; set CALIBRE_BETA_TOOLS=true to enable",
+    )
+
     @field_validator("server_url")
     @classmethod
     def validate_server_url(cls, v):
@@ -164,6 +171,7 @@ class CalibreConfig(BaseModel):
             "CALIBRE_LIBRARY_NAME": "library_name",
             "CALIBRE_BASE_PATH": "base_library_path",
             "CALIBRE_LIBRARY_PATHS": "library_paths",  # JSON-encoded dict of library paths
+            "CALIBRE_BETA_TOOLS": "load_beta_tools",
             "user_config.calibre_library_path": "local_library_path",  # MCP user config from Claude Desktop
         }
 
@@ -196,7 +204,9 @@ class CalibreConfig(BaseModel):
             env_value = os.getenv(env_var)
             if env_value is not None:
                 # Convert to appropriate type
-                if config_key in [
+                if config_key == "load_beta_tools":
+                    config_data[config_key] = env_value.lower() in ("true", "1", "yes")
+                elif config_key in [
                     "timeout",
                     "max_retries",
                     "default_limit",

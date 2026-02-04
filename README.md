@@ -416,12 +416,13 @@ cd calibre-mcp
    ```
 
 2. **Install dependencies:**
-   ```bash
-   # Using pip
-   pip install -e .
+   Standardized installation uses the system Python environment for maximum reliability in Antigravity:
 
-   # Or using uv (recommended)
-   uv pip install -e .
+   ```powershell
+   # Install in system environment (SOTA 2026 pattern)
+   pip install fastmcp pydantic aiohttp
+   cd d:\dev\repos\calibre-mcp
+   pip install -e .
    ```
 
 3. **Configure Claude Desktop:**

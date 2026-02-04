@@ -20,6 +20,9 @@ async def manage_libraries(
     library_name: Optional[str] = None,
     query: Optional[str] = None,
     libraries: Optional[List[str]] = None,
+    wizfile_allowed: bool = False,
+    calibre_cli_allowed: bool = False,
+    common_paths_allowed: bool = True,
 ) -> Dict[str, Any]:
     """
     Manage Calibre libraries with multiple operations in a single unified interface.
@@ -38,6 +41,8 @@ async def manage_libraries(
     - switch: Switch the active library for all subsequent operations
     - stats: Get detailed statistics for a specific or current library
     - search: Search for books across multiple libraries simultaneously
+    - test_connection: Test Calibre connection (local SQLite or remote server)
+    - discover: Discover Calibre libraries via filesystem/CLI (common_paths, calibre_cli, wizfile)
 
     OPERATIONS DETAIL:
 
@@ -227,11 +232,15 @@ async def manage_libraries(
                     related_tools=["manage_libraries", "query_books"],
                 )
             return await _handle_cross_library_search(query, libraries)
+        elif operation == "test_connection":
+            return await _handle_test_connection()
+        elif operation == "discover":
+            return await _handle_discover(wizfile_allowed, calibre_cli_allowed, common_paths_allowed)
         else:
             return format_error_response(
                 error_msg=(
                     f"Invalid operation: '{operation}'. "
-                    f"Must be one of: 'list', 'switch', 'stats', 'search'"
+                    f"Must be one of: 'list', 'switch', 'stats', 'search', 'test_connection', 'discover'"
                 ),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",
@@ -241,6 +250,8 @@ async def manage_libraries(
                     "Use operation='switch' to change the active library",
                     "Use operation='stats' to get library statistics",
                     "Use operation='search' to search across libraries",
+                    "Use operation='test_connection' for connection diagnostics",
+                    "Use operation='discover' to find libraries via filesystem/CLI",
                 ],
                 related_tools=["manage_libraries"],
             )
@@ -329,4 +340,57 @@ async def _handle_cross_library_search(
             parameters={"query": query, "libraries": libraries},
             tool_name="manage_libraries",
             context=f"Cross-library search for query: {query}",
+        )
+
+
+async def _handle_test_connection() -> Dict[str, Any]:
+    """Handle test_connection operation (merged from core)."""
+    from ..core.library_operations import test_calibre_connection_helper
+
+    try:
+        result = await test_calibre_connection_helper()
+        return result.model_dump()
+    except Exception as e:
+        return handle_tool_error(
+            exception=e,
+            operation="test_connection",
+            parameters={},
+            tool_name="manage_libraries",
+            context="Testing Calibre connection",
+        )
+
+
+async def _handle_discover(
+    wizfile_allowed: bool, calibre_cli_allowed: bool, common_paths_allowed: bool
+) -> Dict[str, Any]:
+    """Handle discover operation (merged from library_discovery)."""
+    from .library_discovery import discovery_tool
+
+    try:
+        libraries = discovery_tool.discover_libraries(
+            wizfile_allowed=wizfile_allowed,
+            calibre_cli_allowed=calibre_cli_allowed,
+            common_paths_allowed=common_paths_allowed,
+        )
+        return {
+            "success": True,
+            "libraries_found": len(libraries),
+            "libraries": libraries,
+            "methods_used": {
+                "common_paths": common_paths_allowed,
+                "calibre_cli": calibre_cli_allowed,
+                "wizfile": wizfile_allowed,
+            },
+        }
+    except Exception as e:
+        return handle_tool_error(
+            exception=e,
+            operation="discover",
+            parameters={
+                "wizfile_allowed": wizfile_allowed,
+                "calibre_cli_allowed": calibre_cli_allowed,
+                "common_paths_allowed": common_paths_allowed,
+            },
+            tool_name="manage_libraries",
+            context="Discovering Calibre libraries",
         )

@@ -10,9 +10,9 @@
 
 CalibreMCP is a comprehensive FastMCP 2.13+ server for Calibre e-book library management, providing seamless integration with Claude Desktop. The project is actively maintained with recent improvements to error handling, library discovery, and tool reliability.
 
-**Current State:** ✅ **Operational** - Database auto-initialization complete, all searches work on first try
+**Current State:** ✅ **Operational** - Database auto-initialization complete, all searches work on first try. Webapp full UI operational.
 
-**Overall Health:** 🟢 **Excellent** - All ruff checks passing, database auto-initialization reliable, intelligent query parsing implemented
+**Overall Health:** 🟢 **Excellent** - All ruff checks passing, database auto-initialization reliable, intelligent query parsing implemented. Webapp: books, authors, series, tags, publishers, chat, logs, import, export all functional.
 
 ---
 
@@ -37,7 +37,8 @@ CalibreMCP is a comprehensive FastMCP 2.13+ server for Calibre e-book library ma
 ## 📈 Recent Activity
 
 ### Latest Commits (Recent)
-1. **Tool Preload Fixes** (2025-01-30) - manage_analysis **kwargs removed; export_books re-export added; tool preload test
+1. **Webapp: Logs, Book Metadata, Chat** (2025-01-30) - Logs page (tail, filter, live tail); Book modal full metadata via direct BookService; Chat personalities; getSystemStatus URL fix; Books API publisher param
+2. **Tool Preload Fixes** (2025-01-30) - manage_analysis **kwargs removed; export_books re-export added; tool preload test
 2. **manage_system Help** - help_helper and all helpers added; HELP_DOCS updated with portmanteau tools
 3. **Webapp Help** - Static help content (Calibre, MCP, Webapp); no backend dependency
 4. **Unicode Encoding Fixes** - Resolved Windows startup crashes
@@ -63,6 +64,9 @@ CalibreMCP is a comprehensive FastMCP 2.13+ server for Calibre e-book library ma
 11. **Fix library discovery** - Honor user_config.calibre_library_path from manifest
 
 ### Recent Improvements
+- ✅ **Webapp Logs Page** - Log file viewer (tail, filter, level, live tail with backoff), System status view; backend /api/logs
+- ✅ **Book Modal Full Metadata** - Direct BookService for rating, publisher, identifiers, comments/description
+- ✅ **Chat Personalities** - Default, Librarian, Casual preprompt presets
 - ✅ **Unicode Encoding Fixes** - Server now starts successfully on Windows systems
 - ✅ **Database Auto-Initialization** - All searches work on first try without manual library switching
 - ✅ **Intelligent Query Parsing** - Natural language understanding for author, tag, pubdate, content type
@@ -142,6 +146,31 @@ All ruff checks passing. Code quality is excellent.
 - **After:** 18 portmanteau tools
 - **Reduction:** 55% fewer tools
 - **Status:** ✅ All portmanteau tools standardized with comprehensive docstrings
+
+---
+
+## 🌐 Webapp Status
+
+### Operational Features
+- **Overview** - Library stats, quick links
+- **Books** - Browse, pagination, covers, book modal with full metadata
+- **Authors / Series / Tags / Publishers** - List pages with search, drill to books
+- **Search** - Filter by author, tag, text, min rating
+- **Chat** - AI (Ollama/LM Studio/OpenAI), personality presets, model selection
+- **Logs** - Log file viewer (tail, filter, level, live tail), System status
+- **Import** - Add books by path; Anna's Archive search
+- **Export** - CSV/JSON with filters
+- **Settings** - LLM provider, base URL, model list
+- **Help** - Static content (Calibre, MCP, Webapp)
+
+### Architecture
+- **Backend:** FastAPI on 13000; MCP tools via direct import (`MCP_USE_HTTP=false`)
+- **Frontend:** Next.js 15 on 13001; API proxies to backend
+- **Logging:** logs/webapp.log (backend), logs/calibremcp.log (MCP stdio)
+
+### Known Limitations
+- HTTP MCP mount has no tools (main() never runs); webapp uses direct import path
+- Stdio mode: tools registered in main(); HTTP mount: no tool registration at module load
 
 ---
 

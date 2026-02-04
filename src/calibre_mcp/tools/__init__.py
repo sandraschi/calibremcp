@@ -149,98 +149,74 @@ def register_tools(mcp: Any) -> None:
     # Just importing them ensures they're loaded and registered
 
     try:
-        logger.info("Importing all portmanteau tools...")
+        logger.info("Importing portmanteau tools (target: 15 core tools)...")
 
-        # Core tools
+        # Config for beta tools (CALIBRE_BETA_TOOLS=true)
+        from ..config import CalibreConfig
+        config = CalibreConfig.load_config()
+        load_beta = getattr(config, "load_beta_tools", False)
+
+        # Core: manage_libraries (includes test_connection, discover); no standalone core/library_discovery
         import_start = time.time()
-        from .core import tools as _core_tools  # noqa: F401
-        from .library import tools as _library_tools  # noqa: F401
+        from .library import manage_libraries  # noqa: F401
         import_time = time.time() - import_start
-        logger.info(".2f")
+        logger.info(f"Library tools loaded in {import_time:.2f}s")
 
-        # Book management portmanteau
+        # Book management
         import_start = time.time()
         from .book_management import manage_books  # noqa: F401
         import_time = time.time() - import_start
-        logger.info(".2f")
+        logger.info(f"Book management loaded in {import_time:.2f}s")
 
-        # Metadata/tags/descriptions portmanteau
+        # Metadata, tags, comments, series, publishers, authors (core)
         import_start = time.time()
         from .metadata import manage_metadata  # noqa: F401
         from .tags import manage_tags  # noqa: F401
         from .comments import manage_comments  # noqa: F401
-        from .descriptions import manage_descriptions  # noqa: F401
         from .series import manage_series  # noqa: F401
         from .publishers import manage_publishers  # noqa: F401
-        from .user_comments import manage_user_comments  # noqa: F401
-        from .extended_metadata import manage_extended_metadata  # noqa: F401
-        from .times import manage_times  # noqa: F401
-        import_time = time.time() - import_start
-        logger.info(".2f")
-
-        # Authors portmanteau
-        import_start = time.time()
         from .authors import manage_authors  # noqa: F401
         import_time = time.time() - import_start
-        logger.info(".2f")
+        logger.info(f"Metadata/tags/authors loaded in {import_time:.2f}s")
 
-        # File management portmanteau
+        # Files, analysis, library operations, system, import/export, viewer
         import_start = time.time()
         from .files import manage_files  # noqa: F401
-        import_time = time.time() - import_start
-        logger.info(".2f")
-
-        # Analysis/advanced portmanteau
-        import_start = time.time()
         from .analysis import manage_analysis  # noqa: F401
-        from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
-        import_time = time.time() - import_start
-        logger.info(".2f")
-
-        # AI operations portmanteau
-        import_start = time.time()
-        from .ai import manage_ai_operations  # noqa: F401
-        import_time = time.time() - import_start
-        logger.info(".2f")
-
-        # Organization operations portmanteau
-        import_start = time.time()
-        from .organization import manage_organization  # noqa: F401
-        import_time = time.time() - import_start
-        logger.info(".2f")
-
-        # Library operations portmanteau
-        import_start = time.time()
         from .library_operations import manage_library_operations  # noqa: F401
-        import_time = time.time() - import_start
-        logger.info(".2f")
-
-        # System/specialized portmanteau
-        import_start = time.time()
         from .system import manage_system  # noqa: F401
-        from .specialized import manage_specialized  # noqa: F401
-        from .user_management import manage_users  # noqa: F401
         from .import_export import export_books  # noqa: F401
         from .viewer import manage_viewer  # noqa: F401
         import_time = time.time() - import_start
-        logger.info(".2f")
+        logger.info(f"Files/analysis/system loaded in {import_time:.2f}s")
 
-        # OCR tools
+        # OCR
         import_start = time.time()
-        from .ocr import tools as _ocr_tools  # noqa: F401
         from .ocr.calibre_ocr_tool import OCRTool
         OCRTool.register(mcp)
         import_time = time.time() - import_start
-        logger.info(".2f")
+        logger.info(f"OCR loaded in {import_time:.2f}s")
 
-        # Agentic workflow tools
-        import_start = time.time()
-        from .agentic import register_agentic_tools
-        register_agentic_tools()
-        import_time = time.time() - import_start
-        logger.info(f"Agentic workflow tools loaded in {import_time:.2f}s")
+        # Beta tools: manage_import, descriptions, user_comments, extended_metadata, times,
+        # content_sync, ai_operations, bulk_operations, organization, users, specialized, agentic
+        if load_beta:
+            import_start = time.time()
+            from .import_export.manage_import import manage_import  # noqa: F401
+            from .descriptions import manage_descriptions  # noqa: F401
+            from .user_comments import manage_user_comments  # noqa: F401
+            from .extended_metadata import manage_extended_metadata  # noqa: F401
+            from .times import manage_times  # noqa: F401
+            from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
+            from .ai import manage_ai_operations  # noqa: F401
+            from .organization import manage_organization  # noqa: F401
+            from .specialized import manage_specialized  # noqa: F401
+            from .user_management import manage_users  # noqa: F401
+            from .agentic import register_agentic_tools
+            register_agentic_tools()
+            import_time = time.time() - import_start
+            logger.info(f"Beta tools loaded in {import_time:.2f}s (CALIBRE_BETA_TOOLS=true)")
 
-        import_count = 23  # Total portmanteau tools imported
+        import_count = 15 if not load_beta else 26
 
     except Exception as e:
         logger.error(f"Failed to load portmanteau tools: {e}", exc_info=True)
