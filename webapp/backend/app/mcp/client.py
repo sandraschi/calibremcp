@@ -522,8 +522,7 @@ def _preload_tools():
         # Analysis
         "analyze_library": "calibre_mcp.tools.analysis.analyze_library",
         "manage_analysis": "calibre_mcp.tools.analysis.manage_analysis",
-        # Specialized tools
-        "manage_specialized": "calibre_mcp.tools.specialized.manage_specialized",
+        # Specialized: skip until manage_specialized.py exists (optional portmanteau)
         # System tools
         "manage_system": "calibre_mcp.tools.system.manage_system",
         # Advanced features

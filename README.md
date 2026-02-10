@@ -226,8 +226,8 @@ A Next.js webapp provides a full browser UI for the Calibre library.
 - Logs page: Log file viewer with tail, filter, level filter, live tail (polling with backoff), plus System status view
 - Import (add by path), Export (CSV/JSON)
 
-**Start:** `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
-See [webapp/README.md](webapp/README.md).
+**Start:** Use `webapp\start.ps1` for reservoir ports (10720 backend, 10721 frontend) with kill-port zombie clear. Or legacy: `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
+See [webapp/README.md](webapp/README.md), [webapp/SETUP.md](webapp/SETUP.md) (port rules, zombie kill).
 
 #### **7. Logging**
 

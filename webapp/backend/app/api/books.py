@@ -83,6 +83,9 @@ async def list_books(
                 "text": text,
             },
         )
+        # Normalize for frontend: expect { items, total }; tool may return results/total_found
+        if isinstance(result, dict) and "items" not in result and "results" in result:
+            result = {**result, "items": result["results"], "total": result.get("total_found", len(result["results"]))}
         if unfiltered:
             set_ttl_cached(key, result, ttl=30)
         return result

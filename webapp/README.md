@@ -78,8 +78,15 @@ Frontend runs on http://localhost:13001
 
 ### All-in-one
 
-```bash
-# From repo root
+**Reservoir ports** (10720 backend, 10721 frontend; port rules compliant):
+```powershell
+cd webapp
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+```
+Uses kill-port to clear zombies before bind. Sets `API_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL` for correct SSR.
+
+**Legacy** (13000/13001):
+```batch
 .\webapp\start-local.bat
 ```
 

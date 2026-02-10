@@ -100,10 +100,19 @@ webapp/
     └── package.json
 ```
 
+## Port rules and startup (mcp-central-docs)
+
+- **Reservoir ports** (10700-10800): calibre-mcp uses **10720** (backend) and **10721** (frontend) for local runs that follow the ecosystem port rules.
+- **Docker**: Compose maps host **10720** -> backend 13000, **10722** -> frontend 13001 (registry: 10720 = calibre-mcp Webapp).
+- **Zombie kill**: Start scripts MUST clear the port before binding.
+  - **start.ps1**: Clears 10720 and 10721 (PowerShell `Get-NetTCPConnection` + `Stop-Process`), then starts backend and frontend in separate windows on those ports. Use for port-rule-compliant local run: `powershell -ExecutionPolicy Bypass -File webapp\start.ps1`.
+  - **start-local.bat**: Clears 13000 and 13001 (netstat + taskkill), then starts backend 13000 and frontend 13001. Use for quick local dev without changing port.
+  - **start-all.bat** (Docker): Runs `docker compose down` then `up -d`; does not clear host ports 10720/10722 if another process holds them (stop that process or use `docker compose down` and ensure no other container uses those ports).
+
 ## Next Steps
 
-1. **Test Backend**: Visit http://localhost:13000/docs to see API documentation
-2. **Test Frontend**: Visit http://localhost:3000 to see the webapp
+1. **Test Backend**: Visit http://localhost:13000/docs (or http://localhost:10720/docs if using start.ps1)
+2. **Test Frontend**: Visit http://localhost:13001 or http://localhost:10721 (start.ps1)
 3. **Implement Features**: Follow the implementation guide in `docs/WEBAPP_IMPLEMENTATION_GUIDE.md`
 
 ## Troubleshooting

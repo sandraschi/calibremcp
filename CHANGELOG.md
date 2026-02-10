@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Webapp startup SOTA** - Port reservoir 10720/10721 per mcp-central-docs; `start.ps1` uses kill-port for zombie clear; `NEXT_PUBLIC_APP_URL` for SSR (books/authors load); backend env.example PORT=10720, CORS for 10721
 - **FastMCP 2.14.4 SOTA** - Sampling (SEP-1577) via `ctx.sample()` in `agentic_library_workflow`; dialogic returns (execution_time_ms, recommendations) in portmanteau tools; `ctx: Context` in manage_libraries and agentic tools
 - **Logs API** - Backend `/api/logs` with tail, filter, level; reads calibremcp.log or webapp.log
 - **Logs page** - Log file viewer with filtering, live tail (polling with exponential backoff), system status view

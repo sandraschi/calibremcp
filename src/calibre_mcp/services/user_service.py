@@ -1,11 +1,11 @@
 from ..db.user_data import get_user_data_db
 from ..db.repositories.user_repository import UserRepository
-from .base_service import BaseService
 
 
-class UserService(BaseService):
-    def __init__(self):
-        super().__init__()
+class UserService:
+    """User data service. Uses user_data DB (not Calibre DB); does not use BaseService."""
+
+    def __init__(self) -> None:
         self.db = get_user_data_db()
 
     async def get_user_by_id(self, user_id: str) -> dict | None:

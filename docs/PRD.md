@@ -208,6 +208,12 @@ interface SearchResponse {
 - Extending functionality
 - Contributing guidelines
 
+### 6.4 Webapp Startup Compliance (mcp-central-docs)
+- **Port Reservoir**: Backend 10720, Frontend 10721 (reserved 10700-10800)
+- **Zombie Kill**: start.ps1 uses kill-port before bind; PowerShell fallback for netstat
+- **SSR Env**: `NEXT_PUBLIC_APP_URL` must match frontend port so getBaseUrl() hits self
+- **Docs**: webapp/SETUP.md, webapp/README.md
+
 ## 7. Future Enhancements
 
 ### 7.1 Advanced AI Features
