@@ -3,9 +3,12 @@ Standardized error handling utilities for MCP tools.
 
 All tools MUST use these functions to return AI-friendly error responses
 that follow the .cursorrules Error Messages requirements.
+
+SOTA dialogic pattern: execution_time_ms, recommendations, next_steps.
 """
 
 import logging
+import time
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -20,6 +23,8 @@ def format_error_response(
     suggestions: list[str] | None = None,
     related_tools: list[str] | None = None,
     diagnostic_info: dict[str, Any] | None = None,
+    execution_time_ms: int | None = None,
+    recommendations: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Format a standardized error response for MCP tools.
@@ -79,6 +84,11 @@ def format_error_response(
     if diagnostic_info:
         response["diagnostic"] = diagnostic_info
 
+    if execution_time_ms is not None:
+        response["execution_time_ms"] = execution_time_ms
+    if recommendations:
+        response["recommendations"] = recommendations
+
     return response
 
 
@@ -88,6 +98,7 @@ def handle_tool_error(
     parameters: dict[str, Any] | None = None,
     tool_name: str = "tool",
     context: str | None = None,
+    execution_time_ms: int | None = None,
 ) -> dict[str, Any]:
     """
     Handle exceptions in tools and return standardized error response.
@@ -210,4 +221,6 @@ def handle_tool_error(
         suggestions=default_suggestions,
         related_tools=default_tools,
         diagnostic_info=diagnostic,
+        execution_time_ms=execution_time_ms,
+        recommendations=default_suggestions[:3],
     )

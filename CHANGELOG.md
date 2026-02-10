@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **FastMCP 2.14.4 SOTA** - Sampling (SEP-1577) via `ctx.sample()` in `agentic_library_workflow`; dialogic returns (execution_time_ms, recommendations) in portmanteau tools; `ctx: Context` in manage_libraries and agentic tools
 - **Logs API** - Backend `/api/logs` with tail, filter, level; reads calibremcp.log or webapp.log
 - **Logs page** - Log file viewer with filtering, live tail (polling with exponential backoff), system status view
 - **Chat personalities** - Default, Librarian, Casual preprompt presets
@@ -69,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **export_books preload** - Added export_books.py re-export for MCP client module path
 
 ### Changed
+- **FastMCP** - Bumped to 2.14.4+ (pyproject.toml); agentic workflow uses real ctx.sample() with tools; error_handling.py adds execution_time_ms and recommendations; manage_libraries adds _add_dialogic_fields()
 - Config default MCP HTTP URL: 8765 -> 13000 (Calibre webapp backend port)
 - `docs/integrations/CALIBRE_INTEGRATION_GUIDE.md` - Added Calibre plugin section
 - `docs/DOCUMENTATION_INDEX.md` - Added Calibre Integrations section

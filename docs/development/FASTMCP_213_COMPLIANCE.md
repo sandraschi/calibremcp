@@ -1,8 +1,8 @@
-# FastMCP 2.13+ Compliance Audit
+# FastMCP 2.13+ / 2.14.4 Compliance Audit
 
-**Date:** 2025-11-22  
-**Status:** ✅ COMPLETE  
-**Purpose:** Verify all `@mcp.tool()` decorators conform to FastMCP 2.13+ standards
+**Date:** 2025-11-22 (updated 2026-02-10)  
+**Status:** COMPLETE  
+**Purpose:** Verify `@mcp.tool()` decorators and SOTA features (FastMCP 2.14.4)
 
 ---
 

@@ -189,13 +189,13 @@ class GOTOCRProcessor:
             # Run inference (this would be the actual GOT-OCR2.0 API call)
             with torch.no_grad():
                 # Mock response - replace with actual model inference
-                mock_text = "This is extracted text from the image using GOT-OCR2.0"
+                mock_text = "[SIMULATED OCR] This is extracted text from the image using GOT-OCR2.0"
 
                 return OCRResult(
                     text=mock_text,
                     confidence=0.95,
                     format="text",
-                    metadata={"model": "GOT-OCR2.0", "mode": "mock"},
+                    metadata={"model": "GOT-OCR2.0", "mode": "simulation"},
                 )
 
         except Exception as e:

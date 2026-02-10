@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "calibre-mcp"
 version = "1.1.0"
-description = "FastMCP 2.14.3+ server for conversational Calibre e-book library management with natural language search and auto-open functionality"
+description = "FastMCP 2.14.4+ server for conversational Calibre e-book library management with sampling, dialogic returns, and AI workflows"
 authors = [
     {name = "Sandra", email = "sandra@example.com"}
 ]
@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp>=2.14.3,<2.15.0",
+    "fastmcp>=2.14.4,<2.15.0",
     "fastapi>=0.115.0",
     "httpx>=0.27.0",
     "pydantic>=2.9.0",

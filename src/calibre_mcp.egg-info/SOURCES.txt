@@ -9,11 +9,15 @@ src/calibre_mcp/config.py
 src/calibre_mcp/config_discovery.py
 src/calibre_mcp/exceptions.py
 src/calibre_mcp/logging_config.py
+src/calibre_mcp/mcp_instance.py
 src/calibre_mcp/models.py
 src/calibre_mcp/prompts.py
 src/calibre_mcp/server.py
+src/calibre_mcp/server_context.py
 src/calibre_mcp/server_full.py
 src/calibre_mcp/server_minimal.py
+src/calibre_mcp/server_models.py
+src/calibre_mcp/transport.py
 src/calibre_mcp/utils.py
 src/calibre_mcp.egg-info/PKG-INFO
 src/calibre_mcp.egg-info/SOURCES.txt
@@ -31,6 +35,7 @@ src/calibre_mcp/db/repositories/__init__.py
 src/calibre_mcp/db/repositories/author_repository.py
 src/calibre_mcp/db/repositories/book_repository.py
 src/calibre_mcp/db/repositories/library_repository.py
+src/calibre_mcp/db/repositories/user_repository.py
 src/calibre_mcp/models/__init__.py
 src/calibre_mcp/models/author.py
 src/calibre_mcp/models/base.py
@@ -59,6 +64,7 @@ src/calibre_mcp/services/series_service.py
 src/calibre_mcp/services/tag_service.py
 src/calibre_mcp/services/times_service.py
 src/calibre_mcp/services/user_comment_service.py
+src/calibre_mcp/services/user_service.py
 src/calibre_mcp/services/viewer_service.py
 src/calibre_mcp/storage/__init__.py
 src/calibre_mcp/storage/local.py
@@ -123,10 +129,12 @@ src/calibre_mcp/tools/files/manage_files.py
 src/calibre_mcp/tools/help_tools/__init__.py
 src/calibre_mcp/tools/help_tools/help.py
 src/calibre_mcp/tools/import_export/__init__.py
+src/calibre_mcp/tools/import_export/annas_client.py
 src/calibre_mcp/tools/import_export/export_books.py
 src/calibre_mcp/tools/import_export/export_books_portmanteau.py
 src/calibre_mcp/tools/import_export/export_helpers.py
 src/calibre_mcp/tools/import_export/export_library.py
+src/calibre_mcp/tools/import_export/manage_import.py
 src/calibre_mcp/tools/library/__init__.py
 src/calibre_mcp/tools/library/library_discovery.py
 src/calibre_mcp/tools/library/library_management.py
@@ -155,7 +163,6 @@ src/calibre_mcp/tools/shared/__init__.py
 src/calibre_mcp/tools/shared/error_handling.py
 src/calibre_mcp/tools/shared/query_parsing.py
 src/calibre_mcp/tools/specialized/__init__.py
-src/calibre_mcp/tools/specialized/manage_specialized.py
 src/calibre_mcp/tools/specialized/specialized_tools.py
 src/calibre_mcp/tools/system/__init__.py
 src/calibre_mcp/tools/system/manage_system.py
@@ -204,3 +211,4 @@ tests/test_query_books_search_bug.py
 tests/test_runner.py
 tests/test_server_integration.py
 tests/test_stdio_integration.py
+tests/test_tool_preload.py

@@ -3,15 +3,40 @@ Library management portmanteau tool for CalibreMCP.
 
 Consolidates list_libraries, switch_library, get_library_stats, and cross_library_search
 into a single portmanteau tool with operation parameter.
+
+SOTA: ctx: Context, execution_time_ms, recommendations in responses.
 """
 
+import time
 from typing import Any
+
+from fastmcp import Context
 
 from ...logging_config import get_logger
 from ...server import mcp
 from ..shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.library_management")
+
+
+def _add_dialogic_fields(
+    result: dict[str, Any],
+    execution_time_ms: int,
+    operation: str,
+) -> dict[str, Any]:
+    """Add execution_time_ms and recommendations for SOTA dialogic returns."""
+    result["execution_time_ms"] = execution_time_ms
+    if "recommendations" not in result:
+        recs = {
+            "list": ["Use operation='switch' to change library", "Use operation='stats' for details"],
+            "switch": ["Use operation='list' to see libraries", "Use operation='stats' after switch"],
+            "stats": ["Use operation='search' for cross-library search"],
+            "search": ["Use query_books for detailed book search", "Use manage_books for book details"],
+            "test_connection": ["Use operation='list' to see available libraries"],
+            "discover": ["Use operation='list' after discovery", "Use operation='switch' to activate"],
+        }
+        result["recommendations"] = recs.get(operation, ["Use manage_libraries for library operations"])
+    return result
 
 
 @mcp.tool()
@@ -23,6 +48,7 @@ async def manage_libraries(
     wizfile_allowed: bool = False,
     calibre_cli_allowed: bool = False,
     common_paths_allowed: bool = True,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
     Manage Calibre libraries with multiple operations in a single unified interface.
@@ -194,12 +220,19 @@ async def manage_libraries(
         - For individual operations: See list_libraries, switch_library, get_library_stats, cross_library_search
           (these are deprecated in favor of this portmanteau tool)
     """
+    start_ms = int(time.time() * 1000)
+    if ctx:
+        try:
+            ctx.info(f"manage_libraries operation={operation}")
+        except Exception:
+            pass
     try:
         if operation == "list":
-            return await _handle_list_libraries()
+            r = await _handle_list_libraries()
+            return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "switch":
             if not library_name:
-                return format_error_response(
+                r = format_error_response(
                     error_msg=(
                         "library_name is required for operation='switch'. "
                         "Use operation='list' to see available libraries."
@@ -213,10 +246,14 @@ async def manage_libraries(
                         "Example: manage_libraries(operation='switch', library_name='Main Library')",
                     ],
                     related_tools=["manage_libraries"],
+                    execution_time_ms=int(time.time() * 1000) - start_ms,
                 )
-            return await _handle_switch_library(library_name)
+                return r
+            r = await _handle_switch_library(library_name)
+            return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "stats":
-            return await _handle_get_library_stats(library_name)
+            r = await _handle_get_library_stats(library_name)
+            return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "search":
             if not query:
                 return format_error_response(
@@ -230,14 +267,18 @@ async def manage_libraries(
                         "Example: manage_libraries(operation='search', query='machine learning')",
                     ],
                     related_tools=["manage_libraries", "query_books"],
+                    execution_time_ms=int(time.time() * 1000) - start_ms,
                 )
-            return await _handle_cross_library_search(query, libraries)
+            r = await _handle_cross_library_search(query, libraries)
+            return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "test_connection":
-            return await _handle_test_connection()
+            r = await _handle_test_connection()
+            return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "discover":
-            return await _handle_discover(
+            r = await _handle_discover(
                 wizfile_allowed, calibre_cli_allowed, common_paths_allowed
             )
+            return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         else:
             return format_error_response(
                 error_msg=(
@@ -256,6 +297,7 @@ async def manage_libraries(
                     "Use operation='discover' to find libraries via filesystem/CLI",
                 ],
                 related_tools=["manage_libraries"],
+                execution_time_ms=int(time.time() * 1000) - start_ms,
             )
     except Exception as e:
         return handle_tool_error(
@@ -269,6 +311,7 @@ async def manage_libraries(
             },
             tool_name="manage_libraries",
             context="Library management operation",
+            execution_time_ms=int(time.time() * 1000) - start_ms,
         )
 
 

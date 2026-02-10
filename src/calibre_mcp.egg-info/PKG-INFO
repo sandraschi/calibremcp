@@ -31,6 +31,7 @@ Requires-Dist: keyring>=24.0.0
 Requires-Dist: py-key-value-aio[disk]<0.4.0,>=0.3.0
 Requires-Dist: tenacity>=8.2.0
 Requires-Dist: psutil>=5.9.0
+Requires-Dist: beautifulsoup4>=4.12.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.3.0; extra == "dev"
 Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
@@ -61,6 +62,7 @@ Dynamic: requires-python
 **FastMCP 2.14.3+ server for conversational Calibre e-book library management with natural language search and auto-open functionality**
 
 **Features:**
+- **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, AI chat (Ollama/LM Studio), import/export
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
 - **Portmanteau Tools** - 21 consolidated tools (18 portmanteau + 3 specialized)
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
@@ -262,6 +264,26 @@ A Calibre plugin provides GUI integration for extended metadata and webapp featu
 
 See [docs/integrations/CALIBRE_PLUGIN_DESIGN.md](docs/integrations/CALIBRE_PLUGIN_DESIGN.md).
 
+#### **6. Webapp (Optional)** - Browser Interface
+
+A Next.js webapp provides a full browser UI for the Calibre library.
+
+**Features:**
+- Retractable sidebar: Overview, Libraries, Books, Search, Authors, Series, Tags, Publishers, Import, Export, Chat, Logs, Settings, Help
+- AI Chat (Ollama, LM Studio, OpenAI-compatible) with personality presets and Settings
+- Book modal with full metadata (rating, publisher, series, identifiers, comments/description), Read button, author Wikipedia links
+- Logs page: Log file viewer with tail, filter, level filter, live tail (polling with backoff), plus System status view
+- Import (add by path), Export (CSV/JSON)
+
+**Start:** `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
+See [webapp/README.md](webapp/README.md).
+
+#### **7. Logging**
+
+- **Stdio mode** (`python -m calibre_mcp`): Writes to `logs/calibremcp.log` with rotation (10MB, 5 backups)
+- **Webapp backend**: Writes to `logs/webapp.log` with rotation
+- Log files are tail-able via the webapp Logs page
+
 ---
 
 ### **Start Calibre Content Server** (if using remote access)
@@ -443,12 +465,13 @@ cd calibre-mcp
    ```
 
 2. **Install dependencies:**
-   ```bash
-   # Using pip
-   pip install -e .
+   Standardized installation uses the system Python environment for maximum reliability in Antigravity:
 
-   # Or using uv (recommended)
-   uv pip install -e .
+   ```powershell
+   # Install in system environment (SOTA 2026 pattern)
+   pip install fastmcp pydantic aiohttp
+   cd d:\dev\repos\calibre-mcp
+   pip install -e .
    ```
 
 3. **Configure Claude Desktop:**

@@ -219,6 +219,7 @@ if not _is_stdio_mode:
 
 # Register prompt templates
 from calibre_mcp.prompts import register_prompts
+from calibre_mcp.transport import run_server, run_server_async
 
 register_prompts(mcp)
 
@@ -654,14 +655,14 @@ async def main():
         logger.info("PHASE 6: Starting FastMCP server...")
         try:
             # Log what we're about to do
-            logger.info("Calling mcp.run_stdio_async()...")
+            logger.info("Calling await run_server_async(mcp, server_name='CalibreMCP Phase 2')...")
             logger.info(f"MCP instance: {type(mcp).__name__}")
             logger.info(
                 f"MCP lifespan configured: {hasattr(mcp, '_lifespan') and mcp._lifespan is not None}"
             )
 
             # Run the FastMCP server using the SOTA-recommended async stdio transport
-            await mcp.run_stdio_async()
+            await run_server_async(mcp, server_name="CalibreMCP Phase 2")
 
         except Exception as server_error:
             logger.error("CRITICAL: FastMCP server startup failed")
@@ -715,14 +716,10 @@ if __name__ == "__main__":
     import sys
     from pathlib import Path
 
-    # If running directly (not as module), fix imports
+    # If running directly (not as module), ensure src is on path for calibre_mcp imports
     current_file = Path(__file__).resolve()
     src_path = current_file.parent.parent
-
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
-
-    # Now re-import using absolute imports
-    from calibre_mcp.server import main
 
     asyncio.run(main())

@@ -1,7 +1,7 @@
 # CalibreMCP 📚
 
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.3+-blue)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.4+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.1.0-blue)](pyproject.toml)
@@ -10,7 +10,7 @@
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
-**FastMCP 2.14.3+ server for conversational Calibre e-book library management with natural language search and auto-open functionality**
+**FastMCP 2.14.4+ server for Calibre e-book library management with sampling, dialogic tool returns, and AI workflows**
 
 **Features:**
 - **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, AI chat (Ollama/LM Studio), import/export
@@ -19,7 +19,7 @@
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
-- **Natural Language Search** - ✅ Intelligent parsing of conversational queries (FastMCP 2.14.3 sampling)
+- **Natural Language Search** - Intelligent parsing via FastMCP 2.14.4 sampling (SEP-1577)
 - **Auto-Open Books** - ✅ Unique search results automatically launch in system viewer
 - **Title-Specific Search** - ✅ Fast, exact title matching with `title` parameter
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
@@ -539,8 +539,8 @@ The MCP client LLM automatically parses natural language queries into structured
 - "books from last year" → `query_books(operation="search", added_after="2024-01-01")`
 - "find sapiens" → `query_books(operation="search", title="sapiens")`
 
-**FastMCP 2.14.3 Sampling:**
-For ambiguous queries, the server uses sampling to ask the MCP client LLM for intelligent parsing.
+**FastMCP 2.14.4 Sampling (SEP-1577):**
+For ambiguous queries, the server uses `ctx.sample()` with tools to orchestrate agentic workflows. Supports dialogic returns (execution_time_ms, recommendations) for SOTA MCP compliance.
 
 ### **Auto-Open Books**
 

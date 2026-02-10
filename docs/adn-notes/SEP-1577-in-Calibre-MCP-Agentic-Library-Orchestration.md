@@ -51,33 +51,30 @@ The LLM can orchestrate from these operation categories:
 
 ## Implementation Details
 
-### Architecture
+### Architecture (FastMCP 2.14.4)
+
+When the client supports sampling, `agentic_library_workflow` uses `ctx.sample()` with tools (get_library_stats, list_books, search_books, get_authors, get_tags, list_libraries). Falls back to rule-based workflow when sampling is unavailable.
 
 ```python
-class AgenticWorkflowTool:
-    def __init__(self):
-        # Initialize Calibre managers
-        self.calibre_manager = CalibreManager()
-        self.library_ops = LibraryOperations()
-        self.metadata_manager = MetadataManager()
-        self.search_ops = SearchOperations()
-        self.conversion_manager = ConversionManager()
-
-    async def execute_workflow(self, workflow_prompt, available_operations, max_iterations):
-        # Borrow client's LLM for autonomous orchestration
-        # Execute operations based on intelligent sequencing
-        return workflow_result
+# Real ctx.sample() implementation when ctx and tools available
+result = await ctx.sample(
+    messages=workflow_prompt,
+    tools=sampling_tools,
+    max_tokens=2048,
+)
 ```
 
-### Response Format
+### Response Format (SOTA Dialogic)
 
-Uses standardized conversational response patterns:
+Uses SOTA dialogic return pattern with execution_time_ms and recommendations:
 
 ```json
 {
   "success": true,
   "operation": "agentic_library_workflow",
   "summary": "Executed workflow: Organize my library by fixing duplicates",
+  "execution_time_ms": 1250,
+  "recommendations": ["Use manage_books for detailed operations", "Use manage_libraries for library stats"],
   "result": {
     "workflow_prompt": "Organize my library by fixing duplicate books",
     "operations_available": ["get_library_stats", "find_duplicates", "organize_library"],

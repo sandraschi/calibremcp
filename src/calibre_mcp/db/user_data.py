@@ -99,11 +99,24 @@ class BookExtendedMetadata(Base):
         return f"<BookExtendedMetadata(id={self.id}, book_id={self.book_id})>"
 
 
-# Placeholder for future auth table - schema ready for extension
-# class User(Base):
-#     __tablename__ = "users"
-#     id = Column(Integer, primary_key=True)
-#     ...
+class User(Base):
+    """
+    Representation of a user in the CalibreMCP ecosystem.
+    Stored in the local SQLite database.
+    """
+
+    __tablename__ = "users"
+
+    id = Column(String(64), primary_key=True)  # Using String ID for flexible IDs (e.g. "user_123")
+    username = Column(String(128), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=True)
+    password_hash = Column(String(255), nullable=True)  # Placeholder for actual hash
+    role = Column(String(32), default="user")  # admin, user, etc.
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, username={self.username}, role={self.role})>"
 
 
 class UserDataDB:

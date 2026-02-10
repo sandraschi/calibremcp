@@ -314,6 +314,15 @@ class SocialFeaturesTool(MCPTool):
 
         return {"success": True, "reading_list": self._reading_lists[list_id].dict()}
 
+    async def social_get_estimated_reading_time(self, book_id: str) -> dict:
+        """Get the estimated reading time for a book."""
+        # For now, return a mock value
+        return {
+            "success": True,
+            "reading_time_minutes": 120,
+            "message": "[SIMULATED] Estimated reading time",
+        }
+
     async def social_search_reading_lists(
         self,
         query: str | None = None,
