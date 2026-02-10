@@ -56,6 +56,12 @@ export function BookCard({ book, onClick }: BookCardProps) {
             })}
           </div>
         )}
+        {book.snippet && (
+          <div
+            className="mt-2 text-xs text-slate-400 line-clamp-2 [&_mark]:bg-amber/30 [&_mark]:text-slate-200"
+            dangerouslySetInnerHTML={{ __html: book.snippet }}
+          />
+        )}
     </div>
   );
 }

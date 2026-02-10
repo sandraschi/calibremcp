@@ -35,8 +35,6 @@ class Book(Base, BaseMixin):
     pubdate: Mapped[datetime | None] = mapped_column(DateTime)
     series_index: Mapped[float] = mapped_column(Float, default=1.0)
     author_sort: Mapped[str | None] = mapped_column(Text)
-    isbn: Mapped[str | None] = mapped_column(String(32))
-    lccn: Mapped[str | None] = mapped_column(String(32))
     path: Mapped[str] = mapped_column(Text, nullable=False)
     flags: Mapped[int] = mapped_column(Integer, default=1)
     uuid: Mapped[str | None] = mapped_column(String(36))

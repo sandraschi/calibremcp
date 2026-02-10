@@ -1,9 +1,16 @@
 """
 Utilities for Calibre Full-Text Search (FTS) database detection and querying.
 
-Calibre creates FTS databases in the same directory as metadata.db when FTS indexing
-is enabled. The database is always named:
-- full-text-search.db
+Calibre uses a separate SQLite DB next to metadata.db: full-text-search.db.
+Schema (FTS5 content tables):
+- books_text: id, book, timestamp, format, searchable_text, ...
+- books_fts: FTS5(content='books_text', content_rowid='id') -> rowid = books_text.id
+- books_fts_stemmed: same with porter stemming
+
+Queries must JOIN books_text WITH books_fts ON books_text.id = books_fts.rowid
+and select books_text.book (the FTS virtual table has no 'book' column).
+Calibre uses a custom tokenizer ('calibre remove_diacritics'); if unavailable
+we fall back to LIKE on books_text.searchable_text.
 """
 
 import logging
@@ -12,80 +19,156 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Calibre FTS database filename (always named this)
 FTS_DB_FILENAME = "full-text-search.db"
+# Calibre FTS5 table names (content tables linked to books_text)
+FTS_TABLE = "books_fts"
+FTS_TABLE_STEMMED = "books_fts_stemmed"
+BOOKS_TEXT_TABLE = "books_text"
 
 
 def find_fts_database(metadata_db_path: Path) -> Path | None:
     """
-    Find the FTS database associated with a metadata.db file.
+    Find the FTS database next to a metadata.db file.
 
-    Calibre always names the FTS database "full-text-search.db" in the same directory
-    as metadata.db.
+    Calibre uses "full-text-search.db" in the same directory as metadata.db.
 
     Args:
-        metadata_db_path: Path to metadata.db file
+        metadata_db_path: Path to metadata.db
 
     Returns:
-        Path to FTS database if found, None otherwise
+        Path to full-text-search.db if it exists, else None
     """
     if not metadata_db_path.exists():
         return None
-
-    db_dir = metadata_db_path.parent
-
-    # Calibre always uses this exact filename
-    fts_path = db_dir / FTS_DB_FILENAME
-
+    fts_path = metadata_db_path.parent / FTS_DB_FILENAME
     if fts_path.exists():
-        logger.info(f"Found Calibre FTS database: {fts_path}")
+        logger.info("Found Calibre FTS database: %s", fts_path)
         return fts_path
-
-    logger.debug(f"FTS database not found at {fts_path}")
+    logger.debug("FTS database not found at %s", fts_path)
     return None
 
 
-def get_fts_table_name(fts_db_path: Path) -> str | None:
+def _escape_fts5_query(raw: str) -> str:
     """
-    Get the name of the FTS table in the FTS database.
-
-    Args:
-        fts_db_path: Path to FTS database
-
-    Returns:
-        Name of FTS table if found, None otherwise
+    Escape user text for FTS5 MATCH. FTS5: " for phrases, - for exclude,
+    OR/AND, * prefix. Internal " must be doubled.
     """
-    try:
-        conn = sqlite3.connect(str(fts_db_path))
-        cursor = conn.cursor()
+    s = raw.strip()
+    if not s:
+        return s
+    # If already looks like FTS syntax (quotes, OR, AND, *), use as-is
+    if '"' in s or s.upper().startswith("OR ") or s.upper().startswith("AND "):
+        return s.replace('"', '""')
+    words = s.split()
+    if len(words) > 1:
+        return '"' + s.replace('"', '""') + '"'
+    return s
 
-        # Check for FTS5 tables
-        cursor.execute("""
-            SELECT name FROM sqlite_master 
-            WHERE type='table' AND sql LIKE '%USING fts5%'
-        """)
-        fts5_tables = cursor.fetchall()
 
-        if fts5_tables:
-            conn.close()
-            return fts5_tables[0][0]  # Return first FTS5 table
+def _query_via_fts(
+    conn: sqlite3.Connection,
+    fts_table: str,
+    fts_query: str,
+    limit: int,
+    offset: int,
+    include_snippets: bool,
+    snippet_size: int = 64,
+) -> tuple[list[int], int, dict[int, str]]:
+    """
+    Run FTS using Calibre schema: JOIN books_text WITH fts_table ON id = rowid.
+    Returns (book_ids, total_count, book_id -> snippet).
+    """
+    cursor = conn.cursor()
+    # Total count (distinct books matching)
+    cursor.execute(
+        f"""
+        SELECT COUNT(DISTINCT books_text.book) FROM books_text
+        JOIN {fts_table} ON books_text.id = {fts_table}.rowid
+        WHERE {fts_table} MATCH ?
+        """,
+        (fts_query,),
+    )
+    total = cursor.fetchone()[0] or 0
 
-        # Check for FTS4 tables
-        cursor.execute("""
-            SELECT name FROM sqlite_master 
-            WHERE type='table' AND sql LIKE '%USING fts4%'
-        """)
-        fts4_tables = cursor.fetchall()
+    if include_snippets:
+        # FTS5 snippet(fts_table, column_index, start, end, ellipsis, max_tokens)
+        # Single content column -> index 0
+        sel = f"""
+            books_text.book,
+            snippet({fts_table}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text
+        """
+    else:
+        sel = "books_text.book"
 
-        conn.close()
+    q = f"""
+        SELECT {sel}
+        FROM books_text
+        JOIN {fts_table} ON books_text.id = {fts_table}.rowid
+        WHERE {fts_table} MATCH ?
+        ORDER BY {fts_table}.rank
+        LIMIT ? OFFSET ?
+    """
+    args = (snippet_size, fts_query, limit, offset) if include_snippets else (fts_query, limit, offset)
+    cursor.execute(q, args)
+    rows = cursor.fetchall()
 
-        if fts4_tables:
-            return fts4_tables[0][0]  # Return first FTS4 table
+    book_ids = [r[0] for r in rows]
+    snippets = {}
+    if include_snippets and rows:
+        snippets = {r[0]: (r[1] or "").strip() for r in rows if r[1] and (r[1] or "").strip()}
+    return book_ids, total, snippets
 
-    except sqlite3.Error as e:
-        logger.error(f"Error getting FTS table name: {e}")
 
-    return None
+def _query_via_like(
+    conn: sqlite3.Connection,
+    like_pattern: str,
+    search_text: str,
+    limit: int,
+    offset: int,
+    include_snippets: bool,
+) -> tuple[list[int], int, dict[int, str]]:
+    """
+    Fallback: search books_text.searchable_text with LIKE (no FTS5 tokenizer).
+    """
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT COUNT(DISTINCT book) FROM books_text
+        WHERE searchable_text LIKE ?
+        """,
+        (like_pattern,),
+    )
+    total = cursor.fetchone()[0] or 0
+
+    if include_snippets:
+        # Crude snippet: 50 chars before match, 150 total
+        cursor.execute(
+            """
+            SELECT book,
+                   substr(searchable_text,
+                          max(1, instr(lower(searchable_text), lower(?)) - 50),
+                          150) AS snippet_text
+            FROM books_text
+            WHERE searchable_text LIKE ?
+            LIMIT ? OFFSET ?
+            """,
+            (search_text, like_pattern, limit, offset),
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT DISTINCT book FROM books_text
+            WHERE searchable_text LIKE ?
+            LIMIT ? OFFSET ?
+            """,
+            (like_pattern, limit, offset),
+        )
+    rows = cursor.fetchall()
+    book_ids = [r[0] for r in rows]
+    snippets = {}
+    if include_snippets and rows and len(rows[0]) > 1:
+        snippets = {r[0]: (r[1] or "").strip() for r in rows if r[1] and (r[1] or "").strip()}
+    return book_ids, total, snippets
 
 
 def query_fts(
@@ -93,220 +176,83 @@ def query_fts(
     search_text: str,
     limit: int = 50,
     offset: int = 0,
-    min_score: float | None = None,
+    use_stemming: bool = False,
     include_snippets: bool = True,
+    snippet_size: int = 64,
 ) -> tuple[list[int], int, dict[int, str]]:
     """
-    Query the FTS database for book IDs matching the search text.
-
-    This function attempts to use Calibre's FTS virtual table first, but falls back
-    to direct queries on the underlying `books_text` content table when the custom
-    tokenizer is not available.
+    Search Calibre FTS database. Uses FTS5 when available (books_fts or
+    books_fts_stemmed with JOIN on books_text); falls back to LIKE on
+    books_text.searchable_text if the custom tokenizer is not available.
 
     Args:
-        fts_db_path: Path to FTS database
-        search_text: Text to search for (searches actual book content)
-        limit: Maximum number of results
-        offset: Number of results to skip
-        include_snippets: If True, extract text snippets showing where matches occur
+        fts_db_path: Path to full-text-search.db
+        search_text: Query string (words or phrase)
+        limit: Max results
+        offset: Pagination offset
+        use_stemming: Use stemmed index (books_fts_stemmed) when trying FTS
+        include_snippets: Include snippet per book
+        snippet_size: Max tokens in snippet (FTS path)
 
     Returns:
-        Tuple of (list of book IDs, total count, dict mapping book_id to snippet)
+        (list of book IDs, total match count, dict book_id -> snippet text)
     """
-    fts_table = get_fts_table_name(fts_db_path)
-    if not fts_table:
-        logger.warning(f"No FTS table found in {fts_db_path}")
+    if not fts_db_path.exists():
+        logger.warning("FTS database does not exist: %s", fts_db_path)
         return [], 0, {}
+
+    search_clean = search_text.strip()
+    if not search_clean:
+        return [], 0, {}
+
+    like_pattern = f"%{search_clean}%"
+    fts_query = _escape_fts5_query(search_clean)
+    fts_table = FTS_TABLE_STEMMED if use_stemming else FTS_TABLE
 
     try:
         conn = sqlite3.connect(str(fts_db_path))
-        cursor = conn.cursor()
-
-        # Clean and prepare the search text
-        search_text_clean = search_text.strip()
-
-        # First, try using the FTS virtual table (requires custom tokenizer)
         try:
-            # Build FTS query - escape special characters and use proper syntax
-            # For phrase search: wrap in quotes for exact phrase matching
-            words = search_text_clean.split()
-            if len(words) > 1:
-                # Quote phrases for exact phrase matching in FTS
-                fts_query = f'"{search_text_clean}"'
-            else:
-                # Single word - use as-is
-                fts_query = search_text_clean
+            # Ensure tables exist
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (BOOKS_TEXT_TABLE,),
+            )
+            if not cursor.fetchone():
+                logger.warning("Table %s not found in %s", BOOKS_TEXT_TABLE, fts_db_path)
+                return [], 0, {}
 
-            # Try to query FTS table
-            cursor.execute(f"PRAGMA table_info({fts_table})")
-            columns = [row[1] for row in cursor.fetchall()]
-
-            # Find the book ID column
-            book_id_columns = ["book", "id", "book_id", "rowid"]
-            book_id_col = None
-            for col in book_id_columns:
-                if col in columns:
-                    book_id_col = col
-                    break
-
-            if not book_id_col:
-                book_id_col = "rowid"
-
-            # Try to get total count
+            # Try FTS5 path (JOIN books_text with virtual table)
             try:
-                count_query = f"""
-                    SELECT COUNT(DISTINCT {book_id_col}) FROM {fts_table}
-                    WHERE {fts_table} MATCH ?
-                """
-                cursor.execute(count_query, (fts_query,))
-                total = cursor.fetchone()[0] or 0
-            except sqlite3.Error:
-                total = 0
-
-            # Query FTS table with snippet extraction if requested
-            snippets = {}
-            if include_snippets:
-                # Try to extract snippets using FTS5 snippet() function
-                # snippet(table, column_index, start_marker, end_marker, ellipsis, max_tokens)
-                # For FTS5, column index 0 is typically rowid, 1+ are content columns
-                # Find the searchable text column index (usually index 1 or 2)
-                try:
-                    # Determine text column index - usually the last column or column 1
-                    text_col_index = len(columns) - 1 if len(columns) > 1 else 1
-                    # Try column 1 first (most common), fall back to last column
-                    for test_idx in [1, text_col_index]:
-                        try:
-                            query_with_snippets = f"""
-                                SELECT DISTINCT {book_id_col}, 
-                                       snippet({fts_table}, {test_idx}, '<mark>', '</mark>', '...', 64) as snippet_text
-                                FROM {fts_table}
-                                WHERE {fts_table} MATCH ?
-                                ORDER BY rank
-                                LIMIT ? OFFSET ?
-                            """
-                            cursor.execute(query_with_snippets, (fts_query, limit, offset))
-                            results = cursor.fetchall()
-                            book_ids = [row[0] for row in results]
-                            snippets = {
-                                row[0]: row[1] for row in results if row[1] and row[1].strip()
-                            }
-                            if snippets:
-                                break  # Success, use this column index
-                        except sqlite3.Error:
-                            continue  # Try next column index
-
-                    # If snippet extraction failed, fall back to simple query
-                    if not snippets:
-                        logger.debug(
-                            "Snippet extraction failed for all columns, using simple query"
-                        )
-                        query = f"""
-                            SELECT DISTINCT {book_id_col} FROM {fts_table}
-                            WHERE {fts_table} MATCH ?
-                            ORDER BY rank
-                            LIMIT ? OFFSET ?
-                        """
-                        cursor.execute(query, (fts_query, limit, offset))
-                        results = cursor.fetchall()
-                        book_ids = [row[0] for row in results]
-                except Exception as snippet_error:
-                    # Snippet extraction failed completely, fall back to simple query
-                    logger.debug(f"Snippet extraction failed: {snippet_error}, using simple query")
-                    query = f"""
-                        SELECT DISTINCT {book_id_col} FROM {fts_table}
-                        WHERE {fts_table} MATCH ?
-                        ORDER BY rank
-                        LIMIT ? OFFSET ?
-                    """
-                    cursor.execute(query, (fts_query, limit, offset))
-                    results = cursor.fetchall()
-                    book_ids = [row[0] for row in results]
-            else:
-                # Simple query without snippets
-                query = f"""
-                    SELECT DISTINCT {book_id_col} FROM {fts_table}
-                    WHERE {fts_table} MATCH ?
-                    ORDER BY rank
-                    LIMIT ? OFFSET ?
-                """
-                cursor.execute(query, (fts_query, limit, offset))
-                results = cursor.fetchall()
-                book_ids = [row[0] for row in results]
-
-            if book_ids:
-                conn.close()
+                book_ids, total, snippets = _query_via_fts(
+                    conn, fts_table, fts_query, limit, offset, include_snippets, snippet_size
+                )
                 logger.info(
-                    f"FTS query (via virtual table) returned {len(book_ids)} book IDs from {total} total matches, {len(snippets)} snippets"
+                    "FTS query (virtual table %s) returned %s book IDs, total %s",
+                    fts_table,
+                    len(book_ids),
+                    total,
                 )
                 return book_ids, total, snippets
+            except sqlite3.OperationalError as e:
+                # Custom tokenizer or FTS5 not available
+                logger.debug(
+                    "FTS virtual table query failed (%s), falling back to content table",
+                    e,
+                )
 
-        except sqlite3.Error as fts_error:
-            # FTS virtual table query failed (likely custom tokenizer not available)
-            logger.debug(
-                f"FTS virtual table query failed: {fts_error}, falling back to content table"
+            # Fallback: LIKE on books_text
+            book_ids, total, snippets = _query_via_like(
+                conn, like_pattern, search_clean, limit, offset, include_snippets
             )
-
-        # Fallback: Query the underlying books_text content table directly
-        # This works without the custom tokenizer, but is slower
-        logger.info("Using fallback: querying books_text content table directly")
-
-        # Build LIKE query for phrase search
-        # For phrases, search for the exact phrase
-        # For single words, search for the word
-        like_pattern = f"%{search_text_clean}%"
-
-        # Get total count from content table
-        try:
-            count_query = """
-                SELECT COUNT(DISTINCT book) FROM books_text
-                WHERE searchable_text LIKE ?
-            """
-            cursor.execute(count_query, (like_pattern,))
-            total = cursor.fetchone()[0] or 0
-        except sqlite3.Error:
-            total = 0
-
-        # Query content table for book IDs with snippets if requested
-        snippets = {}
-        if include_snippets:
-            # Extract snippets from the content table
-            # Find position of search term and extract surrounding text
-            query = """
-                SELECT DISTINCT book, 
-                       CASE 
-                           WHEN instr(lower(searchable_text), lower(?)) > 0 THEN
-                               substr(searchable_text, 
-                                      max(1, instr(lower(searchable_text), lower(?)) - 50),
-                                      150)
-                           ELSE substr(searchable_text, 1, 150)
-                       END as snippet_text
-                FROM books_text
-                WHERE searchable_text LIKE ?
-                LIMIT ? OFFSET ?
-            """
-            cursor.execute(
-                query, (search_text_clean, search_text_clean, like_pattern, limit, offset)
+            logger.info(
+                "FTS query (content table LIKE) returned %s book IDs, total %s",
+                len(book_ids),
+                total,
             )
-            results = cursor.fetchall()
-            book_ids = [row[0] for row in results]
-            snippets = {row[0]: row[1] for row in results if row[1] and row[1].strip()}
-        else:
-            query = """
-                SELECT DISTINCT book FROM books_text
-                WHERE searchable_text LIKE ?
-                LIMIT ? OFFSET ?
-            """
-            cursor.execute(query, (like_pattern, limit, offset))
-            results = cursor.fetchall()
-            book_ids = [row[0] for row in results]
-
-        conn.close()
-
-        logger.info(
-            f"FTS query (via content table) returned {len(book_ids)} book IDs from {total} total matches, {len(snippets)} snippets"
-        )
-        return book_ids, total, snippets
-
+            return book_ids, total, snippets
+        finally:
+            conn.close()
     except sqlite3.Error as e:
-        logger.error(f"Error querying FTS database: {e}")
+        logger.error("Error querying FTS database: %s", e)
         return [], 0, {}

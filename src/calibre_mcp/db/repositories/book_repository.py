@@ -83,6 +83,7 @@ class BookRepository(BaseRepository[Book]):
                 joinedload(Book.tags),
                 joinedload(Book.series),
                 joinedload(Book.ratings),
+                joinedload(Book.identifiers),
             )
 
             # Apply filters
@@ -139,7 +140,11 @@ class BookRepository(BaseRepository[Book]):
         with self._db.session_scope() as session:
             books = (
                 session.query(Book)
-                .options(joinedload(Book.authors), joinedload(Book.series))
+                .options(
+                    joinedload(Book.authors),
+                    joinedload(Book.series),
+                    joinedload(Book.identifiers),
+                )
                 .order_by(desc(Book.timestamp))
                 .limit(limit)
                 .all()
@@ -159,7 +164,11 @@ class BookRepository(BaseRepository[Book]):
         with self._db.session_scope() as session:
             books = (
                 session.query(Book)
-                .options(joinedload(Book.authors), joinedload(Book.ratings))
+                .options(
+                    joinedload(Book.authors),
+                    joinedload(Book.ratings),
+                    joinedload(Book.identifiers),
+                )
                 .join(Book.series)
                 .filter(Series.id == series_id)
                 .order_by(Book.series_index)
@@ -194,7 +203,10 @@ class BookRepository(BaseRepository[Book]):
             books = (
                 session.query(Book)
                 .options(
-                    joinedload(Book.authors), joinedload(Book.series), joinedload(Book.ratings)
+                    joinedload(Book.authors),
+                    joinedload(Book.series),
+                    joinedload(Book.ratings),
+                    joinedload(Book.identifiers),
                 )
                 .join(Book.authors)
                 .filter(Author.id == author_id)
@@ -219,6 +231,7 @@ class BookRepository(BaseRepository[Book]):
         if not book:
             return None
 
+        idents = {i.type: i.val for i in (book.identifiers or [])}
         return {
             "id": book.id,
             "title": book.title,
@@ -227,8 +240,8 @@ class BookRepository(BaseRepository[Book]):
             "pubdate": book.pubdate.isoformat() if book.pubdate else None,
             "series_index": book.series_index,
             "author_sort": book.author_sort,
-            "isbn": book.isbn,
-            "lccn": book.lccn,
+            "isbn": idents.get("isbn"),
+            "lccn": idents.get("lccn"),
             "path": book.path,
             "has_cover": bool(book.has_cover),
             "last_modified": book.last_modified.isoformat() if book.last_modified else None,
@@ -241,7 +254,7 @@ class BookRepository(BaseRepository[Book]):
             "formats": [
                 {"format": d.format, "size": d.uncompressed_size, "name": d.name} for d in book.data
             ],
-            "identifiers": {i.type: i.val for i in book.identifiers},
+            "identifiers": idents,
         }
 
     def _get_sort_field(self, sort_by: str):
@@ -272,7 +285,10 @@ class BookRepository(BaseRepository[Book]):
 
         placeholders = ",".join("?" * len(book_ids))
         query = f"""
-            SELECT b.*, 
+            SELECT b.id, b.title, b.sort, b.timestamp, b.pubdate, b.series_index,
+                   b.author_sort, b.path, b.flags, b.uuid, b.has_cover, b.last_modified,
+                   (SELECT val FROM identifiers WHERE book = b.id AND type = 'isbn' LIMIT 1) AS isbn,
+                   (SELECT val FROM identifiers WHERE book = b.id AND type = 'lccn' LIMIT 1) AS lccn,
                    GROUP_CONCAT(DISTINCT a.name, '|') as authors,
                    GROUP_CONCAT(DISTINCT t.name, '|') as tags,
                    s.name as series_name,

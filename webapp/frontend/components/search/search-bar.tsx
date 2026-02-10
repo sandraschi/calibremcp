@@ -9,19 +9,22 @@ interface SearchBarProps {
   initialAuthor?: string;
   initialTag?: string;
   initialMinRating?: string;
+  initialFulltext?: boolean;
 }
 
 export function SearchBar({
   initialQuery = '',
   initialAuthor = '',
   initialTag = '',
-  initialMinRating = ''
+  initialMinRating = '',
+  initialFulltext = false,
 }: SearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [author, setAuthor] = useState(initialAuthor);
   const [tag, setTag] = useState(initialTag);
   const [minRating, setMinRating] = useState(initialMinRating);
+  const [fulltext, setFulltext] = useState(initialFulltext);
   const [authors, setAuthors] = useState<{ id: number; name: string }[]>([]);
   const [tags, setTags] = useState<{ id: number; name: string }[]>([]);
 
@@ -55,6 +58,7 @@ export function SearchBar({
     if (author) params.set('author', author);
     if (tag) params.set('tag', tag);
     if (minRating) params.set('min_rating', minRating);
+    if (fulltext) params.set('fulltext', '1');
     router.push(`/search?${params.toString()}`);
   };
 
@@ -63,6 +67,7 @@ export function SearchBar({
     setAuthor('');
     setTag('');
     setMinRating('');
+    setFulltext(false);
     router.push('/search');
   };
 
@@ -136,6 +141,20 @@ export function SearchBar({
             <option value="1">1+ stars</option>
           </select>
         </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-4">
+        <label className="flex items-center gap-2 cursor-pointer text-slate-300 text-sm">
+          <input
+            type="checkbox"
+            checked={fulltext}
+            onChange={(e) => setFulltext(e.target.checked)}
+            className="rounded bg-slate-700 border-slate-600 text-amber focus:ring-amber"
+          />
+          Search inside book content (full text)
+        </label>
+        <span className="text-slate-500 text-xs">
+          Requires Calibre FTS index (full-text-search.db). When on, only the search text box is used.
+        </span>
       </div>
       <div className="mt-4 flex gap-2">
         <button

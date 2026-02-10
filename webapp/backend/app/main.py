@@ -59,6 +59,7 @@ from .api import (
     system,
     tags,
     viewer,
+    webapp_launch,
 )
 from .cache import get_libraries_cache, update_current_library, update_libraries_cache
 from .config import settings
@@ -239,6 +240,7 @@ app.include_router(bulk.router, prefix="/api/bulk", tags=["bulk"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
+app.include_router(webapp_launch.router, prefix="/api", tags=["webapp-launch"])
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
 app.include_router(annas.router, prefix="/api/annas", tags=["annas"])

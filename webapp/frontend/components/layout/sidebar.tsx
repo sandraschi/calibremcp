@@ -19,10 +19,12 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
+  { href: '/apps', label: 'Our Apps', icon: LayoutGrid },
   { href: '/libraries', label: 'Libraries', icon: Library },
   { href: '/books', label: 'Books', icon: BookOpen },
   { href: '/search', label: 'Search', icon: Search },

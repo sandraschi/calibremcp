@@ -12,8 +12,10 @@ const SECTION_ICONS: Record<SectionKey, React.ElementType> = {
   webapp: Globe,
 };
 
+const HELP_TAB_ORDER: SectionKey[] = ['webapp', 'calibre', 'calibreMcp'];
+
 export default function HelpPage() {
-  const [active, setActive] = useState<SectionKey>('calibre');
+  const [active, setActive] = useState<SectionKey>('webapp');
   const section = HELP_SECTIONS[active];
   const Icon = SECTION_ICONS[active];
 
@@ -22,24 +24,21 @@ export default function HelpPage() {
       <h1 className="text-3xl font-bold mb-6 text-slate-100">Help</h1>
 
       <div className="flex gap-2 mb-6 border-b border-slate-700">
-        {(Object.keys(HELP_SECTIONS) as SectionKey[]).map((key) => {
-          const Svg = SECTION_ICONS[key];
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setActive(key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                active === key
-                  ? 'border-amber text-amber'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Svg className="w-4 h-4" />
-              {HELP_SECTIONS[key].title}
-            </button>
-          );
-        })}
+        {HELP_TAB_ORDER.map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActive(key)}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              active === key
+                ? 'border-amber text-amber'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <SECTION_ICONS[key] className="w-4 h-4" />
+            {HELP_SECTIONS[key].title}
+          </button>
+        ))}
       </div>
 
       <article className="prose prose-invert prose-slate max-w-none">

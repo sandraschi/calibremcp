@@ -75,8 +75,6 @@ class Book(Base):
     pubdate = Column(DateTime, default=datetime.utcnow)
     series_index = Column(Float, default=1.0)
     author_sort = Column(Text)
-    isbn = Column(String(32))
-    lccn = Column(String(32))
     path = Column(Text, nullable=False)
     flags = Column(Integer, default=1)
     uuid = Column(String(36))

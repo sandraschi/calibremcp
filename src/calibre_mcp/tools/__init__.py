@@ -162,12 +162,21 @@ def register_tools(mcp: Any) -> None:
         import_time = time.time() - import_start
         logger.info(f"Library tools loaded in {import_time:.2f}s")
 
-        # Book management
+        # Book management (manage_books, query_books, search_fulltext)
         import_start = time.time()
-        from .book_management import manage_books  # noqa: F401
+        from .book_management import manage_books, query_books, search_fulltext  # noqa: F401
 
         import_time = time.time() - import_start
         logger.info(f"Book management loaded in {import_time:.2f}s")
+
+        # RAG (semantic search over book text; requires pip install calibre-mcp[rag])
+        import_start = time.time()
+        try:
+            from .rag import rag_index_build, rag_retrieve  # noqa: F401
+        except ImportError:
+            pass  # optional [rag] deps not installed
+        import_time = time.time() - import_start
+        logger.info(f"RAG tools loaded in {import_time:.2f}s")
 
         # Metadata, tags, comments, series, publishers, authors (core)
         import_start = time.time()

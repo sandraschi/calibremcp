@@ -6,7 +6,7 @@ import { SearchBar } from '@/components/search/search-bar';
 function buildSearchPageUrl(
   base: string,
   page: number,
-  p: { query?: string; author?: string; tag?: string; min_rating?: string }
+  p: { query?: string; author?: string; tag?: string; min_rating?: string; fulltext?: string }
 ): string {
   const params = new URLSearchParams();
   if (page > 1) params.set('page', page.toString());
@@ -14,6 +14,7 @@ function buildSearchPageUrl(
   if (p.author) params.set('author', p.author);
   if (p.tag) params.set('tag', p.tag);
   if (p.min_rating) params.set('min_rating', p.min_rating);
+  if (p.fulltext) params.set('fulltext', p.fulltext);
   const q = params.toString();
   return q ? `${base}?${q}` : base;
 }
@@ -26,6 +27,7 @@ export default async function SearchPage({
     author?: string; 
     tag?: string; 
     min_rating?: string;
+    fulltext?: string;
     page?: string;
   }>;
 }) {
@@ -34,15 +36,17 @@ export default async function SearchPage({
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  const hasSearchParams = params.query || params.author || params.tag || params.min_rating;
+  const fulltextMode = params.fulltext === '1' && params.query?.trim();
+  const hasSearchParams = fulltextMode || params.query || params.author || params.tag || params.min_rating;
 
   let data: { items?: unknown[]; total?: number };
   if (hasSearchParams) {
     data = await searchBooks({
       query: params.query,
-      author: params.author,
-      tag: params.tag,
-      min_rating: params.min_rating ? parseInt(params.min_rating) : undefined,
+      author: fulltextMode ? undefined : params.author,
+      tag: fulltextMode ? undefined : params.tag,
+      min_rating: fulltextMode ? undefined : (params.min_rating ? parseInt(params.min_rating) : undefined),
+      fulltext: fulltextMode,
       limit,
       offset,
     });
@@ -64,6 +68,7 @@ export default async function SearchPage({
         initialAuthor={params.author}
         initialTag={params.tag}
         initialMinRating={params.min_rating}
+        initialFulltext={params.fulltext === '1'}
       />
       
       {hasSearchParams && (

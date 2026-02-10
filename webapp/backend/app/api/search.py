@@ -14,11 +14,34 @@ async def search_books(
     author: str | None = None,
     tag: str | None = None,
     min_rating: int | None = Query(None, ge=1, le=5),
-    limit: int = Query(50, ge=1, le=1000),
+    fulltext: bool = Query(False, description="Search inside book content (Calibre FTS)"),
+    limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
-    """Advanced book search."""
+    """Book search: metadata (default) or full-text inside book content."""
     try:
+        if fulltext and query and query.strip():
+            result = await mcp_client.call_tool(
+                "search_fulltext",
+                {
+                    "query": query.strip(),
+                    "limit": limit,
+                    "offset": offset,
+                    "include_snippets": True,
+                    "enrich": True,
+                },
+            )
+            if isinstance(result, dict):
+                items = result.get("books") or []
+                total = result.get("total") or 0
+                snippets = result.get("snippets") or {}
+                for b in items:
+                    bid = b.get("id")
+                    if bid is not None and bid in snippets:
+                        b["snippet"] = snippets[bid]
+                return {"items": items, "total": total}
+            return result
+
         result = await mcp_client.call_tool(
             "query_books",
             {
