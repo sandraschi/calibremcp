@@ -27,7 +27,7 @@ class DatabaseService:
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(DatabaseService, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
@@ -71,14 +71,14 @@ class DatabaseService:
         # Convert path to SQLite URL if it's a file path
         try:
             if "://" not in db_url and os.path.exists(db_url):
-                abs_path = os.path.abspath(db_url).replace("\\\\", "/")
+                abs_path = os.path.abspath(db_url).replace("\\", "/")
                 db_url = f"sqlite:///{abs_path}"
                 self._current_db_path = abs_path
             else:
                 # Extract path from SQLite URL if it's already a URL
                 if db_url.startswith("sqlite:///"):
                     path_part = db_url.replace("sqlite:///", "").replace("/", os.sep)
-                    self._current_db_path = os.path.abspath(path_part).replace("\\\\", "/")
+                    self._current_db_path = os.path.abspath(path_part).replace("\\", "/")
                 else:
                     # Store original URL if it's not a file path
                     self._current_db_path = db_url

@@ -36,7 +36,7 @@ class Book(Base, BaseMixin):
     series_index: Mapped[float] = mapped_column(Float, default=1.0)
     author_sort: Mapped[str | None] = mapped_column(Text)
     path: Mapped[str] = mapped_column(Text, nullable=False)
-    flags: Mapped[int] = mapped_column(Integer, default=1)
+    # flags: present only in newer Calibre metadata.db; omitted for older DB compatibility
     uuid: Mapped[str | None] = mapped_column(String(36))
     has_cover: Mapped[bool] = mapped_column(Integer, default=0)
     last_modified: Mapped[datetime | None] = mapped_column(DateTime, onupdate=datetime.utcnow)

@@ -54,3 +54,16 @@ if __name__ == "__main__":
             except Exception:
                 pass
             sys.stderr = _original_stderr
+
+
+def run():
+    """Sync entry point for console_scripts."""
+    try:
+        asyncio.run(main())
+    finally:
+        if "_original_stderr" in dir() and sys.stderr != _original_stderr:
+            try:
+                sys.stderr.close()
+            except Exception:
+                pass
+            sys.stderr = _original_stderr

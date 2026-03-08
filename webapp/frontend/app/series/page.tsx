@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { listSeries } from '@/lib/api';
+import { listSeries } from '@/common/api';
 
 export default async function SeriesPage({
   searchParams,

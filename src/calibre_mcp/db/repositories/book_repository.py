@@ -284,9 +284,10 @@ class BookRepository(BaseRepository[Book]):
             return []
 
         placeholders = ",".join("?" * len(book_ids))
+        # Omit b.flags: column exists only in newer Calibre metadata.db
         query = f"""
             SELECT b.id, b.title, b.sort, b.timestamp, b.pubdate, b.series_index,
-                   b.author_sort, b.path, b.flags, b.uuid, b.has_cover, b.last_modified,
+                   b.author_sort, b.path, b.uuid, b.has_cover, b.last_modified,
                    (SELECT val FROM identifiers WHERE book = b.id AND type = 'isbn' LIMIT 1) AS isbn,
                    (SELECT val FROM identifiers WHERE book = b.id AND type = 'lccn' LIMIT 1) AS lccn,
                    GROUP_CONCAT(DISTINCT a.name, '|') as authors,
@@ -395,7 +396,7 @@ class BookRepository(BaseRepository[Book]):
             "isbn": row.get("isbn"),
             "lccn": row.get("lccn"),
             "path": row.get("path"),
-            "flags": row.get("flags", 0),
+            "flags": row.get("flags", 0),  # default for older DBs without flags column
             "uuid": row.get("uuid"),
             "has_cover": bool(row.get("has_cover", 0)),
             "last_modified": row.get("last_modified"),

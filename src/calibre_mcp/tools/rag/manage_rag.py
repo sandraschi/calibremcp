@@ -6,16 +6,17 @@ no evidence) via embedding similarity, not keywords. Requires: Calibre FTS DB, p
 """
 
 import asyncio
+import threading
 from pathlib import Path
 from typing import Any
 
 from fastmcp import Context
 
-from ...db.database import get_database
-from ...logging_config import get_logger
-from ...server import mcp
-from ...services.book_service import book_service
-from ..shared.error_handling import format_error_response, handle_tool_error
+from calibre_mcp.db.database import get_database
+from calibre_mcp.logging_config import get_logger
+from calibre_mcp.server import mcp
+from calibre_mcp.services.book_service import book_service
+from calibre_mcp.tools.shared.error_handling import format_error_response, handle_tool_error
 
 logger = get_logger("calibremcp.tools.rag")
 
@@ -51,7 +52,6 @@ async def rag_index_build(
     """
     start = __import__("time").time()
 
-    @handle_tool_error(logger, "rag_index_build")
     def _run() -> dict[str, Any]:
         meta_path = _get_metadata_path()
         if not meta_path or not meta_path.exists():
@@ -59,7 +59,7 @@ async def rag_index_build(
                 error_msg="No library loaded. Use manage_libraries(operation='switch') first."
             )
         try:
-            from ...rag.indexer import build_rag_index
+            from calibre_mcp.rag.indexer import build_rag_index
         except ImportError as e:
             return format_error_response(
                 error_msg="RAG extras not installed. Run: pip install calibre-mcp[rag]",
@@ -67,7 +67,8 @@ async def rag_index_build(
                 error_type="ImportError",
                 diagnostic_info={"detail": str(e)},
             )
-        from ...utils.fts_utils import find_fts_database
+        from calibre_mcp.utils.fts_utils import find_fts_database
+
         if not find_fts_database(meta_path):
             return format_error_response(
                 error_msg="No Calibre FTS database (full-text-search.db). Enable FTS in Calibre and index books first.",
@@ -83,7 +84,9 @@ async def rag_index_build(
             "chunks_indexed": n,
             "message": f"RAG index built: {n} chunks indexed.",
             "execution_time_ms": int((__import__("time").time() - start) * 1000),
-            "recommendations": ["Use rag_retrieve(query=...) to search by meaning (e.g. icicle murder)."],
+            "recommendations": [
+                "Use rag_retrieve(query=...) to search by meaning (e.g. icicle murder)."
+            ],
         }
 
     try:
@@ -118,7 +121,6 @@ async def rag_retrieve(
     """
     start = __import__("time").time()
 
-    @handle_tool_error(logger, "rag_retrieve")
     def _run() -> dict[str, Any]:
         meta_path = _get_metadata_path()
         if not meta_path or not meta_path.exists():
@@ -128,7 +130,7 @@ async def rag_retrieve(
                 error_type="RuntimeError",
             )
         try:
-            from ...rag.retriever import retrieve_chunks
+            from calibre_mcp.rag.retriever import retrieve_chunks
         except ImportError:
             return format_error_response(
                 error_msg="RAG extras not installed. Run: pip install calibre-mcp[rag]",
@@ -163,10 +165,138 @@ async def rag_retrieve(
             "chunks": chunks,
             "message": f"Found {len(chunks)} passage(s) matching the meaning of your query.",
             "execution_time_ms": int((__import__("time").time() - start) * 1000),
-            "recommendations": ["Use search_fulltext for keyword search; rag_retrieve for semantic (trope/scene) search."],
+            "recommendations": [
+                "Use search_fulltext for keyword search; rag_retrieve for semantic (trope/scene) search."
+            ],
         }
 
     try:
         return await asyncio.to_thread(_run)
     except Exception as e:
         return handle_tool_error(e, tool_name="rag_retrieve")
+
+
+def _run_metadata_build_background(force_rebuild: bool) -> None:
+    """Run metadata RAG build in background; progress written to lancedb_metadata/.build_progress.json."""
+    try:
+        from calibre_mcp.rag.metadata_rag import build_metadata_index
+
+        build_metadata_index(force_rebuild=force_rebuild)
+    except Exception as e:
+        logger.exception("Metadata RAG build failed: %s", e)
+
+
+@mcp.tool()
+async def calibre_metadata_index_build(
+    force_rebuild: bool = False,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """
+    Build or rebuild the semantic index over book metadata (title, authors, tags, comments, series).
+
+    Reads from the current library metadata.db, embeds with fastembed, stores in LanceDB.
+    Enables calibre_metadata_search. Run once per library (and after adding many books).
+    Starts in background; poll GET /api/rag/metadata/build/status for progress.
+
+    Args:
+        force_rebuild: If True, clear existing index and rebuild. Default False.
+
+    Returns:
+        Dict with status, message. Poll build/status for percentage and completion.
+    """
+
+    def _start() -> dict[str, Any]:
+        try:
+            from calibre_mcp.rag.metadata_rag import get_metadata_rag_path, write_build_started
+        except ImportError as e:
+            return format_error_response(
+                error_msg="Metadata RAG requires lancedb and fastembed. Install calibre-mcp dependencies.",
+                error_code="RAG_DEPS_MISSING",
+                error_type="ImportError",
+                diagnostic_info={"detail": str(e)},
+            )
+        db = get_database()
+        path = db.get_current_path()
+        if not path:
+            return format_error_response(
+                error_msg="No library loaded. Use manage_libraries(operation='switch') first.",
+                error_code="NO_LIBRARY",
+                error_type="RuntimeError",
+            )
+        lancedb_dir = get_metadata_rag_path(path)
+        lancedb_dir.mkdir(parents=True, exist_ok=True)
+        write_build_started(lancedb_dir)
+        thread = threading.Thread(
+            target=_run_metadata_build_background,
+            args=(force_rebuild,),
+            daemon=True,
+        )
+        thread.start()
+        return {
+            "status": "started",
+            "message": "Build started in background. Poll GET /api/rag/metadata/build/status for progress.",
+            "recommendations": [
+                "Use calibre_metadata_search(query=...) to search by meaning when done."
+            ],
+        }
+
+    try:
+        return await asyncio.to_thread(_start)
+    except Exception as e:
+        return handle_tool_error(e, tool_name="calibre_metadata_index_build")
+
+
+@mcp.tool()
+async def calibre_metadata_search(
+    query: str,
+    top_k: int = 10,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """
+    Semantic search over book metadata (title, authors, tags, comments, series).
+
+    Finds books by meaning, e.g. "Japanese mystery light novels" or "programming Python".
+    Uses LanceDB index built by calibre_metadata_index_build. No full-text book content.
+
+    Args:
+        query: Natural-language description of what you want to find.
+        top_k: Number of results (default 10, max 50).
+
+    Returns:
+        Dict with results (book_id, title, text snippet, score), message, execution_time_ms.
+    """
+    start = __import__("time").time()
+
+    def _run() -> dict[str, Any]:
+        try:
+            from calibre_mcp.rag.metadata_rag import search_metadata
+        except ImportError as e:
+            return format_error_response(
+                error_msg="Metadata RAG requires lancedb and fastembed.",
+                error_code="RAG_DEPS_MISSING",
+                error_type="ImportError",
+                diagnostic_info={"detail": str(e)},
+            )
+        k = max(1, min(50, top_k))
+        import logging
+
+        logger = logging.getLogger("calibremcp.tools.rag")
+        logger.debug(f"Calling search_metadata with type {type(search_metadata)}")
+
+        results = search_metadata(query.strip(), top_k=k)
+        if not results:
+            return {
+                "results": [],
+                "message": "No results. Run calibre_metadata_index_build first, or try a different query.",
+                "execution_time_ms": int((__import__("time").time() - start) * 1000),
+            }
+        return {
+            "results": results,
+            "message": f"Found {len(results)} book(s) matching the meaning of your query.",
+            "execution_time_ms": int((__import__("time").time() - start) * 1000),
+        }
+
+    try:
+        return await asyncio.to_thread(_run)
+    except Exception as e:
+        return handle_tool_error(e, tool_name="calibre_metadata_search")

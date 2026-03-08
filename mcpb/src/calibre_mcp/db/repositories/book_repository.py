@@ -219,6 +219,7 @@ class BookRepository(BaseRepository[Book]):
         if not book:
             return None
 
+        idents = {i.type: i.val for i in (book.identifiers or [])}
         return {
             "id": book.id,
             "title": book.title,
@@ -227,8 +228,8 @@ class BookRepository(BaseRepository[Book]):
             "pubdate": book.pubdate.isoformat() if book.pubdate else None,
             "series_index": book.series_index,
             "author_sort": book.author_sort,
-            "isbn": book.isbn,
-            "lccn": book.lccn,
+            "isbn": idents.get("isbn"),
+            "lccn": idents.get("lccn"),
             "path": book.path,
             "has_cover": bool(book.has_cover),
             "last_modified": book.last_modified.isoformat() if book.last_modified else None,
@@ -241,7 +242,7 @@ class BookRepository(BaseRepository[Book]):
             "formats": [
                 {"format": d.format, "size": d.uncompressed_size, "name": d.name} for d in book.data
             ],
-            "identifiers": {i.type: i.val for i in book.identifiers},
+            "identifiers": idents,
         }
 
     def _get_sort_field(self, sort_by: str):

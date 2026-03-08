@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Book } from '@/lib/api';
+import { Book } from '@/common/api';
 import { BookModal } from '@/components/books/book-modal';
 
 export function BookModalWrapper({ book }: { book: Book }) {

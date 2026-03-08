@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getBackendUrl, proxyFetch } from '@/lib/proxy';
+import { getBackendUrl, proxyFetch } from '@/common/proxy';
 
 export async function GET(
   _request: NextRequest,

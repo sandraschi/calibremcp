@@ -169,34 +169,33 @@ async def server_lifespan(mcp_instance: FastMCP):
 # Create MCP instance
 logger.info("Creating FastMCP instance...")
 mcp = FastMCP(
-    "CalibreMCP Phase 2",
-    instructions="""You are CalibreMCP, a comprehensive FastMCP 2.14.3 server for Calibre e-book library management.
+    "CalibreMCP",
+    instructions="""You are CalibreMCP, a FastMCP 3.1 server for Calibre e-book library management.
 
-FASTMCP 2.14.3 FEATURES:
-- Conversational tool returns for natural AI interaction
-- Sampling capabilities for agentic workflows and complex operations
-- Portmanteau design preventing tool explosion while maintaining full functionality
+FASTMCP 3.1 FEATURES:
+- Conversational (dialogic) tool returns for natural AI interaction
+- Sampling and agentic workflows: tools can be chained for multi-step discovery, recommendations, and library operations
+- Portmanteau design: consolidated tools via 'operation' parameters
+- Skills and prompts: use registered prompts for recommendations, health, semantic search
 
 CORE CAPABILITIES:
-- E-book Library Management: Browse, search, and organize your Calibre libraries
-- Book Operations: View, edit, add, and manage book metadata
-- Content Processing: Extract text, convert formats, and analyze content
-- Library Organization: Manage collections, tags, authors, and series
-- Advanced Search: Full-text search with semantic ranking
+- E-book Library Management: Browse, search, organize Calibre libraries
+- Book Operations: View, edit, add, manage metadata
+- Semantic search: calibre_metadata_search over title, authors, tags, comments (LanceDB RAG)
+- Full-text RAG: rag_retrieve over book content when index is built
+- Library Organization: Collections, tags, authors, series
 
-CONVERSATIONAL FEATURES:
-- Tools return natural language responses alongside structured data
-- Sampling allows autonomous orchestration of complex library operations
-- Agentic capabilities for intelligent content discovery and management
+AGENTIC WORKFLOWS:
+- Chain tools (e.g. manage_libraries -> query_books -> manage_viewer) for discovery and opening books
+- Use sampling so the model can orchestrate search, filter, recommend, and act in one flow
+- All tools return 'success', 'message', and structured data for chaining
 
 RESPONSE FORMAT:
-- All tools return dictionaries with 'success' boolean and 'message' for conversational responses
-- Error responses include 'error' field with descriptive message
-- Success responses include relevant data fields and natural language summaries
+- Dict with 'success', 'message'; errors include 'error' field
+- Success includes relevant data and natural language summaries
 
 PORTMANTEAU DESIGN:
-Tools are consolidated into logical groups to prevent tool explosion while maintaining full functionality.
-Each portmanteau tool handles multiple related operations through an 'operation' parameter.
+Tools are consolidated; each supports multiple operations via an 'operation' parameter.
 """,
 )
 logger.info("FastMCP instance created")
@@ -222,6 +221,9 @@ from calibre_mcp.prompts import register_prompts
 from calibre_mcp.transport import run_server, run_server_async
 
 register_prompts(mcp)
+
+# ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
+app = create_app()
 
 # Tools registered in main() for stdio. For webapp HTTP mode, MCP_USE_HTTP=false uses direct import.
 
@@ -574,7 +576,7 @@ async def main():
                 level="INFO",
                 version="1.0.0",
                 collection_size="1000+ books",
-                fastmcp_version="2.14.1+",
+                fastmcp_version="3.1+",
                 python_version=f"{__import__('sys').version}",
                 platform=__import__("platform").platform(),
             )

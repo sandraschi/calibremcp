@@ -1,4 +1,4 @@
-import { getBook } from '@/lib/api';
+import { getBook } from '@/common/api';
 import { BookModalWrapper } from './book-modal-wrapper';
 
 export default async function BookDetailPage({

@@ -51,11 +51,11 @@ pip install -r requirements.txt
 # Install calibre_mcp in editable mode
 pip install -e ../../
 
-# Run the server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 13000
+# Run the server (or use start.ps1 for reserved ports 10720/10721)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 10720
 ```
 
-Backend runs on http://localhost:13000
+Backend runs on http://localhost:10720
 
 **Environment** (optional, in `backend/.env`):
 - `LLM_PROVIDER` - ollama | lmstudio | openai (default: ollama)
@@ -70,25 +70,20 @@ npm install
 npm run dev
 ```
 
-Frontend runs on http://localhost:13001
+Frontend runs on http://localhost:10721 (when using start.ps1).
 
 **Environment** (optional, in `frontend/.env.local`):
-- `NEXT_PUBLIC_API_URL` - Backend URL (default: http://127.0.0.1:13000)
-- `NEXT_PUBLIC_APP_URL` - App URL for SSR (default: http://127.0.0.1:13001)
+- `NEXT_PUBLIC_API_URL` - Backend URL (default: http://127.0.0.1:10720)
+- `NEXT_PUBLIC_APP_URL` - App URL for SSR (default: http://127.0.0.1:10721)
 
-### All-in-one
+### All-in-one (recommended)
 
-**Reservoir ports** (10720 backend, 10721 frontend; port rules compliant):
+**Reservoir ports** (10720 backend, 10721 frontend):
 ```powershell
 cd webapp
 powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
-Uses kill-port to clear zombies before bind. Sets `API_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL` for correct SSR.
-
-**Legacy** (13000/13001):
-```batch
-.\webapp\start-local.bat
-```
+Or from repo root: `.\webapp\start.bat` (calls start.ps1). Uses kill-port to clear ports before bind.
 
 ## Project Structure
 

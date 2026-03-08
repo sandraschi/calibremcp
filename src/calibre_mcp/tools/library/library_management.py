@@ -305,17 +305,18 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
 
     Returns:
         LibraryStatsResponse containing:
-        {
-            "library_name": str - Name of the library
-            "total_books": int - Total number of books
-            "total_authors": int - Number of unique authors
-            "total_series": int - Number of series
-            "total_tags": int - Number of tags
-            "format_distribution": Dict[str, int] - Format counts (e.g., {"epub": 100, "pdf": 50})
-            "language_distribution": Dict[str, int] - Language counts
-            "rating_distribution": Dict[str, int] - Rating counts
-            "last_modified": str - ISO timestamp of last modification
-        }
+    Helper function to get library statistics.
+
+    This function collects various statistics about a Calibre library,
+    including total books, authors, series, and tags. It attempts to use
+    direct database queries for performance when available.
+
+    Args:
+        library_name: Optional name of the library. If not provided,
+                     the current active library will be used.
+
+    Returns:
+        LibraryStatsResponse object containing the statistics.
 
     Example:
         # Get stats for current library
@@ -328,6 +329,7 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
     try:
         # Determine which library to analyze
         config = CalibreConfig()
+        library_path = None
 
         if library_name:
             # Use specified library
@@ -337,43 +339,97 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
             library_path = discovered_libs[library_name]
         else:
             # Use current library
-            if not config.local_library_path:
-                raise ValueError(
-                    "No active library set. Please specify library_name or switch to a library first."
-                )
             library_path = config.local_library_path
-            # Find library name from path
-            library_name = library_path.name
+            if not library_path:
+                # Try to discover and use the first one as fallback
+                discovered = discover_calibre_libraries()
+                if discovered:
+                    library_name = next(iter(discovered))
+                    library_path = discovered[library_name]
+                else:
+                    raise ValueError(
+                        "No active library set. Please specify library_name or switch to a library first."
+                    )
+            else:
+                # Find library name from path
+                library_name = library_path.name
 
         # Get basic metadata from file system
         metadata = get_library_metadata(library_path)
 
-        # Try to get stats from database if available
-        # Note: This requires the library to be connected to the database service
-        # For now, we'll use file system metadata and basic counts
+        # Initialize stats with metadata defaults
+        total_books = metadata.get("book_count", 0)
+        total_authors = 0
+        total_series = 0
+        total_tags = 0
+        format_distribution = {}
+        language_distribution = {}
+        rating_distribution = {}
+        last_modified = None
 
-        # Get format distribution from file system (approximate)
-        format_distribution: dict[str, int] = {}
+        # Try to get detailed stats from database
         try:
-            # Count format files in library
-            for ext in [".epub", ".pdf", ".mobi", ".azw3", ".txt", ".html"]:
-                count = len(list(library_path.glob(f"**/*{ext}")))
-                if count > 0:
-                    format_distribution[ext[1:].lower()] = count
-        except (OSError, PermissionError):
-            pass
+            from sqlalchemy import func
+            from ...db.database import db
+            from ...db.models import Author, Book, Data, Rating, Series, Tag
 
-        # Build response with available data
+            # Ensure we are connected to the right library database
+            # Check if current DB connection matches the requested library
+            metadata_db_path = str((library_path / "metadata.db").absolute())
+            if db.get_current_path() != metadata_db_path:
+                logger.debug(
+                    f"Stats requested for non-active library {library_name}, using file metadata only"
+                )
+            else:
+                with db.session_scope() as session:
+                    # 1. Precise book count
+                    total_books = session.query(func.count(Book.id)).scalar() or total_books
+
+                    # 2. Author count
+                    total_authors = session.query(func.count(Author.id)).scalar() or 0
+
+                    # 3. Series count
+                    total_series = session.query(func.count(Series.id)).scalar() or 0
+
+                    # 4. Tag count
+                    total_tags = session.query(func.count(Tag.id)).scalar() or 0
+
+                    # 5. Format distribution
+                    formats = (
+                        session.query(Data.format, func.count(Data.id)).group_by(Data.format).all()
+                    )
+                    format_distribution = {fmt.lower(): count for fmt, count in formats}
+
+                    # 6. Rating distribution
+                    ratings = (
+                        session.query(Rating.rating, func.count(Book.id))
+                        .join(Book.ratings)
+                        .group_by(Rating.rating)
+                        .all()
+                    )
+                    rating_distribution = {str(r): count for r, count in ratings if r is not None}
+
+                    # 7. Last modified
+                    last_mod_book = session.query(func.max(Book.last_modified)).scalar()
+                    if last_mod_book:
+                        last_modified = last_mod_book.isoformat()
+
+        except Exception as db_err:
+            logger.warning(
+                f"Database stats query failed: {db_err}. Falling back to file system metadata."
+            )
+
+        # Build response
         stats = LibraryStatsResponse(
             library_name=library_name,
-            total_books=metadata.get("book_count", 0),
-            total_authors=0,  # Would need database access for accurate count
-            total_series=0,  # Would need database access for accurate count
-            total_tags=0,  # Would need database access for accurate count
+            total_books=total_books,
+            total_authors=total_authors,
+            total_series=total_series,
+            total_tags=total_tags,
             format_distribution=format_distribution,
-            language_distribution={},  # Would need database access
-            rating_distribution={},  # Would need database access
-            last_modified=None,  # Would need database access
+            language_distribution=language_distribution,
+            rating_distribution=rating_distribution,
+            last_modified=last_modified,
         )
 
         return stats
@@ -383,9 +439,9 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
         raise
     except Exception as e:
         logger.error(f"Error getting library stats: {e}", exc_info=True)
-        # Return minimal stats on error
+        # Return an empty/default response on error
         return LibraryStatsResponse(
-            library_name=library_name or "unknown",
+            library_name=library_name or "Unknown",
             total_books=0,
             total_authors=0,
             total_series=0,

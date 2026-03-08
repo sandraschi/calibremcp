@@ -17,9 +17,9 @@ Copy-Item .env.docker.example .env
 docker compose up -d
 ```
 
-- Backend: http://localhost:13000
-- Frontend: http://localhost:13001
-- API docs: http://localhost:13000/docs
+- Backend: http://localhost:10720
+- Frontend: http://localhost:10722
+- API docs: http://localhost:10720/docs
 
 User data (comments, extended metadata) is persisted in a Docker volume.
 
@@ -34,11 +34,10 @@ setup-local.bat
 ```
 
 **Then start:**
-```batch
-start-local.bat
+```powershell
+.\start.ps1
 ```
-
-Requires: `.env` with `CALIBRE_LIBRARY_PATH` set.
+Or `.\start.bat` from webapp. Requires: `.env` with `CALIBRE_LIBRARY_PATH` set.
 
 ## Manual Setup
 
@@ -59,12 +58,12 @@ pip install -r requirements.txt
 # Copy environment file
 Copy-Item .env.example .env
 
-# Run the server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 13000
+# Run the server (or use start.ps1 to start both backend and frontend)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 10720
 ```
 
-Backend will be available at: http://localhost:13000
-API docs: http://localhost:13000/docs
+Backend will be available at: http://localhost:10720
+API docs: http://localhost:10720/docs
 
 ## Frontend Setup
 
@@ -75,11 +74,11 @@ npm install
 # Copy environment file
 Copy-Item .env.example .env.local
 
-# Run development server
+# Run development server (or use start.ps1 from webapp for both)
 npm run dev
 ```
 
-Frontend will be available at: http://localhost:13001
+Frontend will be available at: http://localhost:10721 (when using start.ps1) or Next default port.
 
 ## Project Structure
 
@@ -105,14 +104,13 @@ webapp/
 - **Reservoir ports** (10700-10800): calibre-mcp uses **10720** (backend) and **10721** (frontend) for local runs that follow the ecosystem port rules.
 - **Docker**: Compose maps host **10720** -> backend 13000, **10722** -> frontend 13001 (registry: 10720 = calibre-mcp Webapp).
 - **Zombie kill**: Start scripts MUST clear the port before binding.
-  - **start.ps1**: Clears 10720 and 10721 (PowerShell `Get-NetTCPConnection` + `Stop-Process`), then starts backend and frontend in separate windows on those ports. Use for port-rule-compliant local run: `powershell -ExecutionPolicy Bypass -File webapp\start.ps1`.
-  - **start-local.bat**: Clears 13000 and 13001 (netstat + taskkill), then starts backend 13000 and frontend 13001. Use for quick local dev without changing port.
-  - **start-all.bat** (Docker): Runs `docker compose down` then `up -d`; does not clear host ports 10720/10722 if another process holds them (stop that process or use `docker compose down` and ensure no other container uses those ports).
+  - **start.ps1**: Clears 10720 and 10721, then starts backend and frontend in separate windows. Use: `powershell -ExecutionPolicy Bypass -File webapp\start.ps1` or `webapp\start.bat`.
+- **start-all.bat** / **docker-up.ps1** (Docker): Runs `docker compose down` then `up -d`. Host ports: backend 10720, frontend 10722.
 
 ## Next Steps
 
-1. **Test Backend**: Visit http://localhost:13000/docs (or http://localhost:10720/docs if using start.ps1)
-2. **Test Frontend**: Visit http://localhost:13001 or http://localhost:10721 (start.ps1)
+1. **Test Backend**: Visit http://localhost:10720/docs
+2. **Test Frontend**: Visit http://localhost:10721 (local) or http://localhost:10722 (Docker)
 3. **Implement Features**: Follow the implementation guide in `docs/WEBAPP_IMPLEMENTATION_GUIDE.md`
 
 ## Troubleshooting
@@ -128,6 +126,6 @@ webapp/
 - Reinstall: `npm install`
 
 ### API calls fail
-- Verify backend is running on port 13000
+- Verify backend is running (port 10720 for local, or Docker 10720)
 - Check CORS settings in `backend/app/config.py`
 - Verify `NEXT_PUBLIC_API_URL` in `.env.local`

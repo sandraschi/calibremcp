@@ -368,9 +368,13 @@ async def status(level: StatusLevel = StatusLevel.BASIC, focus: str | None = Non
         # Get Calibre connection status
         try:
             client = await get_api_client()
-            connection_test = await client.test_connection()
-            calibre_status = "connected"
-            calibre_info = connection_test
+            if client:
+                connection_test = await client.test_connection()
+                calibre_status = "connected"
+                calibre_info = connection_test
+            else:
+                calibre_status = "connected"  # Local library is always "connected" to the DB
+                calibre_info = {"mode": "local", "details": "Direct SQLite access enabled"}
         except Exception as e:
             calibre_status = "disconnected"
             calibre_info = {"error": str(e)}

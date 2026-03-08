@@ -7,8 +7,9 @@ search functionality, and interactive examples for all available tools.
 
 import logging
 from enum import Enum
+from typing import Any
 
-# Import the tool decorator from the parent package
+from ...server import mcp
 
 logger = logging.getLogger("calibremcp.tools.help")
 
@@ -67,7 +68,8 @@ HELP_DOCS = {
                         "- `search_books()` - Search and filter books\n"
                         "- `get_book()` - Get book details\n"
                         "- `add_book()` - Add new books\n"
-                        "- `help()` - Show this help"
+                        "- `help()` - Show this help\n"
+                        "- `agentic_library_workflow()` - Autonomous library orchestration [SEP-1577]"
                     ),
                     "advanced": (
                         "### Core Functions\n"
@@ -76,6 +78,9 @@ HELP_DOCS = {
                         "- `add_book()` - Add books with metadata extraction\n"
                         "- `update_book()` - Modify book metadata\n"
                         "- `delete_book()` - Remove books\n\n"
+                        "### Agentic & Help\n"
+                        "- `agentic_library_workflow()` - Orchestrate complex tasks using sampling\n"
+                        "- `help()` - Detailed interactive help system\n\n"
                         "### Utility Functions\n"
                         "- `list_authors()` - List all authors\n"
                         "- `list_series()` - List all book series\n"
@@ -86,6 +91,9 @@ HELP_DOCS = {
                         "### Search and Retrieval\n"
                         "- `search_books()` - Full-text search with field boosting, fuzzy matching, and faceting\n"
                         "- `get_book()` - Retrieve complete book record with all metadata and formats\n\n"
+                        "### Agentic Orchestration\n"
+                        "- `agentic_library_workflow()` - Autonomous library manager with recursive task solving\n"
+                        "- `help()` - Multi-level documentation system with examples\n\n"
                         "### CRUD Operations\n"
                         "- `add_book()` - Add books from file, URL, or ISBN with metadata extraction\n"
                         "- `update_book()` - Atomic updates with conflict resolution\n"
@@ -341,8 +349,18 @@ HELP_DOCS = {
                 "default": "",
                 "description": "Search query string",
             },
-            {"name": "author", "type": "string", "default": "", "description": "Filter by author"},
-            {"name": "tag", "type": "string", "default": "", "description": "Filter by tag"},
+            {
+                "name": "author",
+                "type": "string",
+                "default": "",
+                "description": "Filter by author",
+            },
+            {
+                "name": "tag",
+                "type": "string",
+                "default": "",
+                "description": "Filter by tag",
+            },
             {
                 "name": "format",
                 "type": "string",
@@ -403,4 +421,116 @@ HELP_DOCS = {
             },
         ],
     },
+    "sampling": {
+        "title": "Agentic Workflows & Sampling",
+        "description": "Autonomous library management and orchestration using LLM sampling.",
+        "usage": {
+            "basic": 'agentic_library_workflow(workflow_prompt="Find and organize my IT books")',
+        },
+    },
 }
+
+
+async def _get_sampling_help(level: str) -> str:
+    """Get help documentation for sampling and agentic workflows."""
+    if level == "basic":
+        return (
+            "### Agentic Workflows (SEP-1577)\n"
+            "CalibreMCP supports autonomous workflows using LLM sampling. This allows the AI to "
+            "perform complex, multi-step tasks by calling multiple tools in sequence.\n\n"
+            "**Key Tool:**\n"
+            "- `agentic_library_workflow(workflow_prompt)`: Executes a complex library management task.\n\n"
+            "**Example:**\n"
+            "`agentic_library_workflow(workflow_prompt='Check for duplicate IT books und merge their metadata')`"
+        )
+    elif level == "adv":
+        return (
+            "### Advanced Agentic Orchestration\n"
+            "The `agentic_library_workflow` tool leverages SEP-1577 sampling to empower the AI to "
+            "reason about library state and choose the best tools for a given goal.\n\n"
+            "**Capabilities:**\n"
+            "- Cross-tool orchestration (e.g., search -> analyze -> update)\n"
+            "- Automatic error recovery and goal adjustment\n"
+            "- Intelligent metadata synthesis from multiple sources\n\n"
+            "**Performance Note:**\n"
+            "Agentic workflows may take longer as they involve multiple LLM calls. Progress "
+            "notifications are provided through the context object."
+        )
+    else:  # expert
+        return (
+            "### Expert Sampling & Orchestration Patterns\n"
+            "The agentic system uses the `ctx.sample()` API to perform recursive task decomposition.\n\n"
+            "**Technical Details:**\n"
+            "- **Sampling Engine:** USes the host LLM to generate tool sequences.\n"
+            "- **Safety Guard:** Built-in loop detection and iteration limits (default: 10).\n"
+            "- **State Management:** Maintains a scratchpad of previous tool results to inform next steps.\n\n"
+            "**Integration Example:**\n"
+            "```python\n"
+            "result = await ctx.sample(\n"
+            "    messages=[f'Workflow: {prompt}'],\n"
+            "    tools=available_tools,\n"
+            "    max_tokens=4096\n"
+            ")\n"
+            "```"
+        )
+
+
+@mcp.tool()
+async def help_tool(
+    category: str | None = None,
+    tool_name: str | None = None,
+    level: str = "basic",
+) -> dict[str, Any]:
+    """
+    Get comprehensive help and documentation for Calibre library tools.
+
+    Args:
+        category: Optional category filter (e.g., 'book', 'library', 'sampling')
+        tool_name: Optional specific tool to get help for
+        level: Detail level: 'basic', 'adv', or 'expert'
+    """
+    level_enum = HelpLevel.BASIC
+    # Mapping level string to level_enum (internal use if needed later)
+    if level == "adv":
+        level_enum = HelpLevel.ADVANCED
+    elif level == "expert":
+        level_enum = HelpLevel.EXPERT
+
+    # Use level_enum or just the level string as needed
+    _ = level_enum  # Suppress lint warning if still not used directly
+
+    result = {
+        "title": "CalibreMCP Help System",
+        "level": level,
+        "content": {},
+    }
+
+    if tool_name and tool_name in HELP_DOCS:
+        result["content"] = HELP_DOCS[tool_name]
+    elif category == "sampling":
+        result["content"] = {
+            "title": "Agentic Workflows & Sampling",
+            "details": await _get_sampling_help(level),
+        }
+    else:
+        # Default to overview if no specific match
+        overview = HELP_DOCS.get("overview", {})
+        result["content"] = {
+            "title": overview.get("title", "Overview"),
+            "description": overview.get("description", {}).get(
+                level, "No description available."
+            ),
+            "sections": [
+                {
+                    "title": s["title"],
+                    "content": s["content"].get(level, "No content for this level."),
+                }
+                for s in overview.get("sections", [])
+            ],
+        }
+
+    # Add sampling mention if in overview and not in basic
+    if not category and not tool_name and level != "basic":
+        result["sampling_note"] = await _get_sampling_help("basic")
+
+    return result

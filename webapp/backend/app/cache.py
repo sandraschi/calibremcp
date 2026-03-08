@@ -53,7 +53,32 @@ def update_libraries_cache(libraries: list, current_library, total_libraries: in
     _libraries_cache["loaded"] = True
 
 
-def update_current_library(current: str) -> None:
+def update_current_library(current: str, library_path: str | None = None) -> None:
     global _libraries_cache
     _libraries_cache["current_library"] = current
     invalidate_ttl_cache()
+
+    # CRITICAL: Re-initialize database in the backend process to ensure
+    # all routes using the direct DB access (like cover serving) are in sync
+    if library_path:
+        try:
+            from pathlib import Path
+            from calibre_mcp.db.database import init_database
+
+            path = Path(library_path)
+            if path.is_dir():
+                db_path = str((path / "metadata.db").absolute())
+            else:
+                db_path = str(path.absolute())
+
+            # Force re-initialization
+            init_database(db_path, force=True)
+            import logging
+
+            logging.getLogger("app.cache").info(
+                f"Backend database re-initialized for library: {current}"
+            )
+        except Exception as e:
+            import logging
+
+            logging.getLogger("app.cache").error(f"Failed to refresh backend database: {e}")

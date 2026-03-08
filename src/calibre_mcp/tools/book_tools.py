@@ -798,14 +798,15 @@ async def search_books_helper(
         db_initialized = False
         db_correct_library = False
 
-        # Simplified database initialization - just try to ensure we have a database
+        # Simplified database initialization - just try to ensure we have a database.
+        # Use raw SQL so we do not depend on Book ORM columns (e.g. flags) that may be
+        # missing in older Calibre metadata.db.
         try:
             db = get_database()
-            # Test basic connectivity
             with db.session_scope() as session:
-                from ..db.models import Book
+                from sqlalchemy import text
 
-                session.query(Book).limit(1).first()
+                session.execute(text("SELECT id FROM books LIMIT 1"))
         except Exception as db_error:
             logger.warning(
                 f"Database issue: {db_error}",
@@ -873,7 +874,9 @@ async def search_books_helper(
                 processed_fields.append(field)
 
         # Intelligently parse query to extract author, tag, pubdate, etc.
-        search_text = text or query  # Support both text and query parameters
+        # Ensure string: caller may pass wrong type (e.g. function) via MCP
+        raw = text or query
+        search_text = str(raw).strip() if isinstance(raw, str) else None
         parsed = (
             parse_intelligent_query(search_text)
             if search_text

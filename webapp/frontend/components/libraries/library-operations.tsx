@@ -1,6 +1,6 @@
 'use client';
 
-import { Library, switchLibrary } from '@/lib/api';
+import { Library, switchLibrary } from '@/common/api';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 

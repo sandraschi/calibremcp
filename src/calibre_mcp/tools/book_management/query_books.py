@@ -377,7 +377,9 @@ async def query_books(
     try:
         if operation == "search":
             # Intelligently parse query to extract author, tag, pubdate, etc.
-            search_text = text or query
+            # Ensure string: caller may pass wrong type (e.g. function) via MCP/API
+            raw = text or query
+            search_text = str(raw).strip() if isinstance(raw, str) else None
             parsed = (
                 parse_intelligent_query(search_text)
                 if search_text
@@ -508,7 +510,7 @@ async def query_books(
                     try:
                         from ..viewer.manage_viewer import manage_viewer
 
-                        open_result = await manage_viewer.fn(
+                        open_result = await (manage_viewer.fn if hasattr(manage_viewer, "fn") else manage_viewer)(
                             operation="open_file", book_id=book["id"], file_path=file_path
                         )
 

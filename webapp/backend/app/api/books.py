@@ -32,8 +32,9 @@ async def get_book_cover(book_id: int):
             if not book or not book.path:
                 raise HTTPException(status_code=404, detail="Book not found")
 
-            book_path = book.path.strip("/").strip("\\").replace("\\", "/")
-            folder = (library_path / book_path).resolve()
+            book_path = book.path.strip("/").strip("\\")
+            # Convert to Path object correctly regardless of separators
+            folder = library_path / Path(book_path)
             cover_path = None
             for name in ("cover.jpg", "cover.jpeg", "cover.png"):
                 candidate = folder / name
@@ -83,10 +84,24 @@ async def list_books(
                 "text": text,
             },
         )
-        # Normalize for frontend: expect { items, total }; tool may return results/total_found
-        if isinstance(result, dict) and "items" not in result and "results" in result:
-            result = {**result, "items": result["results"], "total": result.get("total_found", len(result["results"]))}
-        if unfiltered:
+        # Normalize for frontend: expect { items, total }; tool may return results/total_found or books/total_count
+        if isinstance(result, dict) and "items" not in result:
+            if "results" in result:
+                result = {
+                    **result,
+                    "items": result["results"],
+                    "total": result.get("total_found", len(result["results"])),
+                }
+            elif "books" in result:
+                result = {
+                    **result,
+                    "items": result["books"],
+                    "total": result.get("total_count", result.get("total", len(result["books"]))),
+                }
+        # Never cache error-shaped responses
+        if isinstance(result, dict) and ("error" in result or result.get("success") is False):
+            raise handle_mcp_error(Exception(result.get("error", "query_books returned error")))
+        if isinstance(result, dict) and ("items" in result or "results" in result) and unfiltered:
             set_ttl_cached(key, result, ttl=30)
         return result
     except Exception as e:

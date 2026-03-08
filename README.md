@@ -1,7 +1,8 @@
 # CalibreMCP 📚
 
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.14.4+-blue)](https://github.com/jlowin/fastmcp)
+[![Web Interface](https://img.shields.io/badge/Web--Interface-Professional-purple)]()
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.1+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.1.0-blue)](pyproject.toml)
@@ -10,16 +11,20 @@
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
-**FastMCP 2.14.4+ server for Calibre e-book library management with sampling, dialogic tool returns, and AI workflows**
+**FastMCP 3.1+ server for Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG**
 
 **Features:**
-- **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, AI chat (Ollama/LM Studio), import/export
+- **FastMCP 3.1** - Sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
+- **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search`; preparation for full-book text RAG (see `docs/FULL_TEXT_RAG_DESIGN.md`)
+- **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide)
+- **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
+- **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), import/export
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
 - **Portmanteau Tools** - 21 consolidated tools (18 portmanteau + 3 specialized)
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
-- **Natural Language Search** - Intelligent parsing via FastMCP 2.14.4 sampling (SEP-1577)
+- **Natural Language Search** - Intelligent parsing via FastMCP 3.1 sampling and agentic workflows (SEP-1577)
 - **Auto-Open Books** - ✅ Unique search results automatically launch in system viewer
 - **Title-Specific Search** - ✅ Fast, exact title matching with `title` parameter
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
@@ -252,8 +257,28 @@ calibre-server --port=8080 --enable-auth --manage-users
 
 ---
 
-## 📦 **Installation Methods**
+## 🚀 Installation
 
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
+- Python 3.12+
+
+### 📦 Quick Start
+Run immediately via `uvx`:
+```bash
+uvx calibre-mcp
+```
+
+### 🎯 Claude Desktop Integration
+Add to your `claude_desktop_config.json`:
+```json
+"mcpServers": {
+  "calibre-mcp": {
+    "command": "uv",
+    "args": ["--directory", "D:/Dev/repos/calibre-mcp", "run", "calibre-mcp"]
+  }
+}
+```
 ### **1. PyPI Package Install (Recommended)** ⭐
 
 **Simple pip installation - no repository cloning required!**
@@ -407,39 +432,28 @@ cd calibre-mcp
 
 **⚠️ Note: This method requires cloning the repository and setting up a Python environment.**
 
-#### **Installation Steps**
+## 🚀 Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/sandra/calibre-mcp.git
-   cd calibre-mcp
-   ```
+### Prerequisites
+- [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
+- Python 3.12+
 
-2. **Install dependencies:**
-   Standardized installation uses the system Python environment for maximum reliability in Antigravity:
+### 📦 Quick Start
+Run immediately via `uvx`:
+```bash
+uvx calibre-mcp
+```
 
-   ```powershell
-   # Install in system environment (SOTA 2026 pattern)
-   pip install fastmcp pydantic aiohttp
-   cd d:\dev\repos\calibre-mcp
-   pip install -e .
-   ```
-
-3. **Configure Claude Desktop:**
-   ```json
-   {
-     "mcpServers": {
-       "calibre-mcp": {
-         "command": "python",
-         "args": ["-m", "calibre_mcp.server"],
-         "env": {
-           "CALIBRE_SERVER_URL": "http://localhost:8080"
-         }
-       }
-     }
-   }
-   ```
-
+### 🎯 Claude Desktop Integration
+Add to your `claude_desktop_config.json`:
+```json
+"mcpServers": {
+  "calibre-mcp": {
+    "command": "uv",
+    "args": ["--directory", "D:/Dev/repos/calibre-mcp", "run", "calibre-mcp"]
+  }
+}
+```
 #### **Test Connection**
 
 ```bash
@@ -514,6 +528,7 @@ python scripts/check_logs.py --errors-only
   - **Auto Provider Selection**: Automatically chooses best available OCR backend
 
 ### AI-Powered Tools
+- **Local LLM Auto-Discovery** - Automatically detects and connects to running Ollama/LM Studio instances (no config needed)
 - **Book Recommendations** - Get personalized book suggestions based on content similarity
 - **Content Analysis** - Extract entities, themes, and sentiment from book content
 - **Reading Insights** - Analyze your reading habits and preferences
@@ -524,6 +539,17 @@ python scripts/check_logs.py --errors-only
 - **Metadata Validation** - Ensure consistency across your library
 - **Series Merging** - Combine duplicate or related series
 - **Automatic Organization** - Keep your series properly ordered and managed
+
+## 🤖 AI Hardware Requirements
+
+While basic operations run on any hardware, AI-powered features (Ollama integration, local embeddings) have specific requirements:
+
+- **Minimal (No AI)**: Any CPU, 4GB RAM. Works for search, metadata, and webapp browsing.
+- **Recommended (Local LLM 8B)**: NVIDIA RTX 3060 (12GB VRAM) or Mac M1/M2/M3 (16GB+). Capable of chat and basic analysis.
+- **High Performance (Local LLM 70B)**: NVIDIA RTX 3090/4090 (24GB VRAM) or Mac Studio. Required for deep content analysis and complex reasoning.
+
+> [!IMPORTANT]
+> **Local LLM Usage**: AI features are **OPTIONAL**. You can run CalibreMCP without any GPU. If enabling local AI (Ollama), ensure your hardware meets the model's requirements. CPU inference is available but significantly slower.
 
 ## 🌟 Natural Language Search & Auto-Open
 

@@ -1,0 +1,42 @@
+{
+    "$schema": "https://glama.ai/mcp/schemas/server.json",
+    "maintainers": [
+        "sandraschi"
+    ],
+    "name": "calibre-mcp",
+    "description": "FastMCP 2.14.4+ server for Calibre e-book library management. Features full webapp UI, AI chat, and natural language search via sampling.",
+    "type": "mcp_server",
+    "status": "production",
+    "framework": "FastMCP 2.14.4+",
+    "version": "1.1.0",
+    "icon": "book",
+    "homeUrl": "https://github.com/sandraschi/calibre-mcp",
+    "tools": 21,
+    "transport": [
+        "stdio"
+    ],
+    "keywords": [
+        "calibre",
+        "ebooks",
+        "library",
+        "fastmcp",
+        "ai",
+        "search",
+        "webapp",
+        "natural-language"
+    ],
+    "features": {
+        "webapp": {
+            "enabled": true,
+            "url": "http://localhost:10721"
+        },
+        "sampling": {
+            "enabled": true,
+            "notes": "Used for natural language query parsing"
+        },
+        "ai_features": {
+            "enabled": true,
+            "notes": "Optional. Local LLM (Ollama) requires GPU (RTX 4070+ recommended for 70B models, 3060+ for 8B). CPU fallback available but slow."
+        }
+    }
+}

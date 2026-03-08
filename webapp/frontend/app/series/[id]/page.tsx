@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getSeriesBooks } from '@/lib/api';
+import { getSeriesBooks, type Book } from '@/common/api';
 
 export default async function SeriesDetailPage({
   params,
@@ -16,7 +16,7 @@ export default async function SeriesDetailPage({
     );
   }
 
-  let data: { items?: { id: number; title: string; authors?: { name?: string }[] }[]; series?: { name?: string } };
+  let data: { items?: Book[]; series?: { name?: string } };
   try {
     data = await getSeriesBooks(seriesId, { limit: 100 });
   } catch (e) {
@@ -41,7 +41,7 @@ export default async function SeriesDetailPage({
       </Link>
       <h1 className="text-3xl font-bold mb-6 text-slate-100">{seriesName}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {books.map((b: { id: number; title: string; authors?: { name?: string }[] }) => (
+        {books.map((b: Book) => (
           <Link
             key={b.id}
             href={`/book/${b.id}`}
@@ -50,7 +50,7 @@ export default async function SeriesDetailPage({
             <span className="text-slate-200 font-medium">{b.title}</span>
             {b.authors?.length ? (
               <span className="block text-sm text-slate-500 mt-1">
-                {b.authors.map((a: { name?: string }) => a.name).filter(Boolean).join(', ')}
+                {b.authors.map((a) => (typeof a === 'string' ? a : (a as { name?: string }).name)).filter(Boolean).join(', ')}
               </span>
             ) : null}
           </Link>

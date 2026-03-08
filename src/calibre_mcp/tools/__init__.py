@@ -13,7 +13,7 @@ import pkgutil
 from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 # Set up logging (stderr is OK for MCP servers)
 logger = logging.getLogger(__name__)
@@ -169,12 +169,28 @@ def register_tools(mcp: Any) -> None:
         import_time = time.time() - import_start
         logger.info(f"Book management loaded in {import_time:.2f}s")
 
-        # RAG (semantic search over book text; requires pip install calibre-mcp[rag])
+        # RAG (semantic search over book text and metadata; lancedb/fastembed in main deps)
         import_start = time.time()
         try:
-            from .rag import rag_index_build, rag_retrieve  # noqa: F401
+            from .rag import (
+                calibre_metadata_index_build,
+                calibre_metadata_search,
+                rag_index_build,
+                rag_retrieve,
+            )  # noqa: F401
         except ImportError:
-            pass  # optional [rag] deps not installed
+            pass
+
+        try:
+            from .portmanteau.search import calibre_rag  # noqa: F401
+            from .portmanteau.media_agentic import (
+                media_synopsis,
+                media_critical_reception,
+                media_deep_research,
+            )  # noqa: F401
+        except Exception as e:
+            logger.error(f"Failed to load RAG portmanteaus: {e}", exc_info=True)
+
         import_time = time.time() - import_start
         logger.info(f"RAG tools loaded in {import_time:.2f}s")
 
@@ -202,11 +218,21 @@ def register_tools(mcp: Any) -> None:
         import_time = time.time() - import_start
         logger.info(f"Files/analysis/system loaded in {import_time:.2f}s")
 
+        # Help system
+        import_start = time.time()
+        from .help_tools import help_tool  # noqa: F401
+
+        import_time = time.time() - import_start
+        logger.info(f"Help tools loaded in {import_time:.2f}s")
+
         # OCR
         import_start = time.time()
-        from .ocr.calibre_ocr_tool import OCRTool
+        try:
+            from .ocr.calibre_ocr_tool import OCRTool
 
-        OCRTool.register(mcp)
+            OCRTool.register(mcp)
+        except Exception as e:
+            logger.warning(f"Failed to load OCRTool, skipping: {e}")
         import_time = time.time() - import_start
         logger.info(f"OCR loaded in {import_time:.2f}s")
 
@@ -216,6 +242,7 @@ def register_tools(mcp: Any) -> None:
             import_start = time.time()
             from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
             from .agentic import register_agentic_tools
+            from .agentic_workflow import agentic_library_workflow  # noqa: F401
             from .ai import manage_ai_operations  # noqa: F401
             from .descriptions import manage_descriptions  # noqa: F401
             from .extended_metadata import manage_extended_metadata  # noqa: F401

@@ -419,6 +419,18 @@ calibredb ebooks_meta book.epub  # Check file metadata
 
 ---
 
+## Webapp / Books API Issues
+
+### **Problem: "AttributeError: 'Book' object has no attribute 'isbn'" (500 Internal Server Error)**
+
+**Diagnosis:**
+Calibre stores ISBN and LCCN in the `identifiers` table, not as columns on the `books` table. Older code accessed `book.isbn` directly, which fails because the Book ORM has no such attribute.
+
+**Solution:**
+Upgrade to the latest Calibre MCP. The fix derives isbn/lccn from the identifiers relationship in both `src/` and `mcpb/` copies. If you run the webapp via `start.bat`, ensure both backend and frontend are restarted. If using MCPB packages, rebuild and reinstall the package.
+
+---
+
 ## 🔍 Search Issues
 
 ### **Problem: "Search returns no results for known books"**

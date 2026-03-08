@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "calibre-mcp"
 version = "1.1.0"
-description = "FastMCP 2.14.4+ server for conversational Calibre e-book library management with sampling, dialogic returns, and AI workflows"
+description = "FastMCP 3.1+ server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
 authors = [
     {name = "Sandra", email = "sandra@example.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 keywords = ["mcp", "calibre", "ebooks", "fastmcp"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp>=2.14.4,<2.15.0",
+    "fastmcp>=3.1.0",
     "fastapi>=0.115.0",
     "httpx>=0.27.0",
     "pydantic>=2.9.0",
@@ -33,16 +33,18 @@ dependencies = [
     "sqlalchemy>=2.0.0",
     "aiohttp>=3.9.0",
     "keyring>=24.0.0",
-    "py-key-value-aio[disk]>=0.3.0,<0.4.0",  # FastMCP 2.14.1+ persistent storage backend
-    "tenacity>=8.2.0",  # Retry logic for network operations and external API calls
-    "psutil>=5.9.0",  # System and process utilities (required by system_tools)
-    "beautifulsoup4>=4.12.0",  # Anna's Archive HTML parsing
+    "py-key-value-aio[filetree]>=0.4.4,<0.5.0", # FastMCP 2.14.1+ persistent storage backend
+    "tenacity>=8.2.0", # Retry logic for network operations and external API calls
+    "psutil>=5.9.0", # System and process utilities (required by system_tools)
+    "beautifulsoup4>=4.12.0", # Anna's Archive HTML parsing
+    "ruff>=0.14.1",
+    "lancedb>=0.17.0",
+    "fastembed>=0.4.0",
 ]
 
 [project.optional-dependencies]
 rag = [
     "chromadb>=0.4.0",
-    "fastembed>=0.3.0",
 ]
 dev = [
     "pytest>=8.3.0",
@@ -56,6 +58,9 @@ dev = [
     "build>=1.2.0",
     "pre-commit>=3.6.0"  # Git hooks for code quality
 ]
+
+[project.scripts]
+calibre-mcp = "calibre_mcp.__main__:run"
 
 [project.urls]
 Homepage = "https://github.com/sandra/calibre-mcp"

@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { getBooks, type BookListResponse } from '@/lib/api';
+import { getBooks, type BookListResponse } from '@/common/api';
 import { BookGrid } from '@/components/books/book-grid';
 import { ErrorBanner } from '@/components/ui/error-banner';
 
-const BACKEND_HINT = 'Start backend: cd webapp/backend; python -m uvicorn app.main:app --reload --port 13000. Or run webapp\\start-local.bat from repo root.';
+const BACKEND_HINT = 'From repo root run webapp\\start.ps1 (backend 10720, frontend 10721).';
 
 function buildPageUrl(
   base: string,
@@ -53,44 +53,101 @@ export default async function BooksPage({
     );
   }
 
-  const total = data.total ?? 0;
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const total = typeof data?.total === 'number' ? data.total : 0;
   const totalPages = Math.ceil(total / limit);
-  const hasPrev = page > 1;
-  const hasNext = page < totalPages;
   const base = '/books';
+
+  // Pagination logic: show current page and a few around it
+  const pageRange = 2; // Number of pages to show before/after current
+  const pages: number[] = [];
+  for (let i = Math.max(1, page - pageRange); i <= Math.min(totalPages, page + pageRange); i++) {
+    pages.push(i);
+  }
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-slate-100">Browse</h1>
-      <BookGrid books={data.items || []} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <h1 className="text-3xl font-bold text-slate-100">Browse</h1>
+      </div>
+
+      <BookGrid books={items} />
+
       {total > limit && (
-        <nav className="mt-6 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination">
-          <p className="w-full text-center text-sm text-slate-400 mb-2">
-            Showing {offset + 1}-{Math.min(offset + limit, total)} of {total} books
+        <nav className="mt-8 flex flex-col items-center gap-4" aria-label="Pagination Navigation">
+          <p className="text-sm text-slate-400">
+            Showing <span className="text-slate-200 font-medium">{offset + 1}</span>–
+            <span className="text-slate-200 font-medium">{Math.min(offset + limit, total)}</span> of{' '}
+            <span className="text-slate-200 font-medium">{total}</span> books
           </p>
-          <div className="flex items-center gap-2">
-            {hasPrev ? (
+
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            {/* First Page */}
+            {page > 1 && (
               <Link
-                href={buildPageUrl(base, page - 1, params.author, params.tag)}
-                className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
+                href={buildPageUrl(base, 1, params.author, params.tag, params.publisher)}
+                className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
+                title="First Page"
               >
-                Previous
+                First
+              </Link>
+            )}
+
+            {/* Previous */}
+            {page > 1 ? (
+              <Link
+                href={buildPageUrl(base, page - 1, params.author, params.tag, params.publisher)}
+                className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
+                title="Previous Page"
+              >
+                Prev
               </Link>
             ) : (
-              <span className="px-4 py-2 text-sm text-slate-500 cursor-not-allowed">Previous</span>
+              <span className="px-3 py-2 text-sm text-slate-500 bg-slate-800/50 border border-slate-700/50 rounded-md cursor-not-allowed">
+                Prev
+              </span>
             )}
-            <span className="px-3 py-2 text-sm text-slate-400">
-              Page {page} of {totalPages}
-            </span>
-            {hasNext ? (
+
+            {/* Page Numbers */}
+            {pages[0] > 1 && <span className="px-2 text-slate-600">...</span>}
+            {pages.map((p) => (
+              <Link
+                key={p}
+                href={buildPageUrl(base, p, params.author, params.tag, params.publisher)}
+                className={`w-10 h-10 flex items-center justify-center text-sm font-medium rounded-md transition-all ${p === page
+                    ? 'bg-amber text-slate-900 border border-amber'
+                    : 'bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300'
+                  }`}
+              >
+                {p}
+              </Link>
+            ))}
+            {pages[pages.length - 1] < totalPages && <span className="px-2 text-slate-600">...</span>}
+
+            {/* Next */}
+            {page < totalPages ? (
               <Link
                 href={buildPageUrl(base, page + 1, params.author, params.tag, params.publisher)}
-                className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
+                className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
+                title="Next Page"
               >
                 Next
               </Link>
             ) : (
-              <span className="px-4 py-2 text-sm text-slate-500 cursor-not-allowed">Next</span>
+              <span className="px-3 py-2 text-sm text-slate-500 bg-slate-800/50 border border-slate-700/50 rounded-md cursor-not-allowed">
+                Next
+              </span>
+            )}
+
+            {/* Last Page */}
+            {page < totalPages && (
+              <Link
+                href={buildPageUrl(base, totalPages, params.author, params.tag, params.publisher)}
+                className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
+                title="Last Page"
+              >
+                Last
+              </Link>
             )}
           </div>
         </nav>

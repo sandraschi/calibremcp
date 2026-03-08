@@ -28,7 +28,7 @@ npm install
 if errorlevel 1 goto err
 
 echo.
-echo Done. Run start-local.bat to start the webapp.
+echo Done. Run start.ps1 or start.bat to start the webapp.
 goto end
 
 :err

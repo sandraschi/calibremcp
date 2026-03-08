@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getLibraryStats, LibraryStats } from '@/lib/api';
+import { getLibraryStats, LibraryStats } from '@/common/api';
 import { LibraryStatsDisplay } from './library-stats';
 
 interface LibraryStatsPanelProps {

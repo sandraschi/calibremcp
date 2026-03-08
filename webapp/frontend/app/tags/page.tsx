@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { listTags } from '@/lib/api';
+import { listTags } from '@/common/api';
 
 export default async function TagsPage({
   searchParams,

@@ -251,5 +251,10 @@ interface SearchResponse {
 - Metadata validation
 - Series merging
 
+### v1.3.0 - Neural Media RAG & FastMCP 3.1 Readiness
+- DeepIngestor full-text embedding
+- FastMCP 3.1 agentic workflows and tool loading fixes
+- Enhanced 3-column webapp book modal and SOTA UI refinements
+
 ## 10. License
 MIT License

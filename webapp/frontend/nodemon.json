@@ -15,7 +15,7 @@
     ".git",
     "*.log"
   ],
-  "exec": "next dev --turbo -p 13001",
+  "exec": "next dev --turbo",
   "restartable": "rs",
   "delay": 2500,
   "killTimeout": 3000,

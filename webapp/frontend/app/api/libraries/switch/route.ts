@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { proxyPost, getBackendUrl } from '@/lib/proxy';
+import { proxyPost, getBackendUrl } from '@/common/proxy';
 
 export async function POST(request: NextRequest) {
   try {

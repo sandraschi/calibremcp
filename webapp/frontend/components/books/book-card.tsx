@@ -3,7 +3,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Book, getBookCoverUrl } from '@/lib/api';
+import { Book, getBookCoverUrl } from '@/common/api';
 import { AuthorLinks } from '@/components/authors/author-links';
 
 interface BookCardProps {

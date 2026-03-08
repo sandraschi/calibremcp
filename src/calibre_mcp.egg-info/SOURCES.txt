@@ -22,6 +22,7 @@ src/calibre_mcp/utils.py
 src/calibre_mcp.egg-info/PKG-INFO
 src/calibre_mcp.egg-info/SOURCES.txt
 src/calibre_mcp.egg-info/dependency_links.txt
+src/calibre_mcp.egg-info/entry_points.txt
 src/calibre_mcp.egg-info/requires.txt
 src/calibre_mcp.egg-info/top_level.txt
 src/calibre_mcp/api/libraries.py
@@ -47,6 +48,13 @@ src/calibre_mcp/models/library.py
 src/calibre_mcp/models/rating.py
 src/calibre_mcp/models/series.py
 src/calibre_mcp/models/tag.py
+src/calibre_mcp/rag/__init__.py
+src/calibre_mcp/rag/chunking.py
+src/calibre_mcp/rag/embedding.py
+src/calibre_mcp/rag/indexer.py
+src/calibre_mcp/rag/metadata_rag.py
+src/calibre_mcp/rag/retriever.py
+src/calibre_mcp/rag/store.py
 src/calibre_mcp/server/config.py
 src/calibre_mcp/server/main.py
 src/calibre_mcp/server/mcp_server.py
@@ -56,10 +64,12 @@ src/calibre_mcp/services/__init__.py
 src/calibre_mcp/services/author_service.py
 src/calibre_mcp/services/base_service.py
 src/calibre_mcp/services/book_service.py
+src/calibre_mcp/services/deep_ingestor.py
 src/calibre_mcp/services/description_service.py
 src/calibre_mcp/services/extended_metadata_service.py
 src/calibre_mcp/services/library_service.py
 src/calibre_mcp/services/publisher_service.py
+src/calibre_mcp/services/rag_ingestor.py
 src/calibre_mcp/services/series_service.py
 src/calibre_mcp/services/tag_service.py
 src/calibre_mcp/services/times_service.py
@@ -109,6 +119,7 @@ src/calibre_mcp/tools/book_management/__init__.py
 src/calibre_mcp/tools/book_management/add_book.py
 src/calibre_mcp/tools/book_management/add_books.py
 src/calibre_mcp/tools/book_management/delete_book.py
+src/calibre_mcp/tools/book_management/fulltext_search.py
 src/calibre_mcp/tools/book_management/get_book.py
 src/calibre_mcp/tools/book_management/manage_books.py
 src/calibre_mcp/tools/book_management/query_books.py
@@ -153,9 +164,13 @@ src/calibre_mcp/tools/ocr/__init__.py
 src/calibre_mcp/tools/ocr/calibre_ocr_tool.py
 src/calibre_mcp/tools/organization/__init__.py
 src/calibre_mcp/tools/organization/library_organizer.py
+src/calibre_mcp/tools/portmanteau/media_agentic.py
+src/calibre_mcp/tools/portmanteau/search.py
 src/calibre_mcp/tools/publishers/__init__.py
 src/calibre_mcp/tools/publishers/manage_publishers.py
 src/calibre_mcp/tools/publishers/publisher_helpers.py
+src/calibre_mcp/tools/rag/__init__.py
+src/calibre_mcp/tools/rag/manage_rag.py
 src/calibre_mcp/tools/series/__init__.py
 src/calibre_mcp/tools/series/manage_series.py
 src/calibre_mcp/tools/series/series_helpers.py

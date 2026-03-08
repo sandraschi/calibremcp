@@ -1,6 +1,6 @@
 'use client';
 
-import { LibraryStats } from '@/lib/api';
+import { LibraryStats } from '@/common/api';
 
 interface LibraryStatsDisplayProps {
   stats: LibraryStats;

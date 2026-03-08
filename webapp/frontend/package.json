@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "nodemon",
-    "dev:next": "next dev --turbo -p 13001",
+    "dev:next": "next dev --turbo",
     "build": "next build",
-    "start": "next start -p 13001",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {

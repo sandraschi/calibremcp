@@ -1,5 +1,15 @@
-"""RAG tools: semantic search over book content (index build + retrieve)."""
+"""RAG tools: semantic search over book content and metadata (index build + retrieve)."""
 
-from .manage_rag import rag_retrieve, rag_index_build
+from .manage_rag import (
+    calibre_metadata_index_build,
+    calibre_metadata_search,
+    rag_index_build,
+    rag_retrieve,
+)
 
-__all__ = ["rag_index_build", "rag_retrieve"]
+__all__ = [
+    "rag_index_build",
+    "rag_retrieve",
+    "calibre_metadata_index_build",
+    "calibre_metadata_search",
+]

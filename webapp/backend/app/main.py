@@ -9,7 +9,7 @@ from pathlib import Path
 # CRITICAL: Set up Python path BEFORE any other imports
 # This ensures calibre_mcp is importable even in uvicorn reloader subprocesses
 _current_file = Path(__file__).resolve()
-project_root = _current_file.parent.parent.parent.parent.parent
+project_root = _current_file.parent.parent.parent.parent
 src_path = project_root / "src"
 
 if not src_path.exists():
@@ -53,8 +53,10 @@ from .api import (
     logs,
     metadata,
     publishers,
+    rag,
     search,
     series,
+    skills,
     specialized,
     system,
     tags,
@@ -74,6 +76,8 @@ _handler = logging.handlers.RotatingFileHandler(
 _handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 logging.getLogger("uvicorn").addHandler(_handler)
 logging.getLogger("uvicorn.error").addHandler(_handler)
+logging.getLogger("uvicorn.access").addHandler(_handler)
+logging.getLogger("app").addHandler(_handler)
 
 # Create FastAPI app
 app = FastAPI(
@@ -188,7 +192,7 @@ async def startup_event():
             )
 
             if switch_result.get("success"):
-                update_current_library(library_to_load)
+                update_current_library(library_to_load, switch_result.get("library_path"))
 
                 logger.info(
                     f"SUCCESS: Library '{library_to_load}' loaded. "
@@ -223,6 +227,8 @@ app.add_middleware(
 # Core functionality
 app.include_router(books.router, prefix="/api/books", tags=["books"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
+app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
+app.include_router(skills.router, prefix="/api/skills", tags=["skills"])
 app.include_router(viewer.router, prefix="/api/viewer", tags=["viewer"])
 app.include_router(metadata.router, prefix="/api/metadata", tags=["metadata"])
 app.include_router(library.router, prefix="/api/libraries", tags=["libraries"])

@@ -76,7 +76,7 @@ class Book(Base):
     series_index = Column(Float, default=1.0)
     author_sort = Column(Text)
     path = Column(Text, nullable=False)
-    flags = Column(Integer, default=1)
+    # flags: present only in newer Calibre metadata.db; omitted for older DB compatibility
     uuid = Column(String(36))
     has_cover = Column(Integer, default=0)
     last_modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

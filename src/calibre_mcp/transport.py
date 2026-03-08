@@ -234,6 +234,81 @@ async def run_server_async(
             port = config["port"]
             path = config["path"]
             endpoint = f"http://{host}:{port}{path}"
+
+            from pydantic import BaseModel
+            import subprocess
+
+            class LaunchRequest(BaseModel):
+                repo_path: str
+
+            # SOTA Fleet Launch Protocol Injection
+            @mcp_app.app.post("/api/fleet/launch")
+            async def fleet_launch(launch_req: LaunchRequest):
+                """SOTA Fleet Launch Protocol"""
+                repo_path = launch_req.repo_path
+                if not (
+                    repo_path.lower().startswith("d:/dev/repos")
+                    or repo_path.lower().startswith("c:/users/sandr")
+                ):
+                    return {"status": "error", "message": "Forbidden path"}
+
+                if not os.path.exists(repo_path):
+                    return {"status": "error", "message": "Path not found"}
+
+                start_ps1 = os.path.join(repo_path, "start.ps1")
+                if os.path.exists(start_ps1):
+                    # Use absolute path for powershell to satisfy lints and ensure reliability
+                    subprocess.Popen(
+                        [
+                            "powershell.exe",
+                            "-ExecutionPolicy",
+                            "Bypass",
+                            "-File",
+                            "start.ps1",
+                        ],
+                        cwd=repo_path,
+                    )
+                    return {
+                        "status": "success",
+                        "message": f"Launched {os.path.basename(repo_path)}",
+                    }
+
+                return {"status": "error", "message": "start.ps1 not found"}
+
+            class SearchQuery(BaseModel):
+                query: str
+                limit: int = 10
+                search_type: str = "metadata"  # metadata or fulltext
+
+            class ChatQuery(BaseModel):
+                message: str
+                context: str = ""
+
+            @mcp_app.app.post("/api/v1/search")
+            async def semantic_search(req: SearchQuery):
+                from calibre_mcp.tools.portmanteau.search import calibre_rag
+
+                try:
+                    results = await calibre_rag(
+                        operation="search",
+                        query=req.query,
+                        limit=req.limit,
+                        search_type=req.search_type,
+                    )
+                    return results  # Returns success, message, and results array
+                except Exception as e:
+                    logger.error(f"Search endpoint error: {e}")
+                    return {"success": False, "error": str(e)}
+
+            @mcp_app.app.post("/api/v1/chat")
+            async def chat_with_media(req: ChatQuery):
+                # Placeholder for chat functionality depending on LLM orchestration later
+                return {
+                    "success": True,
+                    "response": f"Chat integration placeholder. Received: {req.message}",
+                    "context_used": bool(req.context),
+                }
+
             logger.info(f"Running in HTTP Streamable mode: {endpoint}")
             await mcp_app.run_http_async(host=host, port=port, path=path)
 

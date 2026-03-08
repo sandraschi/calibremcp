@@ -751,6 +751,16 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         Returns:
             Dictionary containing the book data in the response format
         """
+        # Build identifiers first - isbn/lccn live in identifiers table, not on books
+        if hasattr(book, "identifiers") and book.identifiers:
+            idents = {
+                ident.type: ident.val
+                for ident in book.identifiers
+                if getattr(ident, "type", None) and getattr(ident, "val", None)
+            }
+        else:
+            idents = {}
+
         # Build response dictionary manually to avoid relationship access issues
         # Pydantic V2 model_validate will try to access all attributes including relationships
         # which can cause issues with lazy-loaded relationships or column name mismatches
@@ -762,8 +772,8 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             "pubdate": book.pubdate,
             "series_index": book.series_index,
             "author_sort": book.author_sort,
-            "isbn": book.isbn,
-            "lccn": book.lccn,
+            "isbn": idents.get("isbn"),
+            "lccn": idents.get("lccn"),
             "path": book.path,
             "has_cover": bool(book.has_cover),
             "uuid": book.uuid,
@@ -785,8 +795,8 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         else:
             book_dict["series"] = None
 
-        # Skip identifiers - relationship has column name mismatch (book vs book_id)
-        book_dict["identifiers"] = {}
+        # Identifiers already built above
+        book_dict["identifiers"] = idents
 
         # Build formats list with file paths
         # Calibre stores files using either:

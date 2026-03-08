@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BookOpen, Search, Library, Users, BookMarked, Tags, MessageSquare } from "lucide-react";
-import { getLibraryStats } from "@/lib/api";
+import { getLibraryStats } from "@/common/api";
 
 export default async function Home() {
   let stats: { total_books: number; total_authors: number; total_series: number; total_tags: number; library_name: string } | null = null;

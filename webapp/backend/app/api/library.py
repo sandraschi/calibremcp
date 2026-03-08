@@ -48,7 +48,7 @@ async def switch_library(data: dict = Body(...)):
         if result.get("success") and result.get("library_name"):
             from ..cache import update_current_library
 
-            update_current_library(result["library_name"])
+            update_current_library(result["library_name"], result.get("library_path"))
         return result
     except Exception as e:
         raise handle_mcp_error(e)

@@ -5,7 +5,7 @@ import {
   searchAnnas,
   getAnnasMirrors,
   type AnnasSearchResult,
-} from '@/lib/api';
+} from '@/common/api';
 
 export default function ImportPage() {
   const [path, setPath] = useState('');

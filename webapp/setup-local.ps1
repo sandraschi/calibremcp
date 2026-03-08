@@ -22,4 +22,4 @@ Write-Host "Installing frontend deps..."
 Set-Location "$PSScriptRoot\frontend"
 npm install
 
-Write-Host "Done. Run start-local.bat to start the webapp."
+Write-Host "Done. Run start.ps1 or start.bat to start the webapp."

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { listPublishers } from '@/lib/api';
+import { listPublishers } from '@/common/api';
 
 export default async function PublishersPage({
   searchParams,

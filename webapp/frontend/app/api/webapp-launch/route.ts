@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { proxyPost } from '@/lib/proxy';
+import { proxyPost } from '@/common/proxy';
 
 /** Proxy POST to backend webapp-launch (may take up to ~90s while starting target app). */
 export async function POST(request: NextRequest) {

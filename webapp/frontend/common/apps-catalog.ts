@@ -19,7 +19,7 @@ export const APPS_CATALOG: AppEntry[] = [
     url: "http://127.0.0.1:10721",
     port: 10721,
     whatItIs: "This app. Manage your e-book library: search, metadata, full-text and semantic search, open books in your reader.",
-    whatYouCanDo: "Browse books, search by keyword or by meaning (e.g. “book where someone was killed with an icicle”), switch libraries, export, chat with AI about your library.",
+    whatYouCanDo: "Browse books, search by keyword or by meaning (e.g. \"book where someone was killed with an icicle\"), switch libraries, export, chat with AI about your library.",
   },
   {
     label: "Blender",
@@ -33,20 +33,20 @@ export const APPS_CATALOG: AppEntry[] = [
     url: "http://127.0.0.1:10741",
     port: 10741,
     whatItIs: "Plex is a media server for your movies, TV shows, and music. You host the files; Plex streams them to your devices.",
-    whatYouCanDo: "Browse your Plex library, search, and control playback via the webapp and MCP. Ask an AI to “play something from my sci‑fi collection” or find a film.",
+    whatYouCanDo: "Browse your Plex library, search, and control playback via the webapp and MCP. Ask an AI to \"play something from my sci-fi collection\" or find a film.",
   },
   {
     label: "Advanced Memory",
     url: "http://127.0.0.1:10704",
     port: 10704,
-    whatItIs: "A knowledge base that stores notes, research, and links in a graph. Think “second brain” for projects and learning.",
+    whatItIs: "A knowledge base that stores notes, research, and links in a graph. Think \"second brain\" for projects and learning.",
     whatYouCanDo: "Add and search notes, build context for AI conversations, export and sync. MCP tools let an assistant read and write your knowledge base.",
   },
   {
     label: "Robotics MCP",
     url: "http://127.0.0.1:10706",
     port: 10706,
-    whatItIs: "Tools for robots and automation: control, status, and scripting for supported hardware (e.g. Unitree, other MCP‑compatible bots).",
+    whatItIs: "Tools for robots and automation: control, status, and scripting for supported hardware (e.g. Unitree, other MCP-compatible bots).",
     whatYouCanDo: "Monitor and control robots from the web or via AI. The MCP server exposes commands so an assistant can help you run or debug robot workflows.",
   },
   {
@@ -61,7 +61,7 @@ export const APPS_CATALOG: AppEntry[] = [
     url: "http://127.0.0.1:10700",
     port: 10700,
     whatItIs: "Manage virtual machines (e.g. VirtualBox, Hyper-V): create, start, stop, and snapshot VMs.",
-    whatYouCanDo: "List and control VMs from the web or via AI. Useful for dev environments, testing, or “spin up a Windows VM and install this stack.”",
+    whatYouCanDo: "List and control VMs from the web or via AI. Useful for dev environments, testing, or 'spin up a Windows VM and install this stack.'",
   },
   {
     label: "Database Ops MCP",
@@ -89,7 +89,7 @@ export const APPS_CATALOG: AppEntry[] = [
     url: "http://127.0.0.1:10728",
     port: 10728,
     whatItIs: "Ring doorbells and cameras: view events, live streams, and device status.",
-    whatYouCanDo: "Check who’s at the door, review recent events, and control Ring devices from the web or via an AI assistant.",
+    whatYouCanDo: "Check who's at the door, review recent events, and control Ring devices from the web or via an AI assistant.",
   },
   {
     label: "MyAI Calibre Plus",
@@ -110,6 +110,6 @@ export const APPS_CATALOG: AppEntry[] = [
     url: "http://127.0.0.1:10726",
     port: 10726,
     whatItIs: "A hub for games: library, launches, and metadata. Manages your game collection across stores and platforms.",
-    whatYouCanDo: "Browse games, see what’s installed, and launch them. MCP can help an AI suggest or open games from your library.",
+    whatYouCanDo: "Browse games, see what's installed, and launch them. MCP can help an AI suggest or open games from your library.",
   },
 ];

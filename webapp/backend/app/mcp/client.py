@@ -266,6 +266,18 @@ class MCPClient:
                     # Export / Import
                     "export_books": "calibre_mcp.tools.import_export.export_books",
                     "manage_import": "calibre_mcp.tools.import_export.manage_import",
+                    # RAG tools (multiple tools per module case)
+                    "calibre_metadata_index_build": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_index_build",
+                    "calibre_metadata_search": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_search",
+                    "rag_index_build": "calibre_mcp.tools.rag.manage_rag:rag_index_build",
+                    "rag_retrieve": "calibre_mcp.tools.rag.manage_rag:rag_retrieve",
+                    # Portmanteau / Agentic tools
+                    "calibre_rag": "calibre_mcp.tools.portmanteau.search:calibre_rag",
+                    "media_synopsis": "calibre_mcp.tools.portmanteau.media_agentic:media_synopsis",
+                    "media_critical_reception": "calibre_mcp.tools.portmanteau.media_agentic:media_critical_reception",
+                    "media_deep_research": "calibre_mcp.tools.portmanteau.media_agentic:media_deep_research",
+                    "agentic_library_workflow": "calibre_mcp.tools.agentic_workflow:agentic_library_workflow",
+                    "search_fulltext": "calibre_mcp.tools.book_management.fulltext_search:search_fulltext",
                 }
 
                 if tool_name not in tool_map:
@@ -335,8 +347,16 @@ class MCPClient:
                 # Now import the specific tool module
                 import importlib
 
+                # Generalized mapping: check for explicit function name with separator ':'
+                # Format: "package.module:function_name" or "package.module_which_is_func"
+                if ":" in module_path:
+                    actual_module_path, func_name = module_path.split(":", 1)
+                else:
+                    actual_module_path = module_path
+                    func_name = module_path.split(".")[-1]
+
                 try:
-                    module = importlib.import_module(module_path)
+                    module = importlib.import_module(actual_module_path)
                 except ImportError as module_err:
                     # Provide detailed error information
                     import logging
@@ -371,14 +391,11 @@ class MCPClient:
                         f"sys.path: {sys.path[:5]}"
                     )
 
-                # Extract function name from module path (last component)
-                func_name = module_path.split(".")[-1]
-
                 # Get the function from the module
                 if not hasattr(module, func_name):
                     available_attrs = [attr for attr in dir(module) if not attr.startswith("_")]
                     raise MCPError(
-                        f"Tool function '{func_name}' not found in module '{module_path}'. "
+                        f"Tool function '{func_name}' not found in module '{actual_module_path}'. "
                         f"Available attributes: {available_attrs[:10]}"
                     )
 
@@ -400,13 +417,22 @@ class MCPClient:
 
             # Verify it's callable
             if not callable(tool_func):
+                if hasattr(tool_func, "fn") and callable(tool_func.fn):
+                    tool_func = tool_func.fn
+
+            if not callable(tool_func):
                 raise MCPError(
                     f"Tool function '{tool_name}' is not callable. Type: {type(tool_func)}"
                 )
 
             # Call the tool function directly
             # Note: MCP tools are async, so we await them
-            result = await tool_func(**arguments)
+            import inspect
+
+            if inspect.iscoroutinefunction(tool_func):
+                result = await tool_func(**arguments)
+            else:
+                result = tool_func(**arguments)
 
             # Parse result if it's a string (JSON)
             if isinstance(result, str):
@@ -534,6 +560,18 @@ def _preload_tools():
         # Export / Import
         "export_books": "calibre_mcp.tools.import_export.export_books",
         "manage_import": "calibre_mcp.tools.import_export.manage_import",
+        # RAG tools (multiple tools per module case)
+        "calibre_metadata_index_build": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_index_build",
+        "calibre_metadata_search": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_search",
+        "rag_index_build": "calibre_mcp.tools.rag.manage_rag:rag_index_build",
+        "rag_retrieve": "calibre_mcp.tools.rag.manage_rag:rag_retrieve",
+        # Portmanteau / Agentic tools
+        "calibre_rag": "calibre_mcp.tools.portmanteau.search:calibre_rag",
+        "media_synopsis": "calibre_mcp.tools.portmanteau.media_agentic:media_synopsis",
+        "media_critical_reception": "calibre_mcp.tools.portmanteau.media_agentic:media_critical_reception",
+        "media_deep_research": "calibre_mcp.tools.portmanteau.media_agentic:media_deep_research",
+        "agentic_library_workflow": "calibre_mcp.tools.agentic_workflow:agentic_library_workflow",
+        "search_fulltext": "calibre_mcp.tools.book_management.fulltext_search:search_fulltext",
         # OCR (if available)
         # Note: OCR tool may be a BaseTool class, handle separately if needed
     }
@@ -557,9 +595,14 @@ def _preload_tools():
 
             import importlib
 
-            module = importlib.import_module(module_path)
-            func_name = module_path.split(".")[-1]
-            tool_obj = getattr(module, func_name)
+            actual_module_path = module_path
+            target_func = module_path.split(".")[-1]
+
+            if ":" in module_path:
+                actual_module_path, target_func = module_path.split(":", 1)
+
+            module = importlib.import_module(actual_module_path)
+            tool_obj = getattr(module, target_func)
 
             # FastMCP tools are FunctionTool objects, need to access .fn attribute
             if hasattr(tool_obj, "fn"):

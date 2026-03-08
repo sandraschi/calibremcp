@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { listAuthors } from '@/lib/api';
+import { listAuthors } from '@/common/api';
 import { AuthorLinks } from '@/components/authors/author-links';
 
 export default async function AuthorsPage({

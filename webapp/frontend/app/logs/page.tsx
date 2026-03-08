@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getLogs, getSystemStatus, type LogsResponse } from '@/lib/api';
+import { getLogs, getSystemStatus, type LogsResponse } from '@/common/api';
 
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_INTERVAL_MS = 30000;

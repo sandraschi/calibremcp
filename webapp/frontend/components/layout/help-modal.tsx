@@ -3,8 +3,8 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Book, Server, Globe, ExternalLink } from 'lucide-react';
-import { HELP_SECTIONS } from '@/lib/help-content';
-import { getHelp } from '@/lib/api';
+import { HELP_SECTIONS } from '@/common/help-content';
+import { getHelp } from '@/common/api';
 
 type SectionKey = keyof typeof HELP_SECTIONS;
 

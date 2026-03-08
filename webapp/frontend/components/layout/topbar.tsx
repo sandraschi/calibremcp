@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Library, HelpCircle, FileText, ExternalLink, ChevronDown, Container } from 'lucide-react';
-import { listLibraries, switchLibrary, getHelp, getSystemStatus } from '@/lib/api';
+import { listLibraries, switchLibrary, getHelp, getSystemStatus } from '@/common/api';
 import { HelpModal } from './help-modal';
 import { LoggerModal } from './logger-modal';
-import { APPS_CATALOG } from '@/lib/apps-catalog';
+import { APPS_CATALOG } from '@/common/apps-catalog';
 
 /** Naive list of Docker (or similar) containers with a web UI port. Later: standardize frontend vs infra. */
 const CONTAINER_LINKS: { label: string; url: string; port: number }[] = [
@@ -62,7 +62,7 @@ export function Topbar() {
     listLibraries().then((data) => {
       setLibraries(data.libraries);
       setCurrentLibrary(data.current_library ?? null);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export function Topbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <Link href="/" className="font-heading text-xl font-semibold text-amber shrink-0">
             Calibre
@@ -176,15 +176,14 @@ export function Topbar() {
                 <span className="truncate">{currentLibrary || 'Select library'}</span>
               </button>
               {showLibDropdown && (
-                <div className="absolute right-0 mt-1 py-1 w-64 max-h-64 overflow-auto rounded-md bg-slate-800 border border-slate-600 shadow-lg">
+                <div className="absolute right-0 mt-1 py-1 w-64 max-h-64 overflow-auto rounded-md border border-slate-600 shadow-xl z-50 overflow-y-auto" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
                   {libraries.map((lib) => (
                     <button
                       key={lib.name}
                       type="button"
                       onClick={() => handleSwitchLibrary(lib.name)}
-                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-700 ${
-                        lib.name === currentLibrary ? 'text-amber' : 'text-slate-200'
-                      }`}
+                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-700 ${lib.name === currentLibrary ? 'text-amber' : 'text-slate-200'
+                        }`}
                     >
                       {lib.name}
                     </button>
@@ -204,7 +203,7 @@ export function Topbar() {
                 <ChevronDown className={`w-4 h-4 transition-transform ${showZoo ? "rotate-180" : ""}`} />
               </button>
               {showZoo && (
-                <div className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg bg-slate-800 border border-slate-600 shadow-xl z-50">
+                <div className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
                   {APPS_CATALOG.map((app) => (
                     <button
                       key={app.url}
@@ -238,7 +237,7 @@ export function Topbar() {
                 <ChevronDown className={`w-4 h-4 transition-transform ${showContainers ? "rotate-180" : ""}`} />
               </button>
               {showContainers && (
-                <div className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg bg-slate-800 border border-slate-600 shadow-xl z-50">
+                <div className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
                   {CONTAINER_LINKS.map((item) => (
                     <button
                       key={item.url}

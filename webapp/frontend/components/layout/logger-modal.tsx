@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSystemStatus } from '@/lib/api';
+import { getSystemStatus } from '@/common/api';
 
 interface LoggerModalProps {
   onClose: () => void;

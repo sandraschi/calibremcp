@@ -1,0 +1,95 @@
+2026-02-26 19:55:28,915 - calibre_mcp.init - INFO - DEBUG: __init__.py starting
+2026-02-26 19:55:28,915 - calibre_mcp.init - INFO - DEBUG: __init__.py complex initialization disabled
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - SERVER.PY: Module import starting...
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Setting stdio binary mode...
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Binary mode set successfully
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Stdio setup complete
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Defining DevNullStdout class...
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - DevNullStdout class defined
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Setting up warning suppression...
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Warning suppression complete
+2026-02-26 19:55:30,214 - calibre_mcp.server - INFO - Detecting stdio mode...
+2026-02-26 19:55:30,215 - calibre_mcp.server - INFO - Stdio mode detection: False
+2026-02-26 19:55:30,215 - calibre_mcp.server - INFO - Importing typing and basic modules...
+2026-02-26 19:55:30,215 - calibre_mcp.server - INFO - Basic imports complete
+2026-02-26 19:55:30,215 - calibre_mcp.server - INFO - Importing FastMCP...
+2026-02-26 19:55:31,905 - calibre_mcp.server - INFO - FastMCP imported
+2026-02-26 19:55:31,906 - calibre_mcp.server - INFO - Importing Pydantic...
+2026-02-26 19:55:31,906 - calibre_mcp.server - INFO - Pydantic imported
+2026-02-26 19:55:31,906 - calibre_mcp.server - INFO - Importing dotenv...
+2026-02-26 19:55:31,906 - calibre_mcp.server - INFO - dotenv imported
+2026-02-26 19:55:31,906 - calibre_mcp.server - INFO - Loading environment variables...
+2026-02-26 19:55:31,907 - calibre_mcp.server - INFO - Environment variables loaded
+2026-02-26 19:55:31,907 - calibre_mcp.server - INFO - Setting up proper logging system...
+2026-02-26 19:55:31,907 - calibremcp.server - INFO - Logger setup complete
+2026-02-26 19:55:31,907 - calibremcp.server - INFO - Importing CalibreAPIClient for type hints...
+2026-02-26 19:55:31,907 - calibremcp.server - INFO - SUCCESS: CalibreAPIClient imported for type hints
+2026-02-26 19:55:31,907 - calibremcp.server - INFO - Setting up global variables...
+2026-02-26 19:55:31,907 - calibremcp.server - INFO - Global variables initialized
+2026-02-26 19:55:31,907 - calibremcp.server - INFO - Creating FastMCP instance...
+2026-02-26 19:55:31,908 - mcp.server.lowlevel.server - DEBUG - Initializing server 'CalibreMCP Phase 2'
+2026-02-26 19:55:31,908 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListToolsRequest
+2026-02-26 19:55:31,908 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourcesRequest
+2026-02-26 19:55:31,908 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-02-26 19:55:31,908 - mcp.server.lowlevel.server - DEBUG - Registering handler for PromptListRequest
+2026-02-26 19:55:31,908 - mcp.server.lowlevel.server - DEBUG - Registering handler for CallToolRequest
+2026-02-26 19:55:31,916 - calibremcp.server - INFO - FastMCP instance created
+2026-02-26 19:55:31,933 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-26 19:55:31,937 - calibre_mcp.tools - INFO - TOOL REGISTRATION: Starting tool registration process...
+2026-02-26 19:55:31,937 - calibre_mcp.tools - INFO - Importing portmanteau tools (target: 15 core tools)...
+2026-02-26 19:55:31,939 - calibremcp.config_discovery - DEBUG - Operation: calibre_config_dir
+2026-02-26 19:55:31,940 - calibremcp.config_discovery - INFO - Operation: libraries_discovered
+2026-02-26 19:55:31,940 - calibremcp.config - INFO - Operation: libraries_discovered
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\db\models.py:22: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\services\book_service.py:32: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class BookSearchResult(BookResponse):
+C:\Users\sandr\miniconda3\Lib\site-packages\pydantic\_internal\_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  warnings.warn(
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+c:\users\sandr\cascadeprojects\mediadashboards\calibre\db.py:59: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+c:\users\sandr\cascadeprojects\mediadashboards\calibre\models\base.py:6: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+2026-02-26 19:55:32,871 - calibre_mcp.tools - INFO - Library tools loaded in 0.93s
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\tools\book_tools.py:268: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  @validator("fields", pre=True)
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\tools\book_tools.py:279: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  @validator("formats", pre=True)
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\tools\book_tools.py:180: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class BookSearchInput(BaseModel):
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\tools\book_tools.py:297: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class BookSearchResultOutput(BookSearchResult):
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\tools\book_tools.py:314: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class BookDetailOutput(BookSearchResult):
+2026-02-26 19:55:32,939 - calibre_mcp.tools - INFO - Book management loaded in 0.07s
+2026-02-26 19:55:33,706 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-26 19:55:35,286 - mcp.server.lowlevel.server - DEBUG - Initializing server 'Docs MCP'
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListToolsRequest
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for CallToolRequest
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourcesRequest
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for ReadResourceRequest
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for PromptListRequest
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for GetPromptRequest
+2026-02-26 19:55:35,287 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourceTemplatesRequest
+2026-02-26 19:55:35,292 - mcp.server.sse - DEBUG - SseServerTransport initialized with endpoint: /messages/
+C:\Users\sandr\miniconda3\Lib\site-packages\starlette\applications.py:233: DeprecationWarning: The `middleware` decorator is deprecated, and will be removed in version 1.0.0. Refer to https://starlette.dev/middleware/#using-middleware for recommended approach.
+  warnings.warn(
+2026-02-26 19:55:35,295 - calibre_mcp.tools - INFO - RAG tools loaded in 2.36s
+2026-02-26 19:55:35,323 - calibre_mcp.tools - INFO - Metadata/tags/authors loaded in 0.03s
+D:\Dev\repos\calibre-mcp\src\calibre_mcp\tools\library_operations\series_manager.py:344: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class SeriesMergeOptions(BaseModel):
+2026-02-26 19:55:35,529 - calibre_mcp.tools - INFO - Files/analysis/system loaded in 0.21s
+2026-02-26 19:55:35,532 - calibre_mcp.tools - INFO - Help tools loaded in 0.00s
+2026-02-26 19:55:38,213 - calibre_mcp.utils.got_ocr - WARNING - GOT-OCR2.0 dependencies not available: tokenizers>=0.21,<0.22 is required for a normal functioning of this module, but found tokenizers==0.22.2.
+Try: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main
+2026-02-26 19:55:38,214 - calibre_mcp.tools - WARNING - Failed to load OCRTool, skipping: 'NoneType' object has no attribute 'Image'
+2026-02-26 19:55:38,214 - calibre_mcp.tools - INFO - OCR loaded in 2.68s
+2026-02-26 19:55:38,214 - calibre_mcp.tools - INFO - Tool registration complete in 6.28s: 15 modules/tools processed, 0 errors, unknown total tools registered
+2026-02-26 19:55:38,214 - calibre_mcp.tools - INFO - SUCCESS: All tool modules loaded successfully
+Testing if calibre_rag is loaded in the MCP Server...
+Registered Tools:
+Failure. calibre_rag is missing.
+<sys>:0: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { proxyGet, getBackendUrl } from '@/lib/proxy';
+import { proxyGet, getBackendUrl } from '@/common/proxy';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(_request: NextRequest) {
         error: 'Backend unreachable',
         detail: msg.includes('ECONNREFUSED') ? 'Connection refused - is the backend running?' : msg,
         backend: getBackendUrl(),
-        hint: 'Run: webapp\\start-local.bat or: cd webapp/backend; python -m uvicorn app.main:app --reload --port 13000',
+        hint: 'From repo root run webapp\\start.ps1 (backend 10720, frontend 10721)',
       },
       { status: 502 }
     );

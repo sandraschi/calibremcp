@@ -20,6 +20,9 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
+  Sparkles,
+  ListChecks,
+  GitBranch,
 } from 'lucide-react';
 
 const navItems = [
@@ -28,6 +31,9 @@ const navItems = [
   { href: '/libraries', label: 'Libraries', icon: Library },
   { href: '/books', label: 'Books', icon: BookOpen },
   { href: '/search', label: 'Search', icon: Search },
+  { href: '/rag', label: 'Semantic Search', icon: Sparkles },
+  { href: '/skills', label: 'Skills', icon: ListChecks },
+  { href: '/agentic', label: 'Agentic', icon: GitBranch },
   { href: '/authors', label: 'Authors', icon: Users },
   { href: '/series', label: 'Series', icon: BookMarked },
   { href: '/tags', label: 'Tags', icon: Tags },

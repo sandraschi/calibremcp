@@ -124,7 +124,7 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
             "added_before": date string if time expression found,
         }
     """
-    if not query:
+    if not query or not isinstance(query, str):
         return {
             "text": "",
             "author": None,

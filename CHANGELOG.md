@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-26
+
+### Added
+- **Neural Media RAG Portmanteau** (`tools/portmanteau/calibre_rag.py`): New unified semantic search and Q&A tool powered by LanceDB.
+- **DeepIngestor**: Extracted full-text parsing for EPUB, PDF, and Markdown via semantic chunking to insert high-density embeddings into LanceDB.
+- **Agentic Synthesis API**: Expanded the webapp FastAPI backend with `POST /api/v1/search` and `POST /api/v1/chat` to expose backend capabilities directly to the Unified Search Hub in `mcp-central-docs` without necessitating MCP protocol bridging.
+
 ## [1.2.0] - 2026-02-04
 
 ### Added
@@ -19,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Metadata RAG build progress** - Background build with percentage gauge for large libraries (~10k books)
+  - Build runs in background thread; POST `/api/rag/metadata/build` returns immediately with `status: "started"`
+  - Progress file `lancedb_metadata/.build_progress.json` (status, current, total, percentage, message)
+  - GET `/api/rag/metadata/build/status` for polling; Semantic Search page polls every 1.5s and shows progress bar
+  - Phases: gathering metadata (every 50 books), embedding (every 500 docs batch), done/error
 - **Webapp startup SOTA** - Port reservoir 10720/10721 per mcp-central-docs; `start.ps1` uses kill-port for zombie clear; `NEXT_PUBLIC_APP_URL` for SSR (books/authors load); backend env.example PORT=10720, CORS for 10721
 - **FastMCP 2.14.4 SOTA** - Sampling (SEP-1577) via `ctx.sample()` in `agentic_library_workflow`; dialogic returns (execution_time_ms, recommendations) in portmanteau tools; `ctx: Context` in manage_libraries and agentic tools
 - **Logs API** - Backend `/api/logs` with tail, filter, level; reads calibremcp.log or webapp.log
@@ -67,8 +79,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/integrations/CALIBRE_INTEGRATION_GUIDE.md` - Updated with plugin section
 
 ### Fixed
+- **Book isbn/lccn AttributeError** - Book ORM has no isbn/lccn columns (Calibre stores them in identifiers table); derive from identifiers relationship in book_service._to_response and book_repository (src/ and mcpb/)
+- **Webapp topbar** - Dropdown backgrounds made opaque (removed bg-slate-900/95 backdrop-blur)
 - **manage_analysis **kwargs** - FastMCP incompatible; replaced with explicit optional params; removed unimplemented summarize/analyze_themes/sentiment_analysis
 - **export_books preload** - Added export_books.py re-export for MCP client module path
+- **FastMCP 3.1 Tool Preloading** - Fixed `client.py` module parsing logic on Windows (`module:function` splitting issues)
+- **Portmanteau Module Resolution** - Added missing `__init__.py` to `tools/portmanteau`
+- **Agentic Media Tools** - Removed corrupted Devanagari characters causing SyntaxErrors in `media_agentic.py`
+- **RAG Dictionary Extraction** - Fixed `TypeError` in `calibre_rag` handling `query` as dict vs string
+- **LanceDB Embedding Progress** - Split heavy embedding model download into a distinct `loading_model` progress phase and reduced embedding batch size to 100 to prevent apparent hangs in the UI
+- **Book Modal Layout** - Updated to a responsive 3-column layout (Cover | Meta | Description) for wider screens
 
 ### Changed
 - **FastMCP** - Bumped to 2.14.4+ (pyproject.toml); agentic workflow uses real ctx.sample() with tools; error_handling.py adds execution_time_ms and recommendations; manage_libraries adds _add_dialogic_fields()

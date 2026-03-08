@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAnnasMirrors, setAnnasMirrors } from '@/lib/api';
+import { getAnnasMirrors, setAnnasMirrors } from '@/common/api';
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState('ollama');

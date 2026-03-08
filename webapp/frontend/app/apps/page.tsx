@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { APPS_CATALOG, type AppEntry } from '@/lib/apps-catalog';
+import { APPS_CATALOG, type AppEntry } from '@/common/apps-catalog';
 import { ExternalLink } from 'lucide-react';
 
 async function checkUrlUp(url: string, timeoutMs = 2500): Promise<boolean> {

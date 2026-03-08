@@ -1,0 +1,2 @@
+list_tools failed: 'FastMCP' object has no attribute 'list_tools'
+mcp._toolbox.tools failed: 'FastMCP' object has no attribute '_toolbox'

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, FormEvent } from 'react';
-import { listAuthors, listTags } from '@/lib/api';
+import { listAuthors, listTags } from '@/common/api';
 
 interface SearchBarProps {
   initialQuery?: string;

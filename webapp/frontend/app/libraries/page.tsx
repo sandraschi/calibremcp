@@ -1,10 +1,10 @@
-import { listLibraries, Library } from '@/lib/api';
+import { listLibraries, Library } from '@/common/api';
 import { LibraryList } from '@/components/libraries/library-list';
 import { LibraryStatsPanel } from '@/components/libraries/library-stats-panel';
 import { LibraryOperations } from '@/components/libraries/library-operations';
 import { ErrorBanner } from '@/components/ui/error-banner';
 
-const BACKEND_HINT = 'Start backend: cd webapp/backend; python -m uvicorn app.main:app --reload --port 13000. Or run webapp\\start-local.bat from repo root.';
+const BACKEND_HINT = 'From repo root run webapp\\start.ps1 (backend 10720, frontend 10721).';
 
 export default async function LibrariesPage() {
   let librariesData: { libraries: Library[]; current_library?: string; total_libraries: number };

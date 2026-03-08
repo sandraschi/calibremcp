@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { searchBooks } from '@/lib/api';
+import { searchBooks, type Book } from '@/common/api';
 import { BookGrid } from '@/components/books/book-grid';
 import { SearchBar } from '@/components/search/search-bar';
 
@@ -39,14 +39,14 @@ export default async function SearchPage({
   const fulltextMode = params.fulltext === '1' && params.query?.trim();
   const hasSearchParams = fulltextMode || params.query || params.author || params.tag || params.min_rating;
 
-  let data: { items?: unknown[]; total?: number };
+  let data: { items?: Book[]; total?: number };
   if (hasSearchParams) {
     data = await searchBooks({
       query: params.query,
       author: fulltextMode ? undefined : params.author,
       tag: fulltextMode ? undefined : params.tag,
       min_rating: fulltextMode ? undefined : (params.min_rating ? parseInt(params.min_rating) : undefined),
-      fulltext: fulltextMode,
+      fulltext: Boolean(fulltextMode),
       limit,
       offset,
     });

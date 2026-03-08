@@ -1,4 +1,4 @@
-# Docker build context
+# Docker build context (webapp: only src + webapp needed)
 .git
 .github
 .gitignore
@@ -16,3 +16,22 @@ tests
 *.egg-info
 .vscode
 .idea
+docs
+mcpb
+assets
+scripts
+config
+calibre_plugin
+.snapshots
+content
+knowledge
+dist
+moltbot-skill
+prompts
+Cargo.lock
+Cargo.toml
+extension.toml
+extension.wasm
+manifest.json
+.pre-commit-config.yaml
+uv.lock

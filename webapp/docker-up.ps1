@@ -13,5 +13,5 @@ if (-not $env:CALIBRE_LIBRARY_PATH -and -not (Test-Path .env)) {
 }
 
 docker compose up -d --build
-Write-Host "Backend: http://localhost:13000"
-Write-Host "Frontend: http://localhost:13001"
+Write-Host "Backend: http://localhost:10720"
+Write-Host "Frontend: http://localhost:10722"

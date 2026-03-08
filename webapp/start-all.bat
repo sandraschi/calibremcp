@@ -21,8 +21,8 @@ if errorlevel 1 (
     exit /b 1
 )
 echo.
-echo Backend: http://localhost:13000
-echo Frontend: http://localhost:13001
+echo Backend: http://localhost:10720
+echo Frontend: http://localhost:10722
 echo.
 echo Press any key to close...
 pause >nul
