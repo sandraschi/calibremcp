@@ -6,9 +6,23 @@ Handles secure storage and retrieval of credentials using the system keyring.
 
 import logging
 
-import keyring
-
 logger = logging.getLogger(__name__)
+
+_keyring = None
+
+
+def _get_keyring():
+    """Lazy import keyring so server startup does not fail if keyring is missing or broken."""
+    global _keyring
+    if _keyring is None:
+        try:
+            import keyring as kr
+            _keyring = kr
+        except ImportError as e:
+            raise RuntimeError(
+                "keyring is required for credential storage. Install it with: pip install keyring"
+            ) from e
+    return _keyring
 
 
 class AuthManager:
@@ -28,12 +42,13 @@ class AuthManager:
             password: Password for authentication
         """
         try:
-            keyring.set_password(
+            kr = _get_keyring()
+            kr.set_password(
                 service_name=self.service_name,
                 username=f"{server_name}_username",
                 password=username,
             )
-            keyring.set_password(
+            kr.set_password(
                 service_name=self.service_name,
                 username=f"{server_name}_password",
                 password=password,
@@ -54,10 +69,11 @@ class AuthManager:
             Tuple of (username, password) if found, None otherwise
         """
         try:
-            username = keyring.get_password(
+            kr = _get_keyring()
+            username = kr.get_password(
                 service_name=self.service_name, username=f"{server_name}_username"
             )
-            password = keyring.get_password(
+            password = kr.get_password(
                 service_name=self.service_name, username=f"{server_name}_password"
             )
 
@@ -79,17 +95,18 @@ class AuthManager:
             True if credentials were deleted, False otherwise
         """
         try:
-            keyring.delete_password(
+            kr = _get_keyring()
+            kr.delete_password(
                 service_name=self.service_name, username=f"{server_name}_username"
             )
-            keyring.delete_password(
+            kr.delete_password(
                 service_name=self.service_name, username=f"{server_name}_password"
             )
             logger.debug(f"Deleted credentials for server: {server_name}")
             return True
-        except keyring.errors.PasswordDeleteError:
-            logger.debug(f"No credentials found for server: {server_name}")
-            return False
         except Exception as e:
+            if getattr(e.__class__, "__module__", "") == "keyring.errors" and e.__class__.__name__ == "PasswordDeleteError":
+                logger.debug(f"No credentials found for server: {server_name}")
+                return False
             logger.error(f"Failed to delete credentials for {server_name}: {e}")
             return False

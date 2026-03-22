@@ -30,15 +30,38 @@ if _is_stdio_transport:
         # If we can't redirect, at least suppress warnings
         pass
 
+    # Also suppress FastMCP internal logging that interferes with MCP protocol
+    import logging
+
+    logging.getLogger("mcp").setLevel(logging.WARNING)
+    logging.getLogger("mcp.server").setLevel(logging.WARNING)
+    logging.getLogger("mcp.server.lowlevel").setLevel(logging.WARNING)
+    logging.getLogger("mcp.server.lowlevel.server").setLevel(logging.WARNING)
+
 # Standard imports
+import asyncio
+
 from .server import main
 
 if __name__ == "__main__":
     try:
-        main()
+        asyncio.run(main())
     finally:
         # Restore stderr if we redirected it
         if "_original_stderr" in locals() and sys.stderr != _original_stderr:
+            try:
+                sys.stderr.close()
+            except Exception:
+                pass
+            sys.stderr = _original_stderr
+
+
+def run():
+    """Sync entry point for console_scripts."""
+    try:
+        asyncio.run(main())
+    finally:
+        if "_original_stderr" in dir() and sys.stderr != _original_stderr:
             try:
                 sys.stderr.close()
             except Exception:

@@ -25,7 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-03-22
+
+### Changed
+- **GitHub Actions:** `ci.yml` runs on **`main`**, **`master`**, **`develop`** (aligned with default branch); Python **3.12** / matrix **3.12–3.13** (matches `requires-python >=3.12`); Ruff/Codecov; replaced broken `run_server.py` check with **FastMCP import** test. **`ci-cd.yml`** renamed logically to **release-only** (`release: published`) — **PyPI** `uv build` + `twine`, no duplicate push/PR test runs vs `ci.yml`. **`version-bump.yml`** bumps **`pyproject.toml`** + **`__init__.py`** + **`mcpb/manifest.json`** (drops obsolete `setup.py`).
+
 ### Added
+- **MCPB — mcp-central-docs alignment:** `mcpb/manifest.json` v0.2 with `python -m calibre_mcp`, `tools` as `{name, description}` list, `user_config`, compatibility; `mcpb/.mcpbignore` excludes `pyproject.toml`/`uv.lock`/`glama.json`; `scripts/build-mcpb-package.ps1` syncs `src/calibre_mcp` → `mcpb/src/calibre_mcp`, then `mcpb validate` / `mcpb pack` from **global** `mcpb` CLI; root **`justfile`**; **`mcpb/README.md`**; **`llms-full.txt`** + **`llms.txt`** header links to central MCPB + packaging standards.
 - **docs/PROMPTS.md** — MCP `@mcp.prompt()` catalog with suggested tool pairings. **docs/COOKBOOK.md** — goal-oriented recipes (FTS vs RAG lanes, workflows). **src/calibre_mcp/skills/calibre-expert/SKILL.md** — bundled `skill://calibre-expert` expert skill (SkillsDirectoryProvider; webapp catalog already referenced it). Skill text includes **Calibre story**: “no competition” for full local library stack (esp. Windows), Kovid/timeline, short official/community pointers, CalibreMCP boundary.
 - **Self-contained LanceDB vector store** (`rag/lancedb_vector_store.py`) — RAG no longer imports `docs_mcp` / external repos; FTS chunk index and portmanteau ingest use `LanceVectorStore` only.
 - **On-disk RAG layout** (`rag/storage_paths.py`) — `{library}/lancedb` (FTS chunks, `books_rag`), `{library}/lancedb_calibre` (`calibre_media`, `calibre_fulltext`), `{library}/lancedb_metadata` (metadata RAG); documented in `docs/AGENTIC_AND_RAG.md`.

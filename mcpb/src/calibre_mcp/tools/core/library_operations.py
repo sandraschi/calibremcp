@@ -8,16 +8,12 @@ and retrieving book information from Calibre libraries.
 import asyncio
 
 from ...logging_config import get_logger, log_error
-
-# Import the MCP server instance and helper functions
-# Import response models
 from ...server import (
     BookDetailResponse,
     ConnectionTestResponse,
     LibrarySearchResponse,
     current_library,
     get_api_client,
-    mcp,
 )
 
 logger = get_logger("calibremcp.tools.core")
@@ -140,21 +136,8 @@ async def get_book_details_helper(book_id: int) -> BookDetailResponse:
         )
 
 
-@mcp.tool()
-async def test_calibre_connection() -> ConnectionTestResponse:
-    """
-    Test connection to Calibre server and get diagnostics.
-
-    Verifies server connectivity, authentication, and retrieves
-    basic server information for troubleshooting purposes.
-
-    **Note:** This tool is for testing REMOTE Calibre Content Server connections.
-    For LOCAL libraries (direct SQLite access), this tool will return connection
-    status indicating local mode is active.
-
-    Returns:
-        ConnectionTestResponse: Connection status and server diagnostics
-    """
+async def test_calibre_connection_helper() -> ConnectionTestResponse:
+    """Helper for connection test. Use manage_libraries(operation='test_connection') or test_calibre_connection."""
     try:
         start_time = asyncio.get_event_loop().time()
         client = await get_api_client()

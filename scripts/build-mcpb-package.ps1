@@ -68,78 +68,79 @@ function Write-Error {
 
 # Main build process
 try {
-    Write-ColorOutput "=== CalibreMCP MCPB Package Builder (SOTA v1.0.0) ===" $Cyan
-    Write-ColorOutput "MCP Central Docs Standards Compliant" $Cyan
-    Write-ColorOutput "Package: calibre-mcp.mcpb" $Cyan
+    $RepoRoot = Split-Path $PSScriptRoot -Parent
+    Set-Location $RepoRoot
 
-    # Step 1: Check prerequisites
+    Write-ColorOutput "=== CalibreMCP MCPB Package Builder ===" $Cyan
+    Write-ColorOutput "Standard: mcp-central-docs MCPB_PACKAGING_STANDARDS.md + PACKAGING_STANDARDS.md §5" $Cyan
+    Write-ColorOutput "Package: calibre-mcp.mcpb" $Cyan
+    Write-ColorOutput "Repo root: $RepoRoot" $White
+
+    # Step 1: MCPB CLI (global install only — trivial)
     Write-Step "Checking prerequisites..."
 
-    # Check MCPB CLI (latest version)
-    try {
-        $mcpbVersion = & mcpb --version 2>$null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "MCPB CLI: v$mcpbVersion"
-        } else {
-            throw "MCPB CLI not found"
-        }
-    } catch {
-        Write-Error "MCPB CLI not installed. Run: npm install -g @anthropic-ai/mcpb@latest"
+    if (-not (Get-Command mcpb -ErrorAction SilentlyContinue)) {
+        Write-Error "mcpb not in PATH. Install once: npm install -g @anthropic-ai/mcpb"
         exit 1
     }
+    $mcpbVersion = (& mcpb --version 2>&1 | Out-String).Trim()
+    Write-Success "mcpb $mcpbVersion"
 
-    # Check Python
-    $pythonVersion = & python --version 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Success "Python: $pythonVersion"
+    # Sync canonical server source into mcpb/ (pack root — see mcpb/README.md)
+    Write-Step "Syncing src/calibre_mcp → mcpb/src/calibre_mcp..."
+    $srcCalibre = Join-Path $RepoRoot "src\calibre_mcp"
+    $dstCalibre = Join-Path $RepoRoot "mcpb\src\calibre_mcp"
+    if (!(Test-Path $srcCalibre)) {
+        Write-Error "Source not found: $srcCalibre"
+        exit 1
+    }
+    if (Test-Path $dstCalibre) {
+        Remove-Item $dstCalibre -Recurse -Force
+    }
+    Copy-Item -Path $srcCalibre -Destination $dstCalibre -Recurse -Force
+    Get-ChildItem -Path $dstCalibre -Recurse -Directory -Filter "__pycache__" -ErrorAction SilentlyContinue |
+        ForEach-Object { Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }
+    Write-Success "Synced calibre_mcp package tree"
+
+    $mcpbManifest = Join-Path $RepoRoot "mcpb\manifest.json"
+    if (!(Test-Path $mcpbManifest)) {
+        Write-Error "mcpb\manifest.json not found"
+        exit 1
+    }
+    Write-Success "Manifest: mcpb\manifest.json"
+
+    $mcpbIgnore = Join-Path $RepoRoot "mcpb\.mcpbignore"
+    if (Test-Path $mcpbIgnore) {
+        Write-Success "Ignore file: mcpb\.mcpbignore"
     } else {
-        Write-Error "Python not found in PATH"
+        Write-Warning "mcpb\.mcpbignore missing — bundle may be oversized"
+    }
+
+    # Step 2: Validate mcpb/manifest.json (MCPB v0.2)
+    Write-Step "Validating mcpb\manifest.json..."
+
+    $validateOutput = & mcpb validate $mcpbManifest 2>&1
+    $validateOk = $?
+    if (-not $validateOk) {
+        Write-Error "Manifest validation failed:"
+        Write-ColorOutput $validateOutput $Red
         exit 1
     }
+    Write-Success "Manifest validation passed"
 
-    # Check manifest.json exists
-    if (!(Test-Path "manifest.json")) {
-        Write-Error "manifest.json not found in project root"
-        exit 1
-    }
-    Write-Success "Manifest: manifest.json found"
-
-    # Check .mcpbignore exists
-    if (!(Test-Path ".mcpbignore")) {
-        Write-Warning ".mcpbignore not found - package may include unnecessary files"
-    } else {
-        Write-Success "Ignore file: .mcpbignore found"
-    }
-
-    # Step 2: Validate manifest (MCPB v0.2 format)
-    Write-Step "Validating manifest.json (v0.2 format)..."
-
-    try {
-        $validateOutput = & mcpb validate manifest.json 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "Manifest validation passed (MCPB v0.2)!"
-        } else {
-            Write-Error "Manifest validation failed:"
-            Write-ColorOutput $validateOutput $Red
-            exit 1
-        }
-    } catch {
-        Write-Error "Failed to validate manifest: $_"
-        exit 1
-    }
-
-    # Step 3: Create output directory
+    # Step 3: Create output directory (under repo root)
     Write-Step "Preparing output directory..."
 
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-        Write-Success "Created output directory: $OutputDir"
+    $distDir = Join-Path $RepoRoot $OutputDir
+    if (!(Test-Path $distDir)) {
+        New-Item -ItemType Directory -Path $distDir -Force | Out-Null
+        Write-Success "Created output directory: $distDir"
     } else {
-        Write-Success "Output directory exists: $OutputDir"
+        Write-Success "Output directory exists: $distDir"
     }
 
     # Clean any existing package
-    $packagePath = Join-Path $OutputDir "calibre-mcp.mcpb"
+    $packagePath = Join-Path $distDir "calibre-mcp.mcpb"
     if (Test-Path $packagePath) {
         Remove-Item $packagePath -Force
         Write-Success "Cleaned existing package"
@@ -148,14 +149,16 @@ try {
     # Step 4: Build MCPB package (SOTA method)
     Write-Step "Building MCPB package (SOTA standards)..."
 
-    # Use the MCPB directory structure if it exists
-    $mcpbDir = "mcpb"
+    $mcpbDir = Join-Path $RepoRoot "mcpb"
+    $pushedPackRoot = $false
     if (Test-Path $mcpbDir) {
-        Write-ColorOutput "Using MCPB directory structure..." $Yellow
+        Write-ColorOutput "Packing from mcpb/ (manifest + assets + src)..." $Yellow
         Push-Location $mcpbDir
-        $buildArgs = @("pack", ".", "../$OutputDir/calibre-mcp.mcpb")
+        $pushedPackRoot = $true
+        $relOut = Join-Path ".." $OutputDir
+        $buildArgs = @("pack", ".", (Join-Path $relOut "calibre-mcp.mcpb"))
     } else {
-        Write-ColorOutput "Using root directory structure..." $Yellow
+        Write-ColorOutput "mcpb/ missing — packing from repo root (fallback)..." $Yellow
         $buildArgs = @("pack", ".", "$packagePath")
     }
 
@@ -166,28 +169,21 @@ try {
         # Note: Signing would require additional setup with certificates
     }
 
+    $packOk = $false
     try {
         $buildOutput = & mcpb @buildArgs 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "MCPB package built successfully!"
-            if (Test-Path $mcpbDir) {
-                Pop-Location
-            }
-        } else {
-            Write-Error "MCPB build failed:"
-            Write-ColorOutput $buildOutput $Red
-            if (Test-Path $mcpbDir) {
-                Pop-Location
-            }
-            exit 1
-        }
-    } catch {
-        Write-Error "Failed to build MCPB package: $_"
-        if (Test-Path $mcpbDir) {
+        $packOk = $?
+    } finally {
+        if ($pushedPackRoot) {
             Pop-Location
         }
+    }
+    if (-not $packOk) {
+        Write-Error "MCPB pack failed:"
+        Write-ColorOutput $buildOutput $Red
         exit 1
     }
+    Write-Success "MCPB package built successfully!"
 
     # Step 5: Verify package
     Write-Step "Verifying package..."
@@ -212,11 +208,11 @@ try {
 
     Write-ColorOutput "`n=== Package Details ===" $Green
     Write-ColorOutput "Name: calibre-mcp.mcpb" $Green
-    Write-ColorOutput "Version: 1.0.0" $Green
+    Write-ColorOutput "Version: 1.1.0 (see mcpb/manifest.json)" $Green
     Write-ColorOutput "Size: $packageSizeMB MB" $Green
     Write-ColorOutput "Location: $packagePath" $Green
     Write-ColorOutput "Signed: $(if ($NoSign) { 'No' } else { 'Yes' })" $Green
-    Write-ColorOutput "Standards: MCPB v0.2, SOTA v1.0.0" $Green
+    Write-ColorOutput "Standards: MCPB v0.2 — mcp-central-docs MCPB_PACKAGING_STANDARDS.md" $Green
 
     Write-ColorOutput "`n=== Next Steps ===" $Cyan
     Write-ColorOutput "1. Test package: Drag $packagePath to Claude Desktop" $White

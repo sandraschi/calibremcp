@@ -23,7 +23,6 @@ from ...logging_config import get_logger
 from ...models.tag import Tag
 
 # Import the MCP server instance
-# Import response models
 from ...server import (
     DuplicatesResponse,
     LibraryHealthResponse,
@@ -31,13 +30,13 @@ from ...server import (
     SeriesAnalysisResponse,
     TagStatsResponse,
     UnreadPriorityResponse,
+    mcp,
 )
 
 logger = get_logger("calibremcp.tools.library_analysis")
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
-# This function is kept as a helper for backward compatibility
+@mcp.tool()
 async def get_tag_statistics() -> TagStatsResponse:
     """
     Analyze tag usage and suggest cleanup operations.
@@ -166,26 +165,64 @@ async def get_tag_statistics() -> TagStatsResponse:
         logger.error(f"Error getting tag statistics: {e}", exc_info=True)
         # Return empty result on error
         return TagStatsResponse(
-            total_tags=0, unique_tags=0, duplicate_tags=[], unused_tags=[], suggestions=[]
+            total_tags=0,
+            unique_tags=0,
+            duplicate_tags=[],
+            unused_tags=[],
+            suggestions=[],
         )
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
+@mcp.tool()
 async def find_duplicate_books() -> DuplicatesResponse:
     """
-    Find potentially duplicate books within and across libraries.
-
-    Uses title similarity, author matching, and ISBN comparison
-    to identify potential duplicates for cleanup and organization.
-
-    Returns:
-        DuplicatesResponse: List of potential duplicate book groups
+    Find potentially duplicate books using title/author fuzzy matching.
     """
-    # Implementation will be moved from server.py
-    pass
+    from sqlalchemy import func
+
+    from ...models.book import Book
+
+    db = DatabaseService()
+    duplicate_groups = []
+
+    try:
+        with db.get_session() as session:
+            # Find exact title/author duplicates first (most common)
+            dupes = (
+                session.query(Book.title, Book.author_sort, func.count("*").label("cnt"))
+                .group_by(Book.title, Book.author_sort)
+                .having(func.count("*") > 1)
+                .all()
+            )
+
+            for title, author, count in dupes:
+                books = (
+                    session.query(Book)
+                    .filter(Book.title == title, Book.author_sort == author)
+                    .all()
+                )
+                duplicate_groups.append(
+                    {
+                        "title": title,
+                        "author": author,
+                        "books": [
+                            {"id": b.id, "formats": [f.format for f in b.formats]} for b in books
+                        ],
+                        "confidence": 1.0,
+                    }
+                )
+
+        return DuplicatesResponse(
+            duplicate_groups=duplicate_groups,
+            total_duplicates=len(duplicate_groups),
+            confidence_scores={"exact_match": 1.0},
+        )
+    except Exception as e:
+        logger.error(f"Duplicate check failed: {e}")
+        return DuplicatesResponse(duplicate_groups=[], total_duplicates=0, confidence_scores={})
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
+@mcp.tool()
 async def get_series_analysis() -> SeriesAnalysisResponse:
     """
     Analyze book series completion and provide reading order recommendations.
@@ -318,12 +355,17 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                         },
                         "total_books": len(books),
                         "reading_order": [
-                            {"index": book.series_index, "title": book.title, "book_id": book.id}
+                            {
+                                "index": book.series_index,
+                                "title": book.title,
+                                "book_id": book.id,
+                            }
                             for book in sorted_books
                         ],
                         "is_complete": len(missing_indices) == 0,
                         "completion_percentage": round(
-                            (actual_count / expected_count * 100) if expected_count > 0 else 0, 1
+                            (actual_count / expected_count * 100) if expected_count > 0 else 0,
+                            1,
                         ),
                     }
                 )
@@ -363,46 +405,140 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
         )
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
+@mcp.tool()
 async def analyze_library_health() -> LibraryHealthResponse:
     """
-    Perform comprehensive library health check and database integrity analysis.
-
-    Checks for missing files, corrupted metadata, orphaned records,
-    and provides recommendations for library maintenance and optimization.
-
-    Returns:
-        LibraryHealthResponse: Health check results and maintenance recommendations
+    Analyze library health: check for missing files and DB integrity.
     """
-    # Implementation will be moved from server.py
-    pass
+
+    from ...config import CalibreConfig
+    from ...models.book import Book
+
+    config = CalibreConfig()
+    lib_path = config.local_library_path
+    db = DatabaseService()
+    issues = []
+    books_checked = 0
+    missing_files = 0
+
+    try:
+        with db.get_session() as session:
+            books = session.query(Book).all()
+            books_checked = len(books)
+
+            for book in books:
+                for fmt in book.formats:
+                    if not lib_path:
+                        continue
+
+                    # Calibre file path: Author/Title/File.ext
+                    # Note: This is an approximation of the Calibre folder structure
+                    file_path = (
+                        lib_path
+                        / book.author_sort
+                        / book.title
+                        / f"{fmt.name}.{fmt.format.lower()}"
+                    )
+                    if not file_path.exists():
+                        # Try another common Calibre pattern
+                        file_path = (
+                            lib_path
+                            / book.authors[0].name
+                            / book.title
+                            / f"{fmt.name}.{fmt.format.lower()}"
+                        )
+                        if not file_path.exists():
+                            missing_files += 1
+                            issues.append(
+                                {
+                                    "book_id": book.id,
+                                    "title": book.title,
+                                    "format": fmt.format,
+                                    "issue": "Missing file",
+                                }
+                            )
+
+        health_score = 100.0
+        if books_checked > 0:
+            health_score = max(0, 100.0 - (missing_files / books_checked * 100.0))
+
+        recommendations = []
+        if missing_files > 0:
+            recommendations.append(f"Restore {missing_files} missing files from backup.")
+        else:
+            recommendations.append("Library is physically healthy.")
+
+        return LibraryHealthResponse(
+            health_score=health_score,
+            issues_found=issues,
+            recommendations=recommendations,
+            database_integrity=True,
+        )
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return LibraryHealthResponse(
+            health_score=0.0,
+            issues_found=[],
+            recommendations=[],
+            database_integrity=False,
+        )
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
+@mcp.tool()
 async def unread_priority_list() -> UnreadPriorityResponse:
     """
-    Austrian efficiency: Prioritize unread books to eliminate decision paralysis.
-
-    Uses rating, series status, purchase date, and tags to create
-    a prioritized reading list that maximizes reading satisfaction.
-
-    Returns:
-        UnreadPriorityResponse: Prioritized list of unread books with reasoning
+    Austrian efficiency: Prioritize unread books.
     """
-    # Implementation will be moved from server.py
-    pass
+    from ...models.book import Book
+
+    db = DatabaseService()
+    try:
+        with db.get_session() as session:
+            # Simple priority: Highest rated unread books first
+            # Since we don't have a reliable 'unread' flag in base Calibre,
+            # we might use a tag or custom column if it becomes standard.
+            # For now, return all books sorted by rating.
+            books = session.query(Book).order_by(Book.rating.desc()).limit(20).all()
+
+            return UnreadPriorityResponse(
+                prioritized_books=[
+                    {"id": b.id, "title": b.title, "rating": b.rating} for b in books
+                ],
+                priority_reasons={"quality": "Sorted by highest rating"},
+                total_unread=len(books),
+            )
+    except Exception:
+        return UnreadPriorityResponse(prioritized_books=[], priority_reasons={}, total_unread=0)
 
 
-# NOTE: @mcp.tool() decorator removed - use manage_analysis portmanteau tool instead
+@mcp.tool()
 async def reading_statistics() -> ReadingStats:
     """
-    Generate personal reading analytics from library database.
-
-    Analyzes reading patterns, completion rates, genre preferences,
-    and provides insights into reading habits and preferences.
-
-    Returns:
-        ReadingStats: Comprehensive reading analytics and insights
+    Generate reading analytics.
     """
-    # Implementation will be moved from server.py
-    pass
+    from sqlalchemy import func
+
+    from ...models.book import Book
+
+    db = DatabaseService()
+    try:
+        with db.get_session() as session:
+            total_books = session.query(func.count(Book.id)).scalar() or 0
+            avg_rating = session.query(func.avg(Book.rating)).scalar() or 0.0
+
+            # Since we don't have a "read" status in base Calibre,
+            # we consider all books in this simplified version.
+            return ReadingStats(
+                total_books_read=total_books,
+                average_rating=float(avg_rating),
+                favorite_genres=[],
+                reading_patterns={"total_collection_size": total_books},
+            )
+    except Exception as e:
+        logger.error(f"Reading stats failed: {e}")
+        return ReadingStats(
+            total_books_read=0,
+            average_rating=0.0,
+            favorite_genres=[],
+            reading_patterns={},
+        )

@@ -1,27 +1,80 @@
 {
   "manifest_version": "0.2",
   "name": "calibre-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for Calibre eBook library management",
+  "version": "1.4.0",
+  "description": "FastMCP 3.1+ Calibre library MCP: portmanteau tools, metadata/chunk RAG, FTS, viewer, skills.",
   "author": {
-    "name": "Sandra Schi",
-    "email": "sandra@example.com"
+    "name": "sandraschi"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sandraschi/calibre-mcp"
+    "url": "https://github.com/sandraschi/calibremcp.git"
   },
   "server": {
     "type": "python",
     "entry_point": "src/calibre_mcp/server.py",
     "mcp_config": {
       "command": "python",
-      "args": ["src/calibre_mcp/server.py"],
+      "args": ["-m", "calibre_mcp"],
       "env": {
         "PYTHONPATH": "${__dirname}/src",
         "PYTHONUNBUFFERED": "1"
       }
     }
-  }
+  },
+  "user_config": {
+    "calibre_library_path": {
+      "type": "directory",
+      "title": "Calibre library path",
+      "description": "Folder containing Calibre metadata.db and book files",
+      "required": true,
+      "default": ""
+    },
+    "timeout": {
+      "type": "string",
+      "title": "Operation timeout (seconds)",
+      "description": "Default timeout for long Calibre operations",
+      "default": "120"
+    }
+  },
+  "tools": [
+    {"name": "manage_libraries", "description": "List/switch libraries, connection test, multi-library stats"},
+    {"name": "query_books", "description": "Search and list books (portmanteau: title, author, tags, filters, auto_open)"},
+    {"name": "manage_books", "description": "Book CRUD and bulk operations"},
+    {"name": "search_fulltext", "description": "Calibre FTS full-text search; optional phrase locations (PDF/EPUB)"},
+    {"name": "calibre_metadata_index_build", "description": "Build LanceDB metadata semantic index"},
+    {"name": "calibre_metadata_search", "description": "Semantic search over title, authors, tags, comments"},
+    {"name": "rag_index_build", "description": "Build FTS-backed chunk RAG index (LanceDB)"},
+    {"name": "rag_retrieve", "description": "Retrieve semantically similar text chunks"},
+    {"name": "calibre_rag", "description": "Portmanteau: neural media / full-text RAG over Calibre content"},
+    {"name": "media_synopsis", "description": "LLM-oriented media synopsis (sampling when available)"},
+    {"name": "media_critical_reception", "description": "Critical reception style analysis for media items"},
+    {"name": "media_deep_research", "description": "Deep multi-step research over library media context"},
+    {"name": "manage_authors", "description": "Authors: list, merge, metadata"},
+    {"name": "manage_comments", "description": "Book comments CRUD"},
+    {"name": "manage_metadata", "description": "Book metadata show/edit and extended fields"},
+    {"name": "manage_publishers", "description": "Publisher operations"},
+    {"name": "manage_series", "description": "Series list, order, gaps"},
+    {"name": "manage_tags", "description": "Tags: list, assign, consolidate"},
+    {"name": "manage_analysis", "description": "Duplicates, health, statistics, recommendations"},
+    {"name": "manage_files", "description": "Per-book files and paths"},
+    {"name": "export_books", "description": "Export books to disk/archives"},
+    {"name": "manage_library_operations", "description": "Vacuum, maintenance, library-level tasks"},
+    {"name": "manage_system", "description": "Server/system status and configuration help"},
+    {"name": "manage_viewer", "description": "Open books in viewer, random open, format selection"},
+    {"name": "help_tool", "description": "Interactive help for tools and sampling"},
+    {"name": "calibre_ocr", "description": "OCR for scanned PDFs/images (optional backends)"}
+  ],
+  "compatibility": {
+    "platforms": ["win32", "darwin", "linux"]
+  },
+  "keywords": [
+    "calibre",
+    "ebooks",
+    "library",
+    "fastmcp",
+    "rag",
+    "mcp"
+  ]
 }

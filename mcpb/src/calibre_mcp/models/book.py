@@ -35,10 +35,8 @@ class Book(Base, BaseMixin):
     pubdate: Mapped[datetime | None] = mapped_column(DateTime)
     series_index: Mapped[float] = mapped_column(Float, default=1.0)
     author_sort: Mapped[str | None] = mapped_column(Text)
-    isbn: Mapped[str | None] = mapped_column(String(32))
-    lccn: Mapped[str | None] = mapped_column(String(32))
     path: Mapped[str] = mapped_column(Text, nullable=False)
-    flags: Mapped[int] = mapped_column(Integer, default=1)
+    # flags: present only in newer Calibre metadata.db; omitted for older DB compatibility
     uuid: Mapped[str | None] = mapped_column(String(36))
     has_cover: Mapped[bool] = mapped_column(Integer, default=0)
     last_modified: Mapped[datetime | None] = mapped_column(DateTime, onupdate=datetime.utcnow)
@@ -142,6 +140,8 @@ class BookResponse(BookBase):
     rating: int | None = Field(None, description="Book rating (1-5)")
     formats: list[dict[str, Any]] = Field(default_factory=list, description="Available formats")
     identifiers: dict[str, str] = Field(default_factory=dict, description="Book identifiers")
+    cover_url: str | None = Field(None, description="URL to the book cover image")
+    comments: str | None = Field(None, description="Book comments/description")
 
     @validator("formats", pre=True)
     def format_data_to_formats(cls, v, values):

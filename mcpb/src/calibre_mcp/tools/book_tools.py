@@ -322,6 +322,7 @@ class BookDetailOutput(BookSearchResult):
 # NOT registered as MCP tool (no @mcp.tool() decorator)
 async def search_books_helper(
     text: str | None = None,
+    title: str | None = None,  # NEW: Direct title search (bypasses FTS)
     fields: str | list[str] | None = None,
     operator: str = "OR",
     fuzziness: int | str = "AUTO",
@@ -489,6 +490,11 @@ async def search_books_helper(
               Note: Field boosting and relevance scoring parameters (fields, min_score, etc.)
               are currently not implemented. FTS uses phrase matching when available.
 
+        title: **TITLE-ONLY SEARCH** - Searches specifically in book titles only (fast and exact)
+               Bypasses FTS completely for reliable title matching.
+               Example: title="The Hollow Man" finds books with that exact title
+               Much faster and more reliable than text search for title-specific queries.
+
         query: Alias for `text` parameter (for backward compatibility)
 
         fields: Currently NOT IMPLEMENTED - Field boosting (e.g., "title^3") is not functional.
@@ -507,8 +513,10 @@ async def search_books_helper(
 
         author: **EXPLICIT AUTHOR FILTER** - Filter books by author name only
                 Use this when searching for books by a single specific author.
-                Case-insensitive partial match (e.g., "herron" matches "Mick Herron").
-                Example: search_books(author="Mick Herron")
+                Case-insensitive word-based matching with AND logic between words.
+                Example: search_books(author="Mick Herron") matches "Mick Herron" or "Mick Herron Smith"
+                Example: search_books(author="Dickson Carr") matches "John Dickson Carr" but NOT "John Smith" or "Jane Carr"
+                Note: Author search requires ALL search words to be present in the author name.
                 Note: Use `authors` parameter for multiple authors (OR logic).
 
         authors: **MULTIPLE AUTHORS (OR logic)** - Filter books by any of the specified authors
@@ -670,19 +678,30 @@ async def search_books_helper(
         9. **Title searches**: Use `text` parameter when searching for book titles.
            Example: search_books(text="The Lord of the Rings")
     """
+    import time
+
+    start_time = time.time()
+
     logger.info(
-        "Listing books",
+        "Starting book search",
         extra={
             "service": "book_tools",
-            "action": "list_books",
+            "action": "search_books",
+            "text": text,
             "query": query,
             "author": author,
+            "authors": authors,
+            "exclude_authors": exclude_authors,
             "tag": tag,
+            "tags": tags,
+            "exclude_tags": exclude_tags,
             "series": series,
+            "exclude_series": exclude_series,
             "comment": comment,
             "has_empty_comments": has_empty_comments,
             "rating": rating,
             "min_rating": min_rating,
+            "max_rating": max_rating,
             "unrated": unrated,
             "publisher": publisher,
             "publishers": publishers,
@@ -696,162 +715,136 @@ async def search_books_helper(
             "formats": formats,
             "limit": limit,
             "offset": offset,
+            "format_table": format_table,
         },
     )
 
     try:
-        # Verify database is initialized (that's all we need - it's already connected to the right library)
+        # Verify database is initialized AND connected to the correct library
         from calibre_mcp.db.database import get_database
 
+        from ..config import CalibreConfig
+        from ..config_discovery import get_active_calibre_library
+        from ..db.database import init_database
+
+        logger.debug(
+            "Checking database initialization",
+            extra={"service": "book_tools", "action": "check_db"},
+        )
+
+        config = CalibreConfig()
+        if config.auto_discover_libraries:
+            config.discover_libraries()
+
+        # Determine which library we should be using (same priority as server startup)
+        target_library_path = None
+        target_library_name = None
+
+        # 1. Try persisted library from storage
+        try:
+            from ..server import storage as server_storage
+
+            if server_storage and hasattr(server_storage, "get_current_library"):
+                try:
+                    persisted_library = await server_storage.get_current_library()
+                    if persisted_library and config.discovered_libraries:
+                        persisted_lib_info = config.discovered_libraries.get(persisted_library)
+                        if (
+                            persisted_lib_info
+                            and persisted_lib_info.path.exists()
+                            and (persisted_lib_info.path / "metadata.db").exists()
+                        ):
+                            target_library_path = persisted_lib_info.path
+                            target_library_name = persisted_library
+                except Exception:
+                    pass
+        except (ImportError, AttributeError):
+            pass
+
+        # 2. Try config.local_library_path
+        if not target_library_path and config.local_library_path:
+            lib_path = Path(config.local_library_path)
+            metadata_db = lib_path / "metadata.db"
+            if lib_path.exists() and lib_path.is_dir() and metadata_db.exists():
+                target_library_path = lib_path
+                if config.discovered_libraries:
+                    for name, lib_info in config.discovered_libraries.items():
+                        if Path(lib_info.path) == target_library_path:
+                            target_library_name = name
+                            break
+                if not target_library_name:
+                    target_library_name = target_library_path.name
+
+        # 3. Try active library from Calibre config
+        if not target_library_path:
+            active_lib = get_active_calibre_library()
+            if (
+                active_lib
+                and active_lib.path.exists()
+                and (active_lib.path / "metadata.db").exists()
+            ):
+                target_library_path = active_lib.path
+                target_library_name = active_lib.name
+
+        # 4. Fallback to first discovered library
+        if not target_library_path and config.discovered_libraries:
+            for lib_name, lib_info in config.discovered_libraries.items():
+                if lib_info.path.exists() and (lib_info.path / "metadata.db").exists():
+                    target_library_path = lib_info.path
+                    target_library_name = lib_name
+                    break
+
+        # Now check if database is initialized and using the correct library
+        db_initialized = False
+        db_correct_library = False
+
+        # Simplified database initialization - just try to ensure we have a database.
+        # Use raw SQL so we do not depend on Book ORM columns (e.g. flags) that may be
+        # missing in older Calibre metadata.db.
         try:
             db = get_database()
-            # Test database connection with a simple query to ensure it works
             with db.session_scope() as session:
-                from ..db.models import Book
+                from sqlalchemy import text
 
-                session.query(Book).limit(1).first()
-        except RuntimeError as e:
-            # Try to auto-initialize from config - use same priority as server startup
-            from ..config import CalibreConfig
-            from ..config_discovery import get_active_calibre_library
-            from ..db.database import init_database
-
-            config = CalibreConfig()
-            if config.auto_discover_libraries:
-                config.discover_libraries()
-
-            # Try to find and load a library - SAME PRIORITY AS SERVER STARTUP
-            library_to_load = None
-            library_name = None
-
-            # 1. Try persisted library from storage (if available)
-            try:
-                from ..server import storage as server_storage
-
-                if server_storage:
-                    # Check if storage has get_current_library method (it's async)
-                    if hasattr(server_storage, "get_current_library"):
-                        try:
-                            persisted_library = await server_storage.get_current_library()
-                            if persisted_library and config.discovered_libraries:
-                                persisted_lib_info = config.discovered_libraries.get(
-                                    persisted_library
-                                )
-                                if (
-                                    persisted_lib_info
-                                    and persisted_lib_info.path.exists()
-                                    and (persisted_lib_info.path / "metadata.db").exists()
-                                ):
-                                    library_to_load = persisted_lib_info.path
-                                    library_name = persisted_library
-                                    logger.info(
-                                        f"Auto-initializing with persisted library: {persisted_library}"
-                                    )
-                        except Exception as storage_e:
-                            logger.debug(
-                                f"Could not get persisted library from storage: {storage_e}"
-                            )
-            except (ImportError, AttributeError):
-                pass  # Storage might not be available, continue with other options
-
-            # 2. Try config.local_library_path
-            if not library_to_load and config.local_library_path:
-                lib_path = Path(config.local_library_path)
-                metadata_db = lib_path / "metadata.db"
-                if (
-                    lib_path.exists()
-                    and lib_path.is_dir()
-                    and metadata_db.exists()
-                    and metadata_db.is_file()
-                ):
-                    library_to_load = lib_path
-                    # Find library name from discovered libraries
-                    if config.discovered_libraries:
-                        for name, lib_info in config.discovered_libraries.items():
-                            if Path(lib_info.path) == library_to_load:
-                                library_name = name
-                                break
-                    if not library_name:
-                        library_name = library_to_load.name
-                    logger.info(f"Auto-initializing with config library: {library_to_load}")
-
-            # 3. Try active library from Calibre config
-            if not library_to_load:
-                active_lib = get_active_calibre_library()
-                if (
-                    active_lib
-                    and active_lib.path.exists()
-                    and active_lib.path.is_dir()
-                    and (active_lib.path / "metadata.db").exists()
-                ):
-                    library_to_load = active_lib.path
-                    library_name = active_lib.name
-                    logger.info(f"Auto-initializing with active Calibre library: {active_lib.name}")
-
-            # 4. Fallback to first discovered library
-            if not library_to_load and config.discovered_libraries:
-                for lib_name, lib_info in config.discovered_libraries.items():
-                    if (
-                        lib_info.path.exists()
-                        and lib_info.path.is_dir()
-                        and (lib_info.path / "metadata.db").exists()
-                    ):
-                        library_to_load = lib_info.path
-                        library_name = lib_name
-                        logger.info(f"Auto-initializing with first discovered library: {lib_name}")
-                        break
-
-            if library_to_load:
-                metadata_db = library_to_load / "metadata.db"
+                session.execute(text("SELECT id FROM books LIMIT 1"))
+        except Exception as db_error:
+            logger.warning(
+                f"Database issue: {db_error}",
+                extra={"service": "book_tools", "action": "db_check_failed"},
+            )
+            # Try to initialize if needed
+            if target_library_path and (target_library_path / "metadata.db").exists():
                 try:
-                    init_database(str(metadata_db.absolute()), echo=False)
-                    # Update config to use this library
-                    config.local_library_path = library_to_load
-                    # Persist to storage if available
-                    try:
-                        from ..server import storage as server_storage
-
-                        if (
-                            server_storage
-                            and library_name
-                            and hasattr(server_storage, "set_current_library")
-                        ):
-                            await server_storage.set_current_library(library_name)
-                    except (ImportError, AttributeError, Exception):
-                        pass  # Storage might not be available
-                    logger.info(
-                        f"Auto-initialized database with library: {library_name or library_to_load.name} at {library_to_load}"
+                    init_database(
+                        str((target_library_path / "metadata.db").absolute()),
+                        echo=False,
+                        force=True,
                     )
-                except Exception as init_e:
-                    logger.error(f"Auto-initialization failed: {init_e}", exc_info=True)
-                    raise ValueError(
-                        f"ERROR: Database not initialized and auto-initialization failed.\n\n"
-                        f"**Error:** {str(init_e)}\n\n"
-                        f"**Solution:** Use `manage_libraries(operation='list')` to see available libraries,\n"
-                        f"then use `manage_libraries(operation='switch', library_name='Library Name')` to select one.\n\n"
-                        f"**Note:** The default library should auto-load on startup. If this fails, check your Calibre library path."
-                    ) from init_e
+                    logger.info(
+                        f"Initialized database with library: {target_library_name or target_library_path.name}"
+                    )
+                except Exception as init_error:
+                    logger.error(f"Failed to initialize database: {init_error}")
+                    raise ValueError(f"Cannot initialize database: {init_error}")
             else:
-                logger.error("No libraries found for auto-initialization")
-                raise ValueError(
-                    "ERROR: Database not initialized and no libraries found.\n\n"
-                    "**Solution:** Use `manage_libraries(operation='list')` to see available libraries,\n"
-                    "then use `manage_libraries(operation='switch', library_name='Library Name')` to select one.\n\n"
-                    "**Note:** The default library should auto-load on startup. If this fails, check your Calibre library path."
-                ) from e
-        except Exception as e:
-            raise ValueError(
-                f"ERROR: Database error: {str(e)}\n\n"
-                "**Solution:** The database connection may have failed. Try:\n"
-                "1. Use `manage_libraries(operation='list')` to see available libraries\n"
-                "2. Use `manage_libraries(operation='switch', library_name='Library Name')` to re-initialize\n\n"
-                "**Note:** Search queries the database directly - the correct library should be auto-loaded on startup."
-            ) from e
+                raise ValueError("No valid database available")
 
         # Input validation
+        logger.debug(
+            "Validating input parameters",
+            extra={"service": "book_tools", "action": "validate_input"},
+        )
         if limit < 1 or limit > 1000:
+            logger.warning(
+                "Invalid limit parameter",
+                extra={"service": "book_tools", "action": "validation_error", "limit": limit},
+            )
             raise ValueError("Limit must be between 1 and 1000")
         if offset < 0:
+            logger.warning(
+                "Invalid offset parameter",
+                extra={"service": "book_tools", "action": "validation_error", "offset": offset},
+            )
             raise ValueError("Offset cannot be negative")
 
         # Convert filters to the format expected by book_service.search
@@ -881,7 +874,9 @@ async def search_books_helper(
                 processed_fields.append(field)
 
         # Intelligently parse query to extract author, tag, pubdate, etc.
-        search_text = text or query  # Support both text and query parameters
+        # Ensure string: caller may pass wrong type (e.g. function) via MCP
+        raw = text or query
+        search_text = str(raw).strip() if isinstance(raw, str) else None
         parsed = (
             parse_intelligent_query(search_text)
             if search_text
@@ -918,19 +913,19 @@ async def search_books_helper(
         ):
             search_text = parsed["text"] if parsed["text"] else None
 
-        # Handle text search across specified fields
-        search_terms = []
-        phrases = []
+            # Handle text search across specified fields
+            search_terms = []
+            phrases = []
 
-        if search_text:
-            # Extract quoted phrases first
-            import re
+            if search_text:
+                # Extract quoted phrases first
+                import re
 
-            phrases = re.findall(r'"(.*?)"', search_text)
-            remaining_text = re.sub(r'"(.*?)"', "", search_text)
+                phrases = re.findall(r'"(.*?)"', search_text)
+                remaining_text = re.sub(r'"(.*?)"', "", search_text)
 
-            # Get individual terms from remaining text
-            search_terms = [term.strip() for term in remaining_text.split() if term.strip()]
+                # Get individual terms from remaining text
+                search_terms = [term.strip() for term in remaining_text.split() if term.strip()]
 
             # If no fields specified, use all with default boosts
             if not processed_fields:
@@ -1191,22 +1186,92 @@ async def search_books_helper(
         if formats:
             get_all_filters["formats"] = formats
 
+        # Final verification: ensure database is ready before calling service
+        try:
+            db = get_database()
+            if db._engine is None:
+                raise RuntimeError("Database engine is None after initialization")
+            logger.debug(
+                "Database verified ready for search",
+                extra={
+                    "service": "book_tools",
+                    "action": "db_ready_check",
+                    "db_path": db.get_current_path(),
+                },
+            )
+        except RuntimeError as db_check_error:
+            logger.error(
+                "Database not ready for search",
+                extra={
+                    "service": "book_tools",
+                    "action": "db_not_ready",
+                    "error": str(db_check_error),
+                },
+            )
+            raise ValueError(
+                f"ERROR: Database not ready for search.\n\n"
+                f"**Error:** {str(db_check_error)}\n\n"
+                f"**Solution:** The database may not be properly initialized. Try:\n"
+                f"1. Use `manage_libraries(operation='list')` to see available libraries\n"
+                f"2. Use `manage_libraries(operation='switch', library_name='Library Name')` to re-initialize"
+            ) from db_check_error
+
         # Call get_all with proper parameters
-        result = book_service.get_all(
-            skip=offset,
-            limit=limit,
-            search=search_text,
-            author_name=author_name if not authors_list else None,
-            authors_list=authors_list,
-            exclude_authors_list=exclude_authors_list,
-            tag_name=tag_name if not tags_list else None,
-            tags_list=tags_list,
-            exclude_tags_list=exclude_tags_list,
-            series_name=series_name,
-            exclude_series_list=exclude_series_list,
-            comment=comment,
-            **get_all_filters,
+        logger.info(
+            "Calling book_service.get_all",
+            extra={
+                "service": "book_tools",
+                "action": "call_service",
+                "skip": offset,
+                "limit": limit,
+                "search": search_text,
+                "author_name": author_name if not authors_list else None,
+                "authors_list": authors_list,
+                "tag_name": tag_name if not tags_list else None,
+                "tags_list": tags_list,
+                "series_name": series_name,
+                "filters_count": len(get_all_filters),
+            },
         )
+
+        try:
+            result = book_service.get_all(
+                skip=offset,
+                limit=limit,
+                search=search_text,
+                title=title,  # NEW: Direct title search
+                author_name=author_name if not authors_list else None,
+                authors_list=authors_list,
+                exclude_authors_list=exclude_authors_list,
+                tag_name=tag_name if not tags_list else None,
+                tags_list=tags_list,
+                exclude_tags_list=exclude_tags_list,
+                series_name=series_name,
+                exclude_series_list=exclude_series_list,
+                comment=comment,
+                **get_all_filters,
+            )
+            logger.info(
+                "book_service.get_all completed",
+                extra={
+                    "service": "book_tools",
+                    "action": "service_complete",
+                    "total_results": result.get("total", 0),
+                    "items_returned": len(result.get("items", [])),
+                },
+            )
+        except Exception as service_error:
+            logger.error(
+                "book_service.get_all failed",
+                extra={
+                    "service": "book_tools",
+                    "action": "service_error",
+                    "error": str(service_error),
+                    "error_type": type(service_error).__name__,
+                },
+                exc_info=True,
+            )
+            raise
 
         # Convert to the expected output format
         items = result.get("items", [])
@@ -1226,6 +1291,10 @@ async def search_books_helper(
 
         # Format as table if requested
         if format_table:
+            logger.debug(
+                "Formatting results as table",
+                extra={"service": "book_tools", "action": "format_table"},
+            )
             # Include descriptions in table for better overview
             table_text = _format_books_table(
                 items,
@@ -1239,32 +1308,54 @@ async def search_books_helper(
             response["table"] = table_text
             response["format"] = "table"
 
+        duration = time.time() - start_time
+        logger.info(
+            "Book search completed successfully",
+            extra={
+                "service": "book_tools",
+                "action": "search_complete",
+                "total": total,
+                "items_returned": len(items),
+                "page": page,
+                "total_pages": total_pages,
+                "duration_seconds": round(duration, 3),
+            },
+        )
         return response
 
     except ValueError as ve:
+        duration = time.time() - start_time
         logger.error(
-            "Invalid input parameters",
+            "Search validation error",
             extra={
                 "service": "book_tools",
-                "action": "list_books_error",
+                "action": "validation_error",
                 "error": str(ve),
-                "error_type": "validation_error",
+                "error_type": "ValueError",
+                "duration_seconds": round(duration, 3),
             },
+            exc_info=True,
         )
         raise
-
-    except ValueError as ve:
-        # Re-raise ValueError with helpful error messages (already formatted above)
-        logger.error(f"Search validation error: {str(ve)}")
-        raise
     except Exception as e:
-        logger.error(f"Error searching books: {str(e)}", exc_info=True)
+        duration = time.time() - start_time
+        logger.error(
+            "Search operation failed",
+            extra={
+                "service": "book_tools",
+                "action": "search_error",
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "duration_seconds": round(duration, 3),
+            },
+            exc_info=True,
+        )
         # Raise with helpful error message instead of returning empty results
         raise ValueError(
             f"ERROR: Search failed: {str(e)}\n\n"
             "**Possible solutions:**\n"
-            "1. Use `list_libraries()` to see available libraries\n"
-            "2. Use `switch_library(library_name)` to select a library\n"
+            "1. Use `manage_libraries(operation='list')` to see available libraries\n"
+            "2. Use `manage_libraries(operation='switch', library_name='Library Name')` to select a library\n"
             "3. Verify the library path exists and contains metadata.db\n\n"
             "**Important:** This is a LOCAL library search - do NOT try to connect to a Calibre server.\n"
             "Do NOT try to configure or rewrite JSON config files."

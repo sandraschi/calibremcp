@@ -5,7 +5,7 @@ Efficient and secure access to Calibre libraries, supporting both local and remo
 Provides tools for browsing, searching, and managing e-books with proper authentication.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.4.0"
 __author__ = "Sandra"
 __description__ = "FastMCP 2.14.1+ server for Calibre e-book library management"
 

@@ -54,6 +54,14 @@ books_ratings_link = Table(
     Column("id", Integer, primary_key=True),
 )
 
+books_publishers_link = Table(
+    "books_publishers_link",
+    Base.metadata,
+    Column("book", Integer, ForeignKey("books.id"), primary_key=True),
+    Column("publisher", Integer, ForeignKey("publishers.id"), primary_key=True),
+    Column("id", Integer, primary_key=True),
+)
+
 
 class Book(Base):
     """Represents a book in the library."""
@@ -67,10 +75,8 @@ class Book(Base):
     pubdate = Column(DateTime, default=datetime.utcnow)
     series_index = Column(Float, default=1.0)
     author_sort = Column(Text)
-    isbn = Column(String(32))
-    lccn = Column(String(32))
     path = Column(Text, nullable=False)
-    flags = Column(Integer, default=1)
+    # flags: present only in newer Calibre metadata.db; omitted for older DB compatibility
     uuid = Column(String(36))
     has_cover = Column(Integer, default=0)
     last_modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -82,6 +88,12 @@ class Book(Base):
     ratings = relationship("Rating", secondary=books_ratings_link, back_populates="books")
     comments = relationship("Comment", back_populates="book_rel", uselist=False)
     data = relationship("Data", back_populates="book_rel")
+    publishers = relationship(
+        "Publisher",
+        secondary=books_publishers_link,
+        back_populates="books",
+        lazy="noload",
+    )
     identifiers = relationship(
         "Identifier",
         back_populates="book_rel",
@@ -140,6 +152,22 @@ class Tag(Base):
 
     def __repr__(self):
         return f"<Tag(id={self.id}, name='{self.name}')>"
+
+
+class Publisher(Base):
+    """Represents a publisher."""
+
+    __tablename__ = "publishers"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False, index=True)
+    sort = Column(Text)
+
+    # Relationships
+    books = relationship("Book", secondary=books_publishers_link, back_populates="publishers")
+
+    def __repr__(self):
+        return f"<Publisher(id={self.id}, name='{self.name}')>"
 
 
 class Rating(Base):
@@ -219,3 +247,4 @@ Index("idx_books_pubdate", Book.pubdate)
 Index("idx_authors_name", Author.name)
 Index("idx_series_name", Series.name)
 Index("idx_tags_name", Tag.name)
+Index("idx_publishers_name", Publisher.name)

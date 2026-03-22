@@ -1,15 +1,12 @@
-name: CI/CD
+name: Release PyPI
 
+# Runs only when a GitHub Release is published. Day-to-day CI: ci.yml
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   release:
-    types: [created]
+    types: [published]
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.12"
   UV_VERSION: "0.5.0"
 
 jobs:
@@ -19,100 +16,56 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: ${{ env.UV_VERSION }}
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      run: uv python install ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        uv sync --dev
-    
-    - name: Run tests
-      run: |
-        uv run pytest tests/ -v --cov=src/calibre_mcp --cov-report=xml --cov-report=term-missing
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
-        fail_ci_if_error: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run tests
+        run: uv run pytest tests/ -v --cov=src/calibre_mcp --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
 
   build:
-    name: Build and Publish
+    name: Build and publish to PyPI
     needs: test
-    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: ${{ env.UV_VERSION }}
-    
-    - name: Set up Python
-      run: uv python install ${{ env.PYTHON_VERSION }}
-    
-    - name: Install build dependencies
-      run: |
-        uv sync --dev
-    
-    - name: Build package
-      run: |
-        uv build
-    
-    - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        uv run twine upload dist/*
-
-  release:
-    name: Create GitHub Release
-    needs: [test, build]
-    if: github.event_name == 'release' && github.event.action == 'published'
-    runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    
-    - name: Get version from package
-      id: get-version
-      run: |
-        echo "VERSION=$(python setup.py --version)" >> $GITHUB_OUTPUT
-    
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.get-version.outputs.VERSION }}
-        body: ${{ github.event.release.body }}
-        draft: false
-        prerelease: false
-    
-    - name: Upload DXT Package
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/*.dxt
-        asset_name: calibre-mcp-${{ steps.get-version.outputs.VERSION }}.dxt
-        asset_content_type: application/octet-stream
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: uv run twine upload dist/*

@@ -1,23 +1,32 @@
+# Setup basic logging for diagnostics
+import logging
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("calibre_mcp.server")
+logger.info("SERVER.PY: Module import starting...")
+
 """
-CalibreMCP Phase 2 - FastMCP 2.13+ Server for Calibre E-book Library Management
+CalibreMCP server module — Calibre e-book libraries over MCP (FastMCP 3.1+).
 
-Austrian efficiency for Sandra's 1000+ book collection across multiple libraries.
-Now with 23 comprehensive tools including multi-library, Japanese weeb optimization,
-and IT book curation. All tools properly categorized and FastMCP 2.13+ compliant.
+PORTMANTEAU PATTERN RATIONALE: Exposes one coherent MCP server with prompts, bundled
+skills (``skill://`` via SkillsDirectoryProvider), and portmanteau tools so clients
+avoid tool-sprawl while retaining full Calibre coverage.
 
-FastMCP 2.13 introduces persistent storage backends for stateful applications.
+2026 surface:
+- **Prompts**: ``@mcp.prompt()`` templates (reading, library health, RAG, guides).
+- **Skills**: packaged ``skills/*/SKILL.md`` for discoverable expert workflows.
+- **Sampling / agentic**: ``agentic_library_workflow`` and media tools use ``ctx.sample`` when the host supports SEP-1577.
+- **Transport**: stdio and HTTP (see ``transport``).
 
-Phase 2 adds 19 additional tools:
-- Multi-Library Management (4 tools)
-- Advanced Organization & Analysis (5 tools)
-- Metadata & Database Operations (4 tools)
-- File Operations (3 tools)
-- Austrian Efficiency Specials (3 tools)
+Stateful features use FastMCP storage (py-key-value) where configured.
 """
 
 # CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
 # Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
 # This must happen BEFORE any imports that might write to stdout
+logger.info("Setting stdio binary mode...")
 import os
 import sys
 
@@ -28,12 +37,18 @@ if os.name == "nt":  # Windows only
 
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-    except (OSError, AttributeError):
+        logger.info("Binary mode set successfully")
+    except (OSError, AttributeError) as e:
         # Fallback: just ensure no CRLF conversion
-        pass
+        logger.warning(f"Binary mode failed: {e}")
+
+logger.info("Stdio setup complete")
 
 
 # DevNullStdout class for stdio mode suppression
+logger.info("Defining DevNullStdout class...")
+
+
 class DevNullStdout:
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
@@ -49,249 +64,168 @@ class DevNullStdout:
         sys.stdout = self.original_stdout
 
 
+logger.info("DevNullStdout class defined")
+
 # CRITICAL: Suppress all warnings before any imports
-# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
+logger.info("Setting up warning suppression...")
 import warnings
 
-# Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
-# Suppress specific warning categories
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+logger.info("Warning suppression complete")
 
-# For MCP stdio transport, we need to prevent ANY output to stderr
-# Warnings are printed to stderr, which breaks JSON-RPC protocol
-# Note: This is handled in __main__.py before imports
-
-# CRITICAL: Detect if we're running in stdio mode (MCP server)
-# MCP servers use stdio transport, so stdout must be clean for JSON-RPC
+# CRITICAL: Detect if we're running in stdio mode
+logger.info("Detecting stdio mode...")
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
+logger.info(f"Stdio mode detection: {_is_stdio_mode}")
 
+# Import typing and basic modules
+logger.info("Importing typing and basic modules...")
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncContextManager
+from typing import Any
 
-from dotenv import load_dotenv
+logger.info("Basic imports complete")
+
+# Import external dependencies
+logger.info("Importing FastMCP...")
 from fastmcp import FastMCP
+
+logger.info("FastMCP imported")
+
+logger.info("Importing Pydantic...")
 from pydantic import BaseModel
 
-# Standard imports - no fallbacks needed
-from .calibre_api import CalibreAPIClient
-from .config import CalibreConfig
+logger.info("Pydantic imported")
 
-# Import structured logging
-from .logging_config import get_logger, log_error, log_operation, setup_logging
-from .storage.persistence import CalibreMCPStorage, set_storage
+logger.info("Importing dotenv...")
+from dotenv import load_dotenv
+
+logger.info("dotenv imported")
 
 # Load environment variables
+logger.info("Loading environment variables...")
 load_dotenv()
+logger.info("Environment variables loaded")
 
-# Logger will be re-initialized in main() after logging setup
+# Setup proper logging
+logger.info("Setting up proper logging system...")
+from calibre_mcp.logging_config import get_logger
+
 logger = get_logger("calibremcp.server")
+logger.info("Logger setup complete")
+
+# Import CalibreAPIClient at module level (needed for type hints)
+logger.info("Importing CalibreAPIClient for type hints...")
+from calibre_mcp.calibre_api import CalibreAPIClient
+
+logger.info("SUCCESS: CalibreAPIClient imported for type hints")
 
 # Global API client and database connections (initialized on startup)
-api_client: CalibreAPIClient | None = None
+logger.info("Setting up global variables...")
+api_client = None  # CalibreAPIClient
 current_library: str = "main"
 available_libraries: dict[str, str] = {}
-storage: CalibreMCPStorage | None = None
+storage = None  # CalibreMCPStorage
+logger.info("Global variables initialized")
+
+
+def create_app(path: str = "/mcp"):
+    """Return the FastMCP ASGI app for mounting (e.g. FastAPI ``/mcp``).
+
+    Args:
+        path: Reserved for API compatibility; mount path is defined by the host app.
+
+    Returns:
+        ASGI application from ``mcp.http_app()`` (FastMCP 3.1+).
+    """
+    return mcp.http_app()
 
 
 @asynccontextmanager
-async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
-    """FastMCP 2.13 server lifespan for initialization and cleanup."""
-    global api_client, current_library, available_libraries, storage, logger
+async def server_lifespan(mcp_instance: FastMCP):
+    """FastMCP 3.1 lifespan hook: startup and shutdown around the server run.
 
-    # Startup
-    logger = get_logger("calibremcp.server")
-    log_operation(logger, "server_lifespan_startup", level="INFO")
+    Args:
+        mcp_instance: FastMCP instance (provided by the framework).
 
-    try:
-        # Initialize storage
-        storage_instance = CalibreMCPStorage(mcp_instance)
-        await storage_instance.initialize()
-        set_storage(storage_instance)
-        storage = storage_instance
-        logger.info("FastMCP 2.13 storage initialized")
+    Yields:
+        Control to the running server until shutdown.
+    """
+    import logging
 
-        # Initialize config and discover libraries FIRST
-        from .config import CalibreConfig
-        from .config_discovery import get_active_calibre_library
-        from .db.database import init_database
-
-        config = CalibreConfig()
-
-        # Auto-discover libraries using CalibreConfig's discovery system
-        if config.auto_discover_libraries:
-            discovered_libs = config.discover_libraries()
-            if discovered_libs:
-                logger.info(f"Auto-discovered {len(discovered_libs)} Calibre libraries")
-
-        # Restore current library from persistent storage
-        persisted_library = await storage.get_current_library()
-        if persisted_library:
-            current_library = persisted_library
-            logger.info(f"Restored current library from storage: {current_library}")
-
-        # Discover libraries (using utils for backward compatibility)
-        libraries = await discover_libraries()
-        available_libraries = libraries
-        log_operation(
-            logger,
-            "library_discovery",
-            level="INFO",
-            discovered_libraries=list(libraries.keys()),
-            current_library=current_library,
-        )
-
-        # CRITICAL: Auto-load default library - ensure database is ALWAYS initialized
-        # Priority: 1) persisted library, 2) config.local_library_path, 3) active library from Calibre config, 4) first discovered library
-
-        library_to_load = None
-        library_name_loaded = None
-
-        # Try persisted library first
-        if persisted_library and libraries.get(persisted_library):
-            library_to_load = Path(libraries[persisted_library])
-            library_name_loaded = persisted_library
-            logger.info(f"Using persisted library: {persisted_library}")
-        # Try config.local_library_path
-        elif config.local_library_path and (config.local_library_path / "metadata.db").exists():
-            library_to_load = config.local_library_path
-            # Find library name from discovered libraries
-            for name, path in libraries.items():
-                if Path(path) == library_to_load:
-                    library_name_loaded = name
-                    break
-            if not library_name_loaded:
-                library_name_loaded = library_to_load.name
-            logger.info(f"Using library from config: {library_to_load}")
-        # Try active library from Calibre's own config
-        else:
-            active_lib = get_active_calibre_library()
-            if (
-                active_lib
-                and active_lib.path.exists()
-                and (active_lib.path / "metadata.db").exists()
-            ):
-                library_to_load = active_lib.path
-                library_name_loaded = active_lib.name
-                logger.info(f"Using active Calibre library: {active_lib.name} at {active_lib.path}")
-        # Fallback to first discovered library
-        if not library_to_load and libraries:
-            first_lib_path = list(libraries.values())[0]
-            library_to_load = Path(first_lib_path)
-            library_name_loaded = list(libraries.keys())[0]
-            logger.info(
-                f"Auto-loading first discovered library: {library_name_loaded} at {library_to_load}"
-            )
-
-        # Initialize database with the selected library
-        if library_to_load:
-            metadata_db = library_to_load / "metadata.db"
-            if metadata_db.exists():
-                try:
-                    init_database(str(metadata_db.absolute()), echo=False)
-                    current_library = library_name_loaded or library_to_load.name
-                    # Update config to use this library
-                    config.local_library_path = library_to_load
-                    # Persist to storage
-                    try:
-                        await storage.set_current_library(current_library)
-                    except Exception as storage_e:
-                        logger.warning(f"Could not persist library to storage: {storage_e}")
-                    logger.info(
-                        f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to initialize database: {e}", exc_info=True)
-                    raise RuntimeError(f"Cannot initialize database at {metadata_db}: {e}") from e
-            else:
-                error_msg = f"metadata.db not found at {metadata_db.absolute()}"
-                logger.error(error_msg)
-                raise FileNotFoundError(error_msg)
-        else:
-            # Last resort: try to discover from CalibreConfig
-            if config.discovered_libraries:
-                first_discovered = list(config.discovered_libraries.values())[0]
-                library_to_load = first_discovered.path
-                metadata_db = library_to_load / "metadata.db"
-                if metadata_db.exists():
-                    try:
-                        init_database(str(metadata_db.absolute()), echo=False)
-                        current_library = first_discovered.name
-                        config.local_library_path = library_to_load
-                        await storage.set_current_library(current_library)
-                        logger.info(
-                            f"Database initialized with discovered library: {current_library} at {library_to_load}"
-                        )
-                    except Exception as e:
-                        logger.error(f"Failed to initialize database: {e}", exc_info=True)
-                        raise RuntimeError(
-                            f"Cannot initialize database at {metadata_db}: {e}"
-                        ) from e
-                else:
-                    error_msg = f"metadata.db not found at {metadata_db.absolute()}"
-                    logger.error(error_msg)
-                    raise FileNotFoundError(error_msg)
-            else:
-                error_msg = "No libraries discovered, cannot initialize database"
-                logger.error(error_msg)
-                raise RuntimeError(error_msg)
-
-        log_operation(logger, "server_lifespan_ready", level="INFO")
-
-        yield  # Server runs here
-
-    finally:
-        # Shutdown
-        log_operation(logger, "server_lifespan_shutdown", level="INFO")
-
-        # Save current library state
-        if storage:
-            try:
-                await storage.set_current_library(current_library)
-                logger.info(f"Saved current library to storage: {current_library}")
-            except Exception as e:
-                logger.warning(f"Failed to save library state: {e}")
-
-        # Cleanup database connections if needed
-        # (FastMCP will handle storage cleanup)
-
-        log_operation(logger, "server_lifespan_complete", level="INFO")
+    lifespan_log = logging.getLogger("calibremcp.lifespan")
+    lifespan_log.info("SERVER LIFESPAN: starting")
+    yield
+    lifespan_log.info("SERVER LIFESPAN: shutdown complete")
 
 
-# Initialize FastMCP server with lifespan
-# Persistent storage is configured in CalibreMCPStorage class
-# which uses DiskStore in platform-appropriate directory:
-# Windows: %APPDATA%\calibre-mcp (survives Windows restarts)
-# macOS: ~/Library/Application Support/calibre-mcp
-# Linux: ~/.local/share/calibre-mcp
-mcp = FastMCP("CalibreMCP Phase 2", lifespan=server_lifespan)
+# Create MCP instance
+logger.info("Creating FastMCP instance...")
+mcp = FastMCP(
+    "CalibreMCP",
+    instructions="""You are CalibreMCP (FastMCP 3.1): Calibre e-book libraries over MCP.
 
-# CRITICAL: After server initialization, restore stdout for stdio mode
-# This allows the server to communicate via JSON-RPC while preventing initialization logging
-if _is_stdio_mode:
-    if hasattr(sys.stdout, "restore"):
-        sys.stdout.restore()
-        # Now we can safely write to stdout for JSON-RPC communication
+PLATFORM (2026):
+- Prompts: registered templates for reading, library health, semantic search, and guides.
+- Skills: bundled expert instructions under skill:// (e.g. skill://calibre-expert/SKILL.md); read when the user needs workflow-level guidance.
+- Sampling: use agentic_library_workflow and media tools when the host supports ctx.sample() (SEP-1577); otherwise chain portmanteau tools step-by-step.
 
-    # Note: Original logging functionality is restored via setup_logging()
+CORE:
+- Libraries: manage_libraries (list/switch/stats), multi-library discovery.
+- Books: query_books, manage_books; authors, series, tags, publishers, files, viewer.
+- RAG: calibre_metadata_search, rag_retrieve when indexes exist (LanceDB).
 
-    # Set up proper logging to stderr only (not stdout)
+RETURNS:
+- Prefer structured dicts with success, message, and domain fields; errors include error and recovery hints.
+
+DESIGN:
+- Portmanteau tools: always pass operation=...; discover sub-operations from tool docstrings.
+""",
+    lifespan=server_lifespan,
+    on_duplicate="replace",
+)
+logger.info("FastMCP instance created")
+
+# Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
+_skills_root = Path(__file__).resolve().parent / "skills"
+if _skills_root.is_dir():
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider
+
+    mcp.add_provider(SkillsDirectoryProvider(roots=[_skills_root]))
+    logger.info("SkillsDirectoryProvider registered: %s", _skills_root)
+else:
+    logger.warning("Bundled skills directory missing: %s", _skills_root)
+
+# CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
+# We should not set up additional logging to stderr as it would override the redirection
+# and break the MCP JSON-RPC protocol.
+
+# For non-MCP modes (if any), we could set up logging here, but since this is MCP-only,
+# we rely on the structured logging from logging_config.py which handles MCP compatibility.
+
+if not _is_stdio_mode:
+    # Only set up logging for non-MCP modes (if any)
     import logging
 
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        stream=sys.stderr,  # Critical: log to stderr, not stdout
     )
 
 # Register prompt templates
-from .prompts import register_prompts
+from calibre_mcp.prompts import register_prompts
+from calibre_mcp.transport import run_server_async
 
 register_prompts(mcp)
+
+# ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
+app = create_app()
+
+# Tools registered in main() for stdio. For webapp HTTP mode, MCP_USE_HTTP=false uses direct import.
 
 
 # ==================== RESPONSE MODELS ====================
@@ -299,6 +233,8 @@ register_prompts(mcp)
 
 class LibrarySearchResponse(BaseModel):
     """Response model for library search operations"""
+
+    model_config = {"from_attributes": True}
 
     results: list[dict[str, Any]]
     total_found: int
@@ -309,6 +245,8 @@ class LibrarySearchResponse(BaseModel):
 
 class BookDetailResponse(BaseModel):
     """Response model for detailed book information"""
+
+    model_config = {"from_attributes": True}
 
     book_id: int
     title: str
@@ -343,6 +281,8 @@ class ConnectionTestResponse(BaseModel):
 class LibraryListResponse(BaseModel):
     """Response model for library listing"""
 
+    model_config = {"from_attributes": True}
+
     libraries: list[dict[str, Any]]
     current_library: str
     total_libraries: int
@@ -350,6 +290,8 @@ class LibraryListResponse(BaseModel):
 
 class LibraryStatsResponse(BaseModel):
     """Response model for library statistics"""
+
+    model_config = {"from_attributes": True}
 
     library_name: str
     total_books: int
@@ -365,6 +307,8 @@ class LibraryStatsResponse(BaseModel):
 class TagStatsResponse(BaseModel):
     """Response model for tag statistics"""
 
+    model_config = {"from_attributes": True}
+
     total_tags: int
     unique_tags: int
     duplicate_tags: list[dict[str, Any]]
@@ -375,6 +319,8 @@ class TagStatsResponse(BaseModel):
 class DuplicatesResponse(BaseModel):
     """Response model for duplicate detection"""
 
+    model_config = {"from_attributes": True}
+
     duplicate_groups: list[dict[str, Any]]
     total_duplicates: int
     confidence_scores: dict[str, float]
@@ -383,6 +329,8 @@ class DuplicatesResponse(BaseModel):
 class SeriesAnalysisResponse(BaseModel):
     """Response model for series analysis"""
 
+    model_config = {"from_attributes": True}
+
     incomplete_series: list[dict[str, Any]]
     reading_order_suggestions: list[dict[str, Any]]
     series_statistics: dict[str, Any]
@@ -390,6 +338,8 @@ class SeriesAnalysisResponse(BaseModel):
 
 class LibraryHealthResponse(BaseModel):
     """Response model for library health analysis"""
+
+    model_config = {"from_attributes": True}
 
     health_score: float
     issues_found: list[dict[str, Any]]
@@ -400,6 +350,8 @@ class LibraryHealthResponse(BaseModel):
 class UnreadPriorityResponse(BaseModel):
     """Response model for unread priority list"""
 
+    model_config = {"from_attributes": True}
+
     prioritized_books: list[dict[str, Any]]
     priority_reasons: dict[str, str]
     total_unread: int
@@ -407,6 +359,8 @@ class UnreadPriorityResponse(BaseModel):
 
 class MetadataUpdateRequest(BaseModel):
     """Request model for metadata updates"""
+
+    model_config = {"from_attributes": True}
 
     book_id: int
     field: str
@@ -416,6 +370,8 @@ class MetadataUpdateRequest(BaseModel):
 class MetadataUpdateResponse(BaseModel):
     """Response model for metadata updates"""
 
+    model_config = {"from_attributes": True}
+
     updated_books: list[int]
     failed_updates: list[dict[str, Any]]
     success_count: int
@@ -423,6 +379,8 @@ class MetadataUpdateResponse(BaseModel):
 
 class ReadingStats(BaseModel):
     """Response model for reading statistics"""
+
+    model_config = {"from_attributes": True}
 
     total_books_read: int
     average_rating: float
@@ -433,6 +391,8 @@ class ReadingStats(BaseModel):
 class ConversionRequest(BaseModel):
     """Request model for format conversion"""
 
+    model_config = {"from_attributes": True}
+
     book_id: int
     source_format: str
     target_format: str
@@ -441,6 +401,8 @@ class ConversionRequest(BaseModel):
 
 class ConversionResponse(BaseModel):
     """Response model for format conversion"""
+
+    model_config = {"from_attributes": True}
 
     book_id: int
     success: bool
@@ -451,6 +413,8 @@ class ConversionResponse(BaseModel):
 class JapaneseBookOrganization(BaseModel):
     """Response model for Japanese book organization"""
 
+    model_config = {"from_attributes": True}
+
     manga_series: list[dict[str, Any]]
     light_novels: list[dict[str, Any]]
     language_learning: list[dict[str, Any]]
@@ -460,6 +424,8 @@ class JapaneseBookOrganization(BaseModel):
 class ITBookCuration(BaseModel):
     """Response model for IT book curation"""
 
+    model_config = {"from_attributes": True}
+
     programming_languages: dict[str, list[dict[str, Any]]]
     outdated_books: list[dict[str, Any]]
     learning_paths: list[dict[str, Any]]
@@ -467,6 +433,8 @@ class ITBookCuration(BaseModel):
 
 class ReadingRecommendations(BaseModel):
     """Response model for reading recommendations"""
+
+    model_config = {"from_attributes": True}
 
     recommendations: list[dict[str, Any]]
     reasoning: dict[str, str]
@@ -483,6 +451,8 @@ async def get_api_client() -> CalibreAPIClient | None:
     Only creates HTTP client if use_remote=True in config.
     For local libraries, this returns None and tools should use direct SQLite access.
     """
+    from calibre_mcp.config import CalibreConfig
+
     global api_client
     config = CalibreConfig()
 
@@ -524,70 +494,234 @@ async def discover_libraries() -> dict[str, str]:
 # ==================== SERVER INITIALIZATION ====================
 
 
-def create_app() -> FastMCP:
-    """Create and configure the FastMCP application"""
+def get_mcp_instance() -> FastMCP:
+    """Return the FastMCP instance (for internal use). Use create_app() for HTTP mounting."""
     return mcp
 
 
-def main():
-    """Main server entry point"""
+async def main():
+    """Main server entry point with comprehensive error handling and logging"""
+    logger = None
+
     try:
-        # Initialize logging (file only, no console for stdio transport)
-        # CRITICAL: Console logging breaks MCP stdio protocol (JSON-RPC on stdout)
-        log_file_path = Path("logs/calibremcp.log")
-        setup_logging(
-            level="INFO",
-            log_file=log_file_path,
-            enable_console=False,  # Disable console for MCP stdio transport
-        )
+        # PHASE 1: Import heavy modules with error handling
+        logger = logging.getLogger("calibremcp.server")
+        logger.info("PHASE 1: Starting module imports...")
 
-        # Re-get logger after setup (logging config changed)
+        try:
+            logger.info("Importing logging_config...")
+            from calibre_mcp.logging_config import (
+                get_logger,
+                log_error,
+                log_operation,
+                setup_logging,
+            )
+
+            logger.info("SUCCESS: logging_config imported")
+
+            logger.info("Importing CalibreAPIClient...")
+            logger.info("SUCCESS: CalibreAPIClient imported")
+
+            logger.info("Importing CalibreConfig...")
+            logger.info("SUCCESS: CalibreConfig imported")
+
+            logger.info("Importing storage components...")
+            logger.info("SUCCESS: Storage components imported")
+
+            logger.info("Initializing user data database (SQLite for user comments, auth, etc.)...")
+            from calibre_mcp.db.user_data import init_user_data_db
+
+            init_user_data_db()
+            logger.info("SUCCESS: User data database initialized")
+
+        except Exception as import_error:
+            logger.error(f"CRITICAL: Module import failed: {import_error}", exc_info=True)
+            raise RuntimeError(
+                f"Failed to import required modules: {import_error}"
+            ) from import_error
+
+        # PHASE 2: Initialize logging with timeout protection
+        logger.info("PHASE 2: Initializing logging system...")
+        try:
+            log_file_path = Path("logs/calibremcp.log")
+            logger.info(f"Setting up logging to file: {log_file_path}")
+
+            # Add timeout for logging setup (should be fast)
+            import asyncio
+
+            setup_result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    setup_logging, level="INFO", log_file=log_file_path, enable_console=False
+                ),
+                timeout=5.0,
+            )
+            logger.info("SUCCESS: Logging setup completed")
+
+        except TimeoutError:
+            logger.warning("WARNING: Logging setup timed out, continuing with basic logging")
+        except Exception as log_error:
+            logger.error(f"ERROR: Logging setup failed: {log_error}", exc_info=True)
+            # Continue with basic logging
+
+        # Get proper logger after setup
         logger = get_logger("calibremcp.server")
+        logger.info("PHASE 2: Logger initialized successfully")
 
-        # Log server startup
-        log_operation(
-            logger,
-            "server_startup",
-            level="INFO",
-            version="1.0.0",
-            collection_size="1000+ books",
-            fastmcp_version="2.13.0+",
-        )
+        # PHASE 3: Log server startup details
+        logger.info("PHASE 3: Logging startup information...")
+        try:
+            log_operation(
+                logger,
+                "server_startup",
+                level="INFO",
+                version="1.0.0",
+                collection_size="1000+ books",
+                fastmcp_version="3.1+",
+                python_version=f"{__import__('sys').version}",
+                platform=__import__("platform").platform(),
+            )
+            logger.info("SUCCESS: Startup logging completed")
+        except Exception as log_op_error:
+            logger.error(f"Startup logging failed: {log_op_error}", exc_info=True)
 
-        # Register tools with FastMCP server
-        # Tools with @mcp.tool() auto-register when imported (FastMCP 2.12+)
-        # BaseTool classes need explicit registration
-        # NOTE: Server lifespan handles initialization (database, libraries, storage)
-        from .tools import register_tools
+        # PHASE 4: Verify MCP instance
+        logger.info("PHASE 4: Verifying MCP instance...")
+        try:
+            if mcp is None:
+                logger.error("CRITICAL: MCP instance is None - cannot register tools!")
+                raise RuntimeError("MCP instance not initialized")
 
-        register_tools(mcp)
+            logger.info(f"SUCCESS: MCP instance verified: {type(mcp).__name__} (id: {id(mcp)})")
 
-        # Run the FastMCP server (handles event loop internally)
-        # Server lifespan handles initialization/cleanup (FastMCP 2.13+)
-        # Disable banner for STDIO transport (Rich console fails on Windows STDIO)
-        mcp.run(show_banner=False)
+        except Exception as mcp_error:
+            logger.error(f"ERROR: MCP instance verification failed: {mcp_error}", exc_info=True)
+            raise
+
+        # PHASE 5: Register tools with comprehensive error handling
+        logger.info("PHASE 5: Registering tools...")
+        try:
+            # Add timeout for tool registration (may involve heavy imports)
+            import asyncio
+
+            async def register_tools_with_timeout():
+                logger.info("Starting tool registration...")
+                from calibre_mcp.tools import register_tools
+
+                logger.info("Tools module imported, calling register_tools...")
+                register_tools(mcp)
+                logger.info("register_tools() completed")
+
+            await asyncio.wait_for(register_tools_with_timeout(), timeout=30.0)
+            logger.info("SUCCESS: Tool registration completed")
+
+        except TimeoutError:
+            logger.error("CRITICAL: Tool registration timed out after 30 seconds")
+            logger.error("This usually indicates a hanging import in one of the tool modules")
+            logger.error("Check for circular imports or heavy initialization in tool modules")
+            raise RuntimeError("Tool registration timed out - check for hanging imports")
+        except Exception as tool_error:
+            logger.error(f"ERROR: Tool registration failed: {tool_error}", exc_info=True)
+            logger.error(f"Tool registration error type: {type(tool_error).__name__}")
+            raise
+
+        # Verify tools were registered
+        try:
+            # Check if FastMCP has registered tools
+            tool_count = "unknown"
+            if hasattr(mcp, "_tools"):
+                tool_count = len(mcp._tools)
+
+            logger.info(f"Tool registration verification: {tool_count} tools found")
+            if tool_count == 0:
+                logger.error("CRITICAL: No tools registered! Check tool imports.")
+        except Exception as e:
+            logger.error(f"Could not verify tool count: {e}")
+
+        # Restore stdout explicitly for JSON-RPC communication
+        import calibre_mcp
+
+        if hasattr(calibre_mcp, "_original_stdout") and calibre_mcp._original_stdout:
+            __import__("sys").stdout.flush()
+            __import__("sys").stdout = calibre_mcp._original_stdout
+
+            # Re-configure binary mode for Windows if needed
+            if os.name == "nt":
+                import msvcrt
+
+                try:
+                    msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+                except Exception:
+                    pass
+
+        # PHASE 6: Start FastMCP server
+        logger.info("PHASE 6: Starting FastMCP server...")
+        try:
+            # Log what we're about to do
+            logger.info("Calling await run_server_async(mcp, server_name='CalibreMCP Phase 2')...")
+            logger.info(f"MCP instance: {type(mcp).__name__}")
+            logger.info(
+                f"MCP lifespan configured: {hasattr(mcp, '_lifespan') and mcp._lifespan is not None}"
+            )
+
+            # Run the FastMCP server using the SOTA-recommended async stdio transport
+            await run_server_async(mcp, server_name="CalibreMCP Phase 2")
+
+        except Exception as server_error:
+            logger.error("CRITICAL: FastMCP server startup failed")
+            logger.error(f"Server error type: {type(server_error).__name__}")
+            logger.error(f"Server error message: {server_error}", exc_info=True)
+
+            # Log additional diagnostic information
+            try:
+                logger.error(f"Python version: {sys.version}")
+                logger.error(f"Platform: {__import__('platform').platform()}")
+
+                # Check if MCP has tools registered
+                if hasattr(mcp, "_tools"):
+                    tool_count = len(mcp._tools)
+                    logger.error(f"MCP tools registered: {tool_count}")
+                else:
+                    logger.error("MCP _tools attribute not found")
+
+            except Exception as diag_error:
+                logger.error(f"Diagnostic logging failed: {diag_error}")
+
+            raise
 
     except Exception as e:
-        # Log error to file only (no stdout/stderr output for MCP stdio protocol)
-        log_error(logger, "server_startup_error", e)
+        # PHASE 7: Global exception handling
+        if logger:
+            logger.error("CRITICAL: Unhandled exception in main()")
+            logger.error(f"Exception type: {type(e).__name__}")
+            logger.error(f"Exception message: {e}", exc_info=True)
+
+            # Try to log to file if logging system is available
+            try:
+                log_error(logger, "server_startup_error", e)
+            except Exception:
+                # Last resort logging
+                logger.error(f"CRITICAL ERROR: {e}")
+        else:
+            # No logger available, print to stderr
+            # Last resort logging - no logger available
+            import sys
+
+            sys.stderr.write(f"CRITICAL ERROR (no logger): {e}\n")
+
         # Re-raise to let FastMCP handle it properly
         raise
 
 
 if __name__ == "__main__":
     # Handle both direct execution and module execution
+    import asyncio
     import sys
     from pathlib import Path
 
-    # If running directly (not as module), fix imports
-    # Add src directory to path to allow absolute imports
+    # If running directly (not as module), ensure src is on path for calibre_mcp imports
     current_file = Path(__file__).resolve()
-    src_path = current_file.parent.parent  # Go from src/calibre_mcp/server.py to src/
-
+    src_path = current_file.parent.parent
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
 
-    # Now re-import using absolute imports
-    from calibre_mcp.server import main
-
-    main()
+    asyncio.run(main())

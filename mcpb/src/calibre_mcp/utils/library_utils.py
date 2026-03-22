@@ -48,13 +48,15 @@ def get_library_metadata(library_path: Path) -> dict[str, any]:
         "book_count": 0,
     }
 
-    # Calculate library size
+    # Calculate library size - avoid expensive recursive glob (**/*) which causes 502/404 on large libraries
     try:
-        metadata["size_mb"] = sum(
-            f.stat().st_size for f in library_path.glob("**/*") if f.is_file()
-        ) / (1024 * 1024)  # Convert to MB
+        metadata_db = library_path / "metadata.db"
+        if metadata_db.exists():
+            metadata["size_mb"] = metadata_db.stat().st_size / (1024 * 1024)
+        else:
+            metadata["size_mb"] = 0
     except (OSError, PermissionError):
-        pass
+        metadata["size_mb"] = 0
 
     # Count books from database (more accurate than directory counting)
     metadata_db = library_path / "metadata.db"

@@ -5,10 +5,18 @@ Configuration settings for the Calibre MCP Server.
 import os
 from pathlib import Path
 
-from pydantic import BaseSettings
+from dotenv import load_dotenv
+
+# import sys # Removed unused
+from pydantic import AliasChoices, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+
     # Server configuration
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Calibre MCP Server"
@@ -18,16 +26,15 @@ class Settings(BaseSettings):
     # CORS configuration
     CORS_ORIGINS: list[str] = ["*"]
 
-    # Database configuration
-    LIBRARY_PATH: str | None = None
+    # Database configuration (accepts CALIBRE_LIBRARY_PATH or LIBRARY_PATH)
+    LIBRARY_PATH: str | None = Field(
+        None,
+        validation_alias=AliasChoices("CALIBRE_LIBRARY_PATH", "LIBRARY_PATH"),
+    )
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
 
 
 # Initialize settings

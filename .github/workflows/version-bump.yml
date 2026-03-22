@@ -1,33 +1,38 @@
 name: Bump Version
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New version (e.g., 1.0.0)'
+        description: "New version (e.g., 1.0.0)"
         required: true
 
 jobs:
   bump-version:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Bump version
-      run: |
-        # Update setup.py
-        sed -i "s/version=\".*\"/version=\"${{ github.event.inputs.version }}\"/" setup.py
-        
-        # Update __init__.py
-        sed -i "s/__version__ = \".*\"/__version__ = \"${{ github.event.inputs.version }}\"/" src/calibre_mcp/__init__.py
-        
-        # Commit changes
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
-        git add .
-        git commit -m "chore: Bump version to ${{ github.event.inputs.version }}"
-        git push
-        
-        # Create and push tag
-        git tag -a v${{ github.event.inputs.version }} -m "Version ${{ github.event.inputs.version }}"
-        git push origin v${{ github.event.inputs.version }}
+      - uses: actions/checkout@v4
+
+      - name: Bump version in pyproject.toml and __init__.py
+        run: |
+          set -e
+          V="${{ github.event.inputs.version }}"
+          sed -i 's/^version = \".*\"/version = \"'"$V"'\"/' pyproject.toml
+          sed -i 's/__version__ = \".*\"/__version__ = \"'"$V"'\"/' src/calibre_mcp/__init__.py
+          if [ -f mcpb/manifest.json ]; then
+            sed -i 's/\"version\": \".*\"/\"version\": \"'"$V"'\"/' mcpb/manifest.json
+          fi
+
+      - name: Commit and tag
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add pyproject.toml src/calibre_mcp/__init__.py
+          git add mcpb/manifest.json 2>/dev/null || true
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+          git push
+          git tag -a "v${{ github.event.inputs.version }}" -m "Version ${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"

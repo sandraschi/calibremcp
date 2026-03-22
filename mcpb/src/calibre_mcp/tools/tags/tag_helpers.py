@@ -8,6 +8,7 @@ by the manage_tags portmanteau tool.
 from typing import Any
 
 from ...config import CalibreConfig
+from ...db.database import db as database_singleton
 from ...logging_config import get_logger
 from ...models.tag import TagCreate, TagUpdate
 from ...services.base_service import NotFoundError, ValidationError
@@ -26,13 +27,12 @@ async def list_tags_helper(
     min_book_count: int | None = None,
     max_book_count: int | None = None,
 ) -> dict[str, Any]:
-    """Helper function - NOT registered as MCP tool."""
+    """Helper function - NOT registered as MCP tool. Uses DatabaseService (same as books/authors)."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
+        if not database_singleton._engine or not database_singleton._current_db_path:
             return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
+                "error": "No library loaded",
+                "message": "Database not initialized. Use manage_libraries(operation='switch') or ensure webapp backend has loaded a library at startup.",
             }
 
         result = tag_service.get_all(

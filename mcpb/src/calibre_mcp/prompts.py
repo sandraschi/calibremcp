@@ -1,15 +1,23 @@
 """
-CalibreMCP Prompt Templates
+CalibreMCP MCP prompt templates (FastMCP 3.1 ``@mcp.prompt``).
 
-Comprehensive prompt templates for CalibreMCP use cases.
-These prompts are registered with FastMCP and appear in Claude Desktop and other MCP clients.
+PORTMANTEAU PATTERN RATIONALE: Prompts are discoverable, reusable instruction blocks
+that clients inject into the conversation; they complement portmanteau tools and the
+bundled ``skill://`` skills without duplicating tool schemas.
+
+Each function returns the user-facing prompt body (str). Clients list prompts via MCP
+and fetch by name.
 """
 
 from fastmcp import FastMCP
 
 
 def register_prompts(mcp: FastMCP) -> None:
-    """Register all prompt templates with the FastMCP server."""
+    """Register all ``@mcp.prompt`` handlers on the given FastMCP instance.
+
+    Args:
+        mcp: The server instance (typically ``calibre_mcp.server.mcp``).
+    """
 
     # Reading Recommendations
     @mcp.prompt()
@@ -130,3 +138,20 @@ def register_prompts(mcp: FastMCP) -> None:
     def smart_collections() -> str:
         """Create smart collections for your library. Set up dynamic collections based on tags, ratings, dates, or reading status that update automatically."""
         return """Create smart collections for my library. Set up dynamic collections based on criteria like tags, ratings, publication dates, or reading status. Help me organize books into logical groups that update automatically as my library changes."""
+
+    # Semantic search over metadata (LanceDB RAG)
+    @mcp.prompt()
+    def calibre_semantic_search() -> str:
+        """Search your library by meaning. Find books by topic, genre, or description using semantic (vector) search over title, authors, tags, and comments."""
+        return """Search my Calibre library by meaning. Use calibre_metadata_search with a natural-language query (e.g. "mystery novels set in Japan", "Python programming for data science"). Build the metadata index first with calibre_metadata_index_build if needed. Return matching books with titles and snippets."""
+
+    # CalibreMCP guide (skills and workflows)
+    @mcp.prompt()
+    def calibre_mcp_guide() -> str:
+        """How to use CalibreMCP: skills and recommended workflows for reading recommendations, library health, semantic search, and agentic tool chaining."""
+        return """CalibreMCP (FastMCP 3.1) supports these workflows (skills):
+- Reading recommendations: Use reading_recommendations prompt or query_books + manage_analysis to get personalized next reads.
+- Library health: Use library_health or library_organization prompt; tools manage_analysis, manage_library_operations.
+- Semantic search: Build index with calibre_metadata_index_build, then calibre_metadata_search(query="...") for search by meaning.
+- Agentic workflow: Chain manage_libraries (switch) -> query_books or calibre_metadata_search -> manage_viewer (open). Tools return success, message, and data for chaining.
+Use prompts for guided flows; use tools directly for custom chains and sampling."""

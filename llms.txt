@@ -1,7 +1,11 @@
 # calibre-mcp
-> > **Purpose**: Comprehensive GitHub configuration guide to avoid hours of trial-and-error setup. > > **Copy this to new MCP repos** to get everything right the first time! --- 1. [Quick Setup Checklis...
 
-This project includes automated llms.txt generation for AI accessibility.
+> FastMCP 3.1+ MCP server for Calibre libraries: portmanteau tools, FTS + LanceDB RAG, prompts, bundled skill, optional webapp (**10720** / **10721**).
+
+**Full detail (tools, env, run, troubleshooting):** [llms-full.txt](./llms-full.txt)  
+**MCPB / fleet packaging standard:** [mcp-central-docs — MCPB_PACKAGING_STANDARDS.md](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/MCPB_PACKAGING_STANDARDS.md)
+
+This project includes automated llms.txt generation for AI accessibility; treat **llms-full.txt** as the maintained corpus for tools and ops.
 
 ## Docs
 - [Readme](docs\github\README.md): > **Purpose**: Comprehensive GitHub configuration guide to avoid hours of trial-and-error setup.

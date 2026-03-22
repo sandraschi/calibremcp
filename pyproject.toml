@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "calibre-mcp"
-version = "1.1.0"
+version = "1.4.0"
 description = "FastMCP 3.1+ server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
 authors = [
     {name = "Sandra", email = "sandra@example.com"}

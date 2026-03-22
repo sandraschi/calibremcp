@@ -5,13 +5,13 @@ These tools handle multi-library operations, switching between libraries,
 and cross-library search functionality.
 """
 
+import os
 import time
+from pathlib import Path
 from typing import Any
 
 from ...config import CalibreConfig
 from ...logging_config import get_logger
-
-# Import response models
 from ...server import LibraryListResponse, LibrarySearchResponse, LibraryStatsResponse
 
 # Import services and utilities
@@ -19,6 +19,78 @@ from ...services.book_service import book_service
 from ...utils.library_utils import discover_calibre_libraries, get_library_metadata
 
 logger = get_logger("calibremcp.tools.library_management")
+
+
+def _metadata_db_paths_match(stored: str | None, metadata_db: Path) -> bool:
+    """Compare DB path from DatabaseService with a library metadata.db (OS-safe).
+
+    ``DatabaseService`` stores ``_current_db_path`` with normalized slashes; string
+    inequality against ``str(Path.absolute())`` on Windows skipped stats queries.
+    """
+    if not stored:
+        return False
+    try:
+        return Path(stored).resolve() == metadata_db.resolve()
+    except OSError:
+        return os.path.normcase(os.path.normpath(stored)) == os.path.normcase(
+            os.path.normpath(str(metadata_db))
+        )
+
+
+def _collect_library_stats_from_session(session: Any, total_books_fallback: int) -> dict[str, Any]:
+    """Run ORM stats queries against an open Session (global or ephemeral engine)."""
+    from sqlalchemy import func
+
+    from ...db.models import Author, Book, Data, Rating, Series, Tag
+
+    total_books = session.query(func.count(Book.id)).scalar()
+    if total_books is None:
+        total_books = total_books_fallback
+    total_authors = session.query(func.count(Author.id)).scalar() or 0
+    total_series = session.query(func.count(Series.id)).scalar() or 0
+    total_tags = session.query(func.count(Tag.id)).scalar() or 0
+    formats = session.query(Data.format, func.count(Data.id)).group_by(Data.format).all()
+    format_distribution = {fmt.lower(): count for fmt, count in formats}
+    ratings = (
+        session.query(Rating.rating, func.count(Book.id))
+        .join(Book.ratings)
+        .group_by(Rating.rating)
+        .all()
+    )
+    rating_distribution = {str(r): count for r, count in ratings if r is not None}
+    last_mod_book = session.query(func.max(Book.last_modified)).scalar()
+    last_modified = last_mod_book.isoformat() if last_mod_book else None
+    return {
+        "total_books": total_books,
+        "total_authors": total_authors,
+        "total_series": total_series,
+        "total_tags": total_tags,
+        "format_distribution": format_distribution,
+        "rating_distribution": rating_distribution,
+        "last_modified": last_modified,
+    }
+
+
+def _stats_from_ephemeral_db(metadata_db: Path, total_books_fallback: int) -> dict[str, Any]:
+    """Open metadata.db read-only for stats without mutating the global DatabaseService."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    sqlite_url = f"sqlite:///{metadata_db.resolve().as_posix()}"
+    engine = create_engine(
+        sqlite_url,
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True,
+    )
+    try:
+        Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = Session()
+        try:
+            return _collect_library_stats_from_session(session, total_books_fallback)
+        finally:
+            session.close()
+    finally:
+        engine.dispose()
 
 
 # Helper function - called by manage_libraries portmanteau tool
@@ -307,17 +379,18 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
 
     Returns:
         LibraryStatsResponse containing:
-        {
-            "library_name": str - Name of the library
-            "total_books": int - Total number of books
-            "total_authors": int - Number of unique authors
-            "total_series": int - Number of series
-            "total_tags": int - Number of tags
-            "format_distribution": Dict[str, int] - Format counts (e.g., {"epub": 100, "pdf": 50})
-            "language_distribution": Dict[str, int] - Language counts
-            "rating_distribution": Dict[str, int] - Rating counts
-            "last_modified": str - ISO timestamp of last modification
-        }
+    Helper function to get library statistics.
+
+    This function collects various statistics about a Calibre library,
+    including total books, authors, series, and tags. It attempts to use
+    direct database queries for performance when available.
+
+    Args:
+        library_name: Optional name of the library. If not provided,
+                     the current active library will be used.
+
+    Returns:
+        LibraryStatsResponse object containing the statistics.
 
     Example:
         # Get stats for current library
@@ -330,6 +403,7 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
     try:
         # Determine which library to analyze
         config = CalibreConfig()
+        library_path = None
 
         if library_name:
             # Use specified library
@@ -339,43 +413,85 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
             library_path = discovered_libs[library_name]
         else:
             # Use current library
-            if not config.local_library_path:
-                raise ValueError(
-                    "No active library set. Please specify library_name or switch to a library first."
-                )
             library_path = config.local_library_path
-            # Find library name from path
-            library_name = library_path.name
+            if not library_path:
+                # Try to discover and use the first one as fallback
+                discovered = discover_calibre_libraries()
+                if discovered:
+                    library_name = next(iter(discovered))
+                    library_path = discovered[library_name]
+                else:
+                    raise ValueError(
+                        "No active library set. Please specify library_name or switch to a library first."
+                    )
+            else:
+                # Find library name from path
+                library_name = library_path.name
 
         # Get basic metadata from file system
         metadata = get_library_metadata(library_path)
 
-        # Try to get stats from database if available
-        # Note: This requires the library to be connected to the database service
-        # For now, we'll use file system metadata and basic counts
+        # Initialize stats with metadata defaults
+        total_books = metadata.get("book_count", 0)
+        total_authors = 0
+        total_series = 0
+        total_tags = 0
+        format_distribution = {}
+        language_distribution = {}
+        rating_distribution = {}
+        last_modified = None
 
-        # Get format distribution from file system (approximate)
-        format_distribution: dict[str, int] = {}
-        try:
-            # Count format files in library
-            for ext in [".epub", ".pdf", ".mobi", ".azw3", ".txt", ".html"]:
-                count = len(list(library_path.glob(f"**/*{ext}")))
-                if count > 0:
-                    format_distribution[ext[1:].lower()] = count
-        except (OSError, PermissionError):
-            pass
+        # Detailed stats from metadata.db (authors/tags/series need SQL; book_count alone can come from filesystem)
+        metadata_db = (library_path / "metadata.db").resolve()
+        if metadata_db.is_file():
+            from ...db.database import db
 
-        # Build response with available data
+            row: dict[str, Any] | None = None
+
+            if _metadata_db_paths_match(db.get_current_path(), metadata_db):
+                try:
+                    with db.session_scope() as session:
+                        row = _collect_library_stats_from_session(session, total_books)
+                except RuntimeError as e:
+                    if "not initialized" not in str(e).lower():
+                        logger.warning("Library stats via global db failed: %s", e)
+                except Exception as e:
+                    logger.warning("Library stats via global db failed: %s", e)
+
+            if row is None:
+                try:
+                    row = _stats_from_ephemeral_db(metadata_db, total_books)
+                    logger.debug(
+                        "Library stats used ephemeral connection to %s (global=%s)",
+                        metadata_db,
+                        db.get_current_path(),
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "Database stats query failed (ephemeral): %s. Using filesystem book_count only.",
+                        e,
+                    )
+
+            if row is not None:
+                total_books = row["total_books"]
+                total_authors = row["total_authors"]
+                total_series = row["total_series"]
+                total_tags = row["total_tags"]
+                format_distribution = row["format_distribution"]
+                rating_distribution = row["rating_distribution"]
+                last_modified = row["last_modified"]
+
+        # Build response
         stats = LibraryStatsResponse(
             library_name=library_name,
-            total_books=metadata.get("book_count", 0),
-            total_authors=0,  # Would need database access for accurate count
-            total_series=0,  # Would need database access for accurate count
-            total_tags=0,  # Would need database access for accurate count
+            total_books=total_books,
+            total_authors=total_authors,
+            total_series=total_series,
+            total_tags=total_tags,
             format_distribution=format_distribution,
-            language_distribution={},  # Would need database access
-            rating_distribution={},  # Would need database access
-            last_modified=None,  # Would need database access
+            language_distribution=language_distribution,
+            rating_distribution=rating_distribution,
+            last_modified=last_modified,
         )
 
         return stats
@@ -385,9 +501,9 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
         raise
     except Exception as e:
         logger.error(f"Error getting library stats: {e}", exc_info=True)
-        # Return minimal stats on error
+        # Return an empty/default response on error
         return LibraryStatsResponse(
-            library_name=library_name or "unknown",
+            library_name=library_name or "Unknown",
             total_books=0,
             total_authors=0,
             total_series=0,
@@ -446,38 +562,74 @@ async def cross_library_search_helper(
         parsed = parse_intelligent_query(query)
 
         # Determine which libraries to search
+        # DEFAULT: Search only active library (faster, more predictable)
+        # To search all libraries, explicitly pass libraries=["ALL"]
+        config = CalibreConfig()
+
         if libraries is None:
-            # If content_type hint is present (manga, comic, paper), filter libraries intelligently
-            if parsed.get("content_type"):
-                content_type = parsed["content_type"].lower()
-                # Match libraries by name containing the content type
-                # e.g., "manga" -> match libraries with "manga" in name
-                matching_libs = [
-                    lib_name
-                    for lib_name in discovered_libs.keys()
-                    if content_type in lib_name.lower()
-                ]
-                if matching_libs:
-                    libraries_to_search = matching_libs
+            # No libraries specified - search active library only
+            if config.local_library_path:
+                # Find the active library name
+                active_lib_name = None
+                for name, path in discovered_libs.items():
+                    if path == config.local_library_path:
+                        active_lib_name = name
+                        break
+                if active_lib_name:
+                    libraries_to_search = [active_lib_name]
                     logger.info(
-                        f"Content type '{content_type}' detected, filtering to matching libraries",
-                        extra={"content_type": content_type, "libraries": matching_libs},
+                        f"Searching active library only: {active_lib_name}",
+                        extra={"library": active_lib_name, "query": query},
                     )
                 else:
-                    # No matching libraries found, search all
+                    # Active library path doesn't match discovered - search all as fallback
                     libraries_to_search = list(discovered_libs.keys())
                     logger.warning(
-                        f"Content type '{content_type}' detected but no matching libraries found, searching all",
-                        extra={"content_type": content_type},
+                        "Active library path not found in discovered libraries, searching all",
+                        extra={"active_path": str(config.local_library_path)},
                     )
             else:
+                # No active library - search all as fallback
                 libraries_to_search = list(discovered_libs.keys())
+                logger.info("No active library set, searching all libraries")
+        elif isinstance(libraries, list):
+            if len(libraries) == 1 and libraries[0].upper() == "ALL":
+                # Explicit request to search all libraries
+                libraries_to_search = list(discovered_libs.keys())
+                logger.info(
+                    f"Explicit 'ALL' libraries requested, searching {len(libraries_to_search)} libraries"
+                )
+            else:
+                # Use provided library list (with content_type filtering if applicable)
+                if parsed.get("content_type"):
+                    content_type = parsed["content_type"].lower()
+                    # Match libraries by name containing the content type
+                    matching_libs = [
+                        lib_name
+                        for lib_name in discovered_libs.keys()
+                        if content_type in lib_name.lower()
+                    ]
+                    if matching_libs:
+                        libraries_to_search = matching_libs
+                        logger.info(
+                            f"Content type '{content_type}' detected, filtering to matching libraries",
+                            extra={"content_type": content_type, "libraries": matching_libs},
+                        )
+                    else:
+                        # No matching libraries found, use provided list
+                        libraries_to_search = libraries
+                else:
+                    # Use provided library list
+                    libraries_to_search = libraries
+
+                # Validate library names
+                invalid = [lib for lib in libraries_to_search if lib not in discovered_libs]
+                if invalid:
+                    raise ValueError(f"Libraries not found: {', '.join(invalid)}")
         else:
-            # Validate library names
-            invalid = [lib for lib in libraries if lib not in discovered_libs]
-            if invalid:
-                raise ValueError(f"Libraries not found: {', '.join(invalid)}")
-            libraries_to_search = libraries
+            raise ValueError(
+                f"Invalid libraries parameter: {libraries}. Must be None or a list of library names."
+            )
 
         if not libraries_to_search:
             return LibrarySearchResponse(
@@ -486,28 +638,81 @@ async def cross_library_search_helper(
 
         # Search each library and combine results
         all_results: list[dict[str, Any]] = []
-        config = CalibreConfig()
         start_time = time.time()
+
+        # Store original library path to restore at the end
+        original_path = config.local_library_path
+        original_lib_name = None
+
+        # Find original library name
+        for name, path in discovered_libs.items():
+            if path == original_path:
+                original_lib_name = name
+                break
 
         for lib_name in libraries_to_search:
             try:
                 # Temporarily switch to this library
-                original_path = config.local_library_path
+                library_path = discovered_libs[lib_name]
+
+                from pathlib import Path
+
+                from ...db.database import db, init_database
+
+                metadata_db = Path(library_path) / "metadata.db"
+                if not metadata_db.exists():
+                    logger.warning(
+                        f"metadata.db not found for library '{lib_name}' at {metadata_db}"
+                    )
+                    continue
+
+                # Check if we're already connected to this library
+                current_path = db.get_current_path()
+                target_path = str(metadata_db.absolute())
+
+                # Only switch if we're not already connected to this library
+                if current_path != target_path:
+                    # Force re-initialization with this library
+                    init_database(target_path, echo=False, force=True)
+                    logger.debug(
+                        f"Database switched to library: {lib_name}",
+                        extra={"library": lib_name, "path": target_path},
+                    )
+                else:
+                    logger.debug(f"Already connected to library: {lib_name}, skipping re-init")
+
                 config.set_active_library(lib_name)
 
                 # Perform search using book service with parsed parameters
-                search_results = book_service.list(
+                # Use get_all() method (not list()) - get_all supports all search parameters
+                logger.debug(
+                    f"Searching library '{lib_name}'",
+                    extra={
+                        "library": lib_name,
+                        "search": parsed["text"],
+                        "author": parsed["author"],
+                        "tag": parsed["tag"],
+                        "series": parsed["series"],
+                    },
+                )
+
+                search_results = book_service.get_all(
                     skip=0,
                     limit=1000,  # Get all results for cross-library search
                     search=parsed["text"] if parsed["text"] else None,
                     author_name=parsed["author"],
                     tag_name=parsed["tag"],
                     series_name=parsed["series"],
-                    pubdate_start=f"{parsed['pubdate']}-01-01" if parsed["pubdate"] else None,
-                    pubdate_end=f"{parsed['pubdate']}-12-31" if parsed["pubdate"] else None,
                     rating=parsed["rating"],
-                    added_after=parsed.get("added_after"),
-                    added_before=parsed.get("added_before"),
+                )
+
+                logger.debug(
+                    f"Search results for '{lib_name}': {search_results.get('total', 0)} books found",
+                    extra={
+                        "library": lib_name,
+                        "total": search_results.get("total", 0),
+                        "items_count": len(search_results.get("items", [])),
+                    },
                 )
 
                 # Add library name to each result
@@ -515,17 +720,34 @@ async def cross_library_search_helper(
                     item["library_name"] = lib_name
                     all_results.append(item)
 
-                # Restore original library
-                if original_path:
-                    # Find library name for original path
-                    for name, path in discovered_libs.items():
-                        if path == original_path:
-                            config.set_active_library(name)
-                            break
+                # Note: Sessions are managed by scoped_session and will be cleaned up
+                # when init_database(force=True) is called for the next library
+                logger.debug(
+                    f"Search completed for library: {lib_name}",
+                    extra={
+                        "library": lib_name,
+                        "results_count": len(search_results.get("items", [])),
+                    },
+                )
 
             except Exception as e:
-                logger.warning(f"Error searching library '{lib_name}': {e}")
+                logger.error(
+                    f"Error searching library '{lib_name}': {e}",
+                    exc_info=True,
+                    extra={"library": lib_name, "error": str(e), "error_type": type(e).__name__},
+                )
                 continue
+
+        # Restore original library
+        if original_path and original_lib_name:
+            try:
+                original_metadata_db = Path(original_path) / "metadata.db"
+                if original_metadata_db.exists():
+                    init_database(str(original_metadata_db.absolute()), echo=False, force=True)
+                    config.set_active_library(original_lib_name)
+                    logger.debug(f"Restored original library: {original_lib_name}")
+            except Exception as e:
+                logger.warning(f"Failed to restore original library: {e}")
 
         # Return combined results
         search_time_ms = int((time.time() - start_time) * 1000)

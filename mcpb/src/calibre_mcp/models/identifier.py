@@ -20,14 +20,19 @@ class Identifier(Base, BaseMixin):
     __tablename__ = "identifiers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # Calibre schema uses column name "book", not "book_id"
     book_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("books.id", ondelete="CASCADE"), nullable=False, index=True
+        "book",
+        Integer,
+        ForeignKey("books.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     type: Mapped[str] = mapped_column(String(32), nullable=False)  # isbn, amazon, google, etc.
     val: Mapped[str] = mapped_column(Text, nullable=False)  # The actual identifier value
 
-    # Ensure unique constraint on (book_id, type)
-    __table_args__ = (UniqueConstraint("book_id", "type", name="ix_identifiers_book_id_type"),)
+    # Calibre unique constraint on (book, type)
+    __table_args__ = (UniqueConstraint("book", "type", name="identifiers_book_type_uc"),)
 
     # Relationships
     book: Mapped["Book"] = relationship("Book", back_populates="identifiers")

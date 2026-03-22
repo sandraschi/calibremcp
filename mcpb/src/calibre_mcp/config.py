@@ -13,7 +13,11 @@ from typing import Any
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
-from .config_discovery import CalibreLibrary, discover_calibre_libraries, get_active_calibre_library
+from .config_discovery import (
+    CalibreLibrary,
+    discover_calibre_libraries,
+    get_active_calibre_library,
+)
 from .logging_config import get_logger, log_error, log_operation
 
 logger = get_logger("calibremcp.config")
@@ -26,13 +30,18 @@ class RemoteServerConfig(BaseModel):
     display_name: str = ""
     username: str | None = None  # Not stored here, only in keyring
 
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
 
 class CalibreConfig(BaseModel):
     """Root configuration for Calibre MCP with automatic library discovery"""
 
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
     # Library configuration - now auto-discovered
     local_library_path: Path | None = Field(
-        default=None, description="Path to local Calibre library (auto-discovered if not specified)"
+        default=None,
+        description="Path to local Calibre library (auto-discovered if not specified)",
     )
 
     # Discovered libraries
@@ -46,7 +55,8 @@ class CalibreConfig(BaseModel):
     )
 
     library_discovery_paths: list[Path] = Field(
-        default_factory=list, description="Additional paths to scan for Calibre libraries"
+        default_factory=list,
+        description="Additional paths to scan for Calibre libraries",
     )
 
     # Disable remote access by default
@@ -73,6 +83,13 @@ class CalibreConfig(BaseModel):
 
     # Library settings
     library_name: str = Field(default="main", description="Primary library name")
+
+    # Tool loading: when True, load experimental/beta tools (content_sync, ai_operations,
+    # bulk_operations, organization, users, specialized, agentic)
+    load_beta_tools: bool = Field(
+        default=False,
+        description="Load experimental tools; set CALIBRE_BETA_TOOLS=true to enable",
+    )
 
     @field_validator("server_url")
     @classmethod
@@ -145,6 +162,7 @@ class CalibreConfig(BaseModel):
             "CALIBRE_LIBRARY_NAME": "library_name",
             "CALIBRE_BASE_PATH": "base_library_path",
             "CALIBRE_LIBRARY_PATHS": "library_paths",  # JSON-encoded dict of library paths
+            "CALIBRE_BETA_TOOLS": "load_beta_tools",
             "user_config.calibre_library_path": "local_library_path",  # MCP user config from Claude Desktop
         }
 
@@ -156,7 +174,10 @@ class CalibreConfig(BaseModel):
                     config_data["library_paths"] = lib_paths
             except json.JSONDecodeError:
                 log_operation(
-                    logger, "invalid_json_warning", level="WARNING", env_var="CALIBRE_LIBRARY_PATHS"
+                    logger,
+                    "invalid_json_warning",
+                    level="WARNING",
+                    env_var="CALIBRE_LIBRARY_PATHS",
                 )
 
         # Handle base library path
@@ -174,7 +195,14 @@ class CalibreConfig(BaseModel):
             env_value = os.getenv(env_var)
             if env_value is not None:
                 # Convert to appropriate type
-                if config_key in ["timeout", "max_retries", "default_limit", "max_limit"]:
+                if config_key == "load_beta_tools":
+                    config_data[config_key] = env_value.lower() in ("true", "1", "yes")
+                elif config_key in [
+                    "timeout",
+                    "max_retries",
+                    "default_limit",
+                    "max_limit",
+                ]:
                     try:
                         config_data[config_key] = int(env_value)
                     except ValueError:
@@ -202,7 +230,7 @@ class CalibreConfig(BaseModel):
 
     def to_dict(self) -> dict[str, Any]:
         """Convert config to dictionary"""
-        return self.dict()
+        return self.model_dump()
 
     def save_config(self, config_file: str) -> bool:
         """
@@ -268,14 +296,18 @@ class CalibreConfig(BaseModel):
                         if (path / "metadata.db").exists():
                             lib_name = path.name if path.name != "Written Word" else "main"
                             libraries[lib_name] = CalibreLibrary(
-                                name=lib_name, path=path, metadata_db=path / "metadata.db"
+                                name=lib_name,
+                                path=path,
+                                metadata_db=path / "metadata.db",
                             )
                         # Scan this path for libraries
                         try:
                             for item in path.iterdir():
                                 if item.is_dir() and (item / "metadata.db").exists():
                                     libraries[item.name] = CalibreLibrary(
-                                        name=item.name, path=item, metadata_db=item / "metadata.db"
+                                        name=item.name,
+                                        path=item,
+                                        metadata_db=item / "metadata.db",
                                     )
                         except (PermissionError, OSError) as e:
                             logger.warning(f"Could not scan {path}: {e}")

@@ -16,7 +16,13 @@ from pathlib import Path
 # Optional dependencies - imported only when needed
 try:
     import aiofiles
-    import aiofiles.os
+
+    try:
+        import aiofiles.os
+    except AttributeError:
+        # Windows compatibility: aiofiles.os fails on Windows due to missing statvfs
+        # We still have aiofiles for file operations, just not aiofiles.os
+        pass
 except ImportError:
     aiofiles = None  # Optional dependency
 
@@ -64,8 +70,16 @@ except ImportError:
             EPUB = "epub"
             PDF = "pdf"
 
-        BookMetadata = None  # type: ignore
-        BookIdentifier = None  # type: ignore
+        class BookMetadata:  # type: ignore
+            def __init__(self, **kwargs):
+                for k, v in kwargs.items():
+                    setattr(self, k, v)
+
+        class BookIdentifier:  # type: ignore
+            def __init__(self, **kwargs):
+                for k, v in kwargs.items():
+                    setattr(self, k, v)
+
 
 # Configure MIME type detection
 if magic is not None:

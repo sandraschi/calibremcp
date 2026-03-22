@@ -13,9 +13,9 @@ import pkgutil
 from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, TypeVar, cast
 
-# Set up logging
+# Set up logging (stderr is OK for MCP servers)
 logger = logging.getLogger(__name__)
 
 # Type variable for tool functions
@@ -126,111 +126,162 @@ def discover_tools() -> list[type["BaseTool"]]:
 
 def register_tools(mcp: Any) -> None:
     """
-    Register all tools with an MCP server instance.
+    Register all tools with an MCP server instance with detailed error handling and timing.
 
-    This function registers all FastMCP 2.12 compliant tools from categorized modules.
-
-    FastMCP 2.12 auto-registers tools decorated with @mcp.tool() when modules are imported.
-    This function only registers BaseTool classes that need explicit registration.
+    This function registers all FastMCP compliant tools.
+    Explicit imports are used instead of dynamic discovery to ensure reliability.
 
     Args:
-        mcp: MCP server instance (FastMCP or similar)
+        mcp: MCP server instance (FastMCP)
     """
-    # Import all tool modules to trigger auto-registration of @mcp.tool() decorated functions
-    # These are already registered when imported (FastMCP 2.13+ behavior)
-    # Import advanced features portmanteau tools
-    from .advanced_features import (
-        manage_bulk_operations,  # noqa: F401 - Portmanteau tool
-        manage_content_sync,  # noqa: F401 - Portmanteau tool
-    )
+    import time
 
-    # Import analysis portmanteau tools
-    from .analysis import (
-        analyze_library,  # noqa: F401 - Portmanteau tool
-        manage_analysis,  # noqa: F401 - Portmanteau tool
-    )
-    from .analysis import tools as _analysis_tools  # noqa: F401
+    import_count = 0
+    error_count = 0
 
-    # Import authors portmanteau tool
-    from .authors import manage_authors  # noqa: F401 - Portmanteau tool
+    logger.info("TOOL REGISTRATION: Starting tool registration process...")
+    start_time = time.time()
 
-    # DEPRECATED: Individual tag tools removed - use manage_tags portmanteau tool instead
-    # from .tag_tools import (
-    #     list_tags,
-    #     get_tag,
-    #     create_tag,
-    #     update_tag,
-    #     delete_tag,
-    #     find_duplicate_tags,
-    #     merge_tags,
-    #     get_unused_tags,
-    #     delete_unused_tags,
-    # )
-    # Import book_management to register portmanteau tools
-    from .book_management import manage_books, query_books  # noqa: F401 - Portmanteau tools
+    # Import and register all portmanteau tools
+    # Tools are automatically registered with FastMCP via @mcp.tool() decorators
+    # Just importing them ensures they're loaded and registered
 
-    # Import comments portmanteau tool
-    from .comments import manage_comments  # noqa: F401 - Portmanteau tool
-    from .core import tools as _core_tools  # noqa: F401
+    try:
+        logger.info("Importing portmanteau tools (target: 15 core tools)...")
 
-    # Import files portmanteau tool
-    from .files import manage_files  # noqa: F401 - Portmanteau tool
-    from .files import tools as _file_tools  # noqa: F401
+        # Config for beta tools (CALIBRE_BETA_TOOLS=true)
+        from ..config import CalibreConfig
 
-    # Import export portmanteau tool
-    from .import_export import export_books  # noqa: F401 - Portmanteau tool
-    from .library import (
-        tools as _library_tools,  # noqa: F401 - Includes manage_libraries portmanteau
-    )
+        config = CalibreConfig.load_config()
+        load_beta = getattr(config, "load_beta_tools", False)
 
-    # Import metadata portmanteau tool
-    from .metadata import manage_metadata  # noqa: F401 - Portmanteau tool
-    from .metadata import tools as _metadata_tools  # noqa: F401
+        # Core: manage_libraries (includes test_connection, discover); no standalone core/library_discovery
+        import_start = time.time()
+        from .library import manage_libraries  # noqa: F401
 
-    # NOTE: Individual system tools (help, status, etc.) are deprecated
-    # They are now accessed via manage_system portmanteau tool
-    # Helper functions (help_helper, status_helper, etc.) are imported by manage_system
-    # No need to import them here - they don't have @mcp.tool() decorators
-    # NOTE: Individual export tools (export_books_csv, etc.) are deprecated
-    # They are now accessed via export_books portmanteau tool
-    # Helper functions are imported by export_books_portmanteau
-    # No need to import them here - they don't have @mcp.tool() decorators
-    from .ocr import tools as _ocr_tools  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(f"Library tools loaded in {import_time:.2f}s")
 
-    # Import specialized portmanteau tool
-    from .specialized import manage_specialized  # noqa: F401 - Portmanteau tool
-    from .specialized import tools as _specialized_tools  # noqa: F401
+        # Book management (manage_books, query_books, search_fulltext)
+        import_start = time.time()
+        from .book_management import manage_books, query_books, search_fulltext  # noqa: F401
 
-    # Import system portmanteau tool
-    from .system import manage_system  # noqa: F401 - Portmanteau tool
-    from .system import tools as _system_tools  # noqa: F401
+        import_time = time.time() - import_start
+        logger.info(f"Book management loaded in {import_time:.2f}s")
 
-    # Import tags portmanteau tool
-    from .tags import manage_tags  # noqa: F401 - Portmanteau tool
+        # RAG (semantic search over book text and metadata; lancedb/fastembed in main deps)
+        import_start = time.time()
+        try:
+            from .rag import (
+                calibre_metadata_index_build,
+                calibre_metadata_search,
+                rag_index_build,
+                rag_retrieve,
+            )  # noqa: F401
+        except ImportError:
+            pass
 
-    # Import user management portmanteau tool
-    from .user_management import manage_users  # noqa: F401 - Portmanteau tool
+        try:
+            from .portmanteau.search import calibre_rag  # noqa: F401
+            from .portmanteau.media_agentic import (
+                media_synopsis,
+                media_critical_reception,
+                media_deep_research,
+            )  # noqa: F401
+        except Exception as e:
+            logger.error(f"Failed to load RAG portmanteaus: {e}", exc_info=True)
 
-    # Import viewer portmanteau tool
-    from .viewer import manage_viewer  # noqa: F401 - Portmanteau tool
+        import_time = time.time() - import_start
+        logger.info(f"RAG tools loaded in {import_time:.2f}s")
 
-    # Only register BaseTool classes (functions with @mcp.tool() are already auto-registered)
-    tool_classes: list[type[BaseTool]] = []
+        # Metadata, tags, comments, series, publishers, authors (core)
+        import_start = time.time()
+        from .authors import manage_authors  # noqa: F401
+        from .comments import manage_comments  # noqa: F401
+        from .metadata import manage_metadata  # noqa: F401
+        from .publishers import manage_publishers  # noqa: F401
+        from .series import manage_series  # noqa: F401
+        from .tags import manage_tags  # noqa: F401
 
-    # Import BaseTool classes that need explicit registration
-    # BookTools removed - use manage_books portmanteau tool instead
-    # ViewerTools removed - use manage_viewer portmanteau tool instead
-    # AuthorTools removed - use manage_authors portmanteau tool instead
-    from .ocr.calibre_ocr_tool import OCRTool
+        import_time = time.time() - import_start
+        logger.info(f"Metadata/tags/authors loaded in {import_time:.2f}s")
 
-    tool_classes = [OCRTool]
-    # Only OCRTool remains - specialized tool that doesn't fit portmanteau pattern
+        # Files, analysis, library operations, system, import/export, viewer
+        import_start = time.time()
+        from .analysis import manage_analysis  # noqa: F401
+        from .files import manage_files  # noqa: F401
+        from .import_export import export_books  # noqa: F401
+        from .library_operations import manage_library_operations  # noqa: F401
+        from .system import manage_system  # noqa: F401
+        from .viewer import manage_viewer  # noqa: F401
 
-    # Register BaseTool classes
-    for tool_class in tool_classes:
-        tool_class.register(mcp)
+        import_time = time.time() - import_start
+        logger.info(f"Files/analysis/system loaded in {import_time:.2f}s")
 
-    # Log registration
+        # Help system
+        import_start = time.time()
+        from .help_tools import help_tool  # noqa: F401
+
+        import_time = time.time() - import_start
+        logger.info(f"Help tools loaded in {import_time:.2f}s")
+
+        # OCR
+        import_start = time.time()
+        try:
+            from .ocr.calibre_ocr_tool import OCRTool
+
+            OCRTool.register(mcp)
+        except Exception as e:
+            logger.warning(f"Failed to load OCRTool, skipping: {e}")
+        import_time = time.time() - import_start
+        logger.info(f"OCR loaded in {import_time:.2f}s")
+
+        # Beta tools: manage_import, descriptions, user_comments, extended_metadata, times,
+        # content_sync, ai_operations, bulk_operations, organization, users, specialized, agentic
+        if load_beta:
+            import_start = time.time()
+            from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
+            from .agentic import register_agentic_tools
+            from .agentic_workflow import agentic_library_workflow  # noqa: F401
+            from .ai import manage_ai_operations  # noqa: F401
+            from .descriptions import manage_descriptions  # noqa: F401
+            from .extended_metadata import manage_extended_metadata  # noqa: F401
+            from .import_export.manage_import import manage_import  # noqa: F401
+            from .organization import manage_organization  # noqa: F401
+            from .specialized import manage_specialized  # noqa: F401
+            from .times import manage_times  # noqa: F401
+            from .user_comments import manage_user_comments  # noqa: F401
+            from .user_management import manage_users  # noqa: F401
+
+            register_agentic_tools()
+            import_time = time.time() - import_start
+            logger.info(f"Beta tools loaded in {import_time:.2f}s (CALIBRE_BETA_TOOLS=true)")
+
+        import_count = 15 if not load_beta else 26
+
+    except Exception as e:
+        logger.error(f"Failed to load portmanteau tools: {e}", exc_info=True)
+        error_count += 1
+
+    # Get count of registered tools from FastMCP
+    try:
+        if hasattr(mcp, "_tools"):
+            registered_tools_count = len(mcp._tools)
+        elif hasattr(mcp, "tools"):
+            registered_tools_count = len(mcp.tools) if isinstance(mcp.tools, dict) else 0
+        else:
+            registered_tools_count = "unknown"
+    except Exception:
+        registered_tools_count = "unknown"
+
+    total_time = time.time() - start_time
     logger.info(
-        f"Registered {len(tool_classes)} BaseTool classes (functions auto-registered on import)"
+        f"Tool registration complete in {total_time:.2f}s: {import_count} modules/tools processed, "
+        f"{error_count} errors, "
+        f"{registered_tools_count} total tools registered"
     )
+
+    if error_count > 0:
+        logger.warning(f"{error_count} tool modules failed to load - check logs above for details")
+    else:
+        logger.info("SUCCESS: All tool modules loaded successfully")

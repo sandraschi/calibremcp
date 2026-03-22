@@ -83,6 +83,7 @@ class BookRepository(BaseRepository[Book]):
                 joinedload(Book.tags),
                 joinedload(Book.series),
                 joinedload(Book.ratings),
+                joinedload(Book.identifiers),
             )
 
             # Apply filters
@@ -139,7 +140,11 @@ class BookRepository(BaseRepository[Book]):
         with self._db.session_scope() as session:
             books = (
                 session.query(Book)
-                .options(joinedload(Book.authors), joinedload(Book.series))
+                .options(
+                    joinedload(Book.authors),
+                    joinedload(Book.series),
+                    joinedload(Book.identifiers),
+                )
                 .order_by(desc(Book.timestamp))
                 .limit(limit)
                 .all()
@@ -159,7 +164,11 @@ class BookRepository(BaseRepository[Book]):
         with self._db.session_scope() as session:
             books = (
                 session.query(Book)
-                .options(joinedload(Book.authors), joinedload(Book.ratings))
+                .options(
+                    joinedload(Book.authors),
+                    joinedload(Book.ratings),
+                    joinedload(Book.identifiers),
+                )
                 .join(Book.series)
                 .filter(Series.id == series_id)
                 .order_by(Book.series_index)
@@ -194,7 +203,10 @@ class BookRepository(BaseRepository[Book]):
             books = (
                 session.query(Book)
                 .options(
-                    joinedload(Book.authors), joinedload(Book.series), joinedload(Book.ratings)
+                    joinedload(Book.authors),
+                    joinedload(Book.series),
+                    joinedload(Book.ratings),
+                    joinedload(Book.identifiers),
                 )
                 .join(Book.authors)
                 .filter(Author.id == author_id)
@@ -272,8 +284,12 @@ class BookRepository(BaseRepository[Book]):
             return []
 
         placeholders = ",".join("?" * len(book_ids))
+        # Omit b.flags: column exists only in newer Calibre metadata.db
         query = f"""
-            SELECT b.*, 
+            SELECT b.id, b.title, b.sort, b.timestamp, b.pubdate, b.series_index,
+                   b.author_sort, b.path, b.uuid, b.has_cover, b.last_modified,
+                   (SELECT val FROM identifiers WHERE book = b.id AND type = 'isbn' LIMIT 1) AS isbn,
+                   (SELECT val FROM identifiers WHERE book = b.id AND type = 'lccn' LIMIT 1) AS lccn,
                    GROUP_CONCAT(DISTINCT a.name, '|') as authors,
                    GROUP_CONCAT(DISTINCT t.name, '|') as tags,
                    s.name as series_name,
@@ -380,7 +396,7 @@ class BookRepository(BaseRepository[Book]):
             "isbn": row.get("isbn"),
             "lccn": row.get("lccn"),
             "path": row.get("path"),
-            "flags": row.get("flags", 0),
+            "flags": row.get("flags", 0),  # default for older DBs without flags column
             "uuid": row.get("uuid"),
             "has_cover": bool(row.get("has_cover", 0)),
             "last_modified": row.get("last_modified"),

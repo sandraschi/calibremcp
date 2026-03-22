@@ -5,7 +5,7 @@
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.1+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.1.0-blue)](pyproject.toml)
+[![Version](https://img.shields.io/badge/Version-1.4.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
 [![Portmanteau Tools](https://img.shields.io/badge/Tools-21-orange)](docs/development/README.md)
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
@@ -321,18 +321,17 @@ pip install calibre-mcp
 
 #### **What is MCPB?**
 
-MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles everything needed into a single `.mcpb` file. It's Claude Desktop's preferred installation method.
+MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles **self-contained source** (and assets) into a single `.mcpb` file for **Claude Desktop** drag-and-drop install. Fleet layout and rules: **[MCP Central Docs — MCPB_PACKAGING_STANDARDS.md](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/MCPB_PACKAGING_STANDARDS.md)** and **[PACKAGING_STANDARDS.md §5](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md#5-python-mcp-repo-uv-justfile-llmstxt-glama-mcpb-pack)** (no `pyproject.toml` / lockfiles inside the bundle; install Python deps via **`uv sync`** or PyPI from a clone).
+
+CalibreMCP’s pack root is **`mcpb/`** (`manifest.json`, `assets/`, synced `src/calibre_mcp/`). See **`mcpb/README.md`**. Build: **`just mcpb-pack`** or **`.\scripts\build-mcpb-package.ps1 -NoSign`** → **`dist\calibre-mcp.mcpb`**.
 
 #### **Install MCPB CLI (for building packages)**
 
 The MCPB CLI is only needed if you want to **build** packages from source. End users don't need it.
 
 ```bash
-# Install MCPB CLI globally
 npm install -g @anthropic-ai/mcpb
-
-# Or use npx (no installation needed)
-npx @anthropic-ai/mcpb --version
+mcpb --version
 ```
 
 #### **Get the CalibreMCP Package**

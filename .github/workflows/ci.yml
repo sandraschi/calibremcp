@@ -2,135 +2,119 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, master, develop]
+  workflow_dispatch:
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.12"
   UV_VERSION: "0.5.0"
 
 jobs:
-  # Code Quality - Ruff linting and formatting
   quality:
     name: Code Quality (Ruff)
     runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: ${{ env.UV_VERSION }}
-        
-    - name: Set up Python
-      run: uv python install ${{ env.PYTHON_VERSION }}
-      
-    - name: Install dependencies
-      run: |
-        uv sync --dev
-      
-    - name: Run ruff check
-      run: |
-        uv run ruff check . --output-format=github
-        
-    - name: Run ruff format check
-      run: |
-        uv run ruff format --check .
-    
-    # Note: Pre-commit hooks run locally, but we can verify config is valid
-    - name: Validate pre-commit config
-      run: |
-        uv run pre-commit validate-config || echo "Pre-commit not installed, skipping validation"
 
-  # Type Checking
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run ruff check
+        run: uv run ruff check . --output-format=github
+
+      - name: Run ruff format check
+        run: uv run ruff format --check .
+
+      - name: Validate pre-commit config
+        run: uv run pre-commit validate-config || echo "Pre-commit validate skipped"
+
   typecheck:
     name: Type Checking (mypy)
     runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: ${{ env.UV_VERSION }}
-        
-    - name: Set up Python
-      run: uv python install ${{ env.PYTHON_VERSION }}
-      
-    - name: Install dependencies
-      run: |
-        uv sync --dev
-      
-    - name: Run mypy type checking
-      run: |
-        uv run mypy src/ --ignore-missing-imports || true
-      continue-on-error: true
 
-  # Test Suite
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run mypy type checking
+        continue-on-error: true
+        run: uv run mypy src/ --ignore-missing-imports || true
+
   test:
     name: Test Suite (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
-        
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: ${{ env.UV_VERSION }}
-        
-    - name: Set up Python ${{ matrix.python-version }}
-      run: uv python install ${{ matrix.python-version }}
-      
-    - name: Install dependencies
-      run: |
-        uv sync --dev
-      
-    - name: Run tests with coverage
-      run: |
-        uv run pytest tests/ -v --cov=src/calibre_mcp --cov-report=xml --cov-report=term-missing
-      
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+        python-version: ["3.12", "3.13"]
 
-  # Server Startup Test
-  server-startup:
-    name: Server Startup Test
-    runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: ${{ env.UV_VERSION }}
-        
-    - name: Set up Python
-      run: uv python install ${{ env.PYTHON_VERSION }}
-      
-    - name: Install dependencies
-      run: |
-        uv sync --dev
-      
-    - name: Test server startup (timeout 10s)
-      run: |
-        timeout 10s uv run python run_server.py --help || true
-        echo "Server startup test completed"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run tests with coverage
+        run: uv run pytest tests/ -v --cov=src/calibre_mcp --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  server-import:
+    name: Server module import
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Verify FastMCP app loads
+        run: uv run python -c "from calibre_mcp.server import mcp; assert mcp.name; print(mcp.name)"

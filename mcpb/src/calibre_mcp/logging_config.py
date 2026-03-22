@@ -77,7 +77,9 @@ class StructuredFormatter(logging.Formatter):
 
 
 def setup_logging(
-    level: str = "INFO", log_file: Path | None = None, enable_console: bool | None = None
+    level: str = "INFO",
+    log_file: Path | None = None,
+    enable_console: bool | None = None,
 ) -> None:
     """
     Setup structured logging configuration.
@@ -92,6 +94,11 @@ def setup_logging(
     if enable_console is None:
         enable_console = not _is_mcp_server()
 
+    # CRITICAL: For MCP servers, console logging must be EXPLICITLY disabled
+    # to prevent any output from breaking the JSON-RPC stdio stream.
+    if _is_mcp_server():
+        enable_console = False
+
     # Create logs directory if it doesn't exist
     if log_file:
         log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -99,14 +106,14 @@ def setup_logging(
     # Configure handlers
     handlers = {}
 
-    # For MCP servers: NO console logging (stdout/stderr reserved for JSON-RPC)
-    # Logs go to file only for stdio transport compatibility
+    # For MCP servers: stderr logging is OK (stdout reserved for JSON-RPC protocol)
+    # MCP spec allows stderr for logging/debugging, stdout must be clean for JSON-RPC
     if enable_console:
         handlers["console"] = {
             "class": "logging.StreamHandler",
             "level": level,
             "formatter": "structured",
-            "stream": "ext://sys.stderr",
+            "stream": "ext://sys.stderr",  # stderr is safe for MCP servers
             "filters": ["correlation_id"],
         }
 
@@ -137,8 +144,16 @@ def setup_logging(
         },
         "handlers": handlers,
         "loggers": {
-            "calibremcp": {"level": level, "handlers": list(handlers.keys()), "propagate": False},
-            "calibre_mcp": {"level": level, "handlers": list(handlers.keys()), "propagate": False},
+            "calibremcp": {
+                "level": level,
+                "handlers": list(handlers.keys()),
+                "propagate": False,
+            },
+            "calibre_mcp": {
+                "level": level,
+                "handlers": list(handlers.keys()),
+                "propagate": False,
+            },
         },
         "root": {"level": level, "handlers": list(handlers.keys())},
     }

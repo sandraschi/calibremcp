@@ -1,41 +1,40 @@
-# MCPB Ignore File for mcpb/ folder
-# Exclude unnecessary files from the final package
+# MCP Central Docs — MCPB_PACKAGING_STANDARDS.md: no bundled deps; glama stays repo-only
+
+# Never ship lockfiles or project metadata inside .mcpb (use repo / uv sync separately)
+pyproject.toml
+uv.lock
+poetry.lock
+Pipfile
+Pipfile.lock
+requirements.txt
+
+# Glama discovery file lives at repo root only — not inside the Claude Desktop bundle
+glama.json
+
+# Build output nested under mcpb/
+dist/
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-
-# Development files
+.mypy_cache/
 .pytest_cache/
 .ruff_cache/
+
+# Dev
+.pytest_cache/
 .coverage
 htmlcov/
 .tox/
-
-# IDE files
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
+*.log
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
-*.tmp
-*.temp
 
-# Temporary files
-*.log
-*.tmp
-*.temp
-temp/
-tmp/
-
-# Large files that shouldn't be in package
+# Archives (if any)
 *.zip
 *.tar.gz
-*.rar
-*.7z
