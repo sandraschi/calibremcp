@@ -5,7 +5,9 @@ These tools handle multi-library operations, switching between libraries,
 and cross-library search functionality.
 """
 
+import os
 import time
+from pathlib import Path
 from typing import Any
 
 from ...config import CalibreConfig
@@ -17,6 +19,78 @@ from ...services.book_service import book_service
 from ...utils.library_utils import discover_calibre_libraries, get_library_metadata
 
 logger = get_logger("calibremcp.tools.library_management")
+
+
+def _metadata_db_paths_match(stored: str | None, metadata_db: Path) -> bool:
+    """Compare DB path from DatabaseService with a library metadata.db (OS-safe).
+
+    ``DatabaseService`` stores ``_current_db_path`` with normalized slashes; string
+    inequality against ``str(Path.absolute())`` on Windows skipped stats queries.
+    """
+    if not stored:
+        return False
+    try:
+        return Path(stored).resolve() == metadata_db.resolve()
+    except OSError:
+        return os.path.normcase(os.path.normpath(stored)) == os.path.normcase(
+            os.path.normpath(str(metadata_db))
+        )
+
+
+def _collect_library_stats_from_session(session: Any, total_books_fallback: int) -> dict[str, Any]:
+    """Run ORM stats queries against an open Session (global or ephemeral engine)."""
+    from sqlalchemy import func
+
+    from ...db.models import Author, Book, Data, Rating, Series, Tag
+
+    total_books = session.query(func.count(Book.id)).scalar()
+    if total_books is None:
+        total_books = total_books_fallback
+    total_authors = session.query(func.count(Author.id)).scalar() or 0
+    total_series = session.query(func.count(Series.id)).scalar() or 0
+    total_tags = session.query(func.count(Tag.id)).scalar() or 0
+    formats = session.query(Data.format, func.count(Data.id)).group_by(Data.format).all()
+    format_distribution = {fmt.lower(): count for fmt, count in formats}
+    ratings = (
+        session.query(Rating.rating, func.count(Book.id))
+        .join(Book.ratings)
+        .group_by(Rating.rating)
+        .all()
+    )
+    rating_distribution = {str(r): count for r, count in ratings if r is not None}
+    last_mod_book = session.query(func.max(Book.last_modified)).scalar()
+    last_modified = last_mod_book.isoformat() if last_mod_book else None
+    return {
+        "total_books": total_books,
+        "total_authors": total_authors,
+        "total_series": total_series,
+        "total_tags": total_tags,
+        "format_distribution": format_distribution,
+        "rating_distribution": rating_distribution,
+        "last_modified": last_modified,
+    }
+
+
+def _stats_from_ephemeral_db(metadata_db: Path, total_books_fallback: int) -> dict[str, Any]:
+    """Open metadata.db read-only for stats without mutating the global DatabaseService."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    sqlite_url = f"sqlite:///{metadata_db.resolve().as_posix()}"
+    engine = create_engine(
+        sqlite_url,
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True,
+    )
+    try:
+        Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = Session()
+        try:
+            return _collect_library_stats_from_session(session, total_books_fallback)
+        finally:
+            session.close()
+    finally:
+        engine.dispose()
 
 
 # Helper function - called by manage_libraries portmanteau tool
@@ -367,57 +441,45 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
         rating_distribution = {}
         last_modified = None
 
-        # Try to get detailed stats from database
-        try:
-            from sqlalchemy import func
+        # Detailed stats from metadata.db (authors/tags/series need SQL; book_count alone can come from filesystem)
+        metadata_db = (library_path / "metadata.db").resolve()
+        if metadata_db.is_file():
             from ...db.database import db
-            from ...db.models import Author, Book, Data, Rating, Series, Tag
 
-            # Ensure we are connected to the right library database
-            # Check if current DB connection matches the requested library
-            metadata_db_path = str((library_path / "metadata.db").absolute())
-            if db.get_current_path() != metadata_db_path:
-                logger.debug(
-                    f"Stats requested for non-active library {library_name}, using file metadata only"
-                )
-            else:
-                with db.session_scope() as session:
-                    # 1. Precise book count
-                    total_books = session.query(func.count(Book.id)).scalar() or total_books
+            row: dict[str, Any] | None = None
 
-                    # 2. Author count
-                    total_authors = session.query(func.count(Author.id)).scalar() or 0
+            if _metadata_db_paths_match(db.get_current_path(), metadata_db):
+                try:
+                    with db.session_scope() as session:
+                        row = _collect_library_stats_from_session(session, total_books)
+                except RuntimeError as e:
+                    if "not initialized" not in str(e).lower():
+                        logger.warning("Library stats via global db failed: %s", e)
+                except Exception as e:
+                    logger.warning("Library stats via global db failed: %s", e)
 
-                    # 3. Series count
-                    total_series = session.query(func.count(Series.id)).scalar() or 0
-
-                    # 4. Tag count
-                    total_tags = session.query(func.count(Tag.id)).scalar() or 0
-
-                    # 5. Format distribution
-                    formats = (
-                        session.query(Data.format, func.count(Data.id)).group_by(Data.format).all()
+            if row is None:
+                try:
+                    row = _stats_from_ephemeral_db(metadata_db, total_books)
+                    logger.debug(
+                        "Library stats used ephemeral connection to %s (global=%s)",
+                        metadata_db,
+                        db.get_current_path(),
                     )
-                    format_distribution = {fmt.lower(): count for fmt, count in formats}
-
-                    # 6. Rating distribution
-                    ratings = (
-                        session.query(Rating.rating, func.count(Book.id))
-                        .join(Book.ratings)
-                        .group_by(Rating.rating)
-                        .all()
+                except Exception as e:
+                    logger.warning(
+                        "Database stats query failed (ephemeral): %s. Using filesystem book_count only.",
+                        e,
                     )
-                    rating_distribution = {str(r): count for r, count in ratings if r is not None}
 
-                    # 7. Last modified
-                    last_mod_book = session.query(func.max(Book.last_modified)).scalar()
-                    if last_mod_book:
-                        last_modified = last_mod_book.isoformat()
-
-        except Exception as db_err:
-            logger.warning(
-                f"Database stats query failed: {db_err}. Falling back to file system metadata."
-            )
+            if row is not None:
+                total_books = row["total_books"]
+                total_authors = row["total_authors"]
+                total_series = row["total_series"]
+                total_tags = row["total_tags"]
+                format_distribution = row["format_distribution"]
+                rating_distribution = row["rating_distribution"]
+                last_modified = row["last_modified"]
 
         # Build response
         stats = LibraryStatsResponse(

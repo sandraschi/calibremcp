@@ -365,6 +365,25 @@ Implementation checklist, code snippets, testing commands. Plugin in `calibre_pl
 
 ---
 
+## 🔍 **Search, FTS, and RAG**
+
+### **Purpose**
+Agentic flows, Calibre full-text index, LanceDB indexes, and phrase-level jump hints.
+
+### **Documents**
+
+#### **1. Agentic workflows and RAG**
+📄 [AGENTIC_AND_RAG.md](AGENTIC_AND_RAG.md)
+
+FTS vs metadata RAG vs chunk RAG; directory layout; `search_fulltext` with `resolve_locations`; HTTP chat/search notes.
+
+#### **2. Full-text RAG design (partial / consolidation)**
+📄 [FULL_TEXT_RAG_DESIGN.md](FULL_TEXT_RAG_DESIGN.md)
+
+Reserved `book_chunks` schema; relationship to existing `lancedb_*` paths.
+
+---
+
 ## 🔧 **MCP Technical Documentation**
 
 **Location**: `docs/mcp-technical/`

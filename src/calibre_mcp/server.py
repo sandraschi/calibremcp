@@ -8,20 +8,19 @@ logger = logging.getLogger("calibre_mcp.server")
 logger.info("SERVER.PY: Module import starting...")
 
 """
-CalibreMCP Phase 2 - FastMCP 2.13+ Server for Calibre E-book Library Management
+CalibreMCP server module — Calibre e-book libraries over MCP (FastMCP 3.1+).
 
-Austrian efficiency for Sandra's 1000+ book collection across multiple libraries.
-Now with 23 comprehensive tools including multi-library, Japanese weeb optimization,
-and IT book curation. All tools properly categorized and FastMCP 2.13+ compliant.
+PORTMANTEAU PATTERN RATIONALE: Exposes one coherent MCP server with prompts, bundled
+skills (``skill://`` via SkillsDirectoryProvider), and portmanteau tools so clients
+avoid tool-sprawl while retaining full Calibre coverage.
 
-FastMCP 2.13 introduces persistent storage backends for stateful applications.
+2026 surface:
+- **Prompts**: ``@mcp.prompt()`` templates (reading, library health, RAG, guides).
+- **Skills**: packaged ``skills/*/SKILL.md`` for discoverable expert workflows.
+- **Sampling / agentic**: ``agentic_library_workflow`` and media tools use ``ctx.sample`` when the host supports SEP-1577.
+- **Transport**: stdio and HTTP (see ``transport``).
 
-Phase 2 adds 19 additional tools:
-- Multi-Library Management (4 tools)
-- Advanced Organization & Analysis (5 tools)
-- Metadata & Database Operations (4 tools)
-- File Operations (3 tools)
-- Austrian Efficiency Specials (3 tools)
+Stateful features use FastMCP storage (py-key-value) where configured.
 """
 
 # CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
@@ -135,70 +134,71 @@ logger.info("Global variables initialized")
 
 
 def create_app(path: str = "/mcp"):
-    """
-    Create FastMCP HTTP ASGI app for mounting in FastAPI.
+    """Return the FastMCP ASGI app for mounting (e.g. FastAPI ``/mcp``).
 
     Args:
-        path: Mount path (ignored, handled by FastAPI mount)
+        path: Reserved for API compatibility; mount path is defined by the host app.
 
-    Returns the ASGI app that can be mounted at the specified path.
-    FastMCP 2.13+ provides http_app() method for this.
+    Returns:
+        ASGI application from ``mcp.http_app()`` (FastMCP 3.1+).
     """
-    # FastMCP http_app() returns ASGI app - path is handled by FastAPI mount
-    # The path parameter is kept for API compatibility but not used
     return mcp.http_app()
 
 
 @asynccontextmanager
-@asynccontextmanager
 async def server_lifespan(mcp_instance: FastMCP):
-    """FastMCP 2.14.1+ lifespan for initialization and cleanup."""
+    """FastMCP 3.1 lifespan hook: startup and shutdown around the server run.
+
+    Args:
+        mcp_instance: FastMCP instance (provided by the framework).
+
+    Yields:
+        Control to the running server until shutdown.
+    """
     import logging
 
-    logger = logging.getLogger("calibremcp.lifespan")
-    logger.info("SERVER LIFESPAN: Starting initialization...")
-
-    # Minimal initialization - just yield
+    lifespan_log = logging.getLogger("calibremcp.lifespan")
+    lifespan_log.info("SERVER LIFESPAN: starting")
     yield
-
-    logger.info("SERVER LIFESPAN: Cleanup complete")
-
-    lifespan_logger.info("SERVER LIFESPAN: Complete")
+    lifespan_log.info("SERVER LIFESPAN: shutdown complete")
 
 
 # Create MCP instance
 logger.info("Creating FastMCP instance...")
 mcp = FastMCP(
     "CalibreMCP",
-    instructions="""You are CalibreMCP, a FastMCP 3.1 server for Calibre e-book library management.
+    instructions="""You are CalibreMCP (FastMCP 3.1): Calibre e-book libraries over MCP.
 
-FASTMCP 3.1 FEATURES:
-- Conversational (dialogic) tool returns for natural AI interaction
-- Sampling and agentic workflows: tools can be chained for multi-step discovery, recommendations, and library operations
-- Portmanteau design: consolidated tools via 'operation' parameters
-- Skills and prompts: use registered prompts for recommendations, health, semantic search
+PLATFORM (2026):
+- Prompts: registered templates for reading, library health, semantic search, and guides.
+- Skills: bundled expert instructions under skill:// (e.g. skill://calibre-expert/SKILL.md); read when the user needs workflow-level guidance.
+- Sampling: use agentic_library_workflow and media tools when the host supports ctx.sample() (SEP-1577); otherwise chain portmanteau tools step-by-step.
 
-CORE CAPABILITIES:
-- E-book Library Management: Browse, search, organize Calibre libraries
-- Book Operations: View, edit, add, manage metadata
-- Semantic search: calibre_metadata_search over title, authors, tags, comments (LanceDB RAG)
-- Full-text RAG: rag_retrieve over book content when index is built
-- Library Organization: Collections, tags, authors, series
+CORE:
+- Libraries: manage_libraries (list/switch/stats), multi-library discovery.
+- Books: query_books, manage_books; authors, series, tags, publishers, files, viewer.
+- RAG: calibre_metadata_search, rag_retrieve when indexes exist (LanceDB).
 
-AGENTIC WORKFLOWS:
-- Chain tools (e.g. manage_libraries -> query_books -> manage_viewer) for discovery and opening books
-- Use sampling so the model can orchestrate search, filter, recommend, and act in one flow
-- All tools return 'success', 'message', and structured data for chaining
+RETURNS:
+- Prefer structured dicts with success, message, and domain fields; errors include error and recovery hints.
 
-RESPONSE FORMAT:
-- Dict with 'success', 'message'; errors include 'error' field
-- Success includes relevant data and natural language summaries
-
-PORTMANTEAU DESIGN:
-Tools are consolidated; each supports multiple operations via an 'operation' parameter.
+DESIGN:
+- Portmanteau tools: always pass operation=...; discover sub-operations from tool docstrings.
 """,
+    lifespan=server_lifespan,
+    on_duplicate="replace",
 )
 logger.info("FastMCP instance created")
+
+# Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
+_skills_root = Path(__file__).resolve().parent / "skills"
+if _skills_root.is_dir():
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider
+
+    mcp.add_provider(SkillsDirectoryProvider(roots=[_skills_root]))
+    logger.info("SkillsDirectoryProvider registered: %s", _skills_root)
+else:
+    logger.warning("Bundled skills directory missing: %s", _skills_root)
 
 # CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
 # We should not set up additional logging to stderr as it would override the redirection
@@ -218,7 +218,7 @@ if not _is_stdio_mode:
 
 # Register prompt templates
 from calibre_mcp.prompts import register_prompts
-from calibre_mcp.transport import run_server, run_server_async
+from calibre_mcp.transport import run_server_async
 
 register_prompts(mcp)
 

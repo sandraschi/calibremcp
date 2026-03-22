@@ -33,7 +33,7 @@ class CalibreMCPServer:
         self,
         library_path: str | Path | None = None,
         host: str = "localhost",
-        port: int = 8000,
+        port: int = 10720,
         debug: bool = False,
     ) -> None:
         """Initialize the Calibre MCP server.
@@ -174,7 +174,13 @@ class CalibreMCPServer:
     async def run(self) -> None:
         """Run the MCP server."""
         logger.info(f"Starting Calibre MCP server on {self.host}:{self.port}")
-        await self.mcp.run(host=self.host, port=self.port)
+        await asyncio.to_thread(
+            self.mcp.run,
+            transport="http",
+            host=self.host,
+            port=self.port,
+            show_banner=False,
+        )
 
 
 async def main() -> None:
@@ -196,8 +202,8 @@ async def main() -> None:
     parser.add_argument(
         "--port",
         type=int,
-        default=8000,
-        help="Port to bind to (default: 8000)",
+        default=10720,
+        help="Port to bind to (default: 10720; fleet WEBAPP_PORTS calibre-mcp backend)",
     )
     parser.add_argument(
         "--debug",

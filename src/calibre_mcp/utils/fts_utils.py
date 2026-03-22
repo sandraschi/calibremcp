@@ -16,6 +16,7 @@ we fall back to LIKE on books_text.searchable_text.
 import logging
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,25 @@ def find_fts_database(metadata_db_path: Path) -> Path | None:
         logger.info("Found Calibre FTS database: %s", fts_path)
         return fts_path
     logger.debug("FTS database not found at %s", fts_path)
+    return None
+
+
+def find_phrase_char_range(haystack: str, raw_query: str) -> tuple[int, int] | None:
+    """
+    First occurrence of the user's phrase in Calibre's searchable_text blob (offsets for that string).
+
+    Case-insensitive; strips outer quotes. If no literal match (e.g. stemming), returns None.
+    """
+    if not haystack or not raw_query:
+        return None
+    q = raw_query.strip().strip('"').strip("'")
+    if not q:
+        return None
+    lo = haystack.lower()
+    lq = q.lower()
+    i = lo.find(lq)
+    if i >= 0:
+        return i, i + len(q)
     return None
 
 
@@ -108,7 +128,9 @@ def _query_via_fts(
         ORDER BY {fts_table}.rank
         LIMIT ? OFFSET ?
     """
-    args = (snippet_size, fts_query, limit, offset) if include_snippets else (fts_query, limit, offset)
+    args = (
+        (snippet_size, fts_query, limit, offset) if include_snippets else (fts_query, limit, offset)
+    )
     cursor.execute(q, args)
     rows = cursor.fetchall()
 
@@ -256,3 +278,201 @@ def query_fts(
     except sqlite3.Error as e:
         logger.error("Error querying FTS database: %s", e)
         return [], 0, {}
+
+
+def _query_via_fts_detailed(
+    conn: sqlite3.Connection,
+    fts_table: str,
+    fts_query: str,
+    search_clean: str,
+    limit: int,
+    offset: int,
+    include_snippets: bool,
+    snippet_size: int,
+) -> tuple[list[dict[str, Any]], int]:
+    """FTS rows with books_text id, format, offsets into searchable_text."""
+    cursor = conn.cursor()
+    cursor.execute(
+        f"""
+        SELECT COUNT(*) FROM (
+            SELECT DISTINCT books_text.book FROM books_text
+            JOIN {fts_table} ON books_text.id = {fts_table}.rowid
+            WHERE {fts_table} MATCH ?
+        )
+        """,
+        (fts_query,),
+    )
+    total_books = cursor.fetchone()[0] or 0
+
+    if include_snippets:
+        sel = f"""
+            books_text.id AS btid,
+            books_text.book AS bid,
+            books_text.format AS bfmt,
+            books_text.searchable_text AS stext,
+            snippet({fts_table}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text
+        """
+        args_head: tuple[int, ...] = (snippet_size,)
+    else:
+        sel = """
+            books_text.id AS btid,
+            books_text.book AS bid,
+            books_text.format AS bfmt,
+            books_text.searchable_text AS stext,
+            '' AS snippet_text
+        """
+        args_head = ()
+
+    q = f"""
+        SELECT {sel}
+        FROM books_text
+        JOIN {fts_table} ON books_text.id = {fts_table}.rowid
+        WHERE {fts_table} MATCH ?
+        ORDER BY {fts_table}.rank
+        LIMIT ? OFFSET ?
+    """
+    args = (*args_head, fts_query, limit, offset)
+    cursor.execute(q, args)
+    rows = cursor.fetchall()
+
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        stext = r["stext"] or ""
+        bid = int(r["bid"])
+        btid = int(r["btid"])
+        fmt = r["bfmt"] or ""
+        snip = r["snippet_text"] or ""
+        off = find_phrase_char_range(stext, search_clean)
+        char_start, char_end = (off[0], off[1]) if off else (None, None)
+        out.append(
+            {
+                "books_text_id": btid,
+                "book_id": bid,
+                "format": (fmt or "").strip().upper(),
+                "snippet": (snip or "").strip(),
+                "char_offset": char_start,
+                "char_end": char_end,
+            }
+        )
+    return out, total_books
+
+
+def _query_via_like_detailed(
+    conn: sqlite3.Connection,
+    like_pattern: str,
+    search_clean: str,
+    limit: int,
+    offset: int,
+    include_snippets: bool,
+) -> tuple[list[dict[str, Any]], int]:
+    """LIKE fallback: same shape as detailed FTS rows."""
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT COUNT(DISTINCT book) FROM books_text
+        WHERE searchable_text LIKE ?
+        """,
+        (like_pattern,),
+    )
+    total_books = cursor.fetchone()[0] or 0
+
+    cursor.execute(
+        """
+        SELECT id, book, format, searchable_text,
+               substr(searchable_text,
+                      max(1, instr(lower(searchable_text), lower(?)) - 50),
+                      200) AS snippet_text
+        FROM books_text
+        WHERE searchable_text LIKE ?
+        LIMIT ? OFFSET ?
+        """,
+        (search_clean, like_pattern, limit, offset),
+    )
+    raw_rows = cursor.fetchall()
+    out: list[dict[str, Any]] = []
+    for r in raw_rows:
+        btid = int(r[0])
+        bid = int(r[1])
+        fmt = r[2] or ""
+        stext = r[3] or ""
+        snip = (r[4] or "") if len(r) > 4 else ""
+        off = find_phrase_char_range(stext, search_clean)
+        char_start, char_end = (off[0], off[1]) if off else (None, None)
+        out.append(
+            {
+                "books_text_id": btid,
+                "book_id": bid,
+                "format": (fmt or "").strip().upper(),
+                "snippet": (snip or "").strip(),
+                "char_offset": char_start,
+                "char_end": char_end,
+            }
+        )
+    return out, total_books
+
+
+def query_fts_detailed(
+    fts_db_path: Path,
+    search_text: str,
+    limit: int = 20,
+    offset: int = 0,
+    use_stemming: bool = False,
+    include_snippets: bool = True,
+    snippet_size: int = 64,
+) -> tuple[list[dict[str, Any]], int, bool]:
+    """
+    Same search as query_fts but returns one dict per matching ``books_text`` row with
+    ``books_text_id``, ``book_id``, ``format``, ``snippet``, and ``char_offset``/``char_end``
+    when the phrase can be located literally in ``searchable_text``.
+
+    Returns:
+        (rows, total_books_distinct, used_fts5_virtual_table)
+    """
+    if not fts_db_path.exists():
+        logger.warning("FTS database does not exist: %s", fts_db_path)
+        return [], 0, False
+
+    search_clean = search_text.strip()
+    if not search_clean:
+        return [], 0, False
+
+    like_pattern = f"%{search_clean}%"
+    fts_query = _escape_fts5_query(search_clean)
+    fts_table = FTS_TABLE_STEMMED if use_stemming else FTS_TABLE
+
+    try:
+        conn = sqlite3.connect(str(fts_db_path))
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (BOOKS_TEXT_TABLE,),
+            )
+            if not cursor.fetchone():
+                return [], 0, False
+
+            try:
+                rows, total_books = _query_via_fts_detailed(
+                    conn,
+                    fts_table,
+                    fts_query,
+                    search_clean,
+                    limit,
+                    offset,
+                    include_snippets,
+                    snippet_size,
+                )
+                return rows, total_books, True
+            except sqlite3.OperationalError as e:
+                logger.debug("FTS detailed query failed (%s), using LIKE", e)
+
+            rows, total_books = _query_via_like_detailed(
+                conn, like_pattern, search_clean, limit, offset, include_snippets
+            )
+            return rows, total_books, False
+        finally:
+            conn.close()
+    except sqlite3.Error as e:
+        logger.error("Error in query_fts_detailed: %s", e)
+        return [], 0, False

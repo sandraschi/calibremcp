@@ -8,12 +8,51 @@ Handles parsing of natural language queries to extract:
 - Content type hints (paper, comic, manga) for library selection
 - Time expressions (last month, last week, etc.) for date filtering
 - Quoted titles
-- Other intelligent patterns
+- **prefer_semantic_search**: inventory / multi-concept questions (e.g. Japanese locked-room thrillers)
+- **language_hints**: tokens such as japanese / french for tagging search text (not ISO codes)
 """
 
 import re
 from datetime import datetime, timedelta
 from typing import Any
+
+# Multi-word or niche concepts: regex/SQL title search is weak; RAG metadata search is stronger.
+_SEMANTIC_TRIGGER_PHRASES = (
+    "locked room",
+    "honkaku",
+    "light novel",
+    "cozy mystery",
+    "hardboiled",
+    "noir",
+    "golden age",
+    "police procedural",
+    "psychological thriller",
+)
+
+_LANGUAGE_HINTS = (
+    "japanese",
+    "japan",
+    "french",
+    "german",
+    "spanish",
+    "italian",
+    "korean",
+    "chinese",
+    "russian",
+    "english",
+    "polish",
+    "swedish",
+    "norwegian",
+)
+
+_INVENTORY_PATTERNS = (
+    r"\bwhat\s+.+\s+do\s+we\s+have",
+    r"\bwhich\s+books?\s+",
+    r"\bdo\s+we\s+have\s+",
+    r"\bshow\s+me\s+(all\s+)?(the\s+)?books?\s+",
+    r"\blist\s+(all\s+)?(the\s+)?books?\s+",
+    r"\bhow\s+many\s+books?\s+",
+)
 
 try:
     from dateutil.relativedelta import relativedelta
@@ -93,6 +132,75 @@ def _parse_time_expression(time_expr: str) -> tuple[str, str] | None:
     return None
 
 
+def strip_inventory_question_phrases(q: str) -> str:
+    """Remove inventory-style prefixes so semantic / SQL search sees subject matter only."""
+    s = q.strip()
+    s = re.sub(
+        r"^(what|which)\s+(are\s+(the\s+)?|books?\s+(do\s+we\s+have|are|have)\s*)",
+        "",
+        s,
+        flags=re.IGNORECASE,
+    )
+    s = re.sub(r"^(do\s+we\s+have|have\s+we\s+got)\s+", "", s, flags=re.IGNORECASE)
+    s = re.sub(r"^(show\s+me|list|find)\s+", "", s, flags=re.IGNORECASE)
+    s = re.sub(r"\s+do\s+we\s+have\s*\??$", "", s, flags=re.IGNORECASE)
+    return s.strip(" ?.\t\n")
+
+
+def _extract_language_hints(query_lower: str) -> list[str]:
+    found: list[str] = []
+    for hint in _LANGUAGE_HINTS:
+        if re.search(rf"\b{re.escape(hint)}\b", query_lower):
+            found.append(hint)
+    return found
+
+
+def _should_prefer_semantic_search(raw: str, parsed: dict[str, Any]) -> bool:
+    """Heuristic: multi-concept NL questions need embedding search, not a single tag."""
+    q = raw.strip()
+    if not q:
+        return False
+    ql = q.lower()
+    word_count = len(q.split())
+
+    for pat in _INVENTORY_PATTERNS:
+        if re.search(pat, ql, re.IGNORECASE):
+            return True
+
+    for phrase in _SEMANTIC_TRIGGER_PHRASES:
+        if phrase in ql:
+            return True
+
+    if _extract_language_hints(ql) and word_count >= 4:
+        return True
+
+    genre_hits = sum(
+        1
+        for g in (
+            "thriller",
+            "mystery",
+            "detective",
+            "crime",
+            "horror",
+            "fantasy",
+            "romance",
+            "sci-fi",
+            "science fiction",
+        )
+        if g in ql
+    )
+    if genre_hits >= 2 and word_count >= 5:
+        return True
+
+    if parsed.get("author") and genre_hits >= 1 and word_count >= 6:
+        return True
+
+    if word_count >= 10 and not parsed.get("author") and not parsed.get("series"):
+        return True
+
+    return False
+
+
 def parse_intelligent_query(query: str) -> dict[str, Any]:
     """
     Intelligently parse natural language query to extract search parameters.
@@ -135,6 +243,8 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
             "content_type": None,
             "added_after": None,
             "added_before": None,
+            "prefer_semantic_search": False,
+            "language_hints": [],
         }
 
     query_lower = query.lower().strip()
@@ -149,6 +259,8 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
         "content_type": None,
         "added_after": None,
         "added_before": None,
+        "prefer_semantic_search": False,
+        "language_hints": [],
     }
 
     # Extract quoted titles first (preserve quotes for exact matching)
@@ -206,7 +318,6 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
         (r"^by\s+(.+)", 1),  # "by John Dickson Carr"
     ]
 
-    author_found = False
     for pattern, group_num in author_patterns:
         match = re.search(pattern, query_lower, re.IGNORECASE)
         if match:
@@ -227,7 +338,6 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
                 remaining = ""
             result["author"] = author
             query_lower = remaining.lower()
-            author_found = True
             break
 
     # REMOVED: Automatic author name inference
@@ -315,6 +425,8 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
         remaining = f'"{quoted_title}" {remaining}'
 
     result["text"] = remaining
+    result["language_hints"] = _extract_language_hints(query_lower)
+    result["prefer_semantic_search"] = _should_prefer_semantic_search(query, result)
     return result
 
 

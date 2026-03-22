@@ -1,42 +1,44 @@
-import sys
 import logging
+
+from calibre_mcp.rag.lancedb_vector_store import LanceVectorStore
+from calibre_mcp.rag.storage_paths import portmanteau_lancedb_dir
+from calibre_mcp.server import mcp
 
 logger = logging.getLogger(__name__)
 
-# Provide docs_mcp path if it's external, depending on environment setup.
-# FastMCP tools can load this dynamically if added to PYTHONPATH, but to be robust:
-sys.path.append(r"d:\Dev\repos\mcp-central-docs\src")
 
-try:
-    from docs_mcp.backend.rag_core import BaseVectorStore
-except ImportError:
-    BaseVectorStore = None
-    logger.warning("mcp-central-docs is not available. calibre_rag tool may fail.")
+def _get_vector_store(
+    table_name: str = "calibre_media",
+    *,
+    metadata_db_path: str | None = None,
+) -> LanceVectorStore:
+    """LanceDB store under ``{library}/lancedb_calibre`` (separate from FTS ``lancedb/`` and metadata ``lancedb_metadata/``)."""
+    from calibre_mcp.db.database import get_database
 
-from calibre_mcp.server import mcp
-
-
-def _get_vector_store(table_name: str = "calibre_media") -> "BaseVectorStore":
-    """Lazily load the vector store for semantic search."""
-    if BaseVectorStore is None:
-        raise RuntimeError(
-            "Vector Store dependency 'docs_mcp' not found. Cannot perform RAG operations."
-        )
-
-    # Store at local LanceDB path
-    return BaseVectorStore(db_path="data/lancedb_calibre", table_name=table_name)
+    if metadata_db_path:
+        base = portmanteau_lancedb_dir(metadata_db_path)
+    else:
+        db = get_database()
+        path = db.get_current_path()
+        if not path:
+            raise RuntimeError(
+                "No Calibre library loaded. Use manage_libraries(operation='switch') first, "
+                "or pass db_path for ingest."
+            )
+        base = portmanteau_lancedb_dir(path)
+    return LanceVectorStore(db_path=str(base), table_name=table_name)
 
 
 @mcp.tool()
 async def calibre_rag(
     operation: str,
-    query: str = None,
+    query: str | None = None,
     limit: int = 5,
-    db_path: str = None,
+    db_path: str | None = None,
     search_type: str = "metadata",
-    book_id: str = None,
-    title: str = None,
-    file_path: str = None,
+    book_id: str | None = None,
+    title: str | None = None,
+    file_path: str | None = None,
 ) -> dict:
     """
     Unified Portmanteau for Semantic Search and RAG Operations on the Calibre Library.
@@ -59,7 +61,7 @@ async def calibre_rag(
     """
     try:
         table_name = "calibre_fulltext" if search_type == "fulltext" else "calibre_media"
-        store = _get_vector_store(table_name=table_name)
+        store = _get_vector_store(table_name=table_name, metadata_db_path=db_path)
 
         if operation == "status":
             stats = store.get_table_metadata()
@@ -70,14 +72,14 @@ async def calibre_rag(
                 "data": stats,
             }
 
-        elif operation == "search":
+        if operation == "search":
             if not query:
                 return {
                     "success": False,
                     "error": "query parameter is required for semantic search",
                 }
 
-            logger.info(f"Performing semantic search for: {query}")
+            logger.info("Performing semantic search for: %s", query)
             results = store.search(query=query, limit=limit)
 
             formatted_results = []
@@ -114,7 +116,7 @@ async def calibre_rag(
                 "results": formatted_results,
             }
 
-        elif operation == "ingest":
+        if operation == "ingest":
             if not db_path:
                 return {
                     "success": False,
@@ -133,7 +135,7 @@ async def calibre_rag(
                 "data": result,
             }
 
-        elif operation == "ingest_fulltext":
+        if operation == "ingest_fulltext":
             if not all([book_id, title, file_path]):
                 return {
                     "success": False,
@@ -153,13 +155,12 @@ async def calibre_rag(
                 "data": result,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Invalid operation: '{operation}'",
-                "suggestions": ["search", "ingest", "status"],
-            }
+        return {
+            "success": False,
+            "error": f"Invalid operation: '{operation}'",
+            "suggestions": ["search", "ingest", "status"],
+        }
 
     except Exception as e:
-        logger.error(f"Error in calibre_rag tool: {e}", exc_info=True)
+        logger.error("Error in calibre_rag tool: %s", e, exc_info=True)
         return {"success": False, "error": str(e)}

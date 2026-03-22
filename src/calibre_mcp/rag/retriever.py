@@ -1,32 +1,13 @@
 """
-Semantic retrieval: embed query, search LanceDB, return top-k chunks with metadata.
+Semantic retrieval: embed query, search LanceDB (FTS chunk index), return top-k chunks with metadata.
 """
 
 import logging
-import sys
-import os
 from pathlib import Path
 
-central_docs_src = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../../../../mcp-central-docs/src")
-)
-if os.path.exists(central_docs_src) and central_docs_src not in sys.path:
-    sys.path.append(central_docs_src)
+from calibre_mcp.rag.lancedb_vector_store import LanceVectorStore
 
-try:
-    from docs_mcp.backend.rag_core import BaseVectorStore
-
-    HAS_RAG = True
-except ImportError:
-    HAS_RAG = False
-
-    class BaseVectorStore:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def search(self, query, limit=5, where=None):
-            return []
-
+from .storage_paths import fts_chunks_lancedb_dir
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +18,7 @@ def retrieve_chunks(
     top_k: int = 10,
     *,
     persist_directory: Path | None = None,
-    use_ollama: bool = True,  # Ignored (BaseVectorStore does this)
+    use_ollama: bool = True,  # Kept for API compatibility
     ollama_base_url: str = "",
     ollama_model: str = "",
     book_ids: list[int] | None = None,
@@ -50,27 +31,22 @@ def retrieve_chunks(
     if not query or not query.strip():
         return []
 
-    if not HAS_RAG:
-        logger.error("RAG Core unavailable.")
-        return []
-
-    if not persist_directory:
-        db_path = str(metadata_db_path.parent / "lancedb")
+    if persist_directory:
+        db_path = str(Path(persist_directory) / "lancedb")
     else:
-        db_path = str(persist_directory / "lancedb")
+        db_path = str(fts_chunks_lancedb_dir(metadata_db_path))
 
-    store = BaseVectorStore(db_path=db_path, table_name="books_rag")
+    store = LanceVectorStore(db_path=db_path, table_name="books_rag")
 
     where_clause = None
     if book_ids:
-        # LanceDB SQL filter syntax
         id_list = ", ".join(str(bid) for bid in book_ids)
         where_clause = f"metadata.book_id IN ({id_list})"
 
     try:
         results = store.search(query.strip(), limit=top_k, where=where_clause)
     except Exception as e:
-        logger.warning(f"RAG search failed or table empty: {e}")
+        logger.warning("RAG search failed or table empty: %s", e)
         return []
 
     out = []
@@ -82,9 +58,7 @@ def retrieve_chunks(
                 "book_id": meta.get("book_id"),
                 "format": meta.get("format"),
                 "chunk_index": meta.get("chunk_index"),
-                "distance": res.get(
-                    "_distance", 0.0
-                ),  # distance is _distance in lancedb default query
+                "distance": res.get("_distance", 0.0),
             }
         )
     return out

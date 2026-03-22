@@ -1,8 +1,8 @@
 """
-RAG portmanteau: build semantic index from book text, retrieve by natural-language query.
+RAG portmanteau: FTS text chunks → LanceDB (``lancedb/books_rag``), separate from metadata RAG.
 
-Enables queries like "book where somebody was stabbed with an icicle" (weapon melts,
-no evidence) via embedding similarity, not keywords. Requires: Calibre FTS DB, pip install calibre-mcp[rag].
+Semantic search over passages from Calibre's ``full-text-search.db`` (FTS must be enabled).
+Not the same as ``lancedb_metadata`` (metadata-only) or ``lancedb_calibre`` (portmanteau ingest).
 """
 
 import asyncio
@@ -39,13 +39,13 @@ async def rag_index_build(
     """
     Build or rebuild the semantic (RAG) index for the current library.
 
-    Reads book text from Calibre's full-text-search.db, chunks it, embeds with
-    Ollama (nomic-embed-text) or FastEmbed, and stores vectors in Chroma. Run
-    once per library (and after adding many books). Enables rag_retrieve.
+    Reads book text from Calibre's full-text-search.db, chunks it, embeds with fastembed,
+    and stores vectors in LanceDB (``{library}/lancedb``, table ``books_rag``). Run once per
+    library (and after adding many books). Enables rag_retrieve.
 
     Args:
         force_rebuild: If True, clear existing index and rebuild. Default False.
-        use_ollama: Use Ollama for embeddings (recommended). If False, uses FastEmbed.
+        use_ollama: Kept for API compatibility; embeddings use fastembed via LanceVectorStore.
 
     Returns:
         Dict with chunks_indexed, message, execution_time_ms.

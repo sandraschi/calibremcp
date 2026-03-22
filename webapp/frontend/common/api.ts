@@ -514,6 +514,8 @@ export interface Skill {
   id: string;
   name: string;
   prompt: string;
+  /** MCP resource URI when bundled as skill:// (FastMCP 3.1 SkillsDirectoryProvider). */
+  resource?: string;
 }
 
 export async function listSkills(): Promise<{ skills: Skill[] }> {

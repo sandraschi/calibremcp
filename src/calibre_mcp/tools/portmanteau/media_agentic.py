@@ -66,14 +66,13 @@ async def media_synopsis(
         store = _get_vector_store(table_name="calibre_fulltext")
         # Direct LanceDB query with prefilter on book_id
         try:
-            tbl = store.db.open_table("calibre_fulltext")
-            query_embedding = list(
+            tbl = store.db.open_table(store.table_name)
+            qemb = list(
                 store.embedding_model.embed([f"Overview and plot summary of the book {title}"])
             )[0]
+            qvec = qemb.tolist() if hasattr(qemb, "tolist") else list(qemb)
             search_req = (
-                tbl.search(query_embedding)
-                .where(f"metadata.book_id = '{book_id}'")
-                .limit(chunks_to_analyze)
+                tbl.search(qvec).where(f"metadata.book_id = '{book_id}'").limit(chunks_to_analyze)
             )
             raw_chunks = search_req.to_arrow().to_pylist()
         except Exception as e:
@@ -332,11 +331,10 @@ async def media_deep_research(
             b_title = book.get("title")
 
             try:
-                tbl = store.db.open_table("calibre_fulltext")
-                query_embedding = list(store.embedding_model.embed([topic]))[0]
-                search_req = (
-                    tbl.search(query_embedding).where(f"metadata.book_id = '{b_id}'").limit(5)
-                )
+                tbl = store.db.open_table(store.table_name)
+                qemb = list(store.embedding_model.embed([topic]))[0]
+                qvec = qemb.tolist() if hasattr(qemb, "tolist") else list(qemb)
+                search_req = tbl.search(qvec).where(f"metadata.book_id = '{b_id}'").limit(5)
                 raw_chunks = search_req.to_arrow().to_pylist()
 
                 if raw_chunks:

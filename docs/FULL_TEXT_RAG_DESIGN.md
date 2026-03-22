@@ -1,6 +1,14 @@
-# Full-Text RAG Design (Future)
+# Full-Text RAG Design (Future / Partial)
 
-This document describes the planned full-text RAG feature: semantic search over **book content** (EPUB/PDF text), not just metadata. It is not implemented yet; the current RAG over metadata (title, authors, tags, comments, series) is implemented in `rag/metadata_rag.py` and tools `calibre_metadata_index_build` / `calibre_metadata_search`.
+This document describes the **unified** full-text RAG vision: semantic search over **book content** (EPUB/PDF text), not just metadata.
+
+**Status (2026-03):**
+
+- **Metadata RAG** is implemented: `rag/metadata_rag.py`, tools `calibre_metadata_index_build` / `calibre_metadata_search`, directory `lancedb_metadata/`.
+- **Content paths already exist:** Calibre FTS drives `rag_index_build` / `rag_retrieve` (chunks from `full-text-search.db` → `{library}/lancedb`, table `books_rag`); portmanteau `calibre_rag` uses `{library}/lancedb_calibre` (`calibre_media`, `calibre_fulltext`); DeepIngestor fills `calibre_fulltext` from EPUB/PDF files.
+- **Phrase-level navigation** is implemented separately: `search_fulltext(..., resolve_locations=True)` plus `utils/fts_location_resolver.py` (PDF page, EPUB spine href, Calibre `ebook-viewer --open-at search:…`). Dependencies: `ebooklib`, `pymupdf`.
+
+The **schema below** (`book_chunks`, single `lancedb_fulltext` tree) remains the **consolidation target** if you merge those pipelines later.
 
 ## Scope
 
@@ -28,9 +36,9 @@ This document describes the planned full-text RAG feature: semantic search over 
 - **PDF:** Use PyMuPDF or pypdf to extract text by page or by block; merge into chunks with max token size.
 - **Tokenization:** Use a simple length-based approximation or tiktoken if dependency is acceptable; document token limit (e.g. 512) and overlap (e.g. 50).
 
-## Dependencies (Future)
+## Dependencies
 
-- Text extraction: `ebooklib`, `PyMuPDF` (or `pypdf`) — to be added when implementing.
+- Text extraction: **`ebooklib`**, **`pymupdf`** — now core dependencies (FTS location resolver, DeepIngestor).
 - Embedding: already have `fastembed`; reuse for full-text.
 - Storage: already have `lancedb`; add table `book_chunks` with same connection pattern as metadata RAG.
 

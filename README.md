@@ -15,8 +15,11 @@
 
 **Features:**
 - **FastMCP 3.1** - Sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
-- **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search`; preparation for full-book text RAG (see `docs/FULL_TEXT_RAG_DESIGN.md`)
-- **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide)
+- **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search` (`lancedb_metadata/`); see `docs/AGENTIC_AND_RAG.md`
+- **Calibre FTS + phrase locations** - `search_fulltext(resolve_locations=True)`: PDF page / EPUB spine / Calibre `ebook-viewer --open-at search:…` hints (`utils/fts_location_resolver.py`)
+- **Full-book RAG** - FTS-driven chunk index (`rag_index_build` / `rag_retrieve`), portmanteau `calibre_rag`, DeepIngestor; consolidation design in `docs/FULL_TEXT_RAG_DESIGN.md`
+- **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide); bundled **`skill://calibre-expert/SKILL.md`**
+- **Docs** - [MCP prompt catalog](docs/PROMPTS.md) · [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md))
 - **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
 - **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), import/export
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query

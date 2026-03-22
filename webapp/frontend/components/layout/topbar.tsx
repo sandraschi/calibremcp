@@ -155,7 +155,10 @@ export function Topbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900">
+      <header
+        className="sticky top-0 z-50 border-b border-slate-700 shadow-sm"
+        style={{ backgroundColor: 'var(--background)' }}
+      >
         <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <Link href="/" className="font-heading text-xl font-semibold text-amber shrink-0">
             Calibre

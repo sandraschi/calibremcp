@@ -39,14 +39,19 @@ export function LibraryList({ libraries, currentLibrary }: LibraryListProps) {
         <p className="text-slate-400">No libraries found.</p>
       ) : (
         <div className="space-y-2">
-          {libraries.map((library) => (
+          {libraries.map((library) => {
+            /* Single source of truth: current_library from API. is_active can stay stale vs. path quirks. */
+            const isActive = currentLibrary
+              ? library.name === currentLibrary
+              : !!library.is_active;
+            return (
             <button
               type="button"
               key={library.name}
               onClick={() => handleClick(library)}
               disabled={!!switching}
               className={`w-full text-left p-3 border rounded-lg transition-colors ${
-                library.is_active || library.name === currentLibrary
+                isActive
                   ? 'border-amber bg-amber/10'
                   : 'border-slate-600 bg-slate-700/50 hover:bg-slate-700'
               } ${switching ? 'opacity-70 cursor-wait' : 'cursor-pointer'}`}
@@ -58,7 +63,7 @@ export function LibraryList({ libraries, currentLibrary }: LibraryListProps) {
                     {switching === library.name && (
                       <span className="ml-2 text-xs text-slate-400">Switching...</span>
                     )}
-                    {(library.is_active || library.name === currentLibrary) && switching !== library.name && (
+                    {isActive && switching !== library.name && (
                       <span className="ml-2 text-xs bg-amber text-slate-900 px-2 py-1 rounded">
                         Active
                       </span>
@@ -76,7 +81,8 @@ export function LibraryList({ libraries, currentLibrary }: LibraryListProps) {
                 </div>
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

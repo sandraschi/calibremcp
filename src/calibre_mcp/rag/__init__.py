@@ -1,8 +1,7 @@
 """
-RAG over Calibre book text: chunk, embed, store in Chroma, retrieve by semantic query.
+RAG over Calibre book text: FTS chunks → LanceDB (``lancedb/books_rag``), semantic retrieve.
 
-Enables queries like "book where somebody was stabbed with an icicle" (weapon melts,
-no evidence) without keyword match. Optional deps: pip install calibre-mcp[rag].
+Legacy optional Chroma helpers remain in ``store`` (``calibre-mcp[rag]``); primary path is LanceDB.
 """
 
 from .chunking import chunk_books_text

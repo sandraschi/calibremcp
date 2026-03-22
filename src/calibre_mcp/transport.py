@@ -1,38 +1,31 @@
 """
-FastMCP 2.14.4+ Dual Transport Configuration
+Dual transport for CalibreMCP (FastMCP 3.1+): stdio, HTTP streamable, optional SSE.
 
-Standard module for all MCP servers in d:/Dev/repos.
-Provides unified transport configuration for STDIO, HTTP Streamable, and legacy SSE modes.
+PORTMANTEAU PATTERN RATIONALE: One ``run_server`` / ``run_server_async`` entry so CLI and
+embedders do not fork transport logic; aligns with fleet env vars (MCP_HOST, MCP_PORT).
 
 Environment Variables:
-    MCP_TRANSPORT: Transport mode (stdio, http, sse). Default: stdio
-    MCP_HOST: Bind address for HTTP/SSE. Default: 127.0.0.1
-    MCP_PORT: Port for HTTP/SSE. Default: 8000
-    MCP_PATH: HTTP endpoint path. Default: /mcp
+    MCP_TRANSPORT: ``stdio`` | ``http`` | ``sse``. Default: stdio.
+    MCP_HOST: Bind address for HTTP/SSE. Default: 127.0.0.1.
+    MCP_PORT: Port for HTTP/SSE. Default: 10720 (fleet 10700+).
+    MCP_PATH: HTTP path. Default: /mcp.
 
-CLI Arguments:
-    --stdio: Run in STDIO mode (default, for Claude Desktop)
-    --http: Run in HTTP Streamable mode
-    --sse: Run in SSE mode (deprecated)
-    --host: Bind address
-    --port: Port number
-    --path: HTTP endpoint path
-    --debug: Enable debug logging
+CLI:
+    ``--stdio``, ``--http``, ``--sse`` (legacy), ``--host``, ``--port``, ``--path``, ``--debug``.
 
 Usage:
-    from .transport import run_server
+    from calibre_mcp.transport import run_server_async
 
-    mcp = FastMCP("my-server", version="1.0.0")
-
-    def main():
-        run_server(mcp, server_name="my-server")
+    await run_server_async(mcp, server_name="CalibreMCP")
 """
 
 import argparse
 import asyncio
 import logging
 import os
-from typing import Literal, Optional
+from typing import Literal
+
+from fastapi.responses import StreamingResponse
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +34,7 @@ TransportType = Literal["stdio", "http", "sse"]
 # Environment variable standards
 ENV_TRANSPORT = "MCP_TRANSPORT"  # stdio | http | sse
 ENV_HOST = "MCP_HOST"  # default: 127.0.0.1
-ENV_PORT = "MCP_PORT"  # default: 8000
+ENV_PORT = "MCP_PORT"  # default: 10720
 ENV_PATH = "MCP_PATH"  # default: /mcp (HTTP only)
 
 
@@ -55,7 +48,7 @@ def get_transport_config() -> dict:
     return {
         "transport": os.getenv(ENV_TRANSPORT, "stdio").lower(),
         "host": os.getenv(ENV_HOST, "127.0.0.1"),
-        "port": int(os.getenv(ENV_PORT, "8000")),
+        "port": int(os.getenv(ENV_PORT, "10720")),
         "path": os.getenv(ENV_PATH, "/mcp"),
     }
 
@@ -77,7 +70,7 @@ def create_argument_parser(server_name: str) -> argparse.ArgumentParser:
 Environment Variables:
   {ENV_TRANSPORT}    Transport mode: stdio, http, sse (default: stdio)
   {ENV_HOST}         Bind address (default: 127.0.0.1)
-  {ENV_PORT}         Port number (default: 8000)
+  {ENV_PORT}         Port number (default: 10720)
   {ENV_PATH}         HTTP endpoint path (default: /mcp)
 
 Examples:
@@ -85,10 +78,10 @@ Examples:
   python -m {server_name.replace("-", "_")} --stdio
 
   # HTTP mode (web apps)
-  python -m {server_name.replace("-", "_")} --http --port 8080
+  python -m {server_name.replace("-", "_")} --http --port 10720
 
   # Via environment
-  MCP_TRANSPORT=http MCP_PORT=8080 python -m {server_name.replace("-", "_")}
+  MCP_TRANSPORT=http MCP_PORT=10720 python -m {server_name.replace("-", "_")}
 """,
     )
 
@@ -107,7 +100,7 @@ Examples:
         "--host", default=None, help=f"Host to bind to (default: ${ENV_HOST} or 127.0.0.1)"
     )
     parser.add_argument(
-        "--port", type=int, default=None, help=f"Port to listen on (default: ${ENV_PORT} or 8000)"
+        "--port", type=int, default=None, help=f"Port to listen on (default: ${ENV_PORT} or 10720)"
     )
     parser.add_argument(
         "--path", default=None, help=f"HTTP endpoint path (default: ${ENV_PATH} or /mcp)"
@@ -178,7 +171,7 @@ def resolve_config(args: argparse.Namespace) -> dict:
 
 
 def run_server(
-    mcp_app, args: Optional[argparse.Namespace] = None, server_name: str = "mcp-server"
+    mcp_app, args: argparse.Namespace | None = None, server_name: str = "mcp-server"
 ) -> None:
     """
     Unified server runner for all transport modes.
@@ -199,7 +192,7 @@ def run_server(
 
 
 async def run_server_async(
-    mcp_app, args: Optional[argparse.Namespace] = None, server_name: str = "mcp-server"
+    mcp_app, args: argparse.Namespace | None = None, server_name: str = "mcp-server"
 ) -> None:
     """
     Asynchronous unified server runner for all transport modes.
@@ -235,8 +228,11 @@ async def run_server_async(
             path = config["path"]
             endpoint = f"http://{host}:{port}{path}"
 
-            from pydantic import BaseModel
             import subprocess
+
+            from pydantic import BaseModel
+
+            from calibre_mcp.llm_http import DEFAULT_SYSTEM, chat_complete
 
             class LaunchRequest(BaseModel):
                 repo_path: str
@@ -281,8 +277,15 @@ async def run_server_async(
                 search_type: str = "metadata"  # metadata or fulltext
 
             class ChatQuery(BaseModel):
-                message: str
+                """Single-turn (message) or multi-turn (messages); same shape as webapp ``/api/llm/chat``."""
+
+                message: str = ""
                 context: str = ""
+                messages: list[dict[str, str]] | None = None
+                model: str = "llama3.2"
+                stream: bool = False
+                provider: str | None = None
+                base_url: str | None = None
 
             @mcp_app.app.post("/api/v1/search")
             async def semantic_search(req: SearchQuery):
@@ -302,12 +305,53 @@ async def run_server_async(
 
             @mcp_app.app.post("/api/v1/chat")
             async def chat_with_media(req: ChatQuery):
-                # Placeholder for chat functionality depending on LLM orchestration later
-                return {
-                    "success": True,
-                    "response": f"Chat integration placeholder. Received: {req.message}",
-                    "context_used": bool(req.context),
+                """Proxy to local Ollama or OpenAI-compatible API (``LLM_*`` env). Supports streaming."""
+                msgs_in = req.messages if req.messages else []
+                if msgs_in:
+                    built: list[dict[str, str]] = [dict(m) for m in msgs_in]
+                else:
+                    text = (req.message or "").strip()
+                    if not text:
+                        return {
+                            "success": False,
+                            "error": "empty_message",
+                            "message": "Provide `message` or non-empty `messages`.",
+                        }
+                    ctx = (req.context or "").strip()
+                    if ctx:
+                        built = [
+                            {"role": "system", "content": ctx},
+                            {"role": "user", "content": text},
+                        ]
+                    else:
+                        built = [
+                            {"role": "system", "content": DEFAULT_SYSTEM},
+                            {"role": "user", "content": text},
+                        ]
+
+                out = await chat_complete(
+                    built,
+                    model=req.model,
+                    stream=req.stream,
+                    provider=req.provider,
+                    base_url=req.base_url,
+                )
+
+                if isinstance(out, StreamingResponse):
+                    return out
+                if out.get("success") is False:
+                    return out
+                merged: dict = {
+                    **out,
+                    "context_used": bool((req.context or "").strip()),
                 }
+                raw = out.get("raw")
+                if isinstance(raw, dict):
+                    if "message" in raw:
+                        merged["message"] = raw["message"]
+                    if "choices" in raw:
+                        merged["choices"] = raw["choices"]
+                return merged
 
             logger.info(f"Running in HTTP Streamable mode: {endpoint}")
             await mcp_app.run_http_async(host=host, port=port, path=path)

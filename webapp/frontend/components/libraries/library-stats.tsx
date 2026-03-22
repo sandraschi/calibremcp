@@ -2,6 +2,13 @@
 
 import { LibraryStats } from '@/common/api';
 
+/** ISO UTC string — identical on server and client (avoids toLocaleString hydration mismatch). */
+function formatLastModified(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${d.toISOString().slice(0, 19).replace('T', ' ')} UTC`;
+}
+
 interface LibraryStatsDisplayProps {
   stats: LibraryStats;
 }
@@ -48,7 +55,7 @@ export function LibraryStatsDisplay({ stats }: LibraryStatsDisplayProps) {
 
       {stats.last_modified && (
         <div className="text-sm text-slate-500 mt-4">
-          Last modified: {new Date(stats.last_modified).toLocaleString()}
+          Last modified: {formatLastModified(stats.last_modified)}
         </div>
       )}
     </div>

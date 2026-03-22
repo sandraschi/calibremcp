@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **docs/PROMPTS.md** — MCP `@mcp.prompt()` catalog with suggested tool pairings. **docs/COOKBOOK.md** — goal-oriented recipes (FTS vs RAG lanes, workflows). **src/calibre_mcp/skills/calibre-expert/SKILL.md** — bundled `skill://calibre-expert` expert skill (SkillsDirectoryProvider; webapp catalog already referenced it). Skill text includes **Calibre story**: “no competition” for full local library stack (esp. Windows), Kovid/timeline, short official/community pointers, CalibreMCP boundary.
+- **Self-contained LanceDB vector store** (`rag/lancedb_vector_store.py`) — RAG no longer imports `docs_mcp` / external repos; FTS chunk index and portmanteau ingest use `LanceVectorStore` only.
+- **On-disk RAG layout** (`rag/storage_paths.py`) — `{library}/lancedb` (FTS chunks, `books_rag`), `{library}/lancedb_calibre` (`calibre_media`, `calibre_fulltext`), `{library}/lancedb_metadata` (metadata RAG); documented in `docs/AGENTIC_AND_RAG.md`.
+- **`search_fulltext(..., resolve_locations=True)`** — per `books_text` row: `char_offset`/`char_end` when literal match; PDF page + rect (PyMuPDF); EPUB spine href + item order; **`calibre_viewer`** hints for `ebook-viewer --open-at search:…`; PDF **`manage_viewer_get_page`** suggestion. See `utils/fts_location_resolver.py`, `utils/fts_utils.query_fts_detailed`.
+- **Dependencies:** `ebooklib`, `pymupdf` (core) for location resolution and existing DeepIngestor.
+- **HTTP `/api/v1/chat`** — proxies to local Ollama / OpenAI-compatible API via `llm_http.py` (`LLM_*` env); no fake “success” placeholder.
 - **Metadata RAG build progress** - Background build with percentage gauge for large libraries (~10k books)
   - Build runs in background thread; POST `/api/rag/metadata/build` returns immediately with `status: "started"`
   - Progress file `lancedb_metadata/.build_progress.json` (status, current, total, percentage, message)

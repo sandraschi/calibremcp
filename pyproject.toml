@@ -36,7 +36,9 @@ dependencies = [
     "py-key-value-aio[filetree]>=0.4.4,<0.5.0", # FastMCP 2.14.1+ persistent storage backend
     "tenacity>=8.2.0", # Retry logic for network operations and external API calls
     "psutil>=5.9.0", # System and process utilities (required by system_tools)
-    "beautifulsoup4>=4.12.0", # Anna's Archive HTML parsing
+    "beautifulsoup4>=4.12.0", # Anna's Archive HTML parsing; EPUB location resolver
+    "ebooklib>=0.18.0", # EPUB spine / phrase resolution for FTS locations
+    "pymupdf>=1.24.0", # PDF page search for FTS locations (import fitz)
     "ruff>=0.14.1",
     "lancedb>=0.17.0",
     "fastembed>=0.4.0",
@@ -69,6 +71,9 @@ Issues = "https://github.com/sandra/calibre-mcp/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+calibre_mcp = ["skills/**/*.md"]
 
 [tool.black]
 line-length = 100

@@ -1,15 +1,23 @@
 """
-CalibreMCP Prompt Templates
+CalibreMCP MCP prompt templates (FastMCP 3.1 ``@mcp.prompt``).
 
-Comprehensive prompt templates for CalibreMCP use cases.
-These prompts are registered with FastMCP and appear in Claude Desktop and other MCP clients.
+PORTMANTEAU PATTERN RATIONALE: Prompts are discoverable, reusable instruction blocks
+that clients inject into the conversation; they complement portmanteau tools and the
+bundled ``skill://`` skills without duplicating tool schemas.
+
+Each function returns the user-facing prompt body (str). Clients list prompts via MCP
+and fetch by name.
 """
 
 from fastmcp import FastMCP
 
 
 def register_prompts(mcp: FastMCP) -> None:
-    """Register all prompt templates with the FastMCP server."""
+    """Register all ``@mcp.prompt`` handlers on the given FastMCP instance.
+
+    Args:
+        mcp: The server instance (typically ``calibre_mcp.server.mcp``).
+    """
 
     # Reading Recommendations
     @mcp.prompt()

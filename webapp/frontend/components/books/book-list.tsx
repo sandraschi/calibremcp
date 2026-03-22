@@ -76,7 +76,10 @@ function BookItem({ book, onClick }: { book: Book; onClick: () => void }) {
                     {book.pubdate && (
                         <span className="text-xs text-slate-400 flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {new Date(book.pubdate).getFullYear()}
+                            {(() => {
+                              const d = new Date(book.pubdate);
+                              return Number.isFinite(d.getTime()) ? d.getUTCFullYear() : '';
+                            })()}
                         </span>
                     )}
                     {book.tags && book.tags.slice(0, 5).map((tag, i) => {

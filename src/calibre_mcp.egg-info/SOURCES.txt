@@ -8,6 +8,7 @@ src/calibre_mcp/calibre_api.py
 src/calibre_mcp/config.py
 src/calibre_mcp/config_discovery.py
 src/calibre_mcp/exceptions.py
+src/calibre_mcp/llm_http.py
 src/calibre_mcp/logging_config.py
 src/calibre_mcp/mcp_instance.py
 src/calibre_mcp/models.py
@@ -52,8 +53,10 @@ src/calibre_mcp/rag/__init__.py
 src/calibre_mcp/rag/chunking.py
 src/calibre_mcp/rag/embedding.py
 src/calibre_mcp/rag/indexer.py
+src/calibre_mcp/rag/lancedb_vector_store.py
 src/calibre_mcp/rag/metadata_rag.py
 src/calibre_mcp/rag/retriever.py
+src/calibre_mcp/rag/storage_paths.py
 src/calibre_mcp/rag/store.py
 src/calibre_mcp/server/config.py
 src/calibre_mcp/server/main.py
@@ -76,6 +79,7 @@ src/calibre_mcp/services/times_service.py
 src/calibre_mcp/services/user_comment_service.py
 src/calibre_mcp/services/user_service.py
 src/calibre_mcp/services/viewer_service.py
+src/calibre_mcp/skills/calibre-expert/SKILL.md
 src/calibre_mcp/storage/__init__.py
 src/calibre_mcp/storage/local.py
 src/calibre_mcp/storage/persistence.py
@@ -164,6 +168,7 @@ src/calibre_mcp/tools/ocr/__init__.py
 src/calibre_mcp/tools/ocr/calibre_ocr_tool.py
 src/calibre_mcp/tools/organization/__init__.py
 src/calibre_mcp/tools/organization/library_organizer.py
+src/calibre_mcp/tools/portmanteau/__init__.py
 src/calibre_mcp/tools/portmanteau/media_agentic.py
 src/calibre_mcp/tools/portmanteau/search.py
 src/calibre_mcp/tools/publishers/__init__.py
@@ -197,6 +202,7 @@ src/calibre_mcp/tools/viewer/manage_viewer.py
 src/calibre_mcp/utils/__init__.py
 src/calibre_mcp/utils/book_formatter.py
 src/calibre_mcp/utils/finereader.py
+src/calibre_mcp/utils/fts_location_resolver.py
 src/calibre_mcp/utils/fts_utils.py
 src/calibre_mcp/utils/got_ocr.py
 src/calibre_mcp/utils/library_utils.py

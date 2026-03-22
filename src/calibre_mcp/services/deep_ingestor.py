@@ -2,12 +2,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from bs4 import BeautifulSoup
 import ebooklib
-from ebooklib import epub
 import fitz  # PyMuPDF
+from bs4 import BeautifulSoup
+from ebooklib import epub
 
-from docs_mcp.backend.rag_core import BaseVectorStore
+from calibre_mcp.rag.lancedb_vector_store import LanceVectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +19,12 @@ class DeepIngestor:
     deep within the text of the library.
     """
 
-    def __init__(self, vector_store: BaseVectorStore) -> None:
+    def __init__(self, vector_store: LanceVectorStore) -> None:
         """
         Initialize the Deep Ingestor.
 
         Args:
-            vector_store: An instance of BaseVectorStore (LanceDB) pointing to 'calibre_fulltext'.
+            vector_store: LanceDB store (table ``calibre_fulltext``).
         """
         self.vector_store = vector_store
         # Target table name for full-text RAG
@@ -127,7 +127,6 @@ class DeepIngestor:
             return {"status": "success", "count": 0, "message": "No text extracted"}
 
         try:
-            # The BaseVectorStore handles the embedding and insertion
             self.vector_store.add_documents(documents, overwrite=False)
             logger.info(
                 f"Successfully deep-ingested {len(documents)} chunks for '{title}' into {self.table_name}"

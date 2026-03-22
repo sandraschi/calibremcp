@@ -33,6 +33,11 @@ CalibreMCP is a FastMCP 2.0 server that provides comprehensive e-book library ma
 - Caching of common search results
 - Support for large libraries (100,000+ books)
 
+### 1.4 Full-text search (Calibre FTS) and phrase locations
+- **Calibre index:** `full-text-search.db` (FTS5) beside `metadata.db`; content table `books_text` joined to `books_fts` on `books_text.id = books_fts.rowid` (virtual table has no `book` column — see `utils/fts_utils.py`).
+- **Tool:** `search_fulltext` — phrase/word search in book body; optional **`resolve_locations=True`** returns character offsets in indexed text, PDF page (PyMuPDF), EPUB spine href, and Calibre **`ebook-viewer --open-at search:…`** hints for jumping to a quote (e.g. stage directions).
+- **Complement semantic RAG:** use Calibre FTS / `search_fulltext` for exact phrases; use metadata RAG (`calibre_metadata_search`) or chunk RAG (`rag_retrieve`) for meaning-based queries. Prefer **both** when the user query mixes quote-finding and conceptual discovery.
+
 ## 2. AI-Powered Tools
 
 ### 1.1 Book Recommendation Engine

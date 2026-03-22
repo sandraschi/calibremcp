@@ -1,12 +1,17 @@
 """
-Agentic Workflow Tool for Calibre MCP - SEP-1577 Implementation
+Agentic library workflow (FastMCP 3.1, SEP-1577 sampling with tools).
 
-This tool enables autonomous orchestration of complex e-book library operations,
-borrowing the client's LLM to intelligently sequence and execute multiple operations
-without round-trip communication.
+PORTMANTEAU PATTERN RATIONALE: One high-level entry point for multi-step library tasks
+so agents do not hand-orchestrate dozens of raw calls; when ``ctx.sample`` is available,
+the host LLM plans and calls whitelisted tool surfaces, otherwise a deterministic fallback
+runs.
 
-SEP-1577: Sampling with Tools - Server borrows client's LLM for autonomous workflows.
-FastMCP 2.14.4: ctx.sample() with tools for AI-driven agentic workflows.
+Summary:
+- Primary path: ``ctx.sample`` with synthesized tools from allowed operation names.
+- Fallback: rule-based ``_execute_basic_workflow`` when sampling is unavailable or fails.
+
+See Also:
+    ``media_agentic`` for synopsis and reception flows that also use sampling.
 """
 
 import asyncio
@@ -24,6 +29,7 @@ from ..services.extended_metadata_service import (
 )
 from ..services.library_service import library_service
 from ..services.tag_service import tag_service
+from .shared.query_parsing import parse_intelligent_query, strip_inventory_question_phrases
 
 logger = get_logger("calibremcp.tools.agentic_workflow")
 logger.info("Agentic workflow tool module loaded")
@@ -44,188 +50,65 @@ async def intelligent_query_parsing(
     max_attempts: int = 2,
 ) -> dict[str, Any]:
     """
-    Use FastMCP 2.14.3 sampling to ask MCP client LLM to parse natural language queries.
+    Map natural-language library questions to structured search hints.
 
-    This implements SEP-1577 sampling where the server borrows the client's LLM
-    to intelligently parse ambiguous natural language queries.
+    PORTMANTEAU PATTERN RATIONALE: Host LLM sampling is optional; this helper always
+    returns deterministic fields so ``query_books`` / ``calibre_metadata_search`` can run
+    without the client supporting SEP-1577.
 
     Args:
-        query: The original natural language query
-        parsing_prompt: Instructions for the LLM to parse the query
-        max_attempts: Maximum sampling attempts (default: 2)
+        query: User question or search phrase (e.g. inventory-style NL).
+        parsing_prompt: Reserved for future ctx.sample-based parsing.
+        max_attempts: Reserved for retry logic.
 
     Returns:
-        Dictionary with parsing results and success status
+        Dict with ``success``, ``parsed_parameters`` (author, tag, search, semantic_query,
+        prefer_semantic_search, language_hints), and ``parsing_method`` = ``structured_heuristic``.
     """
+    del parsing_prompt, max_attempts  # API stability; sampling integration may use later
     try:
-        logger.info(f"Starting intelligent query parsing for: {query}")
+        logger.info("intelligent_query_parsing: %s", query[:200])
+        structured = parse_intelligent_query(query)
+        parsed_parameters: dict[str, Any] = {}
 
-        # Simulate sampling by returning a structured parsing result
-        # In a real FastMCP 2.14.3 implementation, this would use sampling
-        # to borrow the client's LLM for parsing
+        if structured.get("author"):
+            parsed_parameters["author"] = structured["author"]
+        if structured.get("tag"):
+            parsed_parameters["tag"] = structured["tag"]
+        if structured.get("series"):
+            parsed_parameters["series"] = structured["series"]
+        if structured.get("pubdate"):
+            parsed_parameters["pubdate"] = structured["pubdate"]
+        if structured.get("rating") is not None:
+            parsed_parameters["rating"] = structured["rating"]
+        if structured.get("text"):
+            parsed_parameters["search"] = structured["text"]
+        if structured.get("language_hints"):
+            parsed_parameters["language_hints"] = structured["language_hints"]
 
-        # For now, implement basic fallback parsing
-        # This is a placeholder for the actual sampling implementation
+        semantic_candidate = strip_inventory_question_phrases(query)
+        if structured.get("prefer_semantic_search"):
+            parsed_parameters["prefer_semantic_search"] = True
+            parsed_parameters["semantic_query"] = semantic_candidate or query.strip()
 
-        parsed_parameters = {}
-
-        # Enhanced pattern matching as fallback
-        query_lower = query.lower()
-
-        # Author patterns
-        if "by " in query_lower or "author " in query_lower:
-            # Extract author after "by" or "author"
-            for prefix in ["by ", "author "]:
-                prefix_index = query_lower.find(prefix)
-                if prefix_index >= 0:
-                    author_part = query[prefix_index + len(prefix) :].strip()
-                    # Remove common suffixes and clean up
-                    for suffix in ["books", "book", "novels", "works"]:
-                        author_part = author_part.replace(suffix, "").strip()
-                    if (
-                        author_part and len(author_part.split()) <= 5
-                    ):  # Reasonable author name length
-                        parsed_parameters["author"] = author_part
-                        break
-
-        # Tag/subject patterns
-        elif any(phrase in query_lower for phrase in ["about ", "on ", "tagged ", "category "]):
-            tag_part = ""
-            for prefix in ["about ", "on ", "tagged as ", "tagged ", "category "]:
-                prefix_index = query_lower.find(prefix)
-                if prefix_index >= 0:
-                    tag_part = query[prefix_index + len(prefix) :].strip()
-                    break
-
-            if tag_part:
-                # Remove common suffixes
-                for suffix in ["books", "book", "novels"]:
-                    tag_part = tag_part.replace(suffix, "").strip()
-                if tag_part:
-                    parsed_parameters["tag"] = tag_part
-
-        # Time patterns
-        elif any(
-            phrase in query_lower
-            for phrase in ["last year", "from last year", "this year", "recent", "new books"]
-        ):
-            from datetime import datetime
-
-            if "last year" in query_lower:
-                last_year = datetime.now().year - 1
-                parsed_parameters["pubdate"] = str(last_year)
-            elif "this year" in query_lower:
-                this_year = datetime.now().year
-                parsed_parameters["pubdate"] = str(this_year)
-            elif any(word in query_lower for word in ["recent", "new books"]):
-                # Books from recent months
-                parsed_parameters["added_after"] = "2024-01-01"
-
-        # Title patterns - for queries that look like book titles
-        elif (
-            len(query.split()) <= 6  # Allow slightly longer titles
-            and any(word in query_lower for word in ["find", "search for", "look for"])
-            or (
-                len(query.split()) <= 4
-                and not any(
-                    word in query_lower
-                    for word in [
-                        "by",
-                        "about",
-                        "books",
-                        "show",
-                        "list",
-                        "get",
-                        "tagged",
-                        "category",
-                        "author",
-                        "published",
-                        "from",
-                    ]
-                )
-            )
-        ):
-            # Clean up the query to extract the title
-            title_query = query
-            for prefix in ["find ", "search for ", "look for "]:
-                if title_query.lower().startswith(prefix):
-                    title_query = title_query[len(prefix) :].strip()
-                    break
-
-            if title_query and title_query != query:  # Only if we actually modified it
-                parsed_parameters["title"] = title_query
-            elif len(query.split()) <= 4 and not any(
-                word in query_lower
-                for word in [
-                    "by",
-                    "about",
-                    "books",
-                    "show",
-                    "list",
-                    "get",
-                    "tagged",
-                    "category",
-                    "author",
-                    "published",
-                    "from",
-                ]
-            ):
-                # Looks like a direct title search
-                parsed_parameters["title"] = query.strip()
-
-        # Genre/tag patterns for common genres
-        elif any(
-            genre in query_lower
-            for genre in [
-                "mystery",
-                "science fiction",
-                "sci-fi",
-                "fantasy",
-                "romance",
-                "history",
-                "biography",
-                "non-fiction",
-                "fiction",
-                "horror",
-                "thriller",
-                "crime",
-                "detective",
-                "adventure",
-            ]
-        ):
-            # Extract the genre
-            for genre in [
-                "mystery",
-                "science fiction",
-                "sci-fi",
-                "fantasy",
-                "romance",
-                "history",
-                "biography",
-                "non-fiction",
-                "fiction",
-                "horror",
-                "thriller",
-                "crime",
-                "detective",
-                "adventure",
-            ]:
-                if genre in query_lower:
-                    parsed_parameters["tag"] = genre
-                    break
-
-        success = bool(parsed_parameters)
+        success = bool(parsed_parameters) or bool(structured.get("prefer_semantic_search"))
+        confidence = 0.85 if structured.get("prefer_semantic_search") else (0.75 if success else 0.25)
 
         result = {
             "success": success,
             "parsed_parameters": parsed_parameters if success else {},
             "query": query,
-            "parsing_method": "basic_fallback",  # Would be "sampling" in real implementation
-            "confidence": 0.7 if success else 0.0,
+            "parsing_method": "structured_heuristic",
+            "confidence": confidence,
             "attempts_used": 1,
+            "recommendations": [],
         }
-
-        logger.info(f"Query parsing {'successful' if success else 'failed'}", extra=result)
+        if structured.get("prefer_semantic_search"):
+            result["recommendations"] = [
+                "Use calibre_metadata_search(query=...) with semantic_query for best results on niche genres.",
+                "Ensure calibre_metadata_index_build has been run for this library.",
+            ]
+        logger.info("intelligent_query_parsing result: success=%s keys=%s", success, list(parsed_parameters.keys()))
         return result
 
     except Exception as e:
@@ -559,8 +442,85 @@ Use the tools to gather information and perform operations. Summarize what you d
                 execution_time_ms=int(time.time() * 1000) - start_ms,
             )
 
+    @staticmethod
+    def _looks_like_nl_discovery(workflow_prompt: str) -> bool:
+        """True for inventory / genre questions where semantic or FTS search is appropriate."""
+        pl = workflow_prompt.lower()
+        if any(
+            x in pl
+            for x in (
+                "what ",
+                "which ",
+                "do we have",
+                "locked room",
+                "honkaku",
+                "thriller",
+                "mystery",
+                "japanese",
+                "light novel",
+                "books like",
+                "any books",
+            )
+        ):
+            return True
+        return len(workflow_prompt.split()) >= 8
+
+    async def _execute_nl_discovery_workflow(self, workflow_prompt: str) -> dict[str, Any]:
+        """Answer NL questions (e.g. Japanese locked-room thrillers) via RAG then SQL fallback."""
+
+        def try_semantic() -> list[dict[str, Any]] | None:
+            try:
+                from calibre_mcp.rag.metadata_rag import search_metadata
+
+                return search_metadata(workflow_prompt.strip(), top_k=20)
+            except Exception as e:
+                logger.info("Metadata semantic search unavailable: %s", e)
+                return None
+
+        rag = await asyncio.to_thread(try_semantic)
+        if rag:
+            return {
+                "executed": ["calibre_metadata_search (embedding index)"],
+                "results": [
+                    {
+                        "operation": "semantic_metadata_search",
+                        "result": rag,
+                        "message": "Ranked by similarity to your question. Rebuild index if results look stale.",
+                    }
+                ],
+                "workflow_type": "nl_discovery_semantic",
+            }
+
+        parsed = parse_intelligent_query(workflow_prompt)
+        search = (parsed.get("text") or "").strip() or strip_inventory_question_phrases(
+            workflow_prompt
+        )
+
+        def fts_fallback() -> dict[str, Any]:
+            return self.search_ops.get_all(
+                limit=30,
+                search=search or workflow_prompt,
+                tag_name=parsed.get("tag"),
+                author_name=parsed.get("author"),
+            )
+
+        books = await asyncio.to_thread(fts_fallback)
+        return {
+            "executed": ["query_books_sql_fallback"],
+            "results": [
+                {
+                    "operation": "library_text_search",
+                    "result": books,
+                    "message": "Semantic index unavailable or empty; used SQL text search. "
+                    "Run calibre_metadata_index_build, then calibre_metadata_search for "
+                    "questions like niche genres or multilingual collections.",
+                }
+            ],
+            "workflow_type": "nl_discovery_fts_fallback",
+        }
+
     async def _execute_basic_workflow(
-        self, workflow_prompt: str, available_operations: list[str]
+        self, workflow_prompt: str, _available_operations: list[str]
     ) -> dict[str, Any]:
         """
         Execute a basic workflow based on prompt analysis.
@@ -568,6 +528,9 @@ Use the tools to gather information and perform operations. Summarize what you d
         This is a simplified implementation. A full SEP-1577 implementation would use
         the client's LLM to autonomously decide operations and their sequencing.
         """
+        if self._looks_like_nl_discovery(workflow_prompt):
+            return await self._execute_nl_discovery_workflow(workflow_prompt)
+
         executed = []
         results = []
 
@@ -584,14 +547,13 @@ Use the tools to gather information and perform operations. Summarize what you d
 
                 # Check for duplicate books
                 if "duplicate" in prompt_lower or "duplicates" in prompt_lower:
-                    # In real BookService, we might search for duplicates by title
-                    # This is a bit complex for a one-liner, so we'll just search for common titles for now
-                    # duplicates = await self.search_ops.get_all(limit=10) # Placeholder for real duplicate logic
-                    executed.append("find_duplicates (via search)")
+                    executed.append("find_duplicates")
                     results.append(
                         {
                             "operation": "find_duplicates",
-                            "result": "Found 0 exact duplicates in initial scan",
+                            "result": None,
+                            "message": "[MOCK] No automatic duplicate merge. Use query_books(operation='search') "
+                            "with title filters or inspect books manually.",
                         }
                     )
 

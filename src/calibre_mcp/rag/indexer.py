@@ -1,35 +1,16 @@
 """
-Build RAG index: read chunks from Calibre FTS, embed, upsert into LanceDB via shared BaseVectorStore.
+Build RAG index: read chunks from Calibre FTS, embed, upsert into LanceDB (FTS path, table ``books_rag``).
 """
 
 import logging
-import sys
-import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+from typing import Any
+
+from calibre_mcp.rag.lancedb_vector_store import LanceVectorStore
 
 from .chunking import chunk_books_text
-
-central_docs_src = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../../../../mcp-central-docs/src")
-)
-if os.path.exists(central_docs_src) and central_docs_src not in sys.path:
-    sys.path.append(central_docs_src)
-
-try:
-    from docs_mcp.backend.rag_core import BaseVectorStore
-
-    HAS_RAG = True
-except ImportError:
-    HAS_RAG = False
-
-    class BaseVectorStore:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def add_documents(self, documents, overwrite=True):
-            pass
-
+from .storage_paths import fts_chunks_lancedb_dir
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +23,7 @@ def build_rag_index(
     persist_directory: Path | None = None,
     chunk_size: int = 1200,
     overlap: int = 200,
-    use_ollama: bool = True,  # Kept for signature compatibility but ignored (BaseVectorStore manages embedding)
+    use_ollama: bool = True,  # Kept for API compatibility; embeddings use fastembed in LanceVectorStore
     ollama_base_url: str = "",
     ollama_model: str = "",
     force_rebuild: bool = False,
@@ -53,21 +34,17 @@ def build_rag_index(
 
     Returns number of chunks indexed.
     """
-    if not HAS_RAG:
-        logger.error("docs_mcp.backend.rag_core not found.")
-        return 0
-
-    if not persist_directory:
-        db_path = str(metadata_db_path.parent / "lancedb")
+    if persist_directory:
+        db_path = str(Path(persist_directory) / "lancedb")
     else:
-        db_path = str(persist_directory / "lancedb")
+        db_path = str(fts_chunks_lancedb_dir(metadata_db_path))
 
-    store = BaseVectorStore(db_path=db_path, table_name="books_rag")
+    store = LanceVectorStore(db_path=db_path, table_name="books_rag")
 
-    batch_docs = []
+    batch_docs: list[dict[str, Any]] = []
     total = 0
 
-    def flush():
+    def flush() -> None:
         nonlocal total
         if not batch_docs:
             return
@@ -77,9 +54,7 @@ def build_rag_index(
         if on_progress:
             on_progress(total, total)
 
-    for chunk in chunk_books_text(
-        metadata_db_path, chunk_size=chunk_size, overlap=overlap
-    ):
+    for chunk in chunk_books_text(metadata_db_path, chunk_size=chunk_size, overlap=overlap):
         chunk_id = f"b{chunk['book_id']}_f{chunk['format']}_i{chunk['chunk_index']}"
         batch_docs.append(
             {

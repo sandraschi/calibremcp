@@ -16,7 +16,7 @@ from ..book_tools import get_books_by_series_helper as _get_books_by_series_help
 from ..book_tools import search_books_helper as _search_books_helper
 from ..core.library_operations import list_books_helper as _list_books_helper
 from ..shared.error_handling import handle_tool_error
-from ..shared.query_parsing import parse_intelligent_query
+from ..shared.query_parsing import parse_intelligent_query, strip_inventory_question_phrases
 
 logger = get_logger("calibremcp.tools.book_management")
 
@@ -393,6 +393,8 @@ async def query_books(
                     "content_type": None,
                     "added_after": None,
                     "added_before": None,
+                    "prefer_semantic_search": False,
+                    "language_hints": [],
                 }
             )
 
@@ -437,9 +439,13 @@ async def query_books(
                 )
 
             # Use search_books helper - pass ALL search parameters
+            fts_text = final_text if final_text else None
+            if parsed.get("prefer_semantic_search") and search_text:
+                fts_text = strip_inventory_question_phrases(search_text) or fts_text
+
             result = await _search_books_helper(
                 # Text/search (after removing structured params if parsed)
-                text=final_text if final_text else None,
+                text=fts_text,
                 title=title,  # NEW: Direct title search
                 query=None,  # Already handled via text
                 # Authors (use parsed author if "by" was in query)
@@ -481,6 +487,20 @@ async def query_books(
                 limit=limit,
                 offset=offset,
             )
+
+            if parsed.get("prefer_semantic_search") and isinstance(result, dict):
+                result["semantic_search_recommended"] = True
+                result["semantic_query_suggestion"] = strip_inventory_question_phrases(
+                    search_text or ""
+                ) or (search_text or "").strip()
+                result["language_hints"] = parsed.get("language_hints") or []
+                if result.get("message") is None or isinstance(result.get("message"), str):
+                    base = result.get("message") or ""
+                    hint = (
+                        " For richer matches on niche genres or multilingual collections, "
+                        "run calibre_metadata_search with the same intent after calibre_metadata_index_build."
+                    )
+                    result["message"] = (base + hint).strip()
 
             # Auto-open functionality: if enabled and exactly 1 result found
             if auto_open and result.get("total") == 1 and result.get("items"):

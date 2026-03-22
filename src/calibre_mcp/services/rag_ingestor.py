@@ -1,12 +1,8 @@
-import base64
-import hashlib
-import json
 import logging
 import sqlite3
-from pathlib import Path
 from typing import Any
 
-from docs_mcp.backend.rag_core import BaseVectorStore
+from calibre_mcp.rag.lancedb_vector_store import LanceVectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -14,13 +10,13 @@ logger = logging.getLogger(__name__)
 class CalibreIngestor:
     """Ingests Calibre library metadata into the LanceDB Vector Store."""
 
-    def __init__(self, db_path: str, vector_store: BaseVectorStore) -> None:
+    def __init__(self, db_path: str, vector_store: LanceVectorStore) -> None:
         """
         Initialize the Calibre Ingestor.
 
         Args:
             db_path: Path to the Calibre metadata.db SQLite file.
-            vector_store: An instance of BaseVectorStore (LanceDB).
+            vector_store: LanceDB store (table ``calibre_media``).
         """
         self.db_path = db_path
         self.vector_store = vector_store
@@ -48,7 +44,7 @@ class CalibreIngestor:
 
                 # Query to get essential book metadata
                 query = """
-                SELECT 
+                SELECT
                     b.id,
                     b.title,
                     b.author_sort as text_authors,
@@ -70,9 +66,9 @@ class CalibreIngestor:
                     # Fetch tags for the book
                     cursor.execute(
                         """
-                        SELECT t.name 
-                        FROM tags t 
-                        JOIN books_tags_link btl ON t.id = btl.tag 
+                        SELECT t.name
+                        FROM tags t
+                        JOIN books_tags_link btl ON t.id = btl.tag
                         WHERE btl.book = ?
                     """,
                         (book_id,),
@@ -137,25 +133,6 @@ class CalibreIngestor:
 
         logger.info(f"Extracted {len(books)} books. Preparing to index...")
 
-        # Clear existing table if needed or just add (LanceDB merge/upsert logic)
-        # Assuming BaseVectorStore has an `add_documents` method
-        # Also assuming we either drop the table or rely on the store to handle overwrites if ids match
-        # Let's drop it for simplicity in this baseline implementation if we just want a fresh index
-        try:
-            # Make sure the table exists, we'll just add
-            await self.vector_store._ensure_table(self.table_name)
-
-            # The base vector store in openfang/mcp_central_docs might just have add_documents
-            # Let's inspect what's available
-            pass
-        except Exception:
-            pass
-
-        # We need to map `books` which is a dict of strings/metadata to the BaseVectorStore's expected format.
-        # LanceDB usually expects a list of dictionaries where one key is the text and another is the vector.
-        # But BaseVectorStore handles the embedding inside `add_documents`.
-
-        # We will build the documents list
         documents = []
         for b in books:
             doc = {"id": b["id"], "content": b["content"], "metadata": b["metadata"]}
