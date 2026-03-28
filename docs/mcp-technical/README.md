@@ -86,6 +86,24 @@
 
 ---
 
+### **7. MCP output schemas & bundled skills (UTF-8)** ⭐
+📄 [MCP_OUTPUT_SCHEMAS_AND_SKILLS.md](MCP_OUTPUT_SCHEMAS_AND_SKILLS.md)
+
+**`outputSchema` for `manage_authors` / `calibre_ocr`, legacy author tool cleanup, Windows skill loading**
+
+- FastMCP requires a single **object** output schema (no root `anyOf`).
+- Bundled **`skill://`** reads use UTF-8 under `calibre_mcp/skills/` (patch before `SkillsDirectoryProvider`).
+- Why `author_tools.py` no longer registers duplicate MCP tools.
+
+---
+
+### **8. MCP Apps (Prefab) — optional book card** ⭐
+📄 [MCP_APPS_PREFAB.md](MCP_APPS_PREFAB.md)
+
+**`show_book_prefab_card`**, **`show_libraries_prefab_card`**, **`uv sync --extra apps`**, **`CALIBRE_PREFAB_APPS`**, links to MCP Central Docs fleet standards.
+
+---
+
 ## 🎯 **Purpose**
 
 This directory contains **MCP server technical documentation** including:

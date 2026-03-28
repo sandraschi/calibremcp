@@ -173,6 +173,7 @@ def register_tools(mcp: Any) -> None:
         import_start = time.time()
         try:
             from .rag import (
+                calibre_metadata_export_json,
                 calibre_metadata_index_build,
                 calibre_metadata_search,
                 rag_index_build,
@@ -224,6 +225,14 @@ def register_tools(mcp: Any) -> None:
 
         import_time = time.time() - import_start
         logger.info(f"Help tools loaded in {import_time:.2f}s")
+
+        # MCP Apps / Prefab (optional: calibre-mcp[apps])
+        try:
+            from .prefab import register_prefab_tools
+
+            register_prefab_tools()
+        except Exception as e:
+            logger.warning("Prefab tools not registered: %s", e)
 
         # OCR
         import_start = time.time()

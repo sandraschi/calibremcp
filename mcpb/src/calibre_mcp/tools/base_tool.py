@@ -3,7 +3,7 @@ Base classes for MCP tools.
 """
 
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from fastmcp import FastMCP
 from pydantic import BaseModel
@@ -50,6 +50,7 @@ class BaseTool:
         # Type inference is done from function signature
         tool_name = tool_info.get("name", name)
         tool_description = tool_info.get("description", method.__doc__ or "")
+        output_schema: dict[str, Any] | None = tool_info.get("output_schema")
 
         import inspect
 
@@ -93,7 +94,7 @@ class BaseTool:
 async def wrapper({params_str}):
     # Build kwargs dict
     call_kwargs = {{{", ".join([f'"{name}": {name}' for name in param_names])}}}
-    
+
     # Call method (handle both sync and async)
     if is_async:
         return await method(self, **call_kwargs)
@@ -126,7 +127,10 @@ async def wrapper({params_str}):
         # Set docstring on wrapper so FastMCP can infer description
         wrapper.__name__ = tool_name
         wrapper.__doc__ = tool_description
-        self.mcp.tool()(wrapper)
+        if output_schema is not None:
+            self.mcp.tool(output_schema=output_schema)(wrapper)
+        else:
+            self.mcp.tool()(wrapper)
 
 
 def mcp_tool(
@@ -134,6 +138,7 @@ def mcp_tool(
     description: str | None = None,
     input_model: type[BaseModel] | None = None,
     output_model: type[BaseModel] | None = None,
+    output_schema: dict[str, Any] | None = None,
 ):
     """
     Decorator to mark a method as an MCP tool.
@@ -143,6 +148,7 @@ def mcp_tool(
         description: Tool description (defaults to method docstring)
         input_model: Pydantic model for input validation
         output_model: Pydantic model for output validation
+        output_schema: JSON Schema for tool output (MCP outputSchema; preferred for clients)
     """
 
     def decorator(method):
@@ -151,6 +157,7 @@ def mcp_tool(
             "description": description or method.__doc__ or "",
             "input_model": input_model,
             "output_model": output_model,
+            "output_schema": output_schema,
         }
         return method
 

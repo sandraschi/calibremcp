@@ -62,7 +62,8 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             db: Database service instance
         """
         super().__init__(db, Book, BookResponse)
-        self._library_path_cache = None
+        self._library_path_cache: str | None = None
+        self._library_path_cache_key: str | None = None
 
     def _get_library_base_path(self) -> str | None:
         """
@@ -71,11 +72,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         Returns:
             Library base path (directory containing metadata.db) or None if unavailable
         """
-        if self._library_path_cache is not None:
-            return self._library_path_cache
-
         try:
-            # Get database URL from engine
             if self.db._engine is None:
                 return None
 
@@ -84,8 +81,11 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             # Extract path from SQLite URL (sqlite:///path/to/metadata.db)
             if url.startswith("sqlite:///"):
                 db_path = url.replace("sqlite:///", "").replace("\\", "/")
-                # Get parent directory (library root)
+                abs_db = str(Path(db_path).resolve())
+                if self._library_path_cache_key == abs_db and self._library_path_cache is not None:
+                    return self._library_path_cache
                 library_path = str(Path(db_path).parent)
+                self._library_path_cache_key = abs_db
                 self._library_path_cache = library_path
                 return library_path
         except Exception:
@@ -1284,10 +1284,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
     def _get_cover_data(self, book_id: int) -> bytes | None:
         """
-        Internal method to retrieve cover data for a book.
-
-        This is a placeholder that should be implemented based on your
-        specific storage solution for book covers.
+        Read cover image bytes from the Calibre library folder (``cover.jpg`` / jpeg / png).
 
         Args:
             book_id: ID of the book
@@ -1295,8 +1292,22 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         Returns:
             Bytes of the cover image, or None if no cover exists
         """
-        # TODO: Implement cover data retrieval based on your storage solution
-        # This could read from the filesystem, a blob store, etc.
+        library_path = self._get_library_base_path()
+        if not library_path:
+            return None
+        with self._get_db_session() as session:
+            book = session.query(Book).get(book_id)
+            if not book or not book.has_cover or not book.path:
+                return None
+            rel_path = book.path
+        book_dir = Path(library_path) / rel_path
+        for name in ("cover.jpg", "cover.jpeg", "cover.png", "cover.webp"):
+            candidate = book_dir / name
+            if candidate.is_file():
+                try:
+                    return candidate.read_bytes()
+                except OSError:
+                    return None
         return None
 
     def _to_response(self, book: Book) -> dict[str, Any]:

@@ -43,6 +43,10 @@ async def rag_index_build(
     and stores vectors in LanceDB (``{library}/lancedb``, table ``books_rag``). Run once per
     library (and after adding many books). Enables rag_retrieve.
 
+    **Chunk filters (env):** By default **PDF is excluded** from chunk RAG (set
+    ``CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS=`` empty to include PDFs). Optional
+    ``CALIBRE_RAG_MAX_BOOK_TEXT_CHARS`` skips oversized ``books_text`` rows (e.g. huge textbooks).
+
     Args:
         force_rebuild: If True, clear existing index and rebuild. Default False.
         use_ollama: Kept for API compatibility; embeddings use fastembed via LanceVectorStore.
@@ -300,3 +304,78 @@ async def calibre_metadata_search(
         return await asyncio.to_thread(_run)
     except Exception as e:
         return handle_tool_error(e, tool_name="calibre_metadata_search")
+
+
+@mcp.tool()
+async def calibre_metadata_export_json(
+    output_path: str | None = None,
+    strip_html: bool = True,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """
+    Export all books metadata to a JSON file (titles, authors, tags, series, comments, formats, path).
+
+    Uses the same database path as the MCP server (no Calibre GUI). Comments are the main RAG signal
+    for many libraries; use ``strip_html=true`` for clean text. For Calibre's own ``new_api`` script,
+    see ``scripts/export_metadata_for_rag.py`` with ``calibre-debug -e``.
+
+    After bulk comment edits, run ``calibre_metadata_index_build`` to refresh the LanceDB metadata index.
+
+    Args:
+        output_path: Absolute or relative path for the JSON file. Default: ``calibre_mcp_metadata_export.json``
+            in the current library folder.
+        strip_html: If True (default), normalize HTML in comments to plain text (same as metadata RAG when
+            ``CALIBRE_METADATA_STRIP_HTML`` is on).
+
+    Returns:
+        Dict with books_exported, output_path, message, execution_time_ms.
+    """
+    start = __import__("time").time()
+
+    def _run() -> dict[str, Any]:
+        try:
+            from calibre_mcp.rag.metadata_export import write_metadata_json_file
+        except ImportError as e:
+            return format_error_response(
+                error_msg="Metadata export failed to load.",
+                error_code="EXPORT_DEPS",
+                error_type="ImportError",
+                diagnostic_info={"detail": str(e)},
+            )
+        meta = _get_metadata_path()
+        if not meta or not meta.exists():
+            return format_error_response(
+                error_msg="No library loaded. Use manage_libraries(operation='switch') first.",
+                error_code="NO_LIBRARY",
+                error_type="RuntimeError",
+            )
+        out = Path(output_path) if output_path else meta / "calibre_mcp_metadata_export.json"
+        try:
+            n, resolved = write_metadata_json_file(out, strip_html=strip_html)
+        except RuntimeError as e:
+            return format_error_response(
+                error_msg=str(e),
+                error_code="NO_LIBRARY",
+                error_type="RuntimeError",
+            )
+        except OSError as e:
+            return format_error_response(
+                error_msg=f"Could not write file: {e}",
+                error_code="WRITE_ERROR",
+                error_type="OSError",
+            )
+        elapsed = int((__import__("time").time() - start) * 1000)
+        return {
+            "books_exported": n,
+            "output_path": str(resolved),
+            "message": f"Exported {n} book(s) to {resolved}.",
+            "execution_time_ms": elapsed,
+            "recommendations": [
+                "Ingest JSON into an external vector DB for cross-library RAG, or rebuild metadata index after bulk comment edits.",
+            ],
+        }
+
+    try:
+        return await asyncio.to_thread(_run)
+    except Exception as e:
+        return handle_tool_error(e, tool_name="calibre_metadata_export_json")

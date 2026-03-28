@@ -45,6 +45,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+apps = [
+    "prefab-ui>=0.14.0",
+]
 rag = [
     "chromadb>=0.4.0",
 ]
@@ -65,9 +68,9 @@ dev = [
 calibre-mcp = "calibre_mcp.__main__:run"
 
 [project.urls]
-Homepage = "https://github.com/sandra/calibre-mcp"
-Repository = "https://github.com/sandra/calibre-mcp.git"
-Issues = "https://github.com/sandra/calibre-mcp/issues"
+Homepage = "https://github.com/sandraschi/calibremcp"
+Repository = "https://github.com/sandraschi/calibremcp.git"
+Issues = "https://github.com/sandraschi/calibremcp/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

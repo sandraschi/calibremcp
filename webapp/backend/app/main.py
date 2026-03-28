@@ -65,6 +65,7 @@ from .api import (
 )
 from .cache import get_libraries_cache, update_current_library, update_libraries_cache
 from .config import settings
+from .mcp_access_log_filter import configure_quiet_mcp_http_logging
 
 # Ensure logs dir exists and add file handler for webapp (rotation via logging.handlers)
 _log_dir = project_root / "logs"
@@ -78,6 +79,9 @@ logging.getLogger("uvicorn").addHandler(_handler)
 logging.getLogger("uvicorn.error").addHandler(_handler)
 logging.getLogger("uvicorn.access").addHandler(_handler)
 logging.getLogger("app").addHandler(_handler)
+
+# MCP clients poll POST /mcp often (e.g. prompts/list); avoid filling webapp.log
+configure_quiet_mcp_http_logging()
 
 # Create FastAPI app
 app = FastAPI(

@@ -13,7 +13,7 @@ Portmanteau-first server (FastMCP 3.1+). Names match MCP registration:
 - **query_books** — search/list with filters, optional auto_open
 - **manage_books** — book CRUD / bulk
 - **search_fulltext** — Calibre FTS; optional `resolve_locations` (PDF/EPUB/viewer hints)
-- **calibre_metadata_index_build** / **calibre_metadata_search** — LanceDB metadata RAG
+- **calibre_metadata_index_build** / **calibre_metadata_search** / **calibre_metadata_export_json** — LanceDB metadata RAG + JSON export
 - **rag_index_build** / **rag_retrieve** — chunk RAG from FTS text
 - **calibre_rag** — portmanteau neural / full-text RAG
 - **media_synopsis** / **media_critical_reception** / **media_deep_research** — sampling-oriented media tools
@@ -23,6 +23,7 @@ Portmanteau-first server (FastMCP 3.1+). Names match MCP registration:
 - **manage_system** / **manage_viewer**
 - **help_tool** — bundled help
 - **calibre_ocr** — optional OCR backends
+- **show_book_prefab_card** / **show_libraries_prefab_card** — optional MCP Apps (install **`uv sync --extra apps`**); rich **book** card and **Our Calibre** (all libraries + basic stats); **`CALIBRE_PREFAB_APPS=0`** disables
 
 **Prompts:** `@mcp.prompt()` templates in `src/calibre_mcp/prompts.py` — see `docs/PROMPTS.md`.  
 **Skill:** `skill://calibre-expert/SKILL.md` (bundled under `src/calibre_mcp/skills/`).
@@ -34,7 +35,12 @@ Portmanteau-first server (FastMCP 3.1+). Names match MCP registration:
 | Variable | Role |
 |----------|------|
 | `CALIBRE_LIBRARY_PATH` | Primary library folder (`metadata.db`) |
+| `CALIBRE_METADATA_COMMENT_MAX_CHARS` | Metadata RAG: max chars per book **Comments** field in embedding text (default **20480** = 20 KiB; max 16 MiB) |
+| `CALIBRE_METADATA_STRIP_HTML` | Metadata RAG: `1` (default) strip HTML in comments; `0`/`false` keep raw |
+| `CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS` | **Chunk RAG only** (`rag_index_build`): comma-separated formats to skip. **Unset → excludes PDF**. Metadata RAG is unaffected (same for PDF/EPUB). Set **empty** to index PDFs in chunk RAG |
+| `CALIBRE_RAG_MAX_BOOK_TEXT_CHARS` | Chunk RAG: skip `books_text` rows longer than this (optional; huge textbooks) |
 | `CALIBRE_BETA_TOOLS` | Set `true` to load extra/beta tool modules |
+| `CALIBRE_PREFAB_APPS` | Set **`0`** / **`false`** to skip Prefab tool registration (**`show_book_prefab_card`**, **`show_libraries_prefab_card`**) when **`prefab-ui`** is installed |
 | `LLM_PROVIDER` / `LLM_BASE_URL` / `LLM_API_KEY` | HTTP chat proxy when using `--http` |
 
 See root `README.md` and `docs/AGENTIC_AND_RAG.md` for RAG/FTS env and LanceDB paths.
@@ -66,4 +72,4 @@ See root `README.md` and `docs/AGENTIC_AND_RAG.md` for RAG/FTS env and LanceDB p
 
 ---
 
-*Last updated: 2026-03-22 — aligned with mcp-central-docs MCPB + packaging standards.*
+*Last updated: 2026-03-28 — MCP Apps Prefab **`show_book_prefab_card`**, **`show_libraries_prefab_card`**, **`CALIBRE_PREFAB_APPS`**, **`docs/mcp-technical/MCP_APPS_PREFAB.md`**; metadata RAG env defaults, `justfile` + curated `llms.txt` + `llms-full.txt` (fleet packaging).*

@@ -1,44 +1,35 @@
 # calibre-mcp
 
-> FastMCP 3.1+ MCP server for Calibre libraries: portmanteau tools, FTS + LanceDB RAG, prompts, bundled skill, optional webapp (**10720** / **10721**).
+> FastMCP 3.1+ MCP server for Calibre libraries: portmanteau tools, Calibre FTS, LanceDB metadata + chunk RAG, prompts, bundled skill, optional webapp (**10720** / **10721**).
 
-**Full detail (tools, env, run, troubleshooting):** [llms-full.txt](./llms-full.txt)  
-**MCPB / fleet packaging standard:** [mcp-central-docs — MCPB_PACKAGING_STANDARDS.md](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/MCPB_PACKAGING_STANDARDS.md)
+**Full corpus (tools, env, run, troubleshooting):** [llms-full.txt](./llms-full.txt)
 
-This project includes automated llms.txt generation for AI accessibility; treat **llms-full.txt** as the maintained corpus for tools and ops.
+Fleet bar: **uv** + **justfile** + **llms.txt** / **llms-full.txt** + **glama.json** — [mcp-central-docs PACKAGING_STANDARDS §5](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md)
 
-## Docs
-- [Readme](docs\github\README.md): > **Purpose**: Comprehensive GitHub configuration guide to avoid hours of trial-and-error setup.
-- [Readme](README.md): [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
-- [Readme](docs\glama-platform\README.md): **Complete guide to achieving and maintaining Gold Status on Glama.ai**
-- [Readme](docs\glama\README.md): This directory contains documentation related to achieving GLAMA AI Gold standard status for the Adv...
-- [Readme](docs\mcpb-packaging\README.md): **Complete guide to packaging and distributing MCP servers with MCPB**
-- [Readme](docs\repository-protection\README.md): **Complete guide to keeping your notepadpp-mcp repository safe**
-- [Readme](docs\mcp-technical\README.md): **Technical guides for MCP server development, deployment, and troubleshooting**
-- [Readme](docs\development\README.md): > **Guides, best practices, and development information for CalibreMCP**
-- [Complete Setup Guide](docs\github\COMPLETE_SETUP_GUIDE.md): > **6 hours of pain distilled into 30 minutes of setup**
-- [Glama Github App Setup](docs\glama-platform\GLAMA_GITHUB_APP_SETUP.md): The Glama.ai GitHub App provides automatic integration and real-time updates to the Glama.ai platfor...
+## Quick start
 
-## Api
-- [Viewer](src\calibre_mcp\api\viewer.py): Api definitions and implementations
-- [Libraries](src\calibre_mcp\api\libraries.py): Api definitions and implementations
-- [Calibre Api](src\calibre_mcp\calibre_api.py): Api definitions and implementations
-- [Comment](src\calibre_mcp\models\comment.py): Models definitions and implementations
-- [Server Models](src\calibre_mcp\server_models.py): Models definitions and implementations
-- [Rating](src\calibre_mcp\models\rating.py): Models definitions and implementations
+1. **Clone** the repo, then **`uv sync`** (see README; do not run `uv sync` without checkout).
+2. **stdio MCP:** `uv run python -m calibre_mcp` with `CALIBRE_LIBRARY_PATH` or switch library via tool.
+3. **Webapp:** `webapp/start.ps1` — backend **10720**, frontend **10721**.
 
-## Examples
-- [Search Query Examples](docs\SEARCH_QUERY_EXAMPLES.md): Example usage and code samples
-- [Usage Examples Rating And Dates](docs\USAGE_EXAMPLES_RATING_AND_DATES.md): Example usage and code samples
-- [Samples](samples/): Sample code and implementations
+## Docs (curated)
+
+| Doc | Purpose |
+|-----|---------|
+| [README.md](README.md) | Install, features, examples |
+| [docs/AGENTIC_AND_RAG.md](docs/AGENTIC_AND_RAG.md) | FTS vs metadata RAG vs chunk RAG; LanceDB paths |
+| [docs/COOKBOOK.md](docs/COOKBOOK.md) | Lane picker, chains |
+| [docs/CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](docs/CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md) | `calibre-debug` JSON export, env caps |
+| [docs/PROMPTS.md](docs/PROMPTS.md) | MCP prompt names |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
+| [docs/mcp-technical/MCP_APPS_PREFAB.md](docs/mcp-technical/MCP_APPS_PREFAB.md) | Optional Prefab cards (`show_book_prefab_card`, `show_libraries_prefab_card`; `uv sync --extra apps`) |
 
 ## Configuration
-- [Pyproject](pyproject.toml): Python project configuration and dependencies
-- [Package](webapp\frontend\package.json): Node.js project configuration and dependencies
-- [Cargo](Cargo.toml): Rust project configuration and dependencies
-- [](.env): Environment variables and configuration
-- [Config](.git\config): Application configuration files
 
-## Optional
-- [Changelog](CHANGELOG.md): Project changelog information
-- [Contributing](CONTRIBUTING.md): Project contributing information
+- [pyproject.toml](pyproject.toml) — dependencies, `uv` project
+- [glama.json](glama.json) — registry discovery
+- [manifest.json](manifest.json) — MCPB manifest (see `mcpb/`)
+
+## Scripts
+
+- [scripts/export_metadata_for_rag.py](scripts/export_metadata_for_rag.py) — run with **`calibre-debug -e`** for Calibre `new_api` JSON export

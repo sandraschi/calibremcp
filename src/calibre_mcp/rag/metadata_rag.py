@@ -14,6 +14,11 @@ from typing import Any
 
 from calibre_mcp.db.database import get_database
 from calibre_mcp.db.models import Book, Comment
+from calibre_mcp.rag.text_utils import (
+    get_comment_max_chars,
+    should_strip_html_metadata,
+    strip_html_for_embedding,
+)
 
 logger = logging.getLogger("calibremcp.rag.metadata_rag")
 
@@ -40,8 +45,8 @@ def write_build_started(lancedb_dir: Path) -> None:
     _write_progress(lancedb_dir, "building", 0, 0, "Starting...")
 
 
-# Max characters from comment to include in searchable text
-COMMENT_SNIPPET_LEN = 2000
+# Back-compat alias; use ``get_comment_max_chars()`` (env ``CALIBRE_METADATA_COMMENT_MAX_CHARS``).
+COMMENT_SNIPPET_LEN = 20 * 1024  # 20 KiB; matches ``text_utils`` default
 
 
 def _book_to_searchable_text(
@@ -55,34 +60,35 @@ def _book_to_searchable_text(
         authors = [a.name for a in book.authors] if book.authors else []
         if authors:
             parts.append(" ".join(authors))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("authors for book %s: %s", book.id, e)
     # Series
     try:
         if book.series:
             series_names = [s.name for s in book.series]
             if series_names:
                 parts.append(" ".join(series_names))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("series for book %s: %s", book.id, e)
     # Tags
     try:
         if book.tags:
             parts.append(" ".join(t.name for t in book.tags))
-    except Exception:
-        pass
-    # Comment (snippet)
+    except Exception as e:
+        logger.debug("tags for book %s: %s", book.id, e)
+    # Comment (curated blurbs/notes — primary semantic signal for many libraries)
     try:
         comment = session.query(Comment).filter(Comment.book == book.id).first()
         if comment and comment.text:
-            text = (
-                comment.text[:COMMENT_SNIPPET_LEN] + "..."
-                if len(comment.text) > COMMENT_SNIPPET_LEN
-                else comment.text
-            )
+            text = comment.text
+            if should_strip_html_metadata():
+                text = strip_html_for_embedding(text)
+            max_c = get_comment_max_chars()
+            if len(text) > max_c:
+                text = text[:max_c] + "..."
             parts.append(text)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Could not load comment for book %s: %s", book.id, e)
     return " ".join(p for p in parts if p).strip() or book.title or ""
 
 

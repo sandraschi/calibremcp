@@ -27,6 +27,10 @@ Implementation detail: vector storage lives in **calibre-mcp** (`rag/lancedb_vec
 
 **Semantic search over book metadata** (title, authors, tags, comments, series) without indexing full book text.
 
+**Format:** **PDF and EPUB are treated the same** — metadata comes from `metadata.db` only, not from EPUB vs PDF rendering. PDF caveats apply to **content** (chunk) RAG and FTS body text, not here.
+
+Comments are intentionally part of the embedding text (many libraries use the Comments field for blurbs and curated notes). The indexer applies **`CALIBRE_METADATA_COMMENT_MAX_CHARS`** (default **20480** = 20 KiB per book comment in the embedding blob; max **16777216**) and optional HTML stripping via **`CALIBRE_METADATA_STRIP_HTML`** (default on); see **`rag/text_utils.py`**. For JSON exports use **`calibre_metadata_export_json`** or the **`calibre-debug`** script — **[CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](./CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md)**.
+
 1. **Build index** (once per library, or after large changes):
    - MCP: `calibre_metadata_index_build(force_rebuild=False)` — starts in background; poll build status for progress.
    - Webapp: Semantic Search page → "Build index" or "Rebuild from scratch" — shows a **percentage progress bar** (gathering metadata, then embedding) until done.
@@ -58,4 +62,5 @@ When the server runs with **`--http`**, optional endpoints include semantic sear
 
 - [PROMPTS.md](./PROMPTS.md) — MCP prompt names × tools  
 - [COOKBOOK.md](./COOKBOOK.md) — recipes (lane picker, chains)  
+- [CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](./CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md) — `calibre-debug` JSON export, LanceDB alignment, implementation phases  
 - Bundled skill: `skill://calibre-expert/SKILL.md`

@@ -261,5 +261,13 @@ interface SearchResponse {
 - FastMCP 3.1 agentic workflows and tool loading fixes
 - Enhanced 3-column webapp book modal and SOTA UI refinements
 
-## 10. License
+## 10. MCP Apps (Prefab) — rich cards (2026)
+
+- **Purpose:** Optional Prefab tools for capable MCP hosts (e.g. Claude Desktop): **`show_book_prefab_card(book_id)`** — **title, authors, series, tags, cover, plain synopsis**; **`show_libraries_prefab_card()`** — **Our Calibre** overview (all discovered libraries, book counts, size, active flag, paths).
+- **Install:** **`uv sync --extra apps`** (pulls **`prefab-ui`**). **`CALIBRE_PREFAB_APPS=0`** disables tool registration.
+- **Implementation:** FastMCP **`@mcp.tool(app=True)`**, **`ToolResult`** + **`PrefabApp`**; Calibre **comments** may contain HTML — strip for display; **one `Text` node per line/paragraph** where layout matters.
+- **Fallback:** Hosts without App rendering receive **`content`** text; server must not require Prefab for core library operations.
+- **Documentation:** `docs/mcp-technical/MCP_APPS_PREFAB.md`; fleet standard [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md) (MCP Central Docs).
+
+## 11. License
 MIT License

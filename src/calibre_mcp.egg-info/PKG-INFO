@@ -1,14 +1,14 @@
 Metadata-Version: 2.4
 Name: calibre-mcp
-Version: 1.1.0
+Version: 1.4.0
 Summary: FastMCP 3.1+ server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG
 Home-page: https://github.com/sandraschi/calibremcp
 Author: Sandra Schi
 Author-email: Sandra <sandra@example.com>
 License: MIT
-Project-URL: Homepage, https://github.com/sandra/calibre-mcp
-Project-URL: Repository, https://github.com/sandra/calibre-mcp.git
-Project-URL: Issues, https://github.com/sandra/calibre-mcp/issues
+Project-URL: Homepage, https://github.com/sandraschi/calibremcp
+Project-URL: Repository, https://github.com/sandraschi/calibremcp.git
+Project-URL: Issues, https://github.com/sandraschi/calibremcp/issues
 Keywords: mcp,calibre,ebooks,fastmcp
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
@@ -37,6 +37,8 @@ Requires-Dist: pymupdf>=1.24.0
 Requires-Dist: ruff>=0.14.1
 Requires-Dist: lancedb>=0.17.0
 Requires-Dist: fastembed>=0.4.0
+Provides-Extra: apps
+Requires-Dist: prefab-ui>=0.14.0; extra == "apps"
 Provides-Extra: rag
 Requires-Dist: chromadb>=0.4.0; extra == "rag"
 Provides-Extra: dev
@@ -61,9 +63,9 @@ Dynamic: requires-python
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.1+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.1.0-blue)](pyproject.toml)
+[![Version](https://img.shields.io/badge/Version-1.4.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
-[![Portmanteau Tools](https://img.shields.io/badge/Tools-21-orange)](docs/development/README.md)
+[![Portmanteau Tools](https://img.shields.io/badge/Tools-22-orange)](docs/development/README.md)
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
@@ -71,12 +73,15 @@ Dynamic: requires-python
 
 **Features:**
 - **FastMCP 3.1** - Sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
-- **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search`; preparation for full-book text RAG (see `docs/FULL_TEXT_RAG_DESIGN.md`)
-- **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide)
+- **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search` (`lancedb_metadata/`); see `docs/AGENTIC_AND_RAG.md`
+- **Calibre FTS + phrase locations** - `search_fulltext(resolve_locations=True)`: PDF page / EPUB spine / Calibre `ebook-viewer --open-at search:…` hints (`utils/fts_location_resolver.py`)
+- **Full-book RAG** - FTS-driven chunk index (`rag_index_build` / `rag_retrieve`), portmanteau `calibre_rag`, DeepIngestor; consolidation design in `docs/FULL_TEXT_RAG_DESIGN.md`
+- **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide); bundled **`skill://calibre-expert/SKILL.md`**
+- **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)** · [MCP prompt catalog](docs/PROMPTS.md) · [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md)) · [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md)
 - **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
 - **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), import/export
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
-- **Portmanteau Tools** - 21 consolidated tools (18 portmanteau + 3 specialized)
+- **Portmanteau Tools** - 21 consolidated portmanteau tools + RAG helpers (e.g. **`calibre_metadata_export_json`**); see FastMCP registration
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
@@ -374,18 +379,17 @@ pip install calibre-mcp
 
 #### **What is MCPB?**
 
-MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles everything needed into a single `.mcpb` file. It's Claude Desktop's preferred installation method.
+MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles **self-contained source** (and assets) into a single `.mcpb` file for **Claude Desktop** drag-and-drop install. Fleet layout and rules: **[MCP Central Docs — MCPB_PACKAGING_STANDARDS.md](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/MCPB_PACKAGING_STANDARDS.md)** and **[PACKAGING_STANDARDS.md §5](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md#5-python-mcp-repo-uv-justfile-llmstxt-glama-mcpb-pack)** (no `pyproject.toml` / lockfiles inside the bundle; install Python deps via **`uv sync`** or PyPI from a clone).
+
+CalibreMCP’s pack root is **`mcpb/`** (`manifest.json`, `assets/`, synced `src/calibre_mcp/`). See **`mcpb/README.md`**. Build: **`just mcpb-pack`** or **`.\scripts\build-mcpb-package.ps1 -NoSign`** → **`dist\calibre-mcp.mcpb`**.
 
 #### **Install MCPB CLI (for building packages)**
 
 The MCPB CLI is only needed if you want to **build** packages from source. End users don't need it.
 
 ```bash
-# Install MCPB CLI globally
 npm install -g @anthropic-ai/mcpb
-
-# Or use npx (no installation needed)
-npx @anthropic-ai/mcpb --version
+mcpb --version
 ```
 
 #### **Get the CalibreMCP Package**

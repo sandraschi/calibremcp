@@ -25,6 +25,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **MCP Apps (Prefab) — book card** — **`show_book_prefab_card(book_id)`** (`@mcp.tool(app=True)`), **`ToolResult`** + **`PrefabApp`**, cover + plain synopsis (HTML stripped from comments), metadata as separate **`Text`** nodes. Optional extra **`calibre-mcp[apps]`** / **`prefab-ui`**; **`CALIBRE_PREFAB_APPS=0`** disables. **`register_prefab_tools()`** from **`register_tools()`**; webapp **`tool_map`** / **`tool_modules`**. Docs: **`docs/mcp-technical/MCP_APPS_PREFAB.md`**; fleet standard [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md) (MCP Central Docs).
+- **MCP Apps (Prefab) — Our Calibre libraries card** — **`show_libraries_prefab_card()`** (async **`@mcp.tool(app=True)`**): all discovered libraries with book count, size, active flag, truncated path; uses **`list_libraries_helper`** (same discovery as **`manage_libraries(operation='list')`**). Same **`[apps]`** extra / **`CALIBRE_PREFAB_APPS`**; webapp import maps; **`skill://calibre-expert`**, **`docs/mcp-technical/MCP_APPS_PREFAB.md`**, PRD §10 updated.
+- **Chunk RAG filters** — `rag/chunking.py`: default **exclude PDF** from FTS chunk index (`CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS` unset); empty env includes all formats; optional **`CALIBRE_RAG_MAX_BOOK_TEXT_CHARS`** skips oversized `books_text` rows. Docs: `docs/FULL_TEXT_RAG_DESIGN.md`, `docs/COOKBOOK.md`, `llms-full.txt`. Tests: `tests/unit/test_chunking_filters.py`.
+- **Metadata RAG comment handling** — `rag/text_utils.py`: `CALIBRE_METADATA_COMMENT_MAX_CHARS` (default **20480** = 20 KiB per comment in embedding text, max 16 MiB), `CALIBRE_METADATA_STRIP_HTML`; HTML stripped for embeddings by default; `rag/metadata_export.py` + MCP tool **`calibre_metadata_export_json`**.
+- **Calibre-debug RAG export** — `docs/CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md` (complete); `scripts/export_metadata_for_rag.py` (run via `calibre-debug -e`; loads `text_utils` when repo `src` is on path). `tests/unit/test_rag_text_utils.py`. Linked from `docs/AGENTIC_AND_RAG.md`, `docs/COOKBOOK.md`.
+- **MCP output schemas** — `manage_authors` and `calibre_ocr` register explicit **`outputSchema`** (Pydantic JSON Schema) for client/tool-catalog consumers; see `docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md`.
+- **`skills_encoding.py`** — Scoped UTF-8 `Path.read_text` behavior for bundled **`calibre_mcp/skills/`** on Windows before `SkillsDirectoryProvider` loads `SKILL.md` (avoids cp1252 `UnicodeDecodeError` on UTF-8 files).
+
+### Changed
+- **Webapp MCP client** — After **`import calibre_mcp.tools`**, calls **`register_prefab_tools()`** so dynamic **`show_book_prefab_card`** / **`show_libraries_prefab_card`** imports resolve to real handlers when **`calibre-mcp[apps]`** is installed (optional; debug-log on skip).
+- **README** / **docs/DOCUMENTATION_INDEX.md** — Prefab docs line: “optional rich cards” (not book-only).
+- **`author_tools.py`** — Removed legacy `@mcp_tool` definitions on individual author helpers; schemas live in `tools/author_schemas.py` and attach to **`manage_authors`** only (avoids duplicate tool definitions in static analysis).
+- **`tests/test_tool_preload.py`** — Skips optional tool modules when `import_module` raises **`ModuleNotFoundError`** (e.g. missing `manage_specialized`).
+- **Webapp backend logging** — `mcp_access_log_filter.py` quiets **`uvicorn.access`** spam for successful **`/mcp`** polls (e.g. frequent `prompts/list`) and raises **`mcp` / `fastmcp`** to **WARNING**; override with **`CALIBRE_LOG_MCP_HTTP_ACCESS`** / **`CALIBRE_MCP_DEBUG_LOG`**. See `docs/Troubleshooting.md`.
+
 ## [1.4.0] - 2026-03-22
 
 ### Changed

@@ -18,6 +18,7 @@ src/calibre_mcp/server_context.py
 src/calibre_mcp/server_full.py
 src/calibre_mcp/server_minimal.py
 src/calibre_mcp/server_models.py
+src/calibre_mcp/skills_encoding.py
 src/calibre_mcp/transport.py
 src/calibre_mcp/utils.py
 src/calibre_mcp.egg-info/PKG-INFO
@@ -54,10 +55,12 @@ src/calibre_mcp/rag/chunking.py
 src/calibre_mcp/rag/embedding.py
 src/calibre_mcp/rag/indexer.py
 src/calibre_mcp/rag/lancedb_vector_store.py
+src/calibre_mcp/rag/metadata_export.py
 src/calibre_mcp/rag/metadata_rag.py
 src/calibre_mcp/rag/retriever.py
 src/calibre_mcp/rag/storage_paths.py
 src/calibre_mcp/rag/store.py
+src/calibre_mcp/rag/text_utils.py
 src/calibre_mcp/server/config.py
 src/calibre_mcp/server/main.py
 src/calibre_mcp/server/mcp_server.py
@@ -87,11 +90,13 @@ src/calibre_mcp/storage/remote.py
 src/calibre_mcp/tools/__init__.py
 src/calibre_mcp/tools/agentic.py
 src/calibre_mcp/tools/agentic_workflow.py
+src/calibre_mcp/tools/author_schemas.py
 src/calibre_mcp/tools/author_tools.py
 src/calibre_mcp/tools/base_tool.py
 src/calibre_mcp/tools/book_tools.py
 src/calibre_mcp/tools/compat.py
 src/calibre_mcp/tools/library_tools.py
+src/calibre_mcp/tools/ocr_output_schema.py
 src/calibre_mcp/tools/tag_tools.py
 src/calibre_mcp/tools/viewer_tools.py
 src/calibre_mcp/tools/advanced_features/__init__.py
@@ -171,6 +176,8 @@ src/calibre_mcp/tools/organization/library_organizer.py
 src/calibre_mcp/tools/portmanteau/__init__.py
 src/calibre_mcp/tools/portmanteau/media_agentic.py
 src/calibre_mcp/tools/portmanteau/search.py
+src/calibre_mcp/tools/prefab/__init__.py
+src/calibre_mcp/tools/prefab/book_card.py
 src/calibre_mcp/tools/publishers/__init__.py
 src/calibre_mcp/tools/publishers/manage_publishers.py
 src/calibre_mcp/tools/publishers/publisher_helpers.py

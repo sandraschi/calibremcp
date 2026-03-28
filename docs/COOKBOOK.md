@@ -22,6 +22,8 @@ Goal-oriented recipes. Parameter-level SQL and search construction also live in 
 2. **`calibre_metadata_search(query="…", top_k=…)`** over title, authors, tags, comments, series.  
 3. Optional: open a result with **`manage_viewer`**.
 
+**External vector DB / backup:** call **`calibre_metadata_export_json`** (writes JSON via `metadata.db`; default file `calibre_mcp_metadata_export.json` in the library folder) or run **`scripts/export_metadata_for_rag.py`** through **`calibre-debug -e`** for Calibre’s `new_api`. Tune **`CALIBRE_METADATA_COMMENT_MAX_CHARS`** and **`CALIBRE_METADATA_STRIP_HTML`** before **`calibre_metadata_index_build`** so the LanceDB metadata index matches how you treat comments. Details: [CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](./CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md).
+
 ---
 
 ## 3. “What happens in chapter Y / this theme in the text” (chunk RAG)
@@ -30,7 +32,9 @@ Goal-oriented recipes. Parameter-level SQL and search construction also live in 
 2. **`rag_retrieve`** (or portmanteau **`calibre_rag`** per your deployment) for semantic passage retrieval.  
 3. Combine with **`search_fulltext`** when the user gives exact wording.
 
-See [AGENTIC_AND_RAG.md](./AGENTIC_AND_RAG.md) for `lancedb*` layout and DeepIngestor vs FTS chunk paths.
+**Formats (content RAG only):** **Metadata RAG** (§2) is the same for PDF and EPUB — it never reads the file body. **Chunk RAG** (this section) indexes `searchable_text` from Calibre FTS; by default **PDF is excluded** (`CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS` unset → PDF skipped) because PDF body text is often a poor fit for semantic chunks. Set `CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS=` empty to include PDFs, or `CALIBRE_RAG_MAX_BOOK_TEXT_CHARS` to skip oversized rows.
+
+See [AGENTIC_AND_RAG.md](./AGENTIC_AND_RAG.md) for `lancedb*` layout and DeepIngestor vs FTS chunk paths. [FULL_TEXT_RAG_DESIGN.md](./FULL_TEXT_RAG_DESIGN.md) for backlog and filters.
 
 ---
 

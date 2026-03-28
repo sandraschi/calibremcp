@@ -43,6 +43,15 @@ try:
     import calibre_mcp.tools  # noqa: F401
 
     _calibre_mcp_available = True
+    # Patch Prefab tool modules with real handlers (optional [apps]); same as MCP register_prefab_tools().
+    try:
+        from calibre_mcp.tools.prefab import register_prefab_tools
+
+        register_prefab_tools()
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).debug("Prefab tools not registered for webapp direct import: %s", e)
 except ImportError as e:
     import logging
 
@@ -269,6 +278,7 @@ class MCPClient:
                     # RAG tools (multiple tools per module case)
                     "calibre_metadata_index_build": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_index_build",
                     "calibre_metadata_search": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_search",
+                    "calibre_metadata_export_json": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_export_json",
                     "rag_index_build": "calibre_mcp.tools.rag.manage_rag:rag_index_build",
                     "rag_retrieve": "calibre_mcp.tools.rag.manage_rag:rag_retrieve",
                     # Portmanteau / Agentic tools
@@ -278,6 +288,8 @@ class MCPClient:
                     "media_deep_research": "calibre_mcp.tools.portmanteau.media_agentic:media_deep_research",
                     "agentic_library_workflow": "calibre_mcp.tools.agentic_workflow:agentic_library_workflow",
                     "search_fulltext": "calibre_mcp.tools.book_management.fulltext_search:search_fulltext",
+                    "show_book_prefab_card": "calibre_mcp.tools.prefab.book_card:show_book_prefab_card",
+                    "show_libraries_prefab_card": "calibre_mcp.tools.prefab.libraries_card:show_libraries_prefab_card",
                 }
 
                 if tool_name not in tool_map:
@@ -563,6 +575,7 @@ def _preload_tools():
         # RAG tools (multiple tools per module case)
         "calibre_metadata_index_build": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_index_build",
         "calibre_metadata_search": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_search",
+        "calibre_metadata_export_json": "calibre_mcp.tools.rag.manage_rag:calibre_metadata_export_json",
         "rag_index_build": "calibre_mcp.tools.rag.manage_rag:rag_index_build",
         "rag_retrieve": "calibre_mcp.tools.rag.manage_rag:rag_retrieve",
         # Portmanteau / Agentic tools
@@ -572,6 +585,8 @@ def _preload_tools():
         "media_deep_research": "calibre_mcp.tools.portmanteau.media_agentic:media_deep_research",
         "agentic_library_workflow": "calibre_mcp.tools.agentic_workflow:agentic_library_workflow",
         "search_fulltext": "calibre_mcp.tools.book_management.fulltext_search:search_fulltext",
+        "show_book_prefab_card": "calibre_mcp.tools.prefab.book_card:show_book_prefab_card",
+        "show_libraries_prefab_card": "calibre_mcp.tools.prefab.libraries_card:show_libraries_prefab_card",
         # OCR (if available)
         # Note: OCR tool may be a BaseTool class, handle separately if needed
     }

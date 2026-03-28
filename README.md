@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.4.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
-[![Portmanteau Tools](https://img.shields.io/badge/Tools-21-orange)](docs/development/README.md)
+[![Portmanteau Tools](https://img.shields.io/badge/Tools-22-orange)](docs/development/README.md)
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
@@ -19,11 +19,12 @@
 - **Calibre FTS + phrase locations** - `search_fulltext(resolve_locations=True)`: PDF page / EPUB spine / Calibre `ebook-viewer --open-at search:…` hints (`utils/fts_location_resolver.py`)
 - **Full-book RAG** - FTS-driven chunk index (`rag_index_build` / `rag_retrieve`), portmanteau `calibre_rag`, DeepIngestor; consolidation design in `docs/FULL_TEXT_RAG_DESIGN.md`
 - **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide); bundled **`skill://calibre-expert/SKILL.md`**
-- **Docs** - [MCP prompt catalog](docs/PROMPTS.md) · [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md))
+- **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)** · [MCP prompt catalog](docs/PROMPTS.md) · [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md)) · [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md) · [MCP Apps / Prefab (optional rich cards)](docs/mcp-technical/MCP_APPS_PREFAB.md)
+- **MCP Apps (Prefab)** — Optional **`show_book_prefab_card`**, **`show_libraries_prefab_card`** (“Our Calibre”): install with **`uv sync --extra apps`**; rich cards in capable clients; **`CALIBRE_PREFAB_APPS=0`** to disable. Fleet guide: [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md)
 - **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
 - **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), import/export
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
-- **Portmanteau Tools** - 21 consolidated tools (18 portmanteau + 3 specialized)
+- **Portmanteau Tools** - 21 consolidated portmanteau tools + RAG helpers (e.g. **`calibre_metadata_export_json`**); see FastMCP registration
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed

@@ -177,7 +177,7 @@ PLATFORM (2026):
 CORE:
 - Libraries: manage_libraries (list/switch/stats), multi-library discovery.
 - Books: query_books, manage_books; authors, series, tags, publishers, files, viewer.
-- RAG: calibre_metadata_search, rag_retrieve when indexes exist (LanceDB).
+- RAG: calibre_metadata_search, rag_retrieve when indexes exist (LanceDB); calibre_metadata_export_json for JSON dumps (external RAG pipelines).
 
 RETURNS:
 - Prefer structured dicts with success, message, and domain fields; errors include error and recovery hints.
@@ -193,6 +193,10 @@ logger.info("FastMCP instance created")
 # Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
 _skills_root = Path(__file__).resolve().parent / "skills"
 if _skills_root.is_dir():
+    from .skills_encoding import install_skills_utf8_read_patch
+
+    install_skills_utf8_read_patch([_skills_root])
+
     from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     mcp.add_provider(SkillsDirectoryProvider(roots=[_skills_root]))

@@ -18,7 +18,7 @@ Tools consolidated to 15 core + optional beta tools. Mock/placeholder tools remo
 | 5 | manage_comments | create, read, update, delete, append |
 | 6 | manage_series | list, create, update, delete |
 | 7 | manage_publishers | list, create, update, delete |
-| 8 | manage_authors | list, create, update, delete |
+| 8 | manage_authors | list, get, get_books, stats, by_letter (see `manage_authors` docstring) |
 | 9 | manage_files | read, write, convert, extract |
 | 10 | manage_analysis | analyze, stats, health |
 | 11 | manage_library_operations | analyze_series, fix_series_metadata, merge_series, list_books |
@@ -66,6 +66,10 @@ Or in `.env`:
 ```
 CALIBRE_BETA_TOOLS=true
 ```
+
+## MCP output schemas (FastMCP 3.1+)
+
+`manage_authors` and `calibre_ocr` expose explicit JSON **`outputSchema`** (single object type per FastMCP rules). Bundled skills and Windows UTF-8 loading are documented in [mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md](mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md).
 
 ## Future Consolidation (Optional)
 

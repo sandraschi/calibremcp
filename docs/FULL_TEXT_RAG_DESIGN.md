@@ -47,7 +47,31 @@ The **schema below** (`book_chunks`, single `lancedb_fulltext` tree) remains the
 - On-demand build (like current `rag_index_build`) or incremental: track last_modified per book and re-chunk only changed books.
 - Full-text index path: e.g. `{library_path}/lancedb_fulltext` to keep separate from `lancedb_metadata`.
 
-## Implementation Order (When Ready)
+## Chunk RAG filters (FTS path, shipped)
+
+`rag_index_build` reads `books_text` rows from `full-text-search.db`. Operators can tune:
+
+| Env | Default | Meaning |
+|-----|---------|--------|
+| `CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS` | Unset → PDF excluded | Comma-separated format codes to **skip**. Unset means **PDF only** excluded. EPUB-first libraries: keep default. To include PDFs in chunk RAG, set **`CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS=`** (empty string). |
+| `CALIBRE_RAG_MAX_BOOK_TEXT_CHARS` | *(none)* | If set, skip any row whose `searchable_text` length exceeds this (e.g. `5000000` to drop giant medical texts). |
+
+**Metadata RAG** (`calibre_metadata_index_build`) uses the same catalog fields for **every** book (EPUB, PDF, etc.): title, authors, tags, **comments**, series — no format-specific path. PDF vs EPUB only matters for **content** (chunk) RAG, not metadata RAG.
+
+---
+
+## Prioritized backlog (full content RAG + ops)
+
+1. **Must-have — full content RAG quality:** EPUB-first chunk pipeline polish (section-aware splits, token limits), incremental re-index by `last_modified`, and retrieval UX (snippets + book_id + title).
+2. **PDF policy:** keep **default exclude PDF** for chunk RAG; document **explicit** opt-in (`CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS=`). Optional future: OCR / layout-aware path **only** for tagged books, not the default.
+3. **Size / sanity:** `CALIBRE_RAG_MAX_BOOK_TEXT_CHARS` for “too big” rows; optional per-format caps later.
+4. **Reliability + CI:** `just check` + integration test on a tiny fixture SQLite FTS.
+5. **Webapp parity:** “Export metadata JSON” button; optional “rebuild chunk index” with filter hints.
+6. **Observability:** structured logs for index build duration, rows skipped (format + oversize counts).
+
+---
+
+## Implementation Order (legacy list — partial)
 
 1. Add extraction and chunking module for EPUB/PDF.
 2. Add LanceDB table `book_chunks` and ingest pipeline.

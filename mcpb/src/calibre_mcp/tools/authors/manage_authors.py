@@ -8,6 +8,7 @@ from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp
+from ..author_schemas import MANAGE_AUTHORS_OUTPUT_SCHEMA
 from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
@@ -22,7 +23,7 @@ from .author_helpers import (
 logger = get_logger("calibremcp.tools.authors")
 
 
-@mcp.tool()
+@mcp.tool(output_schema=MANAGE_AUTHORS_OUTPUT_SCHEMA)
 async def manage_authors(
     operation: str,
     # List operation parameters
@@ -57,18 +58,26 @@ async def manage_authors(
         operation (str, required): The operation to perform. Must be one of:
             "list", "get", "get_books", "stats", "by_letter".
         query (str | None): Search term to filter authors by name (partial match).
-        limit (int): Maximum number of authors/books to return (default: 50).
-        offset (int): Pagination offset for large result sets (default: 0).
-        author_id (int | None): Unique author identifier. Required for: get, get_books.
-        letter (str | None): Single first letter for filtering. Required for: by_letter.
+        limit (int): Maximum number of authors/books to return (default: 50, max 1000).
+        offset (int): Pagination: skip this many rows before returning results. Use with
+            ``limit``; page number is ``(offset // limit) + 1``. If ``offset`` is greater than
+            or equal to the total number of matches, ``items`` (for list) or ``books`` (for
+            get_books) may be empty.
+        author_id (int | None): Calibre ``authors.id`` primary key (positive integer).
+            Required for ``get`` and ``get_books``. Obtain ids from ``operation='list'``.
+        letter (str | None): Single A–Z character for ``by_letter`` (case-insensitive).
 
     Returns:
-        Dictionary containing operation-specific results:
-        - For 'list': paginated list of authors with total count and paging metadata
-        - For 'get': individual author details (name, sort, count)
-        - For 'get_books': author info and paginated book entries
-        - For 'stats': global totals and distribution metrics
-        - For 'by_letter': filtered list for specific navigation
+        JSON object matching MCP ``outputSchema`` (union of success shapes and
+        ``StandardToolError``). Summary:
+        - ``list``: ``items``, ``total``, ``page``, ``per_page``, ``total_pages``
+        - ``get``: author record (``id``, ``name``, ``sort``, ``link``, ``book_count``) or error
+        - ``get_books``: ``author``, ``books``, ``total``, ``page``, ``per_page``, ``total_pages``
+        - ``stats``: ``total_authors``, ``authors_by_letter`` (letter/count pairs),
+          ``top_authors`` (id, name, book_count)
+        - ``by_letter``: ``authors``, ``letter``, ``count``
+        On validation or not-found cases, returns ``success: false`` with ``error_code`` and
+        ``suggestions`` for recovery (see Errors below).
 
     Usage:
         result = await manage_authors(operation="list", query="martin")

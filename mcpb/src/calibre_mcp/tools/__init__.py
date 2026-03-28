@@ -173,6 +173,7 @@ def register_tools(mcp: Any) -> None:
         import_start = time.time()
         try:
             from .rag import (
+                calibre_metadata_export_json,
                 calibre_metadata_index_build,
                 calibre_metadata_search,
                 rag_index_build,

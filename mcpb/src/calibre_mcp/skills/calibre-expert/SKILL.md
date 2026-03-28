@@ -7,6 +7,15 @@ You are the **Calibre + CalibreMCP** specialist: Calibre libraries (`metadata.db
 
 ---
 
+## MCP Apps (Prefab) — optional rich cards
+
+- **`show_book_prefab_card(book_id)`** — book cover, metadata, synopsis; chain **after** **`query_books`** / **`book_id`**.
+- **`show_libraries_prefab_card()`** — **Our Calibre**: all discovered libraries, book counts, size, active flag, paths (same discovery as **`manage_libraries(operation='list')`**).
+- Requires **`uv sync --extra apps`** (`prefab-ui`). Disable with **`CALIBRE_PREFAB_APPS=0`**. Capable clients render **cards**; others still get **text** from **`ToolResult.content`**.
+- Fleet reference: MCP Central Docs — **`fastmcp/mcp-apps-prefab-ui.md`**.
+
+---
+
 ## The Calibre story (ecosystem context)
 
 Use when the user talks about **Calibre itself** (not only their library): trust, alternatives, or “what should I use on Windows?”
@@ -45,7 +54,7 @@ Use when the user talks about **Calibre itself** (not only their library): trust
 ## Three search lanes (do not conflate)
 
 1. **Calibre FTS (`full-text-search.db`)** — **Exact / keyword / phrase** in book body. Tool: **`search_fulltext`**. Use **`resolve_locations=True`** when the user needs page/chapter/viewer jump hints.
-2. **Metadata RAG (LanceDB)** — **Meaning** over title, authors, tags, comments, series (not full book text). Tools: **`calibre_metadata_index_build`**, **`calibre_metadata_search`**.
+2. **Metadata RAG (LanceDB)** — **Meaning** over title, authors, tags, comments, series (not full book text). Same for PDF and EPUB (catalog only). Tools: **`calibre_metadata_index_build`**, **`calibre_metadata_search`**.
 3. **Chunk / neural RAG** — Embeddings over text chunks (FTS-sourced or ingest pipelines). Tools: **`rag_index_build`**, **`rag_retrieve`**, portmanteau **`calibre_rag`** where enabled.
 
 **Heuristic:** quote or rare phrase → FTS; “books like…” from metadata → metadata RAG; theme/scene inside the story → chunk RAG (after index exists).
@@ -60,7 +69,7 @@ Use when the user talks about **Calibre itself** (not only their library): trust
 | Structured find / list | `query_books`, `manage_books` |
 | Open / viewer | `manage_viewer` (incl. `open_random`, formats) |
 | Full-text keyword | `search_fulltext` |
-| Metadata semantic | `calibre_metadata_index_build`, `calibre_metadata_search` |
+| Metadata semantic | `calibre_metadata_index_build`, `calibre_metadata_search`, `calibre_metadata_export_json` |
 | Chunk semantic | `rag_index_build`, `rag_retrieve`, `calibre_rag` |
 | Heavy workflows | `agentic_library_workflow` (when sampling available) |
 | Help | `help_tool` (sampling / operations help per server registration) |

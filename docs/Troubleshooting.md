@@ -4,6 +4,21 @@
 
 ---
 
+## Webapp log spam (`POST /mcp`, `prompts/list`, every few seconds)
+
+MCP clients (e.g. Cursor) poll the HTTP MCP mount **`/mcp`** frequently. That used to fill **`logs/webapp.log`** with **uvicorn access** lines and noisy **`mcp` / `fastmcp`** INFO logs.
+
+**Default behavior (since 2026-03):** the webapp backend **drops successful access-log lines** for requests to `/mcp` and sets **`mcp` / `fastmcp` loggers to WARNING**, so routine polling is quiet. **Non-2xx** responses to `/mcp` still appear.
+
+**To debug MCP HTTP traffic:** set environment variables before starting the backend:
+
+- `CALIBRE_LOG_MCP_HTTP_ACCESS=1` — log every `/mcp` access line again.
+- `CALIBRE_MCP_DEBUG_LOG=1` — also keep **INFO** from `mcp` and `fastmcp` packages.
+
+Implementation: `webapp/backend/app/mcp_access_log_filter.py`.
+
+---
+
 ## 🚨 Quick Diagnosis
 
 ### **Is CalibreMCP Working?**

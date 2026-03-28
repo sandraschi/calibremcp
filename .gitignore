@@ -261,3 +261,7 @@ run_server.py
 *_old.py
 *.bak
 *.backup
+
+# Local browser exports (e.g. ToolBench) — do not commit
+calibremcp - Trust Report _ ToolBench.htm
+calibremcp - Trust Report _ ToolBench_files/

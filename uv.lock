@@ -362,7 +362,7 @@ wheels = [
 
 [[package]]
 name = "calibre-mcp"
-version = "1.1.0"
+version = "1.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -387,6 +387,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+apps = [
+    { name = "prefab-ui" },
+]
 dev = [
     { name = "bandit" },
     { name = "black" },
@@ -427,6 +430,7 @@ requires-dist = [
     { name = "lancedb", specifier = ">=0.17.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.6.0" },
+    { name = "prefab-ui", marker = "extra == 'apps'", specifier = ">=0.14.0" },
     { name = "psutil", specifier = ">=5.9.0" },
     { name = "py-key-value-aio", extras = ["filetree"], specifier = ">=0.4.4,<0.5.0" },
     { name = "pydantic", specifier = ">=2.9.0" },
@@ -443,7 +447,7 @@ requires-dist = [
     { name = "tenacity", specifier = ">=8.2.0" },
     { name = "twine", marker = "extra == 'dev'", specifier = ">=5.1.0" },
 ]
-provides-extras = ["rag", "dev"]
+provides-extras = ["apps", "rag", "dev"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2354,6 +2358,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f4/9b/6a4ffb4ed980519da959e1cf3122fc6cb41211daa58dbae1c73c0e519a37/pre_commit-4.5.0.tar.gz", hash = "sha256:dc5a065e932b19fc1d4c653c6939068fe54325af8e741e74e88db4d28a4dd66b", size = 198428, upload-time = "2025-11-22T21:02:42.304Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/c4/b2d28e9d2edf4f1713eb3c29307f1a63f3d67cf09bdda29715a36a68921a/pre_commit-4.5.0-py2.py3-none-any.whl", hash = "sha256:25e2ce09595174d9c97860a95609f9f852c0614ba602de3561e267547f2335e1", size = 226429, upload-time = "2025-11-22T21:02:40.836Z" },
+]
+
+[[package]]
+name = "prefab-ui"
+version = "0.14.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cyclopts" },
+    { name = "pydantic" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/99/23/8739e3bbb8e525167888341fdb53e7c2f9d58016dbc602fe93ff3a0635d3/prefab_ui-0.14.1.tar.gz", hash = "sha256:7e2f23ccc7b8b7c1fb9d972de3a672c24b41d531764fea82ef7502fb8ac256f2", size = 3897953, upload-time = "2026-03-27T18:56:42.839Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4c/4b/94891c521b06ed186e00e3b2fbc5b0b421ccf61af8e690722e546beba118/prefab_ui-0.14.1-py3-none-any.whl", hash = "sha256:a883fb9ddce9942dd0e1665d6b6c5dee6aab80ecf2447b30c3ab628ecbfcc304", size = 1741779, upload-time = "2026-03-27T18:56:44.261Z" },
 ]
 
 [[package]]
