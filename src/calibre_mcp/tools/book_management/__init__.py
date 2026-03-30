@@ -8,9 +8,9 @@ This package contains tools for managing books in the Calibre library.
 # Import helpers (NOT registered as MCP tools - used internally)
 from .add_book import add_book_helper  # noqa: F401 - Helper for manage_books
 from .delete_book import delete_book_helper  # noqa: F401 - Helper for manage_books
+from .fulltext_search import search_fulltext  # FTS inside book content
 from .get_book import get_book_helper  # noqa: F401 - Helper for manage_books
 from .manage_books import manage_books  # Portmanteau tool for add/get/update/delete
-from .fulltext_search import search_fulltext  # FTS inside book content
 from .query_books import query_books  # Portmanteau tool for search/list/by_author/by_series
 from .update_book import update_book_helper  # noqa: F401 - Helper for manage_books
 

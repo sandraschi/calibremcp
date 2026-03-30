@@ -150,7 +150,7 @@ HELP_DOCS = {
                 {
                     "title": "Advanced query with boosting",
                     "code": """search_books(
-    text="((title:dune^2 OR series:dune) AND author:herbert) OR 'frank herbert'", 
+    text="((title:dune^2 OR series:dune) AND author:herbert) OR 'frank herbert'",
     operator="AND",
     min_score=0.5,
     highlight=True
@@ -482,12 +482,12 @@ async def help_tool(
     level: str = "basic",
 ) -> dict[str, Any]:
     """
-    Get comprehensive help and documentation for Calibre library tools.
+    Interactive help system for Calibre library tools and agentic workflows.
 
     Args:
-        category: Optional category filter (e.g., 'book', 'library', 'sampling')
-        tool_name: Optional specific tool to get help for
-        level: Detail level: 'basic', 'adv', or 'expert'
+        category: Optional category filter (e.g., 'book', 'library', 'sampling').
+        tool_name: Optional specific tool to target.
+        level: Detail level: 'basic', 'adv', or 'expert'.
     """
     level_enum = HelpLevel.BASIC
     # Mapping level string to level_enum (internal use if needed later)
@@ -517,9 +517,7 @@ async def help_tool(
         overview = HELP_DOCS.get("overview", {})
         result["content"] = {
             "title": overview.get("title", "Overview"),
-            "description": overview.get("description", {}).get(
-                level, "No description available."
-            ),
+            "description": overview.get("description", {}).get(level, "No description available."),
             "sections": [
                 {
                     "title": s["title"],

@@ -15,9 +15,17 @@ SKILLS = [
         "resource": "skill://calibre-expert/SKILL.md",
         "prompt": "calibre_mcp_guide",
     },
-    {"id": "reading_recommendations", "name": "Reading Recommendations", "prompt": "reading_recommendations"},
+    {
+        "id": "reading_recommendations",
+        "name": "Reading Recommendations",
+        "prompt": "reading_recommendations",
+    },
     {"id": "library_health", "name": "Library Health", "prompt": "library_health"},
-    {"id": "semantic_search", "name": "Semantic Search (Metadata RAG)", "prompt": "calibre_semantic_search"},
+    {
+        "id": "semantic_search",
+        "name": "Semantic Search (Metadata RAG)",
+        "prompt": "calibre_semantic_search",
+    },
     {"id": "agentic_workflow", "name": "Agentic Workflow", "prompt": "calibre_mcp_guide"},
 ]
 

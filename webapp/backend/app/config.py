@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     API_DESCRIPTION: str = "HTTP API wrapper for CalibreMCP server"
 
     # Server Configuration
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"
     PORT: int = 13000
     RELOAD: bool = True
 

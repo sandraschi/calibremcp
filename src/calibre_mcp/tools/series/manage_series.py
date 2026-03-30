@@ -31,27 +31,18 @@ async def manage_series(
     letter: str | None = None,
 ) -> dict[str, Any]:
     """
-    Comprehensive series management tool for CalibreMCP.
+    Comprehensive series management for Calibre.
 
-    PORTMANTEAU PATTERN: Consolidates series operations analogous to manage_authors.
+    Operations:
+    - list: List series with filtering and pagination.
+    - get: Get series details by ID.
+    - get_books: Get all books in a series.
+    - stats: Library-wide series statistics.
+    - by_letter: Filter series by first letter.
 
-    SUPPORTED OPERATIONS:
-    - list: List series with filtering and pagination
-    - get: Get series details by ID
-    - get_books: Get all books in a series
-    - stats: Library-wide series statistics
-    - by_letter: Filter series by first letter of name
-
-    Args:
-        operation: One of "list", "get", "get_books", "stats", "by_letter"
-        query: Search term for list operation
-        limit: Max results (default 50)
-        offset: Pagination offset (default 0)
-        series_id: Required for get and get_books
-        letter: Required for by_letter (single character)
-
-    Returns:
-        Operation-specific result dict.
+    Example:
+    - manage_series(operation="list", query="foundation")
+    - manage_series(operation="get_books", series_id=12)
     """
     try:
         if operation == "list":

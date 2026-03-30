@@ -103,9 +103,9 @@ def get_viewer_html(book: Book, current_page: int, viewer: Any) -> str:
         <title>{book.title} - CalibreMCP Viewer</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            body {{ 
-                margin: 0; 
-                padding: 0; 
+            body {{
+                margin: 0;
+                padding: 0;
                 overflow: hidden;
                 font-family: Arial, sans-serif;
             }}
@@ -184,23 +184,23 @@ def get_viewer_html(book: Book, current_page: int, viewer: Any) -> str:
             let currentPage = {current_page};
             let totalPages = 0;
             const bookId = "{book.id}";
-            
+
             // Load the first page
             loadPage(currentPage);
-            
+
             // Navigation buttons
             document.getElementById('prev-page').addEventListener('click', () => {{
                 if (currentPage > 0) {{
                     loadPage(currentPage - 1);
                 }}
             }});
-            
+
             document.getElementById('next-page').addEventListener('click', () => {{
                 if (currentPage < totalPages - 1) {{
                     loadPage(currentPage + 1);
                 }}
             }});
-            
+
             // Keyboard navigation
             document.addEventListener('keydown', (e) => {{
                 if (e.key === 'ArrowLeft') {{
@@ -209,34 +209,34 @@ def get_viewer_html(book: Book, current_page: int, viewer: Any) -> str:
                     if (currentPage < totalPages - 1) loadPage(currentPage + 1);
                 }}
             }});
-            
+
             async function loadPage(page) {{
                 try {{
                     const response = await fetch(`/api/viewer/page?book_id=${{bookId}}&page=${{page}}`);
                     if (!response.ok) throw new Error('Failed to load page');
-                    
+
                     const data = await response.json();
-                    
+
                     // Update page content
                     document.getElementById('page-content').innerHTML = data.content;
-                    
+
                     // Update page info
                     currentPage = page;
                     totalPages = data.total_pages;
                     document.getElementById('current-page').textContent = currentPage + 1;
                     document.getElementById('total-pages').textContent = totalPages;
-                    
+
                     // Update navigation buttons
                     document.getElementById('prev-page').disabled = currentPage <= 0;
                     document.getElementById('next-page').disabled = currentPage >= totalPages - 1;
-                    
+
                 }} catch (error) {{
                     console.error('Error loading page:', error);
-                    document.getElementById('page-content').innerHTML = 
+                    document.getElementById('page-content').innerHTML =
                         `<p style="color: red;">Error loading page: ${{error.message}}</p>`;
                 }}
             }}
-            
+
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', () => {{
                 alert('Settings dialog would appear here');

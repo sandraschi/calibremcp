@@ -709,7 +709,7 @@ class LibraryOrganizer(MCPTool):
             return ""
 
         # Replace invalid characters with underscores
-        valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        valid_chars = f"-_.() {string.ascii_letters}{string.digits}"
         sanitized = "".join(c if c in valid_chars else "_" for c in filename)
 
         # Remove leading/trailing spaces and dots

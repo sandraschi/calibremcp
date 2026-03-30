@@ -207,7 +207,7 @@ class AdvancedSearchTool(MCPTool):
     async def search_similar(
         self,
         book_id: str,
-        fields: list[str] = ["title", "authors", "tags", "comments"],
+        fields: list[str] = None,
         limit: int = 10,
         library_path: str | None = None,
     ) -> dict:
@@ -223,6 +223,8 @@ class AdvancedSearchTool(MCPTool):
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
         # Get the target book
+        if fields is None:
+            fields = ["title", "authors", "tags", "comments"]
         storage = LocalStorage(library_path)
         target_book = await storage.get_metadata(book_id)
 

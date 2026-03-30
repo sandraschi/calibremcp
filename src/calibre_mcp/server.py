@@ -27,8 +27,8 @@ Stateful features use FastMCP storage (py-key-value) where configured.
 # Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
 # This must happen BEFORE any imports that might write to stdout
 logger.info("Setting stdio binary mode...")
-import os
-import sys
+import os  # noqa: E402
+import sys  # noqa: E402
 
 if os.name == "nt":  # Windows only
     try:
@@ -68,7 +68,7 @@ logger.info("DevNullStdout class defined")
 
 # CRITICAL: Suppress all warnings before any imports
 logger.info("Setting up warning suppression...")
-import warnings
+import warnings  # noqa: E402
 
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
@@ -84,25 +84,25 @@ logger.info(f"Stdio mode detection: {_is_stdio_mode}")
 
 # Import typing and basic modules
 logger.info("Importing typing and basic modules...")
-from contextlib import asynccontextmanager
-from pathlib import Path
-from typing import Any
+from contextlib import asynccontextmanager  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
 
 logger.info("Basic imports complete")
 
 # Import external dependencies
 logger.info("Importing FastMCP...")
-from fastmcp import FastMCP
+from fastmcp import FastMCP  # noqa: E402
 
 logger.info("FastMCP imported")
 
 logger.info("Importing Pydantic...")
-from pydantic import BaseModel
+from pydantic import BaseModel  # noqa: E402
 
 logger.info("Pydantic imported")
 
 logger.info("Importing dotenv...")
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
 
 logger.info("dotenv imported")
 
@@ -113,14 +113,14 @@ logger.info("Environment variables loaded")
 
 # Setup proper logging
 logger.info("Setting up proper logging system...")
-from calibre_mcp.logging_config import get_logger
+from calibre_mcp.logging_config import get_logger  # noqa: E402
 
 logger = get_logger("calibremcp.server")
 logger.info("Logger setup complete")
 
 # Import CalibreAPIClient at module level (needed for type hints)
 logger.info("Importing CalibreAPIClient for type hints...")
-from calibre_mcp.calibre_api import CalibreAPIClient
+from calibre_mcp.calibre_api import CalibreAPIClient  # noqa: E402
 
 logger.info("SUCCESS: CalibreAPIClient imported for type hints")
 
@@ -193,11 +193,11 @@ logger.info("FastMCP instance created")
 # Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
 _skills_root = Path(__file__).resolve().parent / "skills"
 if _skills_root.is_dir():
-    from .skills_encoding import install_skills_utf8_read_patch
+    from .skills_encoding import install_skills_utf8_read_patch  # noqa: E402
 
     install_skills_utf8_read_patch([_skills_root])
 
-    from fastmcp.server.providers.skills import SkillsDirectoryProvider
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider  # noqa: E402
 
     mcp.add_provider(SkillsDirectoryProvider(roots=[_skills_root]))
     logger.info("SkillsDirectoryProvider registered: %s", _skills_root)
@@ -221,8 +221,8 @@ if not _is_stdio_mode:
     )
 
 # Register prompt templates
-from calibre_mcp.prompts import register_prompts
-from calibre_mcp.transport import run_server_async
+from calibre_mcp.prompts import register_prompts  # noqa: E402
+from calibre_mcp.transport import run_server_async  # noqa: E402
 
 register_prompts(mcp)
 
@@ -477,6 +477,7 @@ async def discover_libraries() -> dict[str, str]:
     if available_libraries:
         return available_libraries
 
+    from calibre_mcp.config import CalibreConfig
     config = CalibreConfig()
     libraries = {}
 
@@ -553,7 +554,7 @@ async def main():
             # Add timeout for logging setup (should be fast)
             import asyncio
 
-            setup_result = await asyncio.wait_for(
+            await asyncio.wait_for(
                 asyncio.to_thread(
                     setup_logging, level="INFO", log_file=log_file_path, enable_console=False
                 ),
@@ -581,7 +582,6 @@ async def main():
                 version="1.0.0",
                 collection_size="1000+ books",
                 fastmcp_version="3.1+",
-                python_version=f"{__import__('sys').version}",
                 platform=__import__("platform").platform(),
             )
             logger.info("SUCCESS: Startup logging completed")
@@ -645,8 +645,8 @@ async def main():
         import calibre_mcp
 
         if hasattr(calibre_mcp, "_original_stdout") and calibre_mcp._original_stdout:
-            __import__("sys").stdout.flush()
-            __import__("sys").stdout = calibre_mcp._original_stdout
+            sys.stdout.flush()
+            sys.stdout = calibre_mcp._original_stdout
 
             # Re-configure binary mode for Windows if needed
             if os.name == "nt":
@@ -677,7 +677,6 @@ async def main():
 
             # Log additional diagnostic information
             try:
-                logger.error(f"Python version: {sys.version}")
                 logger.error(f"Platform: {__import__('platform').platform()}")
 
                 # Check if MCP has tools registered
@@ -708,8 +707,6 @@ async def main():
         else:
             # No logger available, print to stderr
             # Last resort logging - no logger available
-            import sys
-
             sys.stderr.write(f"CRITICAL ERROR (no logger): {e}\n")
 
         # Re-raise to let FastMCP handle it properly

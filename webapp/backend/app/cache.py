@@ -63,6 +63,7 @@ def update_current_library(current: str, library_path: str | None = None) -> Non
     if library_path:
         try:
             from pathlib import Path
+
             from calibre_mcp.db.database import init_database
 
             path = Path(library_path)

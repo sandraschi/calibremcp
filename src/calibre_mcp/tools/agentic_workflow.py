@@ -92,7 +92,9 @@ async def intelligent_query_parsing(
             parsed_parameters["semantic_query"] = semantic_candidate or query.strip()
 
         success = bool(parsed_parameters) or bool(structured.get("prefer_semantic_search"))
-        confidence = 0.85 if structured.get("prefer_semantic_search") else (0.75 if success else 0.25)
+        confidence = (
+            0.85 if structured.get("prefer_semantic_search") else (0.75 if success else 0.25)
+        )
 
         result = {
             "success": success,
@@ -108,7 +110,11 @@ async def intelligent_query_parsing(
                 "Use calibre_metadata_search(query=...) with semantic_query for best results on niche genres.",
                 "Ensure calibre_metadata_index_build has been run for this library.",
             ]
-        logger.info("intelligent_query_parsing result: success=%s keys=%s", success, list(parsed_parameters.keys()))
+        logger.info(
+            "intelligent_query_parsing result: success=%s keys=%s",
+            success,
+            list(parsed_parameters.keys()),
+        )
         return result
 
     except Exception as e:
@@ -255,9 +261,7 @@ def _build_sampling_tools(available_ops: list[str]) -> list[Any]:
     async def search_books(query: str, limit: int = 10) -> dict[str, Any]:
         """Search books by title, author, or tag. query: search string. limit: max results."""
         try:
-            data = await asyncio.to_thread(
-                book_service.get_all, search=query, limit=limit
-            )
+            data = await asyncio.to_thread(book_service.get_all, search=query, limit=limit)
             return {"results": data.get("items", []), "query": query}
         except Exception as e:
             return {"error": str(e), "success": False}
@@ -375,17 +379,28 @@ Use the tools to gather information and perform operations. Summarize what you d
                     elapsed = int(time.time() * 1000) - start_ms
                     return build_success_response(
                         operation="agentic_library_workflow",
-                        summary=result.text[:500] if result.text else "Workflow completed via LLM sampling.",
+                        summary=result.text[:500]
+                        if result.text
+                        else "Workflow completed via LLM sampling.",
                         result={
                             "workflow_prompt": workflow_prompt,
                             "sampling_complete": True,
                             "llm_response": result.text,
                             "operations_available": available_operations,
                         },
-                        next_steps=["Review the LLM's findings", "Run additional workflows if needed"],
-                        suggestions=["Try metadata enhancement workflows", "Use bulk operations for format consistency"],
+                        next_steps=[
+                            "Review the LLM's findings",
+                            "Run additional workflows if needed",
+                        ],
+                        suggestions=[
+                            "Try metadata enhancement workflows",
+                            "Use bulk operations for format consistency",
+                        ],
                         execution_time_ms=elapsed,
-                        recommendations=["Use manage_books for detailed operations", "Use manage_libraries for library stats"],
+                        recommendations=[
+                            "Use manage_books for detailed operations",
+                            "Use manage_libraries for library stats",
+                        ],
                     )
                 except Exception as samp_err:
                     logger.info(f"Sampling fallback to basic workflow: {samp_err}")
@@ -652,34 +667,19 @@ async def agentic_library_workflow(
     """
     Execute agentic workflows for Calibre e-book library management using SEP-1577.
 
-    This revolutionary tool borrows your LLM's intelligence to autonomously orchestrate
-    complex library operations without client round-trips. Perfect for bulk operations,
-    library organization, metadata enhancement, and intelligent content management.
+    PORTMANTEAU PATTERN RATIONALE:
+    Provides a high-level entry point for multi-step library orchestration tasks.
+    Leverages LLM sampling (SEP-1577) to plan and execute operations autonomously,
+    reducing client-assistant round-trips for complex goals.
 
-    WORKFLOW EXAMPLES:
-    - "Organize my library by fixing duplicate books and updating metadata"
-    - "Find all books by Terry Pratchett and export them to EPUB format"
-    - "Analyze my reading patterns and suggest books to read next"
-    - "Clean up library by removing books with missing covers or metadata"
-    - "Convert all PDF books to EPUB format for better device compatibility"
-
-    AVAILABLE OPERATIONS:
-    - Library Management: get_library_stats, list_books, organize_library
-    - Search & Discovery: search_books, find_duplicates, get_authors, get_tags
-    - Metadata: update_metadata, batch_update_metadata, find_missing_metadata
-    - File Operations: convert_books, export_books, import_books
-    - Analysis: analyze_reading_patterns, generate_stats, cleanup_library
-
-    Args:
-        workflow_prompt: Natural language description of the desired workflow outcome
-        available_operations: List of operations your LLM can choose from and orchestrate
-        max_iterations: Maximum LLM-tool interaction loops (default: 5, max: 10)
+    OPERATIONS:
+    - workflow: Executes the workflow_prompt using available_operations.
+    - intelligent_parsing: (Internal) Extracts structured parameters from natural language.
 
     Returns:
-        Dict containing workflow execution results with success/error status
-
-    Raises:
-        No exceptions - all errors are handled internally and returned in response
+    FastMCP 3.1+ dialogic response: success, operation, summary, result,
+    next_steps, quality_metrics, and execution_time_ms.
+    Enables autonomous execution of cross-functional library management goals.
     """
     return await _agentic_workflow_tool.execute_workflow(
         workflow_prompt=workflow_prompt,

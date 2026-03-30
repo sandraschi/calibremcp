@@ -29,183 +29,17 @@ async def manage_metadata(
     open_browser: bool = True,
 ) -> dict[str, Any]:
     """
-    Comprehensive metadata management tool for CalibreMCP.
+    Comprehensive metadata management for Calibre.
 
-    PORTMANTEAU PATTERN RATIONALE:
-    Instead of creating 3 separate tools (one per operation), this tool consolidates related
-    metadata operations into a single interface. This design:
-    - Prevents tool explosion (3 tools → 1 tool) while maintaining full functionality
-    - Improves discoverability by grouping related operations together
-    - Reduces cognitive load when working with metadata management tasks
-    - Enables consistent metadata interface across all operations
-    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
+    Operations:
+    - update: Bulk update fields (title, tags, rating, etc.) for multiple books.
+    - organize_tags: AI-powered tag organization and cleanup suggestions.
+    - fix_issues: Automatically fix common metadata inconsistencies.
+    - show: Display deep metadata for a book in a formatted view/browser.
 
-    SUPPORTED OPERATIONS:
-    - update: Update metadata for single or multiple books
-    - organize_tags: AI-powered tag organization and cleanup suggestions
-    - fix_issues: Automatically fix common metadata problems
-    - show: Display comprehensive book metadata in a formatted popup/modal
-
-    OPERATIONS DETAIL:
-
-    update: Update book metadata
-    - Allows bulk updates to book metadata including title, author, publication date, tags, etc.
-    - Each update request specifies a book ID, field name, and new value
-    - Supports batching updates for multiple books
-    - Validates field values (e.g., rating must be 1-5)
-    - Parameters: updates (required) - List of MetadataUpdateRequest objects
-
-    organize_tags: AI-powered tag organization
-    - Uses similarity matching to identify duplicate tags
-    - Suggests tag hierarchies
-    - Provides cleanup recommendations
-    - Returns tag statistics and organization suggestions
-    - Parameters: None required
-
-    fix_issues: Automatic metadata fixes
-    - Fixes missing dates
-    - Standardizes author names
-    - Corrects publication information
-    - Resolves other common metadata issues
-    - Returns results of automatic fixes
-    - Parameters: None required
-
-    show: Display book metadata
-    - Searches for a book by title or author
-    - Retrieves comprehensive metadata
-    - Displays formatted metadata in browser popup (optional)
-    - Returns detailed metadata dictionary
-    - Parameters: query (required) or author (optional), open_browser (default: True)
-    - Example: show(query="Gormenghast") or show(author="Peake")
-
-    Prerequisites:
-        - Library must be accessible (auto-loaded on server startup)
-        - For 'update' operation: Books must exist (book_id must be valid)
-        - For 'show' operation: Book must exist matching search criteria
-
-    Parameters:
-        operation: The operation to perform. Must be one of: "update", "organize_tags", "fix_issues", "show"
-
-        # Show operation parameters
-        query: Search query (title or partial title) - required for operation="show"
-               Example: query="Gormenghast"
-
-        author: Author name filter (optional for operation="show")
-                Example: author="Mervyn Peake"
-
-        open_browser: Whether to open metadata in browser popup (default: True, for operation="show")
-
-        # Update operation parameters
-        updates: List of metadata update requests (required for operation="update")
-                 Each request contains:
-                 - book_id: ID of the book to update
-                 - field: Name of the field to update (e.g., "title", "series_index", "tag_ids")
-                 - value: New value for the field (type depends on field)
-
-    Returns:
-        Dictionary containing operation-specific results:
-
-        For operation="update":
-            {
-                "updated_books": List[int] - IDs of successfully updated books
-                "failed_updates": List[Dict] - Failed updates with error details
-                "success_count": int - Number of successful updates
-            }
-
-        For operation="organize_tags":
-            TagStatsResponse: Tag organization suggestions and cleanup stats
-
-        For operation="fix_issues":
-            MetadataUpdateResponse: Results of automatic metadata fixes
-
-        For operation="show":
-            {
-                "success": bool - Whether operation succeeded
-                "book_id": int - Book ID
-                "title": str - Book title
-                "author": str - Author name(s)
-                "metadata": dict - Comprehensive metadata dictionary
-                "html_path": Optional[str] - Path to HTML file if open_browser=True
-                "formatted_text": str - Formatted text representation of metadata
-            }
-
-    Usage:
-        # Update a book's title
-        result = await manage_metadata(
-            operation="update",
-            updates=[{"book_id": 123, "field": "title", "value": "New Title"}]
-        )
-
-        # Update multiple fields for one book
-        result = await manage_metadata(
-            operation="update",
-            updates=[
-                {"book_id": 123, "field": "title", "value": "New Title"},
-                {"book_id": 123, "field": "series_index", "value": 2.0},
-                {"book_id": 123, "field": "rating", "value": 5}
-            ]
-        )
-
-        # Bulk update multiple books
-        result = await manage_metadata(
-            operation="update",
-            updates=[
-                {"book_id": 123, "field": "tag_ids", "value": [1, 2, 3]},
-                {"book_id": 124, "field": "tag_ids", "value": [1, 2, 3]},
-                {"book_id": 125, "field": "tag_ids", "value": [1, 2, 3]}
-            ]
-        )
-
-        # Organize tags
-        result = await manage_metadata(operation="organize_tags")
-
-        # Fix metadata issues
-        result = await manage_metadata(operation="fix_issues")
-
-        # Show book metadata
-        result = await manage_metadata(operation="show", query="Gormenghast")
-
-        # Show metadata without browser popup
-        result = await manage_metadata(operation="show", query="Gormenghast", open_browser=False)
-
-    Examples:
-        # Update book rating
-        result = await manage_metadata(
-            operation="update",
-            updates=[{"book_id": 123, "field": "rating", "value": 5}]
-        )
-
-        # Update publication date
-        result = await manage_metadata(
-            operation="update",
-            updates=[{"book_id": 123, "field": "pubdate", "value": "2024-01-01"}]
-        )
-
-        # Get tag organization suggestions
-        result = await manage_metadata(operation="organize_tags")
-
-        # Automatically fix metadata issues
-        result = await manage_metadata(operation="fix_issues")
-
-        # Show metadata for a book
-        result = await manage_metadata(operation="show", query="Gormenghast")
-        print(result["formatted_text"])
-
-    Errors:
-        Common errors and solutions:
-        - Invalid operation: Use one of "update", "organize_tags", "fix_issues", "show"
-        - Missing query (show operation): Provide query parameter for show operation
-        - Book not found (show operation): Verify book exists using query_books()
-        - Missing updates (update operation): Provide updates parameter for update operation
-        - Invalid book_id: Verify book exists using query_books() or manage_books()
-        - Invalid field value: Check field requirements (e.g., rating must be 1-5)
-        - Invalid date format: Use ISO format (YYYY-MM-DD) for dates
-
-    See Also:
-        - manage_books(): For book management operations
-        - manage_tags(): For tag management operations
-        - manage_comments(): For comment CRUD operations
-        - query_books(): For finding books to update
+    Example:
+    - manage_metadata(operation="update", updates=[{"book_id": 12, "field": "rating", "value": 5}])
+    - manage_metadata(operation="show", query="Gormenghast")
     """
     try:
         if operation == "update":
@@ -473,45 +307,45 @@ Book ID:     {book_id}
 <body>
     <div class="metadata-card">
         <h1>{title}</h1>
-        
+
         <div class="field">
             <span class="field-label">Author(s):</span>
             <span class="field-value">{authors_str}</span>
         </div>
-        
+
         {f'<div class="field"><span class="field-label">Series:</span><span class="field-value">{series_str}</span></div>' if series_str else ""}
-        
+
         <div class="field">
             <span class="field-label">Rating:</span>
             <span class="field-value">{rating_str}</span>
         </div>
-        
+
         <div class="field">
             <span class="field-label">Published:</span>
             <span class="field-value">{pubdate_str}</span>
         </div>
-        
+
         <div class="field">
             <span class="field-label">ISBN:</span>
             <span class="field-value">{isbn}</span>
         </div>
-        
+
         <div class="field">
             <span class="field-label">Tags:</span>
             <div class="tags">
                 {"".join([f'<span class="tag">{t}</span>' for t in tags_str.split(", ") if t and t != "None"])}
             </div>
         </div>
-        
+
         <div class="field">
             <span class="field-label">Formats:</span>
             <div>
                 {"".join([f'<span class="format">{f}</span>' for f in formats_str.split(", ") if f and f != "None"])}
             </div>
         </div>
-        
+
         {f'<div class="description"><strong>Description:</strong><br>{comment_text}</div>' if comment_text else ""}
-        
+
         <div class="field" style="margin-top: 20px; border-left-color: #95a5a6;">
             <span class="field-label">Book ID:</span>
             <span class="field-value">{book_id}</span>

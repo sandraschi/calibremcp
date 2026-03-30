@@ -32,47 +32,19 @@ async def manage_system(
     category: str | None = None,
 ) -> dict[str, Any]:
     """
-    Comprehensive system and maintenance tool for CalibreMCP.
+    Administrative and diagnostic interface for the Calibre MCP server.
 
-    PORTMANTEAU PATTERN RATIONALE:
-    Consolidates 6 system-level operations into a single interface to minimize tool fragmentation
-    and provide a unified control plane for library health and performance metrics.
-    Follows SOTA 2026 standards for administrative and diagnostic MCP operations.
+    Operations:
+    - help: Comprehensive documentation for the server and its capabilities.
+    - status: Real-time system health, database statistics, and connectivity diagnostics.
+    - tool_help: Targeted usage instructions and examples for a specific tool.
+    - list_tools: Catalog of all available operations organized by category.
+    - hello_world: Simple reachability test and server identity confirmation.
+    - health_check: Deep-dive diagnostic for database and service integrity.
 
-    SUPPORTED OPERATIONS:
-    - help: Get comprehensive help and documentation for the system
-    - status: Get detailed system status, statistics, and diagnostics
-    - tool_help: Get targeted help and usage examples for a specific tool
-    - list_tools: List all available tools with filtering and metadata
-    - hello_world: Simple server connectivity test and greeting
-    - health_check: Detailed machine-readable system health status
-
-    Args:
-        operation (str, required): The operation to perform. Must be one of:
-            "help", "status", "tool_help", "list_tools", "hello_world", "health_check".
-        level (str): Help detail level (basic, intermediate, advanced, expert).
-        topic (str): Specific help topic to focus on.
-        status_level (str): Status detail level (basic, intermediate, advanced, diagnostic).
-        focus (str): Specific area for status focus (e.g., "library", "system").
-        tool_name (str): Name of tool for operation="tool_help".
-        tool_help_level (str): Detail level for tool help.
-        category (str): Tool category for filtering operation="list_tools".
-
-    Returns:
-        Dictionary or string containing operation-specific results.
-
-    Usage:
-        result = await manage_system(operation="help", level="advanced")
-        result = await manage_system(operation="status", focus="library")
-        result = await manage_system(operation="tool_help", tool_name="search_books")
-
-    Errors:
-        - INVALID_OPERATION: When the specified operation is not supported
-        - MISSING_TOOL_NAME: When tool_name is required for tool_help
-        - DB_OFFLINE: When the Calibre database cannot be reached
-
-    See Also:
-        - manage_libraries(): For project-level context switching
+    Example:
+    - manage_system(operation="status", focus="library")
+    - manage_system(operation="tool_help", tool_name="manage_books")
     """
     try:
         if operation == "help":

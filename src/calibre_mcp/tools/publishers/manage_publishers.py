@@ -33,31 +33,18 @@ async def manage_publishers(
     letter: str | None = None,
 ) -> dict[str, Any]:
     """
-    Comprehensive publisher management tool for CalibreMCP.
+    Comprehensive publisher management for Calibre.
 
-    PORTMANTEAU PATTERN: Consolidates publisher operations analogous to manage_authors.
+    Operations:
+    - list: List publishers with filtering and pagination.
+    - get: Get detailed publisher information by ID or name.
+    - get_books: Get all books assigned to a specific publisher.
+    - stats: Library-wide publisher statistics (top publishers).
+    - by_letter: Filter publishers by first letter of their name.
 
-    SUPPORTED OPERATIONS:
-    - list: List publishers with filtering and pagination
-    - get: Get publisher details by ID or name
-    - get_books: Get all books from a publisher
-    - stats: Library-wide publisher statistics
-    - by_letter: Filter publishers by first letter of name
-
-    Works with Calibre publishers table; falls back to identifiers (type='publisher')
-    if publishers table does not exist.
-
-    Args:
-        operation: One of "list", "get", "get_books", "stats", "by_letter"
-        query: Search term for list operation
-        limit: Max results (default 50)
-        offset: Pagination offset (default 0)
-        publisher_id: Required for get/get_books when using table (optional with publisher_name)
-        publisher_name: Alternative to publisher_id for get/get_books
-        letter: Required for by_letter (single character)
-
-    Returns:
-        Operation-specific result dict.
+    Example:
+    - manage_publishers(operation="list", query="penguin")
+    - manage_publishers(operation="get_books", publisher_name="Tor Books")
     """
     try:
         if operation == "list":

@@ -4,7 +4,7 @@ Viewer module for CalibreMCP - Handles rendering and displaying different book f
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Protocol
 
 
 class ViewerType(str, Enum):

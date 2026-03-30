@@ -312,7 +312,7 @@ class ContentSyncTool(MCPTool):
             job.processed_items = 0
 
             # Simulate sync process
-            for i, book in enumerate(books):
+            for i, _book in enumerate(books):
                 if job.status == "cancelled":
                     break
 

@@ -625,9 +625,9 @@ async def run_test_battery():
                                 try:
                                     # Test snippet extraction capability
                                     test_query = f"""
-                                        SELECT snippet({fts_table}, 2, '<mark>', '</mark>', '...', 32) 
-                                        FROM {fts_table} 
-                                        WHERE {fts_table} MATCH 'book' 
+                                        SELECT snippet({fts_table}, 2, '<mark>', '</mark>', '...', 32)
+                                        FROM {fts_table}
+                                        WHERE {fts_table} MATCH 'book'
                                         LIMIT 1
                                     """
                                     cursor.execute(test_query)

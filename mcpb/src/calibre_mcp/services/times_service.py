@@ -75,7 +75,7 @@ class TimesService:
         start = _parse_date(after)
         if not start:
             return {"items": [], "total": 0, "error": "Invalid after date (use YYYY-MM-DD)"}
-        end = _parse_date(before) if before else None
+        _parse_date(before) if before else None
 
         return self._book_svc.get_all(
             skip=offset,

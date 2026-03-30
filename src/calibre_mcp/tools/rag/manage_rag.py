@@ -37,22 +37,7 @@ async def rag_index_build(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
-    Build or rebuild the semantic (RAG) index for the current library.
-
-    Reads book text from Calibre's full-text-search.db, chunks it, embeds with fastembed,
-    and stores vectors in LanceDB (``{library}/lancedb``, table ``books_rag``). Run once per
-    library (and after adding many books). Enables rag_retrieve.
-
-    **Chunk filters (env):** By default **PDF is excluded** from chunk RAG (set
-    ``CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS=`` empty to include PDFs). Optional
-    ``CALIBRE_RAG_MAX_BOOK_TEXT_CHARS`` skips oversized ``books_text`` rows (e.g. huge textbooks).
-
-    Args:
-        force_rebuild: If True, clear existing index and rebuild. Default False.
-        use_ollama: Kept for API compatibility; embeddings use fastembed via LanceVectorStore.
-
-    Returns:
-        Dict with chunks_indexed, message, execution_time_ms.
+    Build/rebuild the semantic content index from Calibre FTS data into LanceDB.
     """
     start = __import__("time").time()
 
@@ -108,20 +93,7 @@ async def rag_retrieve(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
-    Semantic search over book content: find passages that match the *meaning* of the query.
-
-    Example: "book where somebody was stabbed with an icicle" finds scenes where the
-    weapon melts (icicle/ice bullet trope), not just keyword "icicle". Uses the
-    RAG index built by rag_index_build.
-
-    Args:
-        query: Natural-language question or description (e.g. "murder with melting weapon").
-        top_k: Number of passages to return (default 10).
-        use_ollama: Use Ollama for query embedding (must match index).
-        enrich: Attach book title/authors for each chunk (default True).
-
-    Returns:
-        Dict with chunks (text, book_id, format, chunk_index, distance[, title, authors]), execution_time_ms.
+    Semantic 'trope' search over book passages (e.g. 'murder with an icicle').
     """
     start = __import__("time").time()
 
@@ -196,17 +168,7 @@ async def calibre_metadata_index_build(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
-    Build or rebuild the semantic index over book metadata (title, authors, tags, comments, series).
-
-    Reads from the current library metadata.db, embeds with fastembed, stores in LanceDB.
-    Enables calibre_metadata_search. Run once per library (and after adding many books).
-    Starts in background; poll GET /api/rag/metadata/build/status for progress.
-
-    Args:
-        force_rebuild: If True, clear existing index and rebuild. Default False.
-
-    Returns:
-        Dict with status, message. Poll build/status for percentage and completion.
+    Build/rebuild the semantic metadata index (titles, authors, tags, comments, series).
     """
 
     def _start() -> dict[str, Any]:
@@ -257,17 +219,7 @@ async def calibre_metadata_search(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
-    Semantic search over book metadata (title, authors, tags, comments, series).
-
-    Finds books by meaning, e.g. "Japanese mystery light novels" or "programming Python".
-    Uses LanceDB index built by calibre_metadata_index_build. No full-text book content.
-
-    Args:
-        query: Natural-language description of what you want to find.
-        top_k: Number of results (default 10, max 50).
-
-    Returns:
-        Dict with results (book_id, title, text snippet, score), message, execution_time_ms.
+    Semantic search over book metadata (e.g. 'Japanese mystery light novels').
     """
     start = __import__("time").time()
 
@@ -313,22 +265,7 @@ async def calibre_metadata_export_json(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
-    Export all books metadata to a JSON file (titles, authors, tags, series, comments, formats, path).
-
-    Uses the same database path as the MCP server (no Calibre GUI). Comments are the main RAG signal
-    for many libraries; use ``strip_html=true`` for clean text. For Calibre's own ``new_api`` script,
-    see ``scripts/export_metadata_for_rag.py`` with ``calibre-debug -e``.
-
-    After bulk comment edits, run ``calibre_metadata_index_build`` to refresh the LanceDB metadata index.
-
-    Args:
-        output_path: Absolute or relative path for the JSON file. Default: ``calibre_mcp_metadata_export.json``
-            in the current library folder.
-        strip_html: If True (default), normalize HTML in comments to plain text (same as metadata RAG when
-            ``CALIBRE_METADATA_STRIP_HTML`` is on).
-
-    Returns:
-        Dict with books_exported, output_path, message, execution_time_ms.
+    Export all library metadata to JSON for external RAG or bulk processing.
     """
     start = __import__("time").time()
 

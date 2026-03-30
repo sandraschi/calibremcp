@@ -31,48 +31,19 @@ async def manage_analysis(
     book_id: int | None = None,
 ) -> dict[str, Any]:
     """
-    Comprehensive analysis and statistics tool for CalibreMCP.
+    Advanced library analytics and metadata auditing interface.
 
-    PORTMANTEAU PATTERN RATIONALE:
-    Consolidates 6 analytics operations into a single interface to eliminate decision paralysis
-    and provide deep insights into library composition and reading habits.
-    Follows SOTA 2026 requirements for advanced knowledge base analytics.
+    Operations:
+    - tag_statistics: Usage frequency and consolidation suggestions.
+    - duplicate_books: Find potential content duplicates via fuzzy matching.
+    - series_analysis: Detect missing volumes and sequence gaps.
+    - library_health: Audit metadata integrity and file consistency.
+    - unread_priority: Quantitative prioritization of the reading queue.
+    - reading_stats: Temporal trends and genre distribution analytics.
 
-    SUPPORTED OPERATIONS:
-    - tag_statistics: Analyze tag usage patterns and identify redundancy or gaps
-    - duplicate_books: Find potential content duplicates using fuzzy matching and metadata
-    - series_analysis: Detect incomplete series and suggest missing volumes
-    - library_health: High-level audit of metadata integrity and file consistency
-    - unread_priority: Efficiently prioritize reading queue using satisfaction metrics
-    - reading_stats: Detailed analytics on completion rates and genre trends
-
-    Args:
-        operation (str, required): The operation to perform. Must be one of:
-            "tag_statistics", "duplicate_books", "series_analysis",
-            "library_health", "unread_priority", "reading_stats".
-
-    Returns:
-        Dictionary containing operation-specific results:
-        - For 'tag_statistics': usage frequency and consolidation suggestions
-        - For 'duplicate_books': similarity groups for manual review
-        - For 'series_analysis': missing sequence numbers and reading order
-        - For 'library_health': metadata audit report and repair recommendations
-        - For 'unread_priority': sorted list of books for maximum efficiency
-        - For 'reading_stats': temporal trends and thematic distribution
-
-    Usage:
-        result = await manage_analysis(operation="tag_statistics")
-        result = await manage_analysis(operation="series_analysis")
-        result = await manage_analysis(operation="reading_stats")
-
-    Errors:
-        - INVALID_OPERATION: When the specified operation is not supported
-        - CALIBRATION_REQUIRED: When library context is missing or invalid
-
-    See Also:
-        - manage_libraries(): For project switching
-        - manage_tags(): For actual tag manipulation
-        - manage_books(): For manual metadata correction
+    Example:
+    - manage_analysis(operation="library_health")
+    - manage_analysis(operation="duplicate_books")
     """
     try:
         if operation == "tag_statistics":

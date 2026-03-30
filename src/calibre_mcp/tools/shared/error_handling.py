@@ -8,7 +8,6 @@ SOTA dialogic pattern: execution_time_ms, recommendations, next_steps.
 """
 
 import logging
-import time
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -197,7 +196,7 @@ def handle_tool_error(
         formatted_msg += f"- Operation: {operation}\n"
     if parameters:
         # Include key parameters for context
-        key_params = {k: v for k, v in list(parameters.items())[:5]}  # First 5 params
+        key_params = dict(list(parameters.items())[:5])  # First 5 params
         formatted_msg += f"- Parameters: {key_params}\n"
     formatted_msg += f"- Error Type: {error_type}\n\n"
     formatted_msg += "**Possible Solutions:**\n"

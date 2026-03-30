@@ -75,7 +75,9 @@ def export_metadata(library_path: str, *, strip_html: bool) -> list[dict[str, An
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Export Calibre metadata to JSON (run via calibre-debug -e).")
+    parser = argparse.ArgumentParser(
+        description="Export Calibre metadata to JSON (run via calibre-debug -e)."
+    )
     parser.add_argument(
         "--library",
         default=os.environ.get("CALIBRE_LIBRARY_PATH", "."),

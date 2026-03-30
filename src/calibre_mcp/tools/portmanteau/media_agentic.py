@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+
 from mcp.server.fastmcp import Context
 
 from calibre_mcp.server import mcp
@@ -15,20 +16,7 @@ async def media_synopsis(
     ctx: Context = None,
 ) -> dict[str, Any]:
     """
-    Agentic Workflow: Generates a comprehensive, spoiler-aware synopsis of a specific book.
-
-    This tool uses the DeepIngestor's 'fulltext' semantic search to retrieve the most
-    representative chunks of a book's text, and then uses FastMCP 2.14.3+ sampling to
-    request the host LLM to synthesize a high-quality summary without needing internal API keys.
-
-    Args:
-        book_id: The Calibre ID of the book.
-        title: The title of the book.
-        chunks_to_analyze: Number of full-text chunks to sample (default: 15).
-        ctx: FastMCP Context (injected automatically).
-
-    Returns:
-        A dictionary containing the synthesized synopsis and metadata.
+    Generates a comprehensive, spoiler-aware synopsis using full-text semantic chunks and LLM sampling.
     """
     try:
         if not ctx or not hasattr(ctx, "session") or not hasattr(ctx.session, "sample"):
@@ -96,7 +84,7 @@ async def media_synopsis(
         {compiled_text}
         </book_excerpts>
 
-        Based on these excerpts, please write a detailed, spoiler-aware synopsis of the book. 
+        Based on these excerpts, please write a detailed, spoiler-aware synopsis of the book.
         Include:
         - The core premise or setting.
         - Primary themes explored in the text.
@@ -110,8 +98,8 @@ async def media_synopsis(
         from mcp.types import (
             CreateMessageRequest,
             CreateMessageRequestParams,
-            UserMessage,
             TextContent,
+            UserMessage,
         )
 
         msg_request = CreateMessageRequest(
@@ -163,18 +151,7 @@ async def media_critical_reception(
     ctx: Context = None,
 ) -> dict[str, Any]:
     """
-    Agentic Workflow: Synthesizes external critical reception and reviews for a book.
-
-    This tool searches the web for academic, critical, and popular reception of the book,
-    and then heavily synthesizes this context via FastMCP sampling.
-
-    Args:
-        author: The author of the book.
-        title: The title of the book.
-        ctx: FastMCP Context (injected automatically).
-
-    Returns:
-        A dictionary containing the critical reception essay and web links used.
+    Synthesizes external critical reviews and academic reception via web search and LLM sampling.
     """
     try:
         if not ctx or not hasattr(ctx, "session") or not hasattr(ctx.session, "sample"):
@@ -184,8 +161,9 @@ async def media_critical_reception(
             }
 
         # 1. Fetch search results (We use DuckDuckGo lite via HTTPX for zero-dep fast search)
-        import httpx
         from urllib.parse import quote_plus
+
+        import httpx
         from bs4 import BeautifulSoup
 
         query = f'"{title}" "{author}" book review AND (criticism OR reception OR analysis)'
@@ -224,7 +202,7 @@ async def media_critical_reception(
         {compiled_snippets}
         </web_context>
 
-        Based on these snippets and your own internal knowledge of the text, write a coherent, multi-paragraph essay 
+        Based on these snippets and your own internal knowledge of the text, write a coherent, multi-paragraph essay
         summarizing how the book was received by critics and the public. Discuss both positive and negative critiques if present.
 
         Return ONLY the markdown-formatted critical reception essay.
@@ -234,8 +212,8 @@ async def media_critical_reception(
         from mcp.types import (
             CreateMessageRequest,
             CreateMessageRequestParams,
-            UserMessage,
             TextContent,
+            UserMessage,
         )
 
         msg_request = CreateMessageRequest(
@@ -281,18 +259,7 @@ async def media_deep_research(
     ctx: Context = None,
 ) -> dict[str, Any]:
     """
-    Agentic Workflow: Conducts a deep, multi-book comparative analysis on a specific topic.
-
-    This workflow queries the calibre metadata to find 3 books related to the topic,
-    pulls excerpts from their deep fulltext indexes, and then samples the LLM to write a
-    comparative essay on how the different texts approach the topic.
-
-    Args:
-        topic: The thematic topic to research (e.g., "Cyberpunk societal collapse").
-        ctx: FastMCP Context (injected automatically).
-
-    Returns:
-        A dictionary containing the comparative research essay and metadata.
+    Conducts multi-book comparative analysis on a thematic topic using full-text RAG and LLM sampling.
     """
     try:
         if not ctx or not hasattr(ctx, "session") or not hasattr(ctx.session, "sample"):
@@ -302,7 +269,7 @@ async def media_deep_research(
             }
 
         # 1. Broad Metadata Search
-        from calibre_mcp.tools.portmanteau.search import calibre_rag, _get_vector_store
+        from calibre_mcp.tools.portmanteau.search import _get_vector_store, calibre_rag
 
         logger.info(f"Researching topic: '{topic}' across metadata.")
         meta_results = await calibre_rag(
@@ -363,7 +330,7 @@ async def media_deep_research(
         {research_context}
         </research_excerpts>
 
-        Based on these excerpts, write a comprehensive, multi-paragraph comparative essay analyzing how these 
+        Based on these excerpts, write a comprehensive, multi-paragraph comparative essay analyzing how these
         different texts approach the core topic. Compare and contrast their perspectives, themes, and explicit statements.
 
         Return ONLY the markdown-formatted comparative essay.
@@ -373,8 +340,8 @@ async def media_deep_research(
         from mcp.types import (
             CreateMessageRequest,
             CreateMessageRequestParams,
-            UserMessage,
             TextContent,
+            UserMessage,
         )
 
         msg_request = CreateMessageRequest(

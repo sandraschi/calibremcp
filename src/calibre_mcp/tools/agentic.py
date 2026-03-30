@@ -40,12 +40,6 @@ def register_agentic_tools():
         """
         try:
             # Parse workflow prompt and determine optimal tool sequence
-            workflow_analysis = {
-                "prompt": workflow_prompt,
-                "available_tools": available_tools,
-                "max_iterations": max_iterations,
-                "analysis": "LLM will autonomously orchestrate Calibre library operations",
-            }
 
             # This would use FastMCP 2.14.3 sampling to execute complex workflows
             # For now, return a conversational response about capabilities
@@ -102,7 +96,7 @@ def register_agentic_tools():
             Intelligent batch processing results
         """
         try:
-            processing_plan = {
+            {
                 "goal": processing_goal,
                 "book_count": len(books),
                 "available_operations": available_operations,

@@ -17,6 +17,7 @@ def _get_keyring():
     if _keyring is None:
         try:
             import keyring as kr
+
             _keyring = kr
         except ImportError as e:
             raise RuntimeError(
@@ -96,16 +97,15 @@ class AuthManager:
         """
         try:
             kr = _get_keyring()
-            kr.delete_password(
-                service_name=self.service_name, username=f"{server_name}_username"
-            )
-            kr.delete_password(
-                service_name=self.service_name, username=f"{server_name}_password"
-            )
+            kr.delete_password(service_name=self.service_name, username=f"{server_name}_username")
+            kr.delete_password(service_name=self.service_name, username=f"{server_name}_password")
             logger.debug(f"Deleted credentials for server: {server_name}")
             return True
         except Exception as e:
-            if getattr(e.__class__, "__module__", "") == "keyring.errors" and e.__class__.__name__ == "PasswordDeleteError":
+            if (
+                getattr(e.__class__, "__module__", "") == "keyring.errors"
+                and e.__class__.__name__ == "PasswordDeleteError"
+            ):
                 logger.debug(f"No credentials found for server: {server_name}")
                 return False
             logger.error(f"Failed to delete credentials for {server_name}: {e}")

@@ -305,7 +305,7 @@ class SeriesManager(MCPTool):
         indices = [float(b.get("series_index", 0)) for b in series_info.books]
         if indices:
             expected_indices = set(range(1, int(max(indices)) + 1))
-            actual_indices = set(int(i) for i in indices if i == int(i))
+            actual_indices = {int(i) for i in indices if i == int(i)}
             missing_indices = expected_indices - actual_indices
 
             if missing_indices:

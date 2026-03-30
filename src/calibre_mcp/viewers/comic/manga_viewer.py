@@ -132,7 +132,7 @@ class MangaViewer:
         """)
 
         cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_bookmarks_file_hash 
+        CREATE INDEX IF NOT EXISTS idx_bookmarks_file_hash
         ON bookmarks(file_hash)
         """)
 
@@ -306,7 +306,7 @@ class MangaViewer:
         cursor = self._db_conn.cursor()
         cursor.execute(
             """
-            SELECT page_number, percentage, last_read, 
+            SELECT page_number, percentage, last_read,
                    reading_direction, page_layout, zoom_mode, zoom_level
             FROM reading_progress
             WHERE file_hash = ?

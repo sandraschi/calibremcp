@@ -7,7 +7,7 @@ Consolidates all library-level operations into a single unified interface:
 - Bulk organizational tasks
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp
@@ -41,57 +41,17 @@ async def manage_library_operations(
     sort_order: str = "asc",
 ) -> dict[str, Any]:
     """
-    Comprehensive library operations portmanteau tool for Calibre MCP server.
+    Unified interface for bulk library-level book and series operations.
 
-    PORTMANTEAU PATTERN RATIONALE:
-    Consolidates 4 related library operations into single interface. Prevents tool explosion while maintaining
-    full functionality. Enables unified library management workflow.
+    Operations:
+    - analyze_series: Identify missing volumes, duplicates, or gaps in series numbering.
+    - fix_series_metadata: Automatically repair series numbering and naming issues.
+    - merge_series: Consolidate one series into another (useful for duplicates).
+    - list_books: Advanced library-wide book listing with multi-field filtering.
 
-    SUPPORTED OPERATIONS:
-    - analyze_series: Analyze series structure and identify issues
-    - fix_series_metadata: Repair series metadata problems
-    - merge_series: Combine series entries
-    - list_books: Search and filter books with pagination
-
-    OPERATIONS DETAIL:
-
-    analyze_series:
-    - Scan all series in library for consistency issues
-    - Identify missing volumes, incorrect ordering, duplicates
-    - Parameters: library_path (optional), update_metadata (default: False)
-
-    fix_series_metadata:
-    - Automatically repair common series metadata issues
-    - Standardize series names, fix volume numbering
-    - Parameters: library_path (optional), dry_run (default: True)
-
-    merge_series:
-    - Combine one series into another, updating all references
-    - Useful for fixing duplicate series entries
-    - Parameters: source_series, target_series (required), dry_run (default: True)
-
-    list_books:
-    - Search and filter books with advanced criteria
-    - Paginated results with sorting options
-    - Parameters: query, author, tag, format_filter, status, limit, offset, sort_by, sort_order
-
-    Prerequisites:
-        - Valid Calibre library path configured
-        - For series operations: Series data must exist in library
-        - For book listing: Database must be accessible
-
-    Returns:
-        Dict with operation results, success status, and conversational messaging
-
-    Examples:
-        # Analyze series structure
-        {"operation": "analyze_series", "update_metadata": false}
-
-        # Fix series metadata issues
-        {"operation": "fix_series_metadata", "dry_run": true}
-
-        # List books with filters
-        {"operation": "list_books", "author": "Tolkien", "limit": 20}
+    Example:
+    - manage_library_operations(operation="analyze_series", update_metadata=False)
+    - manage_library_operations(operation="list_books", author="Tolkien", limit=10)
     """
 
     try:

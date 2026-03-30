@@ -150,7 +150,7 @@ HELP_DOCS = {
                 {
                     "title": "Advanced query with boosting",
                     "code": """search_books(
-    text="((title:dune^2 OR series:dune) AND author:herbert) OR 'frank herbert'", 
+    text="((title:dune^2 OR series:dune) AND author:herbert) OR 'frank herbert'",
     operator="AND",
     min_score=0.5,
     highlight=True
@@ -517,9 +517,7 @@ async def help_tool(
         overview = HELP_DOCS.get("overview", {})
         result["content"] = {
             "title": overview.get("title", "Overview"),
-            "description": overview.get("description", {}).get(
-                level, "No description available."
-            ),
+            "description": overview.get("description", {}).get(level, "No description available."),
             "sections": [
                 {
                     "title": s["title"],

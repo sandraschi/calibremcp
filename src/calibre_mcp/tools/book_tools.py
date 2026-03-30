@@ -795,8 +795,6 @@ async def search_books_helper(
                     break
 
         # Now check if database is initialized and using the correct library
-        db_initialized = False
-        db_correct_library = False
 
         # Simplified database initialization - just try to ensure we have a database.
         # Use raw SQL so we do not depend on Book ORM columns (e.g. flags) that may be

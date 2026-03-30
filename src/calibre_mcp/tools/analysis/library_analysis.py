@@ -102,7 +102,7 @@ async def get_tag_statistics() -> TagStatsResponse:
 
                 similar_tags = [tag1.name]
 
-                for j, tag2 in enumerate(tags[i + 1 :], start=i + 1):
+                for _j, tag2 in enumerate(tags[i + 1 :], start=i + 1):
                     if tag2.name in processed:
                         continue
 
@@ -195,7 +195,7 @@ async def find_duplicate_books() -> DuplicatesResponse:
                 .all()
             )
 
-            for title, author, count in dupes:
+            for title, author, _count in dupes:
                 books = (
                     session.query(Book)
                     .filter(Book.title == title, Book.author_sort == author)
@@ -297,7 +297,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                 if actual_count < expected_count:
                     series_with_gaps += 1
                     complete_range = set(range(int(min_index), int(max_index) + 1))
-                    present_indices = set(int(idx) for idx in indices)
+                    present_indices = {int(idx) for idx in indices}
                     missing_indices = sorted(complete_range - present_indices)
 
                     # Find gap ranges (consecutive missing indices)

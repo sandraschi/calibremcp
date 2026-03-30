@@ -5,7 +5,6 @@ Ollama preferred when available; FastEmbed for headless/server without Ollama.
 """
 
 import logging
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +12,10 @@ OLLAMA_EMBED_DEFAULT = "http://127.0.0.1:11434"
 OLLAMA_EMBED_MODEL = "nomic-embed-text"
 
 
-def _embed_via_ollama(texts: List[str], base_url: str, model: str) -> List[List[float]]:
+def _embed_via_ollama(texts: list[str], base_url: str, model: str) -> list[list[float]]:
     import httpx
 
-    out: List[List[float]] = []
+    out: list[list[float]] = []
     for t in texts:
         try:
             r = httpx.post(
@@ -37,7 +36,7 @@ def _embed_via_ollama(texts: List[str], base_url: str, model: str) -> List[List[
     return out
 
 
-def _embed_via_fastembed(texts: List[str], model: str) -> List[List[float]]:
+def _embed_via_fastembed(texts: list[str], model: str) -> list[list[float]]:
     try:
         from fastembed import TextEmbedding
     except ImportError:
@@ -48,13 +47,13 @@ def _embed_via_fastembed(texts: List[str], model: str) -> List[List[float]]:
 
 
 def embed_texts(
-    texts: List[str],
+    texts: list[str],
     *,
     use_ollama: bool = True,
     ollama_base_url: str = OLLAMA_EMBED_DEFAULT,
     ollama_model: str = OLLAMA_EMBED_MODEL,
     fastembed_model: str = "BAAI/bge-small-en-v1.5",
-) -> List[List[float]]:
+) -> list[list[float]]:
     """
     Embed a list of texts. Tries Ollama first if use_ollama else FastEmbed.
     """

@@ -15,9 +15,19 @@ from .specialized_tools import (
 # Portmanteau tool: optional until manage_specialized.py exists
 try:
     from .manage_specialized import manage_specialized  # noqa: F401
+
     tools = [manage_specialized]
-    __all__ = ["manage_specialized", "it_book_curator_helper", "japanese_book_organizer_helper", "reading_recommendations_helper"]
+    __all__ = [
+        "manage_specialized",
+        "it_book_curator_helper",
+        "japanese_book_organizer_helper",
+        "reading_recommendations_helper",
+    ]
 except ModuleNotFoundError:
     manage_specialized = None  # type: ignore[misc, assignment]
     tools = []
-    __all__ = ["it_book_curator_helper", "japanese_book_organizer_helper", "reading_recommendations_helper"]
+    __all__ = [
+        "it_book_curator_helper",
+        "japanese_book_organizer_helper",
+        "reading_recommendations_helper",
+    ]

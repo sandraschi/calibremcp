@@ -47,8 +47,9 @@ def _repos_root() -> Path:
 def _check_port_up(port: int, timeout: float = 3.0) -> bool:
     try:
         import urllib.request
+
         req = urllib.request.Request(f"http://127.0.0.1:{port}/", method="GET")
-        urllib.request.urlopen(req, timeout=timeout)
+        urllib.request.urlopen(req, timeout=timeout)  # noqa: S310
         return True
     except Exception:
         return False
@@ -71,7 +72,7 @@ def _run_start_script(repo_dir: str, script_rel: str) -> None:
     creationflags = 0
     if sys.platform == "win32":
         creationflags = subprocess.CREATE_NEW_CONSOLE
-    subprocess.Popen(
+    subprocess.Popen(  # noqa: S603
         cmd,
         cwd=str(repo_path),
         creationflags=creationflags,
@@ -109,14 +110,10 @@ async def webapp_launch(body: WebappLaunchRequest) -> WebappLaunchResponse:
         _run_start_script(repo_dir, script_rel)
     except FileNotFoundError as e:
         logger.warning("Webapp launch script missing: %s", e)
-        return WebappLaunchResponse(
-            already_running=False, started=False, url=url, error=str(e)
-        )
+        return WebappLaunchResponse(already_running=False, started=False, url=url, error=str(e))
     except Exception as e:
         logger.exception("Webapp launch failed: %s", e)
-        return WebappLaunchResponse(
-            already_running=False, started=False, url=url, error=str(e)
-        )
+        return WebappLaunchResponse(already_running=False, started=False, url=url, error=str(e))
     # Poll until up or timeout
     deadline = time.monotonic() + POLL_TIMEOUT
     while time.monotonic() < deadline:

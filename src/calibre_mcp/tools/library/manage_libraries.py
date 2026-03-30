@@ -28,14 +28,28 @@ def _add_dialogic_fields(
     result["execution_time_ms"] = execution_time_ms
     if "recommendations" not in result:
         recs = {
-            "list": ["Use operation='switch' to change library", "Use operation='stats' for details"],
-            "switch": ["Use operation='list' to see libraries", "Use operation='stats' after switch"],
+            "list": [
+                "Use operation='switch' to change library",
+                "Use operation='stats' for details",
+            ],
+            "switch": [
+                "Use operation='list' to see libraries",
+                "Use operation='stats' after switch",
+            ],
             "stats": ["Use operation='search' for cross-library search"],
-            "search": ["Use query_books for detailed book search", "Use manage_books for book details"],
+            "search": [
+                "Use query_books for detailed book search",
+                "Use manage_books for book details",
+            ],
             "test_connection": ["Use operation='list' to see available libraries"],
-            "discover": ["Use operation='list' after discovery", "Use operation='switch' to activate"],
+            "discover": [
+                "Use operation='list' after discovery",
+                "Use operation='switch' to activate",
+            ],
         }
-        result["recommendations"] = recs.get(operation, ["Use manage_libraries for library operations"])
+        result["recommendations"] = recs.get(
+            operation, ["Use manage_libraries for library operations"]
+        )
     return result
 
 
@@ -51,174 +65,24 @@ async def manage_libraries(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
-    Manage Calibre libraries with multiple operations in a single unified interface.
+    Unified interface for Calibre library management and discovery.
 
     PORTMANTEAU PATTERN RATIONALE:
-    Instead of creating 4 separate tools (one per operation), this tool consolidates related
-    library management operations into a single interface. This design:
-    - Prevents tool explosion (4 tools → 1 tool) while maintaining full functionality
-    - Improves discoverability by grouping related operations together
-    - Reduces cognitive load when working with library management tasks
-    - Enables consistent library interface across all operations
-    - Follows FastMCP 2.13+ best practices for feature-rich MCP servers
+    Consolidates library listing, switching, stats, search, and discovery into a single interface.
+    Prevents tool explosion while maintaining full library lifecycle control.
 
-    SUPPORTED OPERATIONS:
-    - list: List all available Calibre libraries with metadata and statistics
-    - switch: Switch the active library for all subsequent operations
-    - stats: Get detailed statistics for a specific or current library
-    - search: Search for books across multiple libraries simultaneously
-    - test_connection: Test Calibre connection (local SQLite or remote server)
-    - discover: Discover Calibre libraries via filesystem/CLI (common_paths, calibre_cli, wizfile)
-
-    OPERATIONS DETAIL:
-
-    list: List all available libraries
-    - Discovers all Calibre libraries on the system
-    - Returns metadata including name, path, book count, size, and active status
-    - No parameters required
-    - Returns: List of libraries with metadata
-
-    switch: Switch active library
-    - Changes the active library for all subsequent operations
-    - Requires library_name parameter (must match a library from list operation)
-    - Case-sensitive library name matching
-    - Returns: Success status and new active library info
-
-    stats: Get library statistics
-    - Provides detailed statistics for a specific or current library
-    - Includes book counts, author counts, format distribution, language distribution
-    - library_name is optional (uses current library if omitted)
-    - Returns: Comprehensive statistics dictionary
-
-    search: Cross-library search
-    - Searches for books across multiple libraries simultaneously
-    - Requires query parameter (searches titles, authors, tags, etc.)
-    - Optional libraries parameter to limit search scope
-    - Returns: Books found with library_name included per result
-
-    Prerequisites:
-        - For 'switch' and 'stats': Library must exist (use 'list' to see available libraries)
-        - For 'search': At least one library must be accessible
-        - Calibre libraries must be discoverable (contain metadata.db files)
-
-    Parameters:
-        operation: The operation to perform. Must be one of: "list", "switch", "stats", "search"
-            - "list": List all available libraries with metadata. No other parameters required.
-            - "switch": Switch to a different library. Requires `library_name` parameter.
-            - "stats": Get statistics for a library. `library_name` is optional (uses current if omitted).
-            - "search": Search across libraries. Requires `query` parameter, `libraries` is optional.
-
-        library_name: Name of the library (required for 'switch', optional for 'stats')
-            - Must exactly match a library name from operation="list"
-            - Case-sensitive (e.g., "Main Library" not "main library")
-            - For 'stats': If omitted, uses currently active library
-
-        query: Search query text (required for 'search')
-            - Searches in book titles, authors, tags, etc.
-            - Works across multiple libraries simultaneously
-
-        libraries: List of library names to search (optional, for 'search' only)
-            - If omitted, searches all available libraries
-            - Each name must match a library from operation="list"
-            - Example: ["Main Library", "IT Library"]
+    OPERATIONS:
+    - list: List all discovered libraries with metadata and active status.
+    - switch: Change the active library for the current session.
+    - stats: Detailed book/author/format metrics for a library.
+    - search: Search for books across multiple libraries simultaneously.
+    - test_connection: Diagnostic check for library accessibility.
+    - discover: Scan filesystem/CLI to find new Calibre libraries.
 
     Returns:
-        Dictionary containing operation-specific results:
-
-        For operation="list":
-            {
-                "libraries": List[Dict] - Library objects with name, path, book_count, size_mb, is_active
-                "current_library": str - Name of currently active library
-                "total_libraries": int - Total number of discovered libraries
-            }
-
-        For operation="switch":
-            {
-                "success": bool - Whether switch completed successfully
-                "library_name": str - Name of newly active library
-                "library_path": str - Full path to the library
-                "message": str - Status message
-            }
-
-        For operation="stats":
-            {
-                "library_name": str - Name of analyzed library
-                "total_books": int - Total number of books
-                "total_authors": int - Number of unique authors
-                "total_series": int - Number of series
-                "total_tags": int - Number of tags
-                "format_distribution": Dict[str, int] - Format counts (e.g., {"epub": 100})
-                "language_distribution": Dict[str, int] - Language counts
-                "rating_distribution": Dict[str, int] - Rating counts
-                "last_modified": Optional[str] - Last modification timestamp
-            }
-
-        For operation="search":
-            {
-                "results": List[Dict] - Books found across libraries (includes library_name per result)
-                "total_found": int - Total number of matching books
-                "query_used": str - The search query used
-                "search_time_ms": int - Search execution time
-                "library_searched": str - Names of libraries searched (comma-separated)
-            }
-
-    Usage:
-        # List all libraries
-        result = await manage_libraries(operation="list")
-        print(f"Found {result['total_libraries']} libraries")
-
-        # Switch to a library
-        result = await manage_libraries(operation="switch", library_name="Main Library")
-        if result["success"]:
-            print(f"Switched to: {result['library_name']}")
-
-        # Get statistics
-        result = await manage_libraries(operation="stats", library_name="Main Library")
-        print(f"Total books: {result['total_books']}")
-
-        # Search across libraries
-        result = await manage_libraries(
-            operation="search",
-            query="python programming",
-            libraries=["Main Library", "IT Library"]
-        )
-        print(f"Found {result['total_found']} books")
-
-    Examples:
-        # Basic library listing
-        libraries = await manage_libraries(operation="list")
-        for lib in libraries["libraries"]:
-            print(f"{lib['name']}: {lib['book_count']} books")
-
-        # Switch library with validation
-        switch_result = await manage_libraries(operation="switch", library_name="Main Library")
-        if not switch_result["success"]:
-            print(f"Error: {switch_result.get('message', 'Unknown error')}")
-
-        # Get stats for current library (library_name omitted)
-        stats = await manage_libraries(operation="stats")
-        print(f"Current library has {stats['total_books']} books")
-
-        # Cross-library search
-        search_results = await manage_libraries(
-            operation="search",
-            query="machine learning",
-            libraries=["Main Library"]  # Search only in Main Library
-        )
-        for book in search_results["results"][:5]:  # Show first 5
-            print(f"{book['title']} (in {book['library_name']})")
-
-    Errors:
-        Common errors and solutions:
-        - Invalid operation: Use one of "list", "switch", "stats", "search"
-        - Library not found (switch/stats): Use operation="list" first to see available library names
-        - Missing library_name (switch): Provide library_name parameter for switch operation
-        - Missing query (search): Provide query parameter for search operation
-        - No libraries found: Ensure Calibre libraries exist and contain metadata.db files
-
-    See Also:
-        - For individual operations: See list_libraries, switch_library, get_library_stats, cross_library_search
-          (these are deprecated in favor of this portmanteau tool)
+    FastMCP 3.1+ dialogic response: success, operation, result or error,
+    recommendations, next_steps, and execution_time_ms.
+    Enables conversational follow-ups for library navigation.
     """
     start_ms = int(time.time() * 1000)
     if ctx:
@@ -275,9 +139,7 @@ async def manage_libraries(
             r = await _handle_test_connection()
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "discover":
-            r = await _handle_discover(
-                wizfile_allowed, calibre_cli_allowed, common_paths_allowed
-            )
+            r = await _handle_discover(wizfile_allowed, calibre_cli_allowed, common_paths_allowed)
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         else:
             return format_error_response(

@@ -183,8 +183,8 @@ class ContentAnalyzer(MCPTool):
             "sentence_count": len(sentences),
             "avg_word_length": sum(len(word) for word in words) / len(words) if words else 0,
             "avg_sentence_length": len(words) / len(sentences) if sentences else 0,
-            "unique_words": len(set(word.lower() for word in words)),
-            "lexical_diversity": len(set(word.lower() for word in words)) / len(words)
+            "unique_words": len({word.lower() for word in words}),
+            "lexical_diversity": len({word.lower() for word in words}) / len(words)
             if words
             else 0,
         }

@@ -80,7 +80,7 @@ class LocalStorage(StorageBackend):
     async def list_books(self, **filters) -> list[Book]:
         """List books with optional filtering"""
         query = """
-        SELECT id, title, sort, timestamp, pubdate, series_index, author_sort, 
+        SELECT id, title, sort, timestamp, pubdate, series_index, author_sort,
                path, has_cover, last_modified, uuid
         FROM books
         """
@@ -92,8 +92,8 @@ class LocalStorage(StorageBackend):
         if "author" in filters:
             conditions.append("""
                 id IN (
-                    SELECT book FROM authors a 
-                    JOIN books_authors_link bal ON a.id = bal.author 
+                    SELECT book FROM authors a
+                    JOIN books_authors_link bal ON a.id = bal.author
                     WHERE a.name LIKE ?
                 )
             """)
@@ -145,7 +145,7 @@ class LocalStorage(StorageBackend):
     async def get_book(self, book_id: int | str) -> Book | None:
         """Get a book by ID"""
         query = """
-        SELECT id, title, sort, timestamp, pubdate, series_index, author_sort, 
+        SELECT id, title, sort, timestamp, pubdate, series_index, author_sort,
                path, has_cover, last_modified, uuid
         FROM books
         WHERE id = ?

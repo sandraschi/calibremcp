@@ -293,7 +293,7 @@ def _query_via_fts_detailed(
     """FTS rows with books_text id, format, offsets into searchable_text."""
     cursor = conn.cursor()
     cursor.execute(
-        f"""
+        f"""  # noqa: S608
         SELECT COUNT(*) FROM (
             SELECT DISTINCT books_text.book FROM books_text
             JOIN {fts_table} ON books_text.id = {fts_table}.rowid
@@ -323,7 +323,7 @@ def _query_via_fts_detailed(
         """
         args_head = ()
 
-    q = f"""
+    q = f"""  # noqa: S608
         SELECT {sel}
         FROM books_text
         JOIN {fts_table} ON books_text.id = {fts_table}.rowid

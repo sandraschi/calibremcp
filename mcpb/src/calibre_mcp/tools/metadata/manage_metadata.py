@@ -473,45 +473,45 @@ Book ID:     {book_id}
 <body>
     <div class="metadata-card">
         <h1>{title}</h1>
-        
+
         <div class="field">
             <span class="field-label">Author(s):</span>
             <span class="field-value">{authors_str}</span>
         </div>
-        
+
         {f'<div class="field"><span class="field-label">Series:</span><span class="field-value">{series_str}</span></div>' if series_str else ""}
-        
+
         <div class="field">
             <span class="field-label">Rating:</span>
             <span class="field-value">{rating_str}</span>
         </div>
-        
+
         <div class="field">
             <span class="field-label">Published:</span>
             <span class="field-value">{pubdate_str}</span>
         </div>
-        
+
         <div class="field">
             <span class="field-label">ISBN:</span>
             <span class="field-value">{isbn}</span>
         </div>
-        
+
         <div class="field">
             <span class="field-label">Tags:</span>
             <div class="tags">
                 {"".join([f'<span class="tag">{t}</span>' for t in tags_str.split(", ") if t and t != "None"])}
             </div>
         </div>
-        
+
         <div class="field">
             <span class="field-label">Formats:</span>
             <div>
                 {"".join([f'<span class="format">{f}</span>' for f in formats_str.split(", ") if f and f != "None"])}
             </div>
         </div>
-        
+
         {f'<div class="description"><strong>Description:</strong><br>{comment_text}</div>' if comment_text else ""}
-        
+
         <div class="field" style="margin-top: 20px; border-left-color: #95a5a6;">
             <span class="field-label">Book ID:</span>
             <span class="field-value">{book_id}</span>

@@ -604,7 +604,7 @@ async def main():
         logger.info("Initializing server lifespan...")
 
         lifespan_context = server_lifespan(mcp)
-        lifespan_manager = await lifespan_context.__aenter__()
+        await lifespan_context.__aenter__()
         logger.info("Server lifespan initialized successfully")
 
         # Register tools with FastMCP server

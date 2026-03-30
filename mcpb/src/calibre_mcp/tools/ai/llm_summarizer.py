@@ -243,7 +243,7 @@ Provide a comprehensive answer with citations to specific books:"""
             current_chapter = "Introduction"
             chunk_index = 0
 
-            for i, part in enumerate(chapters):
+            for _i, part in enumerate(chapters):
                 if re.match(chapter_pattern, part):
                     current_chapter = part.strip()
                     continue

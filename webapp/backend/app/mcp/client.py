@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import httpx
+import httpx  # noqa: E402
 
 # CRITICAL: Set up Python path BEFORE any other imports
 # Calculate paths once at module load
@@ -51,7 +51,9 @@ try:
     except Exception as e:
         import logging
 
-        logging.getLogger(__name__).debug("Prefab tools not registered for webapp direct import: %s", e)
+        logging.getLogger(__name__).debug(
+            "Prefab tools not registered for webapp direct import: %s", e
+        )
 except ImportError as e:
     import logging
 
@@ -64,7 +66,7 @@ except ImportError as e:
         f"Try: pip install -e . from project root"
     )
 
-from ..utils.errors import MCPError
+from ..utils.errors import MCPError  # noqa: E402
 
 
 def _verify_imports():
@@ -72,8 +74,9 @@ def _verify_imports():
     try:
         import calibre_mcp
 
-        assert hasattr(calibre_mcp, "tools"), "calibre_mcp.tools not found"
-        import calibre_mcp.tools
+        if not hasattr(calibre_mcp, "tools"):
+            raise ImportError("calibre_mcp.tools not found")
+        import calibre_mcp.tools  # noqa: F401
 
         return True
     except Exception as e:
@@ -326,8 +329,9 @@ class MCPClient:
                         import calibre_mcp  # noqa: F401
 
                         calibre_mcp_imported = True
-                    except ImportError:
-                        pass
+                    except ImportError as e:
+                        import logging
+                        logging.getLogger(__name__).debug("Strategy 2 import failed: %s", e)
 
                 # Strategy 3: Use importlib.util to force import from file
                 if not calibre_mcp_imported and src_path.exists():
@@ -342,8 +346,9 @@ class MCPClient:
                                 sys.modules["calibre_mcp"] = calibre_mcp
                                 spec.loader.exec_module(calibre_mcp)
                                 calibre_mcp_imported = True
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging
+                        logging.getLogger(__name__).debug("Strategy 3 import failed: %s", e)
 
                 if not calibre_mcp_imported:
                     raise MCPError(

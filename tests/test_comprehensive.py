@@ -42,7 +42,7 @@ async def test_calibre_mcp():
         # Test 3: Search single library by title
         print("\n🔍 TEST 3: Search Single Library by Title")
         if result.get("libraries"):
-            first_lib = result["libraries"][0]["name"]
+            result["libraries"][0]["name"]
             result = await query_books(
                 operation="search",
                 query="the",  # Common word to find books

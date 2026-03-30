@@ -8,7 +8,7 @@ import re
 import zipfile
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 try:
     import rarfile

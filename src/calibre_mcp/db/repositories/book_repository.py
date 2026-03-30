@@ -342,15 +342,15 @@ class BookRepository(BaseRepository[Book]):
 
         # Books by format
         stats["formats"] = self._fetch_all("""
-            SELECT format, COUNT(*) as count 
-            FROM data 
-            GROUP BY format 
+            SELECT format, COUNT(*) as count
+            FROM data
+            GROUP BY format
             ORDER BY count DESC
         """)
 
         # Books by rating
         stats["ratings"] = self._fetch_all("""
-            SELECT r.rating, COUNT(*) as count 
+            SELECT r.rating, COUNT(*) as count
             FROM books_ratings_link brl
             JOIN ratings r ON brl.rating = r.id
             GROUP BY r.rating

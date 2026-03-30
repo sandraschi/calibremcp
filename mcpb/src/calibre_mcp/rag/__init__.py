@@ -5,9 +5,9 @@ Legacy optional Chroma helpers remain in ``store`` (``calibre-mcp[rag]``); prima
 """
 
 from .chunking import chunk_books_text
-from .store import get_rag_store
 from .indexer import build_rag_index
 from .retriever import retrieve_chunks
+from .store import get_rag_store
 
 __all__ = [
     "chunk_books_text",

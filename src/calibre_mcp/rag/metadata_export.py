@@ -75,7 +75,9 @@ def build_export_records(*, strip_html: bool = True) -> list[dict[str, Any]]:
                     "authors": authors,
                     "tags": tags,
                     "series": series_name,
-                    "series_index": float(book.series_index) if book.series_index is not None else None,
+                    "series_index": float(book.series_index)
+                    if book.series_index is not None
+                    else None,
                     "publisher": publisher,
                     "comments": comments_out,
                     "formats": formats,

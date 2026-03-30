@@ -100,7 +100,7 @@ def discover_tools() -> list[type["BaseTool"]]:
     tool_classes: list[type[BaseTool]] = []
 
     # Import all modules in the tools directory
-    for finder, name, is_pkg in pkgutil.iter_modules([str(tools_dir)]):
+    for _finder, name, is_pkg in pkgutil.iter_modules([str(tools_dir)]):
         if name == "__init__" or name.startswith("_"):
             continue
 
@@ -183,12 +183,12 @@ def register_tools(mcp: Any) -> None:
             pass
 
         try:
-            from .portmanteau.search import calibre_rag  # noqa: F401
             from .portmanteau.media_agentic import (
-                media_synopsis,
                 media_critical_reception,
                 media_deep_research,
+                media_synopsis,
             )  # noqa: F401
+            from .portmanteau.search import calibre_rag  # noqa: F401
         except Exception as e:
             logger.error(f"Failed to load RAG portmanteaus: {e}", exc_info=True)
 

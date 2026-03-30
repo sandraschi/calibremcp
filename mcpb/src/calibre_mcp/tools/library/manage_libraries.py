@@ -28,14 +28,28 @@ def _add_dialogic_fields(
     result["execution_time_ms"] = execution_time_ms
     if "recommendations" not in result:
         recs = {
-            "list": ["Use operation='switch' to change library", "Use operation='stats' for details"],
-            "switch": ["Use operation='list' to see libraries", "Use operation='stats' after switch"],
+            "list": [
+                "Use operation='switch' to change library",
+                "Use operation='stats' for details",
+            ],
+            "switch": [
+                "Use operation='list' to see libraries",
+                "Use operation='stats' after switch",
+            ],
             "stats": ["Use operation='search' for cross-library search"],
-            "search": ["Use query_books for detailed book search", "Use manage_books for book details"],
+            "search": [
+                "Use query_books for detailed book search",
+                "Use manage_books for book details",
+            ],
             "test_connection": ["Use operation='list' to see available libraries"],
-            "discover": ["Use operation='list' after discovery", "Use operation='switch' to activate"],
+            "discover": [
+                "Use operation='list' after discovery",
+                "Use operation='switch' to activate",
+            ],
         }
-        result["recommendations"] = recs.get(operation, ["Use manage_libraries for library operations"])
+        result["recommendations"] = recs.get(
+            operation, ["Use manage_libraries for library operations"]
+        )
     return result
 
 
@@ -275,9 +289,7 @@ async def manage_libraries(
             r = await _handle_test_connection()
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         elif operation == "discover":
-            r = await _handle_discover(
-                wizfile_allowed, calibre_cli_allowed, common_paths_allowed
-            )
+            r = await _handle_discover(wizfile_allowed, calibre_cli_allowed, common_paths_allowed)
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
         else:
             return format_error_response(

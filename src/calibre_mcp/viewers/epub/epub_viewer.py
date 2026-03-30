@@ -167,7 +167,7 @@ class EPubViewer:
 
     def _parse_container(self, container_data: bytes) -> str:
         """Parse the container.xml file to find the root file."""
-        root = ET.fromstring(container_data)
+        root = ET.fromstring(container_data)  # noqa: S314
         ns = {"ocf": "urn:oasis:names:tc:opendocument:xmlns:container"}
 
         # Find the rootfile element

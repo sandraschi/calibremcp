@@ -40,59 +40,18 @@ async def manage_authors(
     letter: str | None = None,
 ) -> dict[str, Any]:
     """
-    Comprehensive author management tool for CalibreMCP.
+    Comprehensive author management for Calibre.
 
-    PORTMANTEAU PATTERN RATIONALE:
-    Consolidates 5 author-related operations into one tool to prevent tool explosion (5 tools → 1 tool)
-    while maintaining full functionality and improving discoverability for library management tasks.
-    Follows SOTA 2026 standardization requirements for feature-rich MCP servers.
+    Operations:
+    - list: List authors with filtering (query) and pagination.
+    - get: Get detailed author information and book counts.
+    - get_books: Get all books by a specific author.
+    - stats: Library-wide author statistics (top authors, distributions).
+    - by_letter: Filter authors by their name's first letter.
 
-    SUPPORTED OPERATIONS:
-    - list: List authors with filtering (query) and pagination (limit, offset)
-    - get: Get detailed author information including metadata and book counts
-    - get_books: Get all books associated with a specific author (paginated)
-    - stats: Get library-wide statistics about authors (top authors, distributions)
-    - by_letter: Filter authors by their name's first letter for efficient browsing
-
-    Args:
-        operation (str, required): The operation to perform. Must be one of:
-            "list", "get", "get_books", "stats", "by_letter".
-        query (str | None): Search term to filter authors by name (partial match).
-        limit (int): Maximum number of authors/books to return (default: 50, max 1000).
-        offset (int): Pagination: skip this many rows before returning results. Use with
-            ``limit``; page number is ``(offset // limit) + 1``. If ``offset`` is greater than
-            or equal to the total number of matches, ``items`` (for list) or ``books`` (for
-            get_books) may be empty.
-        author_id (int | None): Calibre ``authors.id`` primary key (positive integer).
-            Required for ``get`` and ``get_books``. Obtain ids from ``operation='list'``.
-        letter (str | None): Single A–Z character for ``by_letter`` (case-insensitive).
-
-    Returns:
-        JSON object matching MCP ``outputSchema`` (union of success shapes and
-        ``StandardToolError``). Summary:
-        - ``list``: ``items``, ``total``, ``page``, ``per_page``, ``total_pages``
-        - ``get``: author record (``id``, ``name``, ``sort``, ``link``, ``book_count``) or error
-        - ``get_books``: ``author``, ``books``, ``total``, ``page``, ``per_page``, ``total_pages``
-        - ``stats``: ``total_authors``, ``authors_by_letter`` (letter/count pairs),
-          ``top_authors`` (id, name, book_count)
-        - ``by_letter``: ``authors``, ``letter``, ``count``
-        On validation or not-found cases, returns ``success: false`` with ``error_code`` and
-        ``suggestions`` for recovery (see Errors below).
-
-    Usage:
-        result = await manage_authors(operation="list", query="martin")
-        result = await manage_authors(operation="get", author_id=42)
-        result = await manage_authors(operation="get_books", author_id=42, limit=10)
-
-    Errors:
-        - MISSING_AUTHOR_ID: When author_id is required but not provided
-        - MISSING_LETTER: When letter is required for filtering but missing
-        - INVALID_OPERATION: When the specified operation is not supported
-        - NOT_FOUND: When an author_id does not correspond to an existing author
-
-    See Also:
-        - manage_libraries(): For library context switching
-        - manage_books(): For deep book-level metadata operations
+    Example:
+    - manage_authors(operation="list", query="martin")
+    - manage_authors(operation="get_books", author_id=42)
     """
     try:
         if operation == "list":

@@ -176,15 +176,6 @@ class GOTOCRProcessor:
             # For now, return a mock result
 
             # GOT-OCR2.0 typically uses a chat-like interface
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {"type": "image", "image": image},
-                    ],
-                }
-            ]
 
             # Run inference (this would be the actual GOT-OCR2.0 API call)
             with torch.no_grad():

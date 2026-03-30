@@ -99,7 +99,7 @@ class LibraryRepository(BaseRepository[Library]):
                 .all()
             )
 
-            stats["formats"] = {f: c for f, c in formats}
+            stats["formats"] = dict(formats)
 
             return stats
 
@@ -257,7 +257,7 @@ class LibraryRepository(BaseRepository[Library]):
             # Update the library
             library.book_count = book_count or 0
             library.author_count = author_count or 0
-            library.format_counts = {f: c for f, c in formats}
+            library.format_counts = dict(formats)
             library.updated_at = datetime.utcnow()
 
             session.commit()

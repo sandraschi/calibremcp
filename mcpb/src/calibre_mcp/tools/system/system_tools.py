@@ -268,7 +268,7 @@ async def help_helper(level: HelpLevel, topic: str | None = None) -> str:
             content.append("## Available Tools")
             content.append("")
 
-            for category, info in HELP_DOCS["tools"].items():
+            for _category, info in HELP_DOCS["tools"].items():
                 content.append(f"### {info['title']}")
                 content.append("")
                 content.append(info["description"][level.value])

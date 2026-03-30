@@ -15,13 +15,12 @@ import jwt
 
 from ...logging_config import get_logger
 from ...server import mcp
+from ...services.user_service import UserService
 from ..shared.error_handling import format_error_response, handle_tool_error
 from .user_manager import (
     UserCreate,
     UserRole,
-    UserUpdate,
 )
-from ...services.user_service import UserService
 
 _user_service = UserService()
 

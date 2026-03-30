@@ -1,5 +1,5 @@
-from ..db.user_data import get_user_data_db
 from ..db.repositories.user_repository import UserRepository
+from ..db.user_data import get_user_data_db
 
 
 class UserService:

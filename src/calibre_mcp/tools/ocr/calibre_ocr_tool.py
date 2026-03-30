@@ -68,72 +68,18 @@ class OCRTool(BaseTool):
         render_html: bool = False,
     ) -> dict[str, Any]:
         """
-        Process scanned documents with OCR using FineReader or GOT-OCR2.0.
+        Experimental OCR interface for scanned document processing.
 
-        Converts scanned images or PDFs into searchable text documents by extracting
-        text through Optical Character Recognition. Supports multiple OCR backends
-        with different capabilities.
+        Operations:
+        - auto: Intelligent selection between available engines (FineReader or GOT-OCR).
+        - finereader: High-accuracy traditional OCR for PDFs and standard documents.
+        - got-ocr: Layout-aware neural OCR for complex formatting preservation.
 
-        Args:
-            source: Absolute path to the source file. Supported: common raster images
-                (PNG, JPEG, TIFF, BMP, WebP) and PDF. Returns ``success: false`` if the
-                path does not exist or is not readable.
-            provider: OCR provider: ``auto`` | ``finereader`` | ``got-ocr``.
-                ``auto`` prefers GOT-OCR when the model is loaded, else FineReader CLI.
-            language: FineReader language preset name (e.g. ``english``, ``german``).
-                For GOT-OCR, passed through when the backend supports it; not ISO-639
-                codes. Default ``english`` for FineReader when omitted.
-            output_format: FineReader export format (e.g. ``pdf``, ``txt``). Ignored for
-                GOT-OCR text/HTML flows.
-            ocr_mode: GOT-OCR mode: ``ocr`` | ``format`` | ``fine-grained``.
-            region: Pixel bounding box ``[x1, y1, x2, y2]`` in **image coordinates**
-                (origin top-left). Used when ``ocr_mode='fine-grained'`` with GOT-OCR;
-                defines the crop prompt for the model.
-            render_html: When using GOT-OCR ``format`` mode, embed formatted output as HTML.
+        Modes (GOT-OCR): ocr, format (HTML), fine-grained (region-based).
 
-        Returns:
-            Dict with ``success`` and ``provider``; failures set ``error`` and ``details``.
-            Additional keys (text, output paths, etc.) depend on the backend — see MCP
-            ``outputSchema`` (additionalProperties allowed).
-
-        Errors and recovery:
-            - **Source file not found**: Verify path; use an absolute path on Windows.
-            - **No OCR providers available**: Install/configure FineReader CLI
-              (``FINEREADER_CLI_PATH``) or GOT-OCR dependencies/model.
-            - **Provider unavailable**: Switch ``provider`` or install the missing engine.
-            - **Unknown provider**: Use only ``auto``, ``finereader``, or ``got-ocr``.
-
-        Examples:
-            # Auto-select best OCR provider
-            result = process_ocr(source="/path/to/scanned_book.pdf")
-
-            # Use FineReader for traditional OCR
-            result = process_ocr(
-                source="/path/to/scanned_book.pdf",
-                provider="finereader",
-                language="english",
-                output_format="pdf"
-            )
-
-            # Use GOT-OCR2.0 for formatted text preservation
-            result = process_ocr(
-                source="/path/to/book_page.png",
-                provider="got-ocr",
-                ocr_mode="format",
-                render_html=True
-            )
-
-            # Fine-grained OCR on specific region
-            result = process_ocr(
-                source="/path/to/document.png",
-                provider="got-ocr",
-                ocr_mode="fine-grained",
-                region=[100, 200, 400, 500]
-            )
-
-        Raises:
-            FileNotFoundError: If source file doesn't exist or FineReader CLI not found
-            Exception: For other OCR processing errors
+        Example:
+        - process_ocr(source="/path/to/scan.pdf", provider="auto")
+        - process_ocr(source="/path/to/page.png", provider="got-ocr", ocr_mode="format")
         """
         # Determine which OCR provider to use
         if provider == "auto":

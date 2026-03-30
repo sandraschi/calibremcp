@@ -44,20 +44,13 @@ async def calibre_rag(
     Unified Portmanteau for Semantic Search and RAG Operations on the Calibre Library.
 
     Operations:
-        - "search": Perform a semantic search across library items using a natural language query.
-        - "ingest": Index a specified library (db_path required) into the LanceDB Vector Store.
-        - "ingest_fulltext": Deep index a specific EPUB/PDF (book_id, title, file_path required).
-        - "status": Get vector store status and row counts.
+    - search: Semantic search across library items using a natural language query.
+    - ingest: Index a library (db_path required).
+    - ingest_fulltext: Deep index an EPUB/PDF (book_id, title, file_path required).
+    - status: Vector store status and row counts.
 
-    Args:
-        operation: 'search', 'ingest', 'ingest_fulltext', or 'status'
-        query: Natural language semantic query (required for 'search')
-        limit: Max results to return (default: 5)
-        db_path: Absolute path to metadata.db (required for 'ingest' operation)
-        search_type: 'metadata' or 'fulltext' (default: 'metadata')
-        book_id: Book ID (required for 'ingest_fulltext')
-        title: Title of the book (required for 'ingest_fulltext')
-        file_path: Path to EPUB/PDF file (required for 'ingest_fulltext')
+    Example:
+    - calibre_rag(operation="search", query="murder mystery in a closed room")
     """
     try:
         table_name = "calibre_fulltext" if search_type == "fulltext" else "calibre_media"

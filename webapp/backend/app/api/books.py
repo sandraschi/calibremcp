@@ -150,8 +150,9 @@ async def get_book(book_id: int):
                     "uuid": book_dict.get("uuid"),
                     "has_cover": book_dict.get("has_cover"),
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug("Direct BookService access failed, falling back to MCP: %s", e)
         # Fallback to MCP tool
         result = await mcp_client.call_tool(
             "manage_books",

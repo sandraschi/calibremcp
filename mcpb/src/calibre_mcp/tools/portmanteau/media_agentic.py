@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+
 from mcp.server.fastmcp import Context
 
 from calibre_mcp.server import mcp
@@ -96,7 +97,7 @@ async def media_synopsis(
         {compiled_text}
         </book_excerpts>
 
-        Based on these excerpts, please write a detailed, spoiler-aware synopsis of the book. 
+        Based on these excerpts, please write a detailed, spoiler-aware synopsis of the book.
         Include:
         - The core premise or setting.
         - Primary themes explored in the text.
@@ -110,8 +111,8 @@ async def media_synopsis(
         from mcp.types import (
             CreateMessageRequest,
             CreateMessageRequestParams,
-            UserMessage,
             TextContent,
+            UserMessage,
         )
 
         msg_request = CreateMessageRequest(
@@ -184,8 +185,9 @@ async def media_critical_reception(
             }
 
         # 1. Fetch search results (We use DuckDuckGo lite via HTTPX for zero-dep fast search)
-        import httpx
         from urllib.parse import quote_plus
+
+        import httpx
         from bs4 import BeautifulSoup
 
         query = f'"{title}" "{author}" book review AND (criticism OR reception OR analysis)'
@@ -224,7 +226,7 @@ async def media_critical_reception(
         {compiled_snippets}
         </web_context>
 
-        Based on these snippets and your own internal knowledge of the text, write a coherent, multi-paragraph essay 
+        Based on these snippets and your own internal knowledge of the text, write a coherent, multi-paragraph essay
         summarizing how the book was received by critics and the public. Discuss both positive and negative critiques if present.
 
         Return ONLY the markdown-formatted critical reception essay.
@@ -234,8 +236,8 @@ async def media_critical_reception(
         from mcp.types import (
             CreateMessageRequest,
             CreateMessageRequestParams,
-            UserMessage,
             TextContent,
+            UserMessage,
         )
 
         msg_request = CreateMessageRequest(
@@ -302,7 +304,7 @@ async def media_deep_research(
             }
 
         # 1. Broad Metadata Search
-        from calibre_mcp.tools.portmanteau.search import calibre_rag, _get_vector_store
+        from calibre_mcp.tools.portmanteau.search import _get_vector_store, calibre_rag
 
         logger.info(f"Researching topic: '{topic}' across metadata.")
         meta_results = await calibre_rag(
@@ -363,7 +365,7 @@ async def media_deep_research(
         {research_context}
         </research_excerpts>
 
-        Based on these excerpts, write a comprehensive, multi-paragraph comparative essay analyzing how these 
+        Based on these excerpts, write a comprehensive, multi-paragraph comparative essay analyzing how these
         different texts approach the core topic. Compare and contrast their perspectives, themes, and explicit statements.
 
         Return ONLY the markdown-formatted comparative essay.
@@ -373,8 +375,8 @@ async def media_deep_research(
         from mcp.types import (
             CreateMessageRequest,
             CreateMessageRequestParams,
-            UserMessage,
             TextContent,
+            UserMessage,
         )
 
         msg_request = CreateMessageRequest(

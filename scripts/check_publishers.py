@@ -12,11 +12,11 @@ print(f"Total unique publishers in database: {publisher_count}")
 
 # Get some sample publishers
 cur.execute("""
-    SELECT p.name, COUNT(*) as count 
+    SELECT p.name, COUNT(*) as count
     FROM publishers p
     JOIN books_publishers_link bpl ON p.id = bpl.publisher
-    GROUP BY p.id, p.name 
-    ORDER BY count DESC 
+    GROUP BY p.id, p.name
+    ORDER BY count DESC
     LIMIT 20
 """)
 publishers = cur.fetchall()

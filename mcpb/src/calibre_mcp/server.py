@@ -553,7 +553,7 @@ async def main():
             # Add timeout for logging setup (should be fast)
             import asyncio
 
-            setup_result = await asyncio.wait_for(
+            await asyncio.wait_for(
                 asyncio.to_thread(
                     setup_logging, level="INFO", log_file=log_file_path, enable_console=False
                 ),

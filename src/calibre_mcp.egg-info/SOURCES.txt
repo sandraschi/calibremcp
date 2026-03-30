@@ -178,6 +178,7 @@ src/calibre_mcp/tools/portmanteau/media_agentic.py
 src/calibre_mcp/tools/portmanteau/search.py
 src/calibre_mcp/tools/prefab/__init__.py
 src/calibre_mcp/tools/prefab/book_card.py
+src/calibre_mcp/tools/prefab/libraries_card.py
 src/calibre_mcp/tools/publishers/__init__.py
 src/calibre_mcp/tools/publishers/manage_publishers.py
 src/calibre_mcp/tools/publishers/publisher_helpers.py

@@ -4,7 +4,7 @@ PDF viewer module for CalibreMCP.
 
 import base64
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     import fitz  # PyMuPDF

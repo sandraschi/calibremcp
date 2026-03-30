@@ -53,30 +53,12 @@ async def search_fulltext(
     """
     Search inside book content (full text) using Calibre's FTS database.
 
-    Requires Calibre to have built the full-text index (full-text-search.db in the
-    same folder as metadata.db). Searches the actual text of books, not just
-    title/author/tags. Uses FTS5 when available; falls back to LIKE search if
-    the Calibre tokenizer is not available (e.g. when using standard SQLite).
+    Requires Calibre to have built the full-text index (full-text-search.db).
+    Searches actual book text, not just metadata.
 
-    Args:
-        query: Search string (word or phrase). FTS5: use quotes for exact phrase.
-        limit: Max number of books to return (1-200). Default 50.
-        offset: Pagination offset. Default 0.
-        use_stemming: Use stemmed index (e.g. "running" matches "run"). Default False.
-        include_snippets: Include a short snippet per book showing the match. Default True.
-        enrich: If True, attach full book metadata for each result. Default True.
-        resolve_locations: If True, add per-format locations: char offsets in Calibre's
-            indexed text, PDF page (PyMuPDF), EPUB spine href, and Calibre
-            ``ebook-viewer --open-at search:...`` hints so you can jump to the phrase.
-
-    Returns:
-        Dict with:
-        - total: Total number of distinct books with matching content
-        - book_ids: List of book IDs in this page
-        - snippets: Dict book_id -> snippet text (if include_snippets)
-        - books: List of book dicts with metadata (if enrich)
-        - fts_available: True if FTS virtual table was used, False if LIKE fallback
-        - locations: (if resolve_locations) list of match rows with file paths and hints
+    Examples:
+    - search_fulltext(query='"machine learning"', limit=10)
+    - search_fulltext(query="vacuum", resolve_locations=True)
     """
     start_ms = __import__("time").time()
     if ctx:

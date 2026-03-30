@@ -35,10 +35,10 @@ if src_path.exists():
         sys.path.remove(src_str)
         sys.path.insert(0, src_str)
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
-from .api import (
+from .api import (  # noqa: E402
     analysis,
     annas,
     authors,
@@ -63,9 +63,9 @@ from .api import (
     viewer,
     webapp_launch,
 )
-from .cache import get_libraries_cache, update_current_library, update_libraries_cache
-from .config import settings
-from .mcp_access_log_filter import configure_quiet_mcp_http_logging
+from .cache import get_libraries_cache, update_current_library, update_libraries_cache  # noqa: E402
+from .config import settings  # noqa: E402
+from .mcp_access_log_filter import configure_quiet_mcp_http_logging  # noqa: E402
 
 # Ensure logs dir exists and add file handler for webapp (rotation via logging.handlers)
 _log_dir = project_root / "logs"

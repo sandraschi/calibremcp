@@ -144,12 +144,14 @@ class ExtendedLibraryOperations(MCPTool):
     async def find_duplicates(
         self,
         library_path: str,
-        check_fields: list[str] = ["title", "authors"],
+        check_fields: list[str] = None,
         min_similarity: float = 0.9,
     ) -> dict:
         """Find duplicate books in the library."""
         from calibre_plugins.calibremcp.storage.local import LocalStorage
 
+        if check_fields is None:
+            check_fields = ["title", "authors"]
         storage = LocalStorage(library_path)
         books = await storage.get_all_books()
 
@@ -275,8 +277,8 @@ class ExtendedLibraryOperations(MCPTool):
             scores.append(("title", title_sim))
 
         if "authors" in check_fields:
-            authors1 = set(a.lower() for a in book1.get("authors", []))
-            authors2 = set(a.lower() for a in book2.get("authors", []))
+            authors1 = {a.lower() for a in book1.get("authors", [])}
+            authors2 = {a.lower() for a in book2.get("authors", [])}
 
             if authors1 and authors2:
                 intersection = len(authors1 & authors2)
