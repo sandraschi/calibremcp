@@ -31,6 +31,7 @@ src/calibre_mcp/api/libraries.py
 src/calibre_mcp/api/viewer.py
 src/calibre_mcp/db/__init__.py
 src/calibre_mcp/db/base_repository.py
+src/calibre_mcp/db/concurrency.py
 src/calibre_mcp/db/database.py
 src/calibre_mcp/db/models.py
 src/calibre_mcp/db/user_data.py
@@ -98,6 +99,7 @@ src/calibre_mcp/tools/compat.py
 src/calibre_mcp/tools/library_tools.py
 src/calibre_mcp/tools/ocr_output_schema.py
 src/calibre_mcp/tools/tag_tools.py
+src/calibre_mcp/tools/test_concurrency.py
 src/calibre_mcp/tools/viewer_tools.py
 src/calibre_mcp/tools/advanced_features/__init__.py
 src/calibre_mcp/tools/advanced_features/advanced_search.py

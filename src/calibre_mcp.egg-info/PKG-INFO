@@ -57,11 +57,11 @@ Dynamic: author
 Dynamic: home-page
 Dynamic: requires-python
 
-# CalibreMCP 📚
+# CalibreMCP 
 
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
 [![Web Interface](https://img.shields.io/badge/Web--Interface-Professional-purple)]()
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.1+-blue)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.2+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.5.0-blue)](pyproject.toml)
@@ -70,26 +70,28 @@ Dynamic: requires-python
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
 [![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
 
-**FastMCP 3.1+ server for Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG**
+**FastMCP 3.2+ server for Calibre e-book library management with sampling, agentic workflows, skills, prompts, universal connect pattern, and LanceDB metadata RAG**
 
 **Features:**
-- **FastMCP 3.1** - Sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
+- **FastMCP 3.2** - Universal connect pattern, sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
+- **Concurrency Safety** - Thread-safe database operations with row-level locking for multi-client access
+- **Universal Connect** - Support for simultaneous stdio + HTTP access from multiple clients
 - **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search` (`lancedb_metadata/`); see `docs/AGENTIC_AND_RAG.md`
-- **Calibre FTS + phrase locations** - `search_fulltext(resolve_locations=True)`: PDF page / EPUB spine / Calibre `ebook-viewer --open-at search:…` hints (`utils/fts_location_resolver.py`)
+- **Calibre FTS + phrase locations** - `search_fulltext(resolve_locations=True)`: PDF page / EPUB spine / Calibre `ebook-viewer --open-at search:` hints (`utils/fts_location_resolver.py`)
 - **Full-book RAG** - FTS-driven chunk index (`rag_index_build` / `rag_retrieve`), portmanteau `calibre_rag`, DeepIngestor; consolidation design in `docs/FULL_TEXT_RAG_DESIGN.md`
 - **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide); bundled **`skill://calibre-expert/SKILL.md`**
-- **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)** · [MCP prompt catalog](docs/PROMPTS.md) · [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md)) · [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md) · [MCP Apps / Prefab (optional rich cards)](docs/mcp-technical/MCP_APPS_PREFAB.md)
-- **MCP Apps (Prefab)** — Optional **`show_book_prefab_card`**, **`show_libraries_prefab_card`** (“Our Calibre”): install with **`uv sync --extra apps`**; rich cards in capable clients; **`CALIBRE_PREFAB_APPS=0`** to disable. Fleet guide: [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md)
+- **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)**  [MCP prompt catalog](docs/PROMPTS.md)  [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md))  [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md)  [MCP Apps / Prefab (optional rich cards)](docs/mcp-technical/MCP_APPS_PREFAB.md)
+- **MCP Apps (Prefab)**  Optional **`show_book_prefab_card`**, **`show_libraries_prefab_card`** (Our Calibre): install with **`uv sync --extra apps`**; rich cards in capable clients; **`CALIBRE_PREFAB_APPS=0`** to disable. Fleet guide: [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md)
 - **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
 - **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), **Stabilized Smart Import Hub** (arXiv, Gutenberg, Anna's Archive with lander detection)
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
 - **Portmanteau Tools** - 21 consolidated portmanteau tools + RAG helpers (e.g. **`calibre_metadata_export_json`**); see FastMCP registration
-- **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows
+- **Windows Compatibility** -  Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
 - **Natural Language Search** - Intelligent parsing via FastMCP 3.1 sampling and agentic workflows (SEP-1577)
-- **Auto-Open Books** - ✅ Unique search results automatically launch in system viewer
-- **Title-Specific Search** - ✅ Fast, exact title matching with `title` parameter
+- **Auto-Open Books** -  Unique search results automatically launch in system viewer
+- **Title-Specific Search** -  Fast, exact title matching with `title` parameter
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
 - **Verb Mapping** - Claude automatically maps user queries to correct operations
 - **Comment Management** - Dedicated CRUD operations for book comments
@@ -98,7 +100,7 @@ Dynamic: requires-python
 
 *Austrian efficiency for Sandra's 1000+ book digital library. Built with realistic AI-assisted development timelines (days, not weeks).*
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### **Prerequisites**
 
@@ -111,7 +113,7 @@ Dynamic: requires-python
 
 CalibreMCP supports multiple ways to access your Calibre library, each with different use cases:
 
-#### **1. Direct Database Access (Local Libraries)** ✅ **Supported - Primary Method**
+#### **1. Direct Database Access (Local Libraries)**  **Supported - Primary Method**
 
 **What it is:** Direct read/write access to Calibre's SQLite database (`metadata.db`)
 
@@ -121,10 +123,10 @@ CalibreMCP supports multiple ways to access your Calibre library, each with diff
 - Fast, efficient, and supports all operations
 
 **When to use:**
-- ✅ **Default method** - Works automatically when you provide a library path
-- ✅ Local libraries on the same machine
-- ✅ Best performance for read operations
-- ✅ Full read/write access to metadata
+-  **Default method** - Works automatically when you provide a library path
+-  Local libraries on the same machine
+-   performance for read operations
+-  Full read/write access to metadata
 
 **Configuration:**
 - Set `calibre_library_path` to your Calibre library directory
@@ -143,7 +145,7 @@ CalibreMCP supports multiple ways to access your Calibre library, each with diff
 }
 ```
 
-#### **2. Calibre Content Server API** ✅ **Supported - Remote Access**
+#### **2. Calibre Content Server API**  **Supported - Remote Access**
 
 **What it is:** HTTP API provided by Calibre's Content Server (`calibre-server`)
 
@@ -153,16 +155,16 @@ CalibreMCP supports multiple ways to access your Calibre library, each with diff
 - Requires Calibre Content Server to be running
 
 **When to use:**
-- ✅ Remote libraries (different machine/network)
-- ✅ When you want to access library over network
-- ✅ When Calibre GUI is running on another machine
+-  Remote libraries (different machine/network)
+-  When you want to access library over network
+-  When Calibre GUI is running on another machine
 
 **Configuration:**
 - Start Calibre Content Server: `calibre-server --port=8080`
 - Set `CALIBRE_SERVER_URL` environment variable
 - **Authentication:** Optional for read-only access, **required for write/edit operations**
 
-**⚠️ Important Authentication Note:**
+** Important Authentication Note:**
 - **Read operations** (search, list, get details) work **without authentication**
 - **Write/Edit operations** (update metadata, add books, delete) **require authentication**
 - If you need to modify your library remotely, you must enable authentication
@@ -192,7 +194,7 @@ calibre-server --port=8080 --listen-on=0.0.0.0
 # CALIBRE_SERVER_URL: "http://100.x.x.x:8080" (your Tailscale IP)
 ```
 
-**⚠️ Security Note:** When exposing Calibre Content Server over a network:
+** Security Note:** When exposing Calibre Content Server over a network:
 - **Read-only access** works without authentication (for browsing/searching)
 - **Write/edit operations require authentication** - enable auth if you need to modify the library
 - Use Tailscale or VPN for secure access (recommended)
@@ -216,7 +218,7 @@ calibre-server --port=8080 --listen-on=0.0.0.0
 **Start Calibre Content Server:**
 ```bash
 # Option 1: Through Calibre GUI
-# Calibre → Connect/share → Start Content Server
+# Calibre  Connect/share  Start Content Server
 
 # Option 2: Command line (local only)
 calibre-server --port=8080
@@ -228,7 +230,7 @@ calibre-server --port=8080 --listen-on=0.0.0.0
 calibre-server --port=8080 --listen-on=0.0.0.0 --enable-auth --manage-users
 ```
 
-#### **3. Calibre Web Server** ❌ **Not Supported**
+#### **3. Calibre Web Server**  **Not Supported**
 
 **What it is:** Calibre's web-based user interface (different from Content Server)
 
@@ -239,7 +241,7 @@ calibre-server --port=8080 --listen-on=0.0.0.0 --enable-auth --manage-users
 - Content Server provides a proper REST API for programmatic access
 - Direct database access is more efficient for local libraries
 
-#### **4. Calibre CLI Tools** ℹ️ **Available but Not Used by CalibreMCP**
+#### **4. Calibre CLI Tools**  **Available but Not Used by CalibreMCP**
 
 **What it is:** Calibre provides command-line tools for library management
 
@@ -309,7 +311,7 @@ See [webapp/README.md](webapp/README.md), [webapp/SETUP.md](webapp/SETUP.md) (po
 
 ```bash
 # Option 1: Through Calibre GUI
-# Calibre → Connect/share → Start Content Server
+# Calibre  Connect/share  Start Content Server
 
 # Option 2: Command line
 calibre-server --port=8080
@@ -320,19 +322,19 @@ calibre-server --port=8080 --enable-auth --manage-users
 
 ---
 
-## 🚀 Installation
+##  Installation
 
 ### Prerequisites
 - [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
 - Python 3.12+
 
-### 📦 Quick Start
+###  Quick Start
 Run immediately via `uvx`:
 ```bash
 uvx calibre-mcp
 ```
 
-### 🎯 Claude Desktop Integration
+###  Claude Desktop Integration
 Add to your `claude_desktop_config.json`:
 ```json
 "mcpServers": {
@@ -342,7 +344,7 @@ Add to your `claude_desktop_config.json`:
   }
 }
 ```
-### **1. PyPI Package Install (Recommended)** ⭐
+### **1. PyPI Package Install (Recommended)** 
 
 **Simple pip installation - no repository cloning required!**
 
@@ -365,25 +367,25 @@ pip install calibre-mcp
 ```
 
 **Advantages:**
-- ✅ **Universal compatibility** - Works with any MCP client
-- ✅ **Simple installation** - Just one pip command
-- ✅ **Always up-to-date** - Install latest version directly
-- ✅ **No repository cloning** - Clean, minimal setup
-- ✅ **Easy updates** - `pip install --upgrade calibre-mcp`
+-  **Universal compatibility** - Works with any MCP client
+-  **Simple installation** - Just one pip command
+-  **Always up-to-date** - Install latest version directly
+-  **No repository cloning** - Clean, minimal setup
+-  **Easy updates** - `pip install --upgrade calibre-mcp`
 
 ---
 
-### **2. MCPB Package** ⭐
+### **2. MCPB Package** 
 
 **One-click installation via MCPB package - no Python setup required!**
 
-> **⚠️ Important:** MCPB packages **only work with Claude Desktop**. They do not work with other MCP clients. The installation method is drag-and-drop only - there is no command-line installation option.
+> ** Important:** MCPB packages **only work with Claude Desktop**. They do not work with other MCP clients. The installation method is drag-and-drop only - there is no command-line installation option.
 
 #### **What is MCPB?**
 
-MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles **self-contained source** (and assets) into a single `.mcpb` file for **Claude Desktop** drag-and-drop install. Fleet layout and rules: **[MCP Central Docs — MCPB_PACKAGING_STANDARDS.md](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/MCPB_PACKAGING_STANDARDS.md)** and **[PACKAGING_STANDARDS.md §5](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md#5-python-mcp-repo-uv-justfile-llmstxt-glama-mcpb-pack)** (no `pyproject.toml` / lockfiles inside the bundle; install Python deps via **`uv sync`** or PyPI from a clone).
+MCPB (Model Context Protocol Bundle) is a packaging format for MCP servers that bundles **self-contained source** (and assets) into a single `.mcpb` file for **Claude Desktop** drag-and-drop install. Fleet layout and rules: **[MCP Central Docs  MCPB_PACKAGING_STANDARDS.md](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/MCPB_PACKAGING_STANDARDS.md)** and **[PACKAGING_STANDARDS.md 5](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md#5-python-mcp-repo-uv-justfile-llmstxt-glama-mcpb-pack)** (no `pyproject.toml` / lockfiles inside the bundle; install Python deps via **`uv sync`** or PyPI from a clone).
 
-CalibreMCP’s pack root is **`mcpb/`** (`manifest.json`, `assets/`, synced `src/calibre_mcp/`). See **`mcpb/README.md`**. Build: **`just mcpb-pack`** or **`.\scripts\build-mcpb-package.ps1 -NoSign`** → **`dist\calibre-mcp.mcpb`**.
+CalibreMCPs pack root is **`mcpb/`** (`manifest.json`, `assets/`, synced `src/calibre_mcp/`). See **`mcpb/README.md`**. Build: **`just mcpb-pack`** or **`.\scripts\build-mcpb-package.ps1 -NoSign`**  **`dist\calibre-mcp.mcpb`**.
 
 #### **Install MCPB CLI (for building packages)**
 
@@ -416,10 +418,10 @@ cd calibre-mcp
 
 #### **Install in Claude Desktop** (Drag-and-Drop Only)
 
-**⚠️ Important:** MCPB packages **must be installed via drag-and-drop** in Claude Desktop. There is no command-line installation method.
+** Important:** MCPB packages **must be installed via drag-and-drop** in Claude Desktop. There is no command-line installation method.
 
 1. **Open Claude Desktop Settings:**
-   - Click the **⚙️ Settings** icon in Claude Desktop
+   - Click the ** Settings** icon in Claude Desktop
    - Navigate to the **MCP Servers** or **Extensions** section
 
 2. **Drag and Drop the Package:**
@@ -445,14 +447,14 @@ cd calibre-mcp
    - You should see "20 tools, 20 prompts" in the Claude Desktop interface
    - Test by asking Claude to list your libraries or books
 
-**✅ Benefits:**
+** Benefits:**
 - No Python environment setup required
 - Automatic dependency management
 - One-click (drag-and-drop) installation
 - Works across all platforms (Windows, macOS, Linux)
 - All dependencies bundled in the package
 
-**❌ Limitations:**
+** Limitations:**
 - **Only works with Claude Desktop** (not other MCP clients)
 - **Must use drag-and-drop** (no CLI installation)
 - Requires Claude Desktop to be running during installation
@@ -482,7 +484,7 @@ cd calibre-mcp
 
 **For other MCP clients**, configure according to your client's MCP server setup requirements.
 
-**✅ Benefits:**
+** Benefits:**
 - No repository cloning required
 - Simple pip install
 - Automatic dependency management
@@ -492,21 +494,21 @@ cd calibre-mcp
 
 ### **3. Python Development Install** (Legacy/Development)
 
-**⚠️ Note: This method requires cloning the repository and setting up a Python environment.**
+** Note: This method requires cloning the repository and setting up a Python environment.**
 
-## 🚀 Installation
+##  Installation
 
 ### Prerequisites
 - [uv](https://docs.astral.sh/uv/) installed (RECOMMENDED)
 - Python 3.12+
 
-### 📦 Quick Start
+###  Quick Start
 Run immediately via `uvx`:
 ```bash
 uvx calibre-mcp
 ```
 
-### 🎯 Claude Desktop Integration
+###  Claude Desktop Integration
 Add to your `claude_desktop_config.json`:
 ```json
 "mcpServers": {
@@ -522,11 +524,11 @@ Add to your `claude_desktop_config.json`:
 python -c "
 from calibre_mcp.calibre_api import quick_library_test
 import asyncio
-print('✅ Working' if asyncio.run(quick_library_test()) else '❌ Failed')
+print(' Working' if asyncio.run(quick_library_test()) else ' Failed')
 "
 ```
 
-#### **Verify Server Will Load in Claude** ⚡
+#### **Verify Server Will Load in Claude** 
 
 Before committing or restarting Claude, verify the server will load:
 
@@ -545,7 +547,7 @@ python scripts/check_logs.py --errors-only
 
 1. **Add tool** following all standards
 2. **Run ruff iteratively** until zero errors:
-   - `uv run ruff check .` → Fix errors → Run again → Repeat until clean
+   - `uv run ruff check .`  Fix errors  Run again  Repeat until clean
    - `uv run ruff format .` (format after linting passes)
 3. **Run pytest**: `uv run python -m pytest -v`
 4. **Run restart script**: `.\scripts\restart_claude_and_check_mcp.ps1`
@@ -584,10 +586,10 @@ python scripts/check_logs.py --errors-only
 - **Tag Management** - Smart tagging and categorization
 - **Library Statistics** - Detailed insights into your collection
 - **Advanced OCR Processing** - Multiple OCR backends with different capabilities:
-  - **GOT-OCR2.0 Integration**: Revolutionary open-source OCR with formatted text preservation
+  - **GOT-OCR2.0 Integration**:  open-source OCR with formatted text preservation
   - **ABBYY FineReader CLI**: Traditional commercial OCR with multi-language support
   - **OCR Modes**: Plain text, formatted text, fine-grained region OCR, HTML rendering
-  - **Auto Provider Selection**: Automatically chooses best available OCR backend
+  - **Auto Provider Selection**: Automatically chooses  available OCR backend
 
 ### AI-Powered Tools
 - **Local LLM Auto-Discovery** - Automatically detects and connects to running Ollama/LM Studio instances (no config needed)
@@ -602,7 +604,7 @@ python scripts/check_logs.py --errors-only
 - **Series Merging** - Combine duplicate or related series
 - **Automatic Organization** - Keep your series properly ordered and managed
 
-## 🤖 AI Hardware Requirements
+##  AI Hardware Requirements
 
 While basic operations run on any hardware, AI-powered features (Ollama integration, local embeddings) have specific requirements:
 
@@ -613,7 +615,7 @@ While basic operations run on any hardware, AI-powered features (Ollama integrat
 > [!IMPORTANT]
 > **Local LLM Usage**: AI features are **OPTIONAL**. You can run CalibreMCP without any GPU. If enabling local AI (Ollama), ensure your hardware meets the model's requirements. CPU inference is available but significantly slower.
 
-## 🌟 Natural Language Search & Auto-Open
+##  Natural Language Search & Auto-Open
 
 CalibreMCP supports **conversational book access** with intelligent parsing and automatic viewer launching.
 
@@ -621,11 +623,11 @@ CalibreMCP supports **conversational book access** with intelligent parsing and 
 
 The MCP client LLM automatically parses natural language queries into structured searches:
 
-**User Input → MCP Tool Call:**
-- "search books by harari" → `query_books(operation="search", author="harari")`
-- "books about china" → `query_books(operation="search", tag="china")`
-- "books from last year" → `query_books(operation="search", added_after="2024-01-01")`
-- "find sapiens" → `query_books(operation="search", title="sapiens")`
+**User Input  MCP Tool Call:**
+- "search books by harari"  `query_books(operation="search", author="harari")`
+- "books about china"  `query_books(operation="search", tag="china")`
+- "books from last year"  `query_books(operation="search", added_after="2024-01-01")`
+- "find sapiens"  `query_books(operation="search", title="sapiens")`
 
 **FastMCP 2.14.4 Sampling (SEP-1577):**
 For ambiguous queries, the server uses `ctx.sample()` with tools to orchestrate agentic workflows. Supports dialogic returns (execution_time_ms, recommendations) for SOTA MCP compliance.
@@ -654,9 +656,9 @@ result = query_books(operation="search", title="homo deus", auto_open=True)
 ### **Book Access Commands**
 
 **Natural Phrasings:**
-- "I want to read 'Homo Deus'" → Search & auto-open
-- "Show me 'The Burning Court'" → Search & auto-open
-- "Open 'Sapiens' for reading" → Search & auto-open
+- "I want to read 'Homo Deus'"  Search & auto-open
+- "Show me 'The Burning Court'"  Search & auto-open
+- "Open 'Sapiens' for reading"  Search & auto-open
 
 **All map to:** Title search with auto-open enabled
 
@@ -667,7 +669,7 @@ result = query_books(operation="search", title="homo deus", auto_open=True)
 **Conversational Book Access:** The MCP client parses natural language and auto-opens books:
 
 ```python
-# User says: "I want to read 'Homo Deus'" → Auto-search and open
+# User says: "I want to read 'Homo Deus'"  Auto-search and open
 results = await query_books(
     operation="search",
     title="homo deus",
@@ -676,13 +678,13 @@ results = await query_books(
 )
 # Result: Book opens in system viewer, returns metadata
 
-# User says: "books about china" → Tag search
+# User says: "books about china"  Tag search
 results = await query_books(
     operation="search",
     tag="china"
 )
 
-# User says: "find sapiens" → Title search with sampling
+# User says: "find sapiens"  Title search with sampling
 results = await query_books(
     operation="search",
     title="sapiens"  # Fast title-only search (bypasses FTS)
@@ -694,7 +696,7 @@ results = await query_books(
 **Using Portmanteau Tools:** All user queries (search, list, find, query, get) map to `query_books`:
 
 ```python
-# User says: "list books by conan doyle" → query_books with operation="search"
+# User says: "list books by conan doyle"  query_books with operation="search"
 results = await query_books(
     operation="search",
     author="Conan Doyle",
@@ -760,7 +762,7 @@ results = await query_books(operation="list", limit=50)
 ### OCR Processing Examples
 
 ```python
-# Auto-select best OCR provider (GOT-OCR2.0 preferred, FineReader fallback)
+# Auto-select  OCR provider (GOT-OCR2.0 preferred, FineReader fallback)
 result = await process_ocr(source="/path/to/scanned_book.pdf")
 
 # Use GOT-OCR2.0 for formatted text preservation
@@ -855,7 +857,7 @@ python -m calibre_mcp.server
 # Opens: http://127.0.0.1:6274
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### **Environment Variables**
 
@@ -878,7 +880,7 @@ export CALIBRE_USERNAME="sandra"
 export CALIBRE_PASSWORD="your_password"
 ```
 
-## 🚨 Troubleshooting
+##  Troubleshooting
 
 ### **Connection Failed**
 
@@ -907,34 +909,34 @@ curl -u username:password http://localhost:8080/ajax/interface-data/init
 
 See **[Troubleshooting Guide](docs/Troubleshooting.md)** for comprehensive solutions.
 
-## 🏗 Architecture
+##  Architecture
 
 ```
 calibremcp/
-├── src/calibre_mcp/
-│   ├── server.py           # 4 FastMCP tools
-│   ├── calibre_api.py      # HTTP API client
-│   └── config.py           # Configuration management
-├── config/
-│   ├── settings.yaml       # Server configuration
-│   └── calibre_config.yaml # Calibre-specific settings
-├── tests/
-│   ├── test_api.py         # Unit tests
-│   └── integration_tests.py # Integration tests
-└── docs/                   # Complete documentation
+ src/calibre_mcp/
+    server.py           # 4 FastMCP tools
+    calibre_api.py      # HTTP API client
+    config.py           # Configuration management
+ config/
+    settings.yaml       # Server configuration
+    calibre_config.yaml # Calibre-specific settings
+ tests/
+    test_api.py         # Unit tests
+    integration_tests.py # Integration tests
+ docs/                   # Complete documentation
 ```
 
-## 💯 Success Metrics
+##  Success Metrics
 
-### **Phase 1 Complete** ✅
+### **Phase 1 Complete** 
 
-- ✅ 4/4 core MCP tools implemented and tested
-- ✅ FastMCP 2.0 compliance with proper structure  
-- ✅ Comprehensive error handling and diagnostics
-- ✅ Austrian efficiency: 45-minute realistic timeline
-- ✅ Production-ready for immediate use with Claude Desktop and other MCP clients
+-  4/4 core MCP tools implemented and tested
+-  FastMCP 2.0 compliance with proper structure  
+-  Comprehensive error handling and diagnostics
+-  Austrian efficiency: 45-minute realistic timeline
+-  Production-ready for immediate use with Claude Desktop and other MCP clients
 
-## 📄 License
+##  License
 
 MIT License - Austrian efficiency in e-book management.
 
