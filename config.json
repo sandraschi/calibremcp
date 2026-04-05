@@ -1,0 +1,110 @@
+{
+  "local_library_path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek",
+  "discovered_libraries": {
+    "Calibre-Bibliothek": {
+      "name": "Calibre-Bibliothek",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Bullshit": {
+      "name": "Calibre-Bibliothek Bullshit",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Bullshit",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Bullshit\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Comics": {
+      "name": "Calibre-Bibliothek Comics",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Comics",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Comics\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Deutsch": {
+      "name": "Calibre-Bibliothek Deutsch",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Deutsch",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Deutsch\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek IT": {
+      "name": "Calibre-Bibliothek IT",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek IT",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek IT\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Japanisch": {
+      "name": "Calibre-Bibliothek Japanisch",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Japanisch",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Japanisch\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Magazines": {
+      "name": "Calibre-Bibliothek Magazines",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Magazines",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Magazines\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Manga": {
+      "name": "Calibre-Bibliothek Manga",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Manga",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Manga\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Private": {
+      "name": "Calibre-Bibliothek Private",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Private",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Private\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek Test": {
+      "name": "Calibre-Bibliothek Test",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Test",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Test\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    },
+    "Calibre-Bibliothek-Private-2": {
+      "name": "Calibre-Bibliothek-Private-2",
+      "path": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek-Private-2",
+      "metadata_db": "L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek-Private-2\\metadata.db",
+      "book_count": null,
+      "last_modified": null,
+      "is_active": false
+    }
+  },
+  "auto_discover_libraries": true,
+  "library_discovery_paths": [],
+  "default_remote": null,
+  "remotes": {},
+  "use_remote": false,
+  "server_url": "http://localhost:8080",
+  "username": null,
+  "timeout": 30,
+  "max_retries": 3,
+  "default_limit": 50,
+  "max_limit": 200,
+  "library_name": "main",
+  "load_beta_tools": false,
+  "annas_mirrors": [
+    "https://annas-archive.gl"
+  ],
+  "gutenberg_mirror": "https://www.gutenberg.org"
+}

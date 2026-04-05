@@ -41,6 +41,7 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from .api import (  # noqa: E402
     analysis,
     annas,
+    arxiv,
     authors,
     books,
     bulk,
@@ -48,6 +49,7 @@ from .api import (  # noqa: E402
     comments,
     export,
     files,
+    gutenberg,
     library,
     llm,
     logs,
@@ -56,6 +58,7 @@ from .api import (  # noqa: E402
     rag,
     search,
     series,
+    settings as api_settings,
     skills,
     specialized,
     system,
@@ -254,6 +257,9 @@ app.include_router(webapp_launch.router, prefix="/api", tags=["webapp-launch"])
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
 app.include_router(annas.router, prefix="/api/annas", tags=["annas"])
+app.include_router(gutenberg.router, prefix="/api/gutenberg", tags=["gutenberg"])
+app.include_router(arxiv.router, prefix="/api/arxiv", tags=["arxiv"])
+app.include_router(api_settings.router, prefix="/api/settings", tags=["settings"])
 
 
 @app.get("/")

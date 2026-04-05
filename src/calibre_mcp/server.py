@@ -145,9 +145,116 @@ def create_app(path: str = "/mcp"):
     return mcp.http_app()
 
 
+async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
+    """Probe Calibre connectivity at startup and raise RuntimeError with a clear message
+    if nothing is reachable, so Claude Desktop shows the server as failed rather than
+    silently registering a broken server.
+
+    Checks (in order):
+    1. CALIBRE_BASE_PATH — shallow scan for direct-child metadata.db files.
+    2. CALIBRE_SERVER_URL — HTTP GET /ajax/library-info with a 5-second timeout.
+
+    Either local libraries OR the remote server must be reachable to pass.
+    See: mcp-central-docs/standards/fastmcp-3.2-startup-probes.md
+    """
+    import asyncio
+    from pathlib import Path
+
+    base_path_ok = False
+    remote_ok = False
+    remote_configured = False
+    messages: list[str] = []
+
+    # --- 1. Local library probe ---
+    base_path_str = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+    if base_path_str:
+        base_path = Path(base_path_str)
+        if base_path.exists():
+            # Shallow scan — one level of subdirs only. rglob on a large NAS share
+            # is slow and unnecessary; Calibre libraries are always direct children.
+            dbs = [
+                item / "metadata.db"
+                for item in base_path.iterdir()
+                if item.is_dir() and (item / "metadata.db").exists()
+            ]
+            if dbs:
+                base_path_ok = True
+                startup_log.info(
+                    "STARTUP PROBE: local libraries OK — found %d metadata.db under %s",
+                    len(dbs),
+                    base_path,
+                )
+            else:
+                messages.append(
+                    f"CALIBRE_BASE_PATH '{base_path}' exists but contains no metadata.db files"
+                )
+                startup_log.warning("STARTUP PROBE: %s", messages[-1])
+        else:
+            messages.append(f"CALIBRE_BASE_PATH '{base_path}' does not exist")
+            startup_log.warning("STARTUP PROBE: %s", messages[-1])
+    else:
+        startup_log.info("STARTUP PROBE: CALIBRE_BASE_PATH not set, skipping local probe")
+
+    # --- 2. Remote server probe ---
+    server_url = os.environ.get("CALIBRE_SERVER_URL", "").strip()
+    if server_url:
+        remote_configured = True
+        probe_url = server_url.rstrip("/") + "/ajax/library-info"
+        startup_log.info("STARTUP PROBE: probing remote Calibre server at %s", probe_url)
+        try:
+            import aiohttp
+
+            async with aiohttp.ClientSession() as session:
+                async with session.get(probe_url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    if resp.status < 500:
+                        remote_ok = True
+                        startup_log.info(
+                            "STARTUP PROBE: remote server OK (HTTP %d)", resp.status
+                        )
+                    else:
+                        messages.append(
+                            f"CALIBRE_SERVER_URL '{server_url}' returned HTTP {resp.status}"
+                        )
+                        startup_log.warning("STARTUP PROBE: %s", messages[-1])
+        except asyncio.TimeoutError:
+            messages.append(
+                f"CALIBRE_SERVER_URL '{server_url}' timed out after 5s — "
+                "is Calibre Content Server running?"
+            )
+            startup_log.warning("STARTUP PROBE: %s", messages[-1])
+        except Exception as exc:
+            messages.append(
+                f"CALIBRE_SERVER_URL '{server_url}' unreachable: {type(exc).__name__}: {exc}"
+            )
+            startup_log.warning("STARTUP PROBE: %s", messages[-1])
+
+    # --- 3. Decision ---
+    if base_path_ok or remote_ok:
+        # At least one data source is good — proceed normally.
+        return
+
+    if not base_path_str and not remote_configured:
+        # Nothing configured at all — warn but don't hard-fail so the server can still
+        # start in degraded mode (user can configure later via tool args).
+        startup_log.warning(
+            "STARTUP PROBE: neither CALIBRE_BASE_PATH nor CALIBRE_SERVER_URL is configured. "
+            "CalibreMCP will start but most tools will return errors until a library is accessible."
+        )
+        return
+
+    # Something was configured but nothing is reachable — hard fail with actionable message.
+    detail = "; ".join(messages) if messages else "no reachable data source"
+    raise RuntimeError(
+        f"CalibreMCP startup failed — Calibre is not reachable. {detail}. "
+        "Fix: ensure Calibre Content Server is running on port 8099, or that "
+        "CALIBRE_BASE_PATH points to a directory containing metadata.db files, "
+        "then restart Claude Desktop."
+    )
+
+
 @asynccontextmanager
 async def server_lifespan(mcp_instance: FastMCP):
-    """FastMCP 3.1 lifespan hook: startup and shutdown around the server run.
+    """FastMCP 3.1 lifespan hook: startup connectivity probe + shutdown.
 
     Args:
         mcp_instance: FastMCP instance (provided by the framework).
@@ -159,6 +266,10 @@ async def server_lifespan(mcp_instance: FastMCP):
 
     lifespan_log = logging.getLogger("calibremcp.lifespan")
     lifespan_log.info("SERVER LIFESPAN: starting")
+
+    await _probe_calibre_connectivity(lifespan_log)
+
+    lifespan_log.info("SERVER LIFESPAN: connectivity probe passed, server ready")
     yield
     lifespan_log.info("SERVER LIFESPAN: shutdown complete")
 
@@ -485,7 +596,7 @@ async def discover_libraries() -> dict[str, str]:
     if config.local_library_path and config.local_library_path.exists():
         libraries["main"] = str(config.local_library_path)
 
-    # Discover additional libraries
+    # Discover additional libraries — shallow scan, same logic as startup probe
     base_dir = Path("L:/Multimedia Files/Written Word")
     if base_dir.exists():
         for item in base_dir.iterdir():

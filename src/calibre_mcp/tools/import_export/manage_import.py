@@ -14,7 +14,9 @@ from ...logging_config import get_logger
 from ...server import mcp
 from ..book_management.add_book import add_book_helper
 from ..shared.error_handling import format_error_response, handle_tool_error
-from .annas_client import search_annas
+from .annas_client import download_annas_book, search_annas
+from .arxiv_client import download_arxiv_paper, search_arxiv
+from .gutenberg_client import download_gutenberg_book, search_gutenberg
 
 logger = get_logger("calibremcp.tools.import_export")
 
@@ -25,6 +27,10 @@ async def manage_import(
     file_path: str | None = None,
     url: str | None = None,
     query: str | None = None,
+    md5: str | None = None,
+    book_id: int | None = None,
+    arxiv_id: str | None = None,
+    format: str | None = None,
     max_results: int = 20,
     library_path: str | None = None,
 ) -> dict[str, Any]:
@@ -32,25 +38,14 @@ async def manage_import(
     Import books from various sources.
 
     SUPPORTED OPERATIONS:
-    - from_path: Add book from local file path (delegates to manage_books)
-    - from_url: Download book from URL and add to library
-    - annas_search: Search Anna's Archive, return matching results (no download)
-
-    OPERATIONS DETAIL:
-
-    from_path: Add from local file
-    - Uses manage_books(operation='add') under the hood
-    - Parameters: file_path (required)
-
-    from_url: Download and add
-    - Downloads file from URL to temp location, adds via calibredb
-    - Supports direct download URLs (e.g. LibGen, IA)
-    - Parameters: url (required)
-
-    annas_search: Search Anna's Archive
-    - Returns list of matches with title, author, formats, detail_url
-    - User can open detail_url in browser to download, then use from_url or from_path
-    - Parameters: query (required), max_results (default 20)
+    - from_path: Add book from local file path
+    - from_url: Download book from URL and add
+    - annas_search: Search Anna's Archive
+    - annas_download: Download from Anna's by MD5
+    - gutenberg_search: Search Project Gutenberg
+    - gutenberg_import: Download and add from Gutenberg
+    - arxiv_search: Search arXiv research papers
+    - arxiv_import: Download and add from arXiv
     """
     try:
         if operation == "annas_search":
@@ -78,21 +73,58 @@ async def manage_import(
                 )
             return await _download_and_add(url.strip(), library_path)
 
-        if operation == "from_path":
-            if not file_path or not file_path.strip():
-                return format_error_response(
-                    error_msg="file_path is required for from_path",
-                    error_code="MISSING_PARAM",
-                    error_type="ValueError",
-                    operation=operation,
-                    suggestions=["Provide file_path to a local book file"],
-                    related_tools=["manage_books"],
-                )
             return await add_book_helper(
                 file_path=file_path.strip(),
                 fetch_metadata=True,
                 library_path=library_path,
             )
+
+        if operation == "annas_download":
+            if not md5 or not md5.strip():
+                return {"success": False, "error": "md5 is required for annas_download"}
+            logger.info(f"Starting Anna's download for MD5: {md5}")
+            tmp_path = await download_annas_book(md5.strip())
+            if not tmp_path:
+                return {"success": False, "error": "Could not extract download link for this MD5."}
+            try:
+                return await add_book_helper(file_path=tmp_path, library_path=library_path)
+            finally:
+                Path(tmp_path).unlink(missing_ok=True)
+
+        if operation == "gutenberg_search":
+            if not query or not query.strip():
+                return {"success": False, "error": "query is required for gutenberg_search"}
+            return await search_gutenberg(query.strip())
+
+        if operation == "gutenberg_import":
+            if not book_id:
+                return {"success": False, "error": "book_id is required for gutenberg_import"}
+            logger.info(f"Starting Gutenberg import for #{book_id}")
+            tmp_path = await download_gutenberg_book(book_id, preferred_format=format or "application/epub+zip")
+            if not tmp_path:
+                return {"success": False, "error": f"Failed to download Gutenberg book {book_id}"}
+            try:
+                return await add_book_helper(file_path=tmp_path, library_path=library_path)
+            finally:
+                Path(tmp_path).unlink(missing_ok=True)
+
+        if operation == "arxiv_search":
+            if not query or not query.strip():
+                return {"success": False, "error": "query is required for arxiv_search"}
+            return await search_arxiv(query.strip(), max_results=max_results)
+
+        if operation == "arxiv_import":
+            target_id = arxiv_id or query
+            if not target_id:
+                return {"success": False, "error": "arxiv_id or query (as ID) is required for arxiv_import"}
+            logger.info(f"Starting arXiv import for {target_id}")
+            tmp_path = await download_arxiv_paper(target_id)
+            if not tmp_path:
+                return {"success": False, "error": f"Failed to download arXiv paper {target_id}"}
+            try:
+                return await add_book_helper(file_path=tmp_path, library_path=library_path)
+            finally:
+                Path(tmp_path).unlink(missing_ok=True)
 
         return format_error_response(
             error_msg=(
@@ -104,8 +136,13 @@ async def manage_import(
             operation=operation,
             suggestions=[
                 "Use operation='annas_search' to search Anna's Archive",
+                "Use operation='annas_download' with md5 to download mirror",
                 "Use operation='from_url' to add book from download URL",
                 "Use operation='from_path' to add book from local file",
+                "Use operation='gutenberg_search' to search Project Gutenberg",
+                "Use operation='gutenberg_import' with book_id to add from Gutenberg",
+                "Use operation='arxiv_search' to search arXiv",
+                "Use operation='arxiv_import' with arxiv_id to add from arXiv",
             ],
             related_tools=["manage_import", "manage_books"],
         )

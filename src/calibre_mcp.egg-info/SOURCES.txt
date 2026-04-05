@@ -150,10 +150,12 @@ src/calibre_mcp/tools/help_tools/__init__.py
 src/calibre_mcp/tools/help_tools/help.py
 src/calibre_mcp/tools/import_export/__init__.py
 src/calibre_mcp/tools/import_export/annas_client.py
+src/calibre_mcp/tools/import_export/arxiv_client.py
 src/calibre_mcp/tools/import_export/export_books.py
 src/calibre_mcp/tools/import_export/export_books_portmanteau.py
 src/calibre_mcp/tools/import_export/export_helpers.py
 src/calibre_mcp/tools/import_export/export_library.py
+src/calibre_mcp/tools/import_export/gutenberg_client.py
 src/calibre_mcp/tools/import_export/manage_import.py
 src/calibre_mcp/tools/library/__init__.py
 src/calibre_mcp/tools/library/library_discovery.py

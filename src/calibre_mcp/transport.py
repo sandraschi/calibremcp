@@ -237,39 +237,9 @@ async def run_server_async(
             class LaunchRequest(BaseModel):
                 repo_path: str
 
-            # SOTA Fleet Launch Protocol Injection
-            @mcp_app.app.post("/api/fleet/launch")
-            async def fleet_launch(launch_req: LaunchRequest):
-                """SOTA Fleet Launch Protocol"""
-                repo_path = launch_req.repo_path
-                if not (
-                    repo_path.lower().startswith("d:/dev/repos")
-                    or repo_path.lower().startswith("c:/users/sandr")
-                ):
-                    return {"status": "error", "message": "Forbidden path"}
-
-                if not os.path.exists(repo_path):
-                    return {"status": "error", "message": "Path not found"}
-
-                start_ps1 = os.path.join(repo_path, "start.ps1")
-                if os.path.exists(start_ps1):
-                    # Use absolute path for powershell to satisfy lints and ensure reliability
-                    subprocess.Popen(
-                        [
-                            "powershell.exe",
-                            "-ExecutionPolicy",
-                            "Bypass",
-                            "-File",
-                            "start.ps1",
-                        ],
-                        cwd=repo_path,
-                    )
-                    return {
-                        "status": "success",
-                        "message": f"Launched {os.path.basename(repo_path)}",
-                    }
-
-                return {"status": "error", "message": "start.ps1 not found"}
+            # Professional Fleet Launch Protocol Injection
+            # Note: This endpoint is handled by the main FastAPI app in server.py
+            # The fleet launch protocol is integrated into the main HTTP app
 
             class SearchQuery(BaseModel):
                 query: str
@@ -287,71 +257,11 @@ async def run_server_async(
                 provider: str | None = None
                 base_url: str | None = None
 
-            @mcp_app.app.post("/api/v1/search")
-            async def semantic_search(req: SearchQuery):
-                from calibre_mcp.tools.portmanteau.search import calibre_rag
+            # Note: HTTP endpoints are handled by the main FastAPI app in server.py
+            # These endpoints would be integrated into the main HTTP app if needed
 
-                try:
-                    results = await calibre_rag(
-                        operation="search",
-                        query=req.query,
-                        limit=req.limit,
-                        search_type=req.search_type,
-                    )
-                    return results  # Returns success, message, and results array
-                except Exception as e:
-                    logger.error(f"Search endpoint error: {e}")
-                    return {"success": False, "error": str(e)}
-
-            @mcp_app.app.post("/api/v1/chat")
-            async def chat_with_media(req: ChatQuery):
-                """Proxy to local Ollama or OpenAI-compatible API (``LLM_*`` env). Supports streaming."""
-                msgs_in = req.messages if req.messages else []
-                if msgs_in:
-                    built: list[dict[str, str]] = [dict(m) for m in msgs_in]
-                else:
-                    text = (req.message or "").strip()
-                    if not text:
-                        return {
-                            "success": False,
-                            "error": "empty_message",
-                            "message": "Provide `message` or non-empty `messages`.",
-                        }
-                    ctx = (req.context or "").strip()
-                    if ctx:
-                        built = [
-                            {"role": "system", "content": ctx},
-                            {"role": "user", "content": text},
-                        ]
-                    else:
-                        built = [
-                            {"role": "system", "content": DEFAULT_SYSTEM},
-                            {"role": "user", "content": text},
-                        ]
-
-                out = await chat_complete(
-                    built,
-                    model=req.model,
-                    stream=req.stream,
-                    provider=req.provider,
-                    base_url=req.base_url,
-                )
-
-                if isinstance(out, StreamingResponse):
-                    return out
-                if out.get("success") is False:
-                    return out
-                merged: dict = {
-                    **out,
-                    "context_used": bool((req.context or "").strip()),
-                }
-                raw = out.get("raw")
-                if isinstance(raw, dict):
-                    if "message" in raw:
-                        merged["message"] = raw["message"]
-                    if "choices" in raw:
-                        merged["choices"] = raw["choices"]
-                return merged
+            # Note: HTTP endpoints are handled by the main FastAPI app in server.py
+            # These endpoints would be integrated into the main HTTP app if needed
 
             logger.info(f"Running in HTTP Streamable mode: {endpoint}")
             await mcp_app.run_http_async(host=host, port=port, path=path)

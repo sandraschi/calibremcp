@@ -188,14 +188,19 @@ async def get_book_details(book_id: int):
 async def add_book(data: dict = Body(...)):
     """Add a new book to the library."""
     try:
+        metadata = data.get("metadata") or {}
+        if "tags" in data and data["tags"]:
+            metadata["tags"] = data["tags"]
+
         result = await mcp_client.call_tool(
             "manage_books",
             {
                 "operation": "add",
                 "file_path": data.get("file_path"),
-                "metadata": data.get("metadata"),
+                "metadata": metadata if metadata else None,
                 "fetch_metadata": data.get("fetch_metadata", True),
                 "convert_to": data.get("convert_to"),
+                "library_path": data.get("library_path"),
             },
         )
         return result

@@ -1,15 +1,22 @@
 """
-Base service class for all MCP services.
+Base service class for all MCP services with concurrency safety.
 """
 
 from collections.abc import Callable
 from typing import Any, Generic, TypeVar
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
+from sqlalchemy import text
 
 from ..db.database import DatabaseService
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 ModelType = TypeVar("ModelType")
@@ -56,8 +63,38 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
         self.response_schema = response_schema
 
     def _get_db_session(self) -> Session:
-        """Get a database session."""
+        """Get a database session with concurrency safety."""
         return self.db.session
+
+    @asynccontextmanager
+    async def _get_safe_session(self) -> Session:
+        """Get a thread-safe database session for concurrent operations."""
+        session = self._get_db_session()
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Concurrent database operation failed: {e}")
+            raise ServiceError(f"Database concurrency error: {str(e)}", status_code=500) from e
+        finally:
+            session.close()
+
+    @asynccontextmanager
+    async def _get_locked_session(self, resource_id: Any) -> Session:
+        """Get a session with row-level locking for specific resource."""
+        session = self._get_db_session()
+        try:
+            # Begin immediate transaction for write operations
+            session.execute(text("BEGIN IMMEDIATE"))
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Locked database operation failed for resource {resource_id}: {e}")
+            raise ServiceError(f"Database lock error: {str(e)}", status_code=423) from e
+        finally:
+            session.close()
 
     def _commit_or_rollback(self, session: Session) -> None:
         """Commit the session or rollback on error."""

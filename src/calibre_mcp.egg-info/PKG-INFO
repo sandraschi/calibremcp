@@ -18,7 +18,7 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
-Requires-Dist: fastmcp>=3.1.0
+Requires-Dist: fastmcp>=3.2.0
 Requires-Dist: fastapi>=0.115.0
 Requires-Dist: httpx>=0.27.0
 Requires-Dist: pydantic>=2.9.0
@@ -37,6 +37,7 @@ Requires-Dist: pymupdf>=1.24.0
 Requires-Dist: ruff>=0.14.1
 Requires-Dist: lancedb>=0.17.0
 Requires-Dist: fastembed>=0.4.0
+Requires-Dist: lxml>=5.1.0
 Provides-Extra: apps
 Requires-Dist: prefab-ui>=0.14.0; extra == "apps"
 Provides-Extra: rag
@@ -63,7 +64,7 @@ Dynamic: requires-python
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.1+-blue)](https://github.com/jlowin/fastmcp)
 [![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.4.0-blue)](pyproject.toml)
+[![Version](https://img.shields.io/badge/Version-1.5.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
 [![Portmanteau Tools](https://img.shields.io/badge/Tools-22-orange)](docs/development/README.md)
 [![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
@@ -80,7 +81,7 @@ Dynamic: requires-python
 - **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)** · [MCP prompt catalog](docs/PROMPTS.md) · [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md)) · [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md) · [MCP Apps / Prefab (optional rich cards)](docs/mcp-technical/MCP_APPS_PREFAB.md)
 - **MCP Apps (Prefab)** — Optional **`show_book_prefab_card`**, **`show_libraries_prefab_card`** (“Our Calibre”): install with **`uv sync --extra apps`**; rich cards in capable clients; **`CALIBRE_PREFAB_APPS=0`** to disable. Fleet guide: [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md)
 - **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
-- **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), import/export
+- **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), **Stabilized Smart Import Hub** (arXiv, Gutenberg, Anna's Archive with lander detection)
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
 - **Portmanteau Tools** - 21 consolidated portmanteau tools + RAG helpers (e.g. **`calibre_metadata_export_json`**); see FastMCP registration
 - **Windows Compatibility** - ✅ Fixed Unicode encoding issues, starts reliably on Windows

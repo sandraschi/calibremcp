@@ -1,7 +1,7 @@
 # CalibreMCP - Product Requirements Document
 
 ## Overview
-CalibreMCP is a FastMCP 2.0 server that provides comprehensive e-book library management capabilities through Claude Desktop. This document outlines the requirements for the AI-powered tools and series management features.
+CalibreMCP is a FastMCP 3.1 server that provides comprehensive e-book library management capabilities through Claude Desktop. This document outlines the requirements for the AI-powered tools, series management, and stabilized ingestion features.
 
 ## 1. Advanced Search Functionality
 
@@ -271,3 +271,28 @@ interface SearchResponse {
 
 ## 11. License
 MIT License
+## 12. Automated Book Ingestion & Source Hardening (v1.5.0)
+
+### 12.1 Unified Import Hub
+- **Purpose**: Provide a single interface for acquiring books from scientific, public domain, and shadow library sources.
+- **Features**:
+  - Global import settings for target library, tags, and series.
+  - Background download task management with real-time status reporting.
+  - Support for multiple ingestion protocols (arXiv API, OPDS, Web Scraping).
+
+### 12.2 arXiv Integration
+- **Hardening**: 
+  - Mandatory exponential backoff for `HTTP 429` (Too Many Requests).
+  - Explicit User-Agent header following `arxiv.org` robot guidelines.
+- **Metadata**: Automatic extraction of LaTeX-formatted titles, authors, and categories into Calibre metadata.
+
+### 12.3 Anna's Archive (Shadow Library)
+- **Mirror Management**: Support for rotating mirrors (`annas-archive.li`, `.se`, `.org`) to ensure high availability.
+- **Lander Detection**:
+  - Heuristic analysis of HTML responses to detect CAPTCHAs, timers, and "Slow Download" landing pages.
+  - Prevention of "corrupt" imports where HTML landers were previously saved as book files.
+- **Manual Fallback**: Structured API response `MANUAL_INTERACTION_REQUIRED` allowing the frontend to present a direct browser link when automation is blocked.
+
+### 12.4 Metadata Post-Processing
+- **Tag Injection**: All imported books should be tagged with `automated-import` and the source name (e.g., `arxiv`).
+- **Conflict Resolution**: Logic to check for existing MD5s/Titles before initiating a new remote download.

@@ -16,8 +16,11 @@ class Settings(BaseSettings):
 
     # Server Configuration
     HOST: str = "127.0.0.1"
-    PORT: int = 13000
+    PORT: int = 10720
     RELOAD: bool = True
+
+    # Configuration Path (Mirror settings persistence)
+    CALIBRE_CONFIG_PATH: str = "D:/Dev/repos/calibre-mcp/config.json"
 
     # CORS Configuration (comma-separated string in .env)
     CORS_ORIGINS: str = "http://localhost:13001,http://127.0.0.1:13001"

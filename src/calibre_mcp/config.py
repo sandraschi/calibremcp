@@ -91,6 +91,21 @@ class CalibreConfig(BaseModel):
         description="Load experimental tools; set CALIBRE_BETA_TOOLS=true to enable",
     )
 
+    # External Mirrors
+    annas_mirrors: list[str] = Field(
+        default=[
+            "https://annas-archive.gl",
+            "https://annas-archive.li",
+            "https://annas-archive.se",
+            "https://annas-archive.org",
+        ],
+        description="Mirrors for Anna's Archive search and download",
+    )
+    gutenberg_mirror: str = Field(
+        default="https://www.gutenberg.org",
+        description="Base mirror for Project Gutenberg downloads",
+    )
+
     @field_validator("server_url")
     @classmethod
     def validate_server_url(cls, v):
@@ -133,7 +148,13 @@ class CalibreConfig(BaseModel):
         # Start with default config
         config_data = {}
 
-        # Load from JSON file if provided
+        # Load from JSON file if provided or found in environment
+        if not config_file:
+            config_file = os.getenv("CALIBRE_CONFIG_PATH")
+            # Fallback to current directory config.json if no path specified
+            if not config_file and Path("config.json").exists():
+                config_file = "config.json"
+
         if config_file:
             config_path = Path(config_file)
             if config_path.exists():
@@ -163,6 +184,8 @@ class CalibreConfig(BaseModel):
             "CALIBRE_BASE_PATH": "base_library_path",
             "CALIBRE_LIBRARY_PATHS": "library_paths",  # JSON-encoded dict of library paths
             "CALIBRE_BETA_TOOLS": "load_beta_tools",
+            "CALIBRE_ANNAS_MIRRORS": "annas_mirrors",
+            "CALIBRE_GUTENBERG_MIRROR": "gutenberg_mirror",
             "user_config.calibre_library_path": "local_library_path",  # MCP user config from Claude Desktop
         }
 
@@ -216,6 +239,9 @@ class CalibreConfig(BaseModel):
                 elif config_key == "local_library_path":
                     # Convert path string to Path object
                     config_data[config_key] = Path(env_value)
+                elif config_key == "annas_mirrors":
+                    # Handle comma-separated list
+                    config_data[config_key] = [m.strip() for m in env_value.split(",") if m.strip()]
                 else:
                     config_data[config_key] = env_value
 
@@ -230,7 +256,7 @@ class CalibreConfig(BaseModel):
 
     def to_dict(self) -> dict[str, Any]:
         """Convert config to dictionary"""
-        return self.model_dump()
+        return self.model_dump(mode="json")
 
     def save_config(self, config_file: str) -> bool:
         """

@@ -16,10 +16,9 @@ Portmanteau-first server (FastMCP 3.1+). Names match MCP registration:
 - **calibre_metadata_index_build** / **calibre_metadata_search** / **calibre_metadata_export_json** — LanceDB metadata RAG + JSON export
 - **rag_index_build** / **rag_retrieve** — chunk RAG from FTS text
 - **calibre_rag** — portmanteau neural / full-text RAG
-- **media_synopsis** / **media_critical_reception** / **media_deep_research** — sampling-oriented media tools
-- **manage_authors** / **manage_series** / **manage_tags** / **manage_publishers** / **manage_metadata** / **manage_comments**
 - **manage_analysis** — duplicates, health, stats
 - **manage_files** / **export_books** / **manage_library_operations**
+- **manage_import** — from local path, download from URL, Anna's Archive (search/MD5 download), Project Gutenberg (search/ID import), arXiv (search/ID import)
 - **manage_system** / **manage_viewer**
 - **help_tool** — bundled help
 - **calibre_ocr** — optional OCR backends
@@ -41,6 +40,8 @@ Portmanteau-first server (FastMCP 3.1+). Names match MCP registration:
 | `CALIBRE_RAG_MAX_BOOK_TEXT_CHARS` | Chunk RAG: skip `books_text` rows longer than this (optional; huge textbooks) |
 | `CALIBRE_BETA_TOOLS` | Set `true` to load extra/beta tool modules |
 | `CALIBRE_PREFAB_APPS` | Set **`0`** / **`false`** to skip Prefab tool registration (**`show_book_prefab_card`**, **`show_libraries_prefab_card`**) when **`prefab-ui`** is installed |
+| `CALIBRE_ANNAS_MIRRORS` | Comma-separated list of Anna's Archive mirrors |
+| `CALIBRE_GUTENBERG_MIRROR` | Base URL for Project Gutenberg (default `https://www.gutenberg.org`) |
 | `LLM_PROVIDER` / `LLM_BASE_URL` / `LLM_API_KEY` | HTTP chat proxy when using `--http` |
 
 See root `README.md` and `docs/AGENTIC_AND_RAG.md` for RAG/FTS env and LanceDB paths.

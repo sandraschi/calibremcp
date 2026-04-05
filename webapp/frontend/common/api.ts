@@ -1,17 +1,17 @@
 /** API client for Calibre webapp. All calls go through Next.js API proxies (same-origin). */
 
-const ANNAS_MIRRORS_KEY = 'calibre_annas_mirrors';
-
-/** Get stored Anna's Archive mirror URL(s), comma-separated. */
-export function getAnnasMirrors(): string {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem(ANNAS_MIRRORS_KEY) ?? '';
+/** Get stored Anna's Archive mirror URL(s) from backend. */
+export async function getAnnasMirrors(): Promise<string[]> {
+  const settings = await getSettings();
+  return settings.annas_mirrors || [];
 }
 
-/** Store Anna's Archive mirror URL(s), comma-separated. */
-export function setAnnasMirrors(value: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(ANNAS_MIRRORS_KEY, value);
+/** Store Anna's Archive mirror URL(s) in backend. */
+export async function setAnnasMirrors(mirrors: string | string[]): Promise<void> {
+  const annas_mirrors = typeof mirrors === 'string' 
+    ? mirrors.split(',').map(m => m.trim()).filter(Boolean)
+    : mirrors;
+  await updateSettings({ annas_mirrors });
 }
 
 /** Base URL for fetch. Server needs absolute URL; client uses relative. */
@@ -407,15 +407,152 @@ export async function searchAnnas(params: {
     }),
   });
   if (!response.ok) {
-    let detail = '';
-    try {
-      const err = await response.json();
-      detail = (err as { detail?: string }).detail ?? (err as { error?: string }).error ?? '';
-    } catch {
-      detail = response.statusText;
-    }
-    throw new Error(detail || `Anna's search failed (${response.status})`);
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
   }
+  return response.json();
+}
+
+export interface AnnasDownloadResponse {
+  success: boolean;
+  title?: string;
+  error_code?: string;
+  message?: string;
+  detail_url?: string;
+}
+
+export async function downloadAnnas(md5: string, options?: { format?: string, title?: string, authors?: string[], tags?: string[], series?: string, library_path?: string }): Promise<AnnasDownloadResponse> {
+  const response = await fetch(`${getBaseUrl()}/api/annas/download`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      md5, 
+      target_format: options?.format,
+      title: options?.title,
+      authors: options?.authors,
+      tags: options?.tags,
+      series: options?.series,
+      library_path: options?.library_path
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+export interface ArxivSearchResult {
+  id: string;
+  title: string;
+  authors: string[];
+  summary: string;
+  pdf_url: string;
+  abs_url: string;
+  published?: string;
+}
+
+export interface ArxivSearchResponse {
+  success: boolean;
+  results: ArxivSearchResult[];
+  count: number;
+  error?: string;
+}
+
+export async function searchArxiv(query: string, maxResults?: number): Promise<ArxivSearchResponse> {
+  const response = await fetch(`${getBaseUrl()}/api/arxiv/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, max_results: maxResults }),
+  });
+  if (!response.ok) throw new Error('arXiv search failed');
+  return response.json();
+}
+
+export async function importArxiv(arxivId: string, options?: { title?: string, authors?: string[], tags?: string[], series?: string, library_path?: string }): Promise<{ success: boolean; title?: string }> {
+  const response = await fetch(`${getBaseUrl()}/api/arxiv/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      arxiv_id: arxivId,
+      title: options?.title,
+      authors: options?.authors,
+      tags: options?.tags,
+      series: options?.series,
+      library_path: options?.library_path
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+export interface GutenbergSearchResult {
+  id: number;
+  title: string;
+  authors: string[];
+  formats: Record<string, string>;
+  detail_url: string;
+}
+
+export interface GutenbergSearchResponse {
+  success: boolean;
+  results: GutenbergSearchResult[];
+  count: number;
+  error?: string;
+}
+
+export async function searchGutenberg(query: string): Promise<GutenbergSearchResponse> {
+  const response = await fetch(`${getBaseUrl()}/api/gutenberg/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+  if (!response.ok) throw new Error('Gutenberg search failed');
+  return response.json();
+}
+
+export async function importGutenberg(bookId: number, options?: { format?: string, title?: string, authors?: string[], tags?: string[], series?: string, library_path?: string }): Promise<{ success: boolean; title?: string }> {
+  const response = await fetch(`${getBaseUrl()}/api/gutenberg/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      book_id: bookId, 
+      format: options?.format,
+      title: options?.title,
+      authors: options?.authors,
+      tags: options?.tags,
+      series: options?.series,
+      library_path: options?.library_path
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+export interface AppSettings {
+  annas_mirrors: string[];
+  gutenberg_mirror: string;
+}
+
+export async function getSettings(): Promise<AppSettings> {
+  const response = await fetch(`${getBaseUrl()}/api/settings/`);
+  if (!response.ok) throw new Error('Failed to fetch settings');
+  return response.json();
+}
+
+export async function updateSettings(settings: Partial<AppSettings>): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${getBaseUrl()}/api/settings/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  });
+  if (!response.ok) throw new Error('Failed to update settings');
   return response.json();
 }
 
