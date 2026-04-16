@@ -4,11 +4,9 @@
 
 ## Install
 
-```powershell
-uv sync --extra apps
-```
+**`prefab-ui`** is a **core** dependency (declared in **`pyproject.toml`**). A normal **`uv sync`** or **`pip install`** of the package installs it.
 
-Optional extra **`[project.optional-dependencies] apps`** pulls **`prefab-ui`**. Disable registration with **`CALIBRE_PREFAB_APPS=0`**.
+Disable tool registration only with **`CALIBRE_PREFAB_APPS=0`** (emergency / headless).
 
 ## Behavior
 

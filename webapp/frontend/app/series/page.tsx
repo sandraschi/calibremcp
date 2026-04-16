@@ -17,7 +17,15 @@ export default async function SeriesPage({
   } catch (e) {
     return (
       <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6 text-slate-100">Series</h1>
+        <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-slate-100">Series</h1>
+        <Link
+          href="/series/analysis"
+          className="px-3 py-1.5 rounded-lg bg-amber/20 text-amber text-sm font-medium hover:bg-amber/30"
+        >
+          Series analysis →
+        </Link>
+      </div>
         <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-6 text-slate-200">
           <p className="font-medium">Could not load series</p>
           <p className="mt-2 text-sm text-slate-400">{String((e as Error).message)}</p>

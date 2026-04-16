@@ -36,6 +36,7 @@ const navItems = [
   { href: '/agentic', label: 'Agentic', icon: GitBranch },
   { href: '/authors', label: 'Authors', icon: Users },
   { href: '/series', label: 'Series', icon: BookMarked },
+  { href: '/series/analysis', label: 'Series Analysis', icon: GitBranch },
   { href: '/tags', label: 'Tags', icon: Tags },
   { href: '/publishers', label: 'Publishers', icon: Building2 },
   { href: '/import', label: 'Import', icon: Upload },

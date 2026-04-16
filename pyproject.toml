@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "uv-dynamic-versioning>=0.7.0"]
+build-backend = "hatchling.build"
 
 [project]
-name = "calibre-mcp"
-version = "1.4.0"
-description = "FastMCP 3.1+ server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
-authors = [
-    {name = "Sandra", email = "sandra@example.com"}
-]
+name = "schip-mcp-calibre"
+version = "1.5.0"
+description = "SOTA April 2026 industrialized FastMCP 3.2.0 server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
 readme = "README.md"
-license = {text = "MIT"}
 requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Sandra Schipal", email = "sandra@schipal.at" }
+]
 keywords = ["mcp", "calibre", "ebooks", "fastmcp"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -43,12 +43,10 @@ dependencies = [
     "lancedb>=0.17.0",
     "fastembed>=0.4.0",
     "lxml>=5.1.0", # Robust XML parsing for arXiv Atom feed
+    "prefab-ui>=0.14.0", # MCP Apps (Prefab) — required for show_*_prefab_card tools
 ]
 
 [project.optional-dependencies]
-apps = [
-    "prefab-ui>=0.14.0",
-]
 rag = [
     "chromadb>=0.4.0",
 ]
@@ -66,15 +64,20 @@ dev = [
 ]
 
 [project.scripts]
-calibre-mcp = "calibre_mcp.__main__:run"
+schip-mcp-calibre = "calibre_mcp.__main__:run"
 
 [project.urls]
 Homepage = "https://github.com/sandraschi/calibremcp"
 Repository = "https://github.com/sandraschi/calibremcp.git"
 Issues = "https://github.com/sandraschi/calibremcp/issues"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/calibre_mcp"]
+
+[tool.uv-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
 
 [tool.setuptools.package-data]
 calibre_mcp = ["skills/**/*.md"]
@@ -101,8 +104,8 @@ line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
-ignore = ["S101", "B008"]
+select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "T20", "RET", "SIM", "ARG", "PTH", "TRY"]
+ignore = ["E501", "B008"]
 
 [tool.ruff.format]
 quote-style = "double"

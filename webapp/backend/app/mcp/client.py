@@ -41,19 +41,10 @@ if src_path.exists():
 _calibre_mcp_available = False
 try:
     import calibre_mcp.tools  # noqa: F401
+    from calibre_mcp.tools.prefab import register_prefab_tools
 
+    register_prefab_tools()
     _calibre_mcp_available = True
-    # Patch Prefab tool modules with real handlers (optional [apps]); same as MCP register_prefab_tools().
-    try:
-        from calibre_mcp.tools.prefab import register_prefab_tools
-
-        register_prefab_tools()
-    except Exception as e:
-        import logging
-
-        logging.getLogger(__name__).debug(
-            "Prefab tools not registered for webapp direct import: %s", e
-        )
 except ImportError as e:
     import logging
 
@@ -119,7 +110,7 @@ class MCPClient:
         # FastMCP HTTP is mounted at /mcp on the same backend server (port 13000)
         # No separate port needed - everything on 13000!
         self.use_http = os.getenv("MCP_USE_HTTP", "true").lower() == "true"
-        backend_url = os.getenv("BACKEND_URL", "http://127.0.0.1:13000")
+        backend_url = os.getenv("BACKEND_URL", "http://127.0.0.1:10720")
         self.mcp_url = f"{backend_url}/mcp"
         self._http_client: httpx.AsyncClient | None = None
 
@@ -289,6 +280,7 @@ class MCPClient:
                     "media_synopsis": "calibre_mcp.tools.portmanteau.media_agentic:media_synopsis",
                     "media_critical_reception": "calibre_mcp.tools.portmanteau.media_agentic:media_critical_reception",
                     "media_deep_research": "calibre_mcp.tools.portmanteau.media_agentic:media_deep_research",
+                    "media_research_book": "calibre_mcp.tools.portmanteau.media_agentic:media_research_book",
                     "agentic_library_workflow": "calibre_mcp.tools.agentic_workflow:agentic_library_workflow",
                     "search_fulltext": "calibre_mcp.tools.book_management.fulltext_search:search_fulltext",
                     "show_book_prefab_card": "calibre_mcp.tools.prefab.book_card:show_book_prefab_card",

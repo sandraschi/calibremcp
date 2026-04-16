@@ -52,8 +52,14 @@ COMMENT_SNIPPET_LEN = 20 * 1024  # 20 KiB; matches ``text_utils`` default
 def _book_to_searchable_text(
     session: Any,
     book: Book,
+    library_path: str = "",
 ) -> str:
-    """Build a single searchable text string for a book from metadata."""
+    """Build a single searchable text string for a book from metadata.
+
+    Includes: title, authors, series, tags, Calibre comment, and — if
+    library_path is provided — extended metadata from calibre_mcp_data.db
+    (original_language, mood, read_status, locked_room_type, personal notes).
+    """
     parts = [book.title or ""]
     # Authors
     try:
@@ -89,7 +95,92 @@ def _book_to_searchable_text(
             parts.append(text)
     except Exception as e:
         logger.debug("Could not load comment for book %s: %s", book.id, e)
-    return " ".join(p for p in parts if p).strip() or book.title or ""
+    base = " ".join(p for p in parts if p).strip() or book.title or ""
+    if library_path:
+        ext = _get_extended_metadata_text(book.id, library_path)
+        if ext:
+            return f"{base} {ext}".strip()
+    return basebook_id: int, library_path: str) -> str:
+    """Pull extended metadata fields from calibre_mcp_data.db and format
+    them as natural-language phrases for semantic embedding.
+
+    Returns empty string if DB not available or no data for this book.
+    The phrases are designed to be semantically meaningful so queries like
+    'locked room', 'impossible crime', 'unread japanese fiction' etc. work.
+    """
+    try:
+        import sqlite3
+        import os
+
+        # Locate calibre_mcp_data.db using same logic as plugin db_adapter
+        if os.name == "nt":
+            appdata = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
+            db_path = os.path.join(appdata, "calibre-mcp", "calibre_mcp_data.db")
+        else:
+            import platform
+            home = os.path.expanduser("~")
+            if platform.system() == "Darwin":
+                db_path = os.path.join(home, "Library", "Application Support",
+                                       "calibre-mcp", "calibre_mcp_data.db")
+            else:
+                db_path = os.path.join(home, ".local", "share",
+                                       "calibre-mcp", "calibre_mcp_data.db")
+
+        # Allow env override
+        env_dir = os.getenv("CALIBRE_MCP_USER_DATA_DIR")
+        if env_dir:
+            db_path = os.path.join(env_dir, "calibre_mcp_data.db")
+
+        if not os.path.exists(db_path):
+            return ""
+
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            row = conn.execute(
+                "SELECT original_language, mood, read_status, culprit, "
+                "locked_room_type, edition_notes "
+                "FROM book_extended_metadata "
+                "WHERE book_id=? AND library_path=?",
+                (book_id, library_path),
+            ).fetchone()
+
+            # Also get personal notes from user_comments
+            note_row = conn.execute(
+                "SELECT comment_text FROM user_comments "
+                "WHERE book_id=? AND library_path=?",
+                (book_id, library_path),
+            ).fetchone()
+        finally:
+            conn.close()
+
+        if not row and not note_row:
+            return ""
+
+        phrases = []
+        if row:
+            if row["original_language"]:
+                phrases.append(f"original language: {row['original_language']}")
+            if row["mood"]:
+                phrases.append(f"mood: {row['mood']}")
+            if row["read_status"]:
+                phrases.append(f"read status: {row['read_status']}")
+            if row["culprit"]:
+                # Don't embed the actual culprit name — just note it's annotated
+                phrases.append("culprit annotated")
+            if row["locked_room_type"]:
+                phrases.append(f"locked room type: {row['locked_room_type']}")
+                phrases.append("impossible crime mystery")
+            if row["edition_notes"]:
+                phrases.append(f"edition: {row['edition_notes']}")
+        if note_row and note_row["comment_text"]:
+            phrases.append(note_row["comment_text"][:500])
+
+        return " ".join(phrases)
+
+    except Exception as e:
+        logger.debug("Extended metadata lookup failed for book %s: %s", book_id, e)
+        return ""
 
 
 def get_metadata_rag_path(metadata_db_path: str | Path) -> Path:
@@ -157,6 +248,10 @@ def build_metadata_index(
     total_books = len(books)
     _write_progress(lancedb_dir, "building", 0, total_books, "Gathering metadata")
 
+    library_path_str = str(Path(metadata_db_path).resolve())
+    if Path(library_path_str).is_file():
+        library_path_str = str(Path(library_path_str).parent)
+
     try:
         # Re-open session for comment lookups per book
         session = db_svc.session
@@ -165,7 +260,8 @@ def build_metadata_index(
         progress_interval = 50
         try:
             for i, book in enumerate(books):
-                text = _book_to_searchable_text(session, book)
+                text = _book_to_searchable_text(session, book,
+                                                library_path=library_path_str)
                 if not text:
                     continue
                 documents.append(text)

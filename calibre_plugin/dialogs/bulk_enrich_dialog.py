@@ -22,7 +22,7 @@ class BulkEnrichDialog(QDialog):
         status = (
             "Backend available"
             if is_available()
-            else "Backend not reachable (start webapp on port 13000)"
+            else "Backend not reachable (start webapp on port 10720)"
         )
         layout.addWidget(QLabel(f"Status: {status}"))
         layout.addWidget(

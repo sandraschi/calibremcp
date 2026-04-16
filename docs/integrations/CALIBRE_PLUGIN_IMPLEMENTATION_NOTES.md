@@ -1,6 +1,14 @@
-# CalibreMCP Plugin - Implementation Notes
+# CalibreMCP Plugin — Implementation Notes (ARCHIVED)
 
-**Date**: 2025-01-30
+> **Status: ARCHIVED 2026-04-16**
+> This was the original January 2025 development checklist written before the plugin
+> existed. The actual implementation is in `calibre_plugin/`. For current status and
+> documentation see:
+> - `calibre_plugin/README.md` — install, usage, configuration
+> - `docs/integrations/CALIBRE_INTEGRATION_GUIDE.md` — architecture and data locations
+> - `scripts/calibre-plugin-test.ps1` — dev test loop
+
+---
 
 ## Step-by-Step Implementation Checklist
 

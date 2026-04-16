@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     CALIBRE_CONFIG_PATH: str = "D:/Dev/repos/calibre-mcp/config.json"
 
     # CORS Configuration (comma-separated string in .env)
-    CORS_ORIGINS: str = "http://localhost:13001,http://127.0.0.1:13001"
+    CORS_ORIGINS: str = "http://localhost:10721,http://127.0.0.1:10721"
 
     @property
     def cors_origins_list(self) -> list[str]:
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # false = direct in-process calls (faster, recommended for webapp)
     # true = HTTP to /mcp (adds latency, can deadlock; use only for stdio MCP clients)
     MCP_USE_HTTP: bool = False
-    BACKEND_URL: str = "http://127.0.0.1:13000"
+    BACKEND_URL: str = "http://127.0.0.1:10720"
 
     @field_validator("MCP_USE_HTTP", mode="before")
     @classmethod

@@ -1,17 +1,14 @@
 # CalibreMCP 
 
-[![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-green)](https://python.org)
 [![Web Interface](https://img.shields.io/badge/Web--Interface-Professional-purple)]()
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.2+-blue)](https://github.com/jlowin/fastmcp)
-[![Calibre](https://img.shields.io/badge/Calibre-6.0+-orange)](https://calibre-ebook.com)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.2.0-blue)](https://github.com/jlowin/fastmcp)
+[![SOTA Compliance](https://img.shields.io/badge/SOTA-v13.1-gold)](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/SOTA_REQUIREMENTS.md)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.5.0-blue)](pyproject.toml)
-[![Status](https://img.shields.io/badge/Status-Active-success)](README.md)
-[![Portmanteau Tools](https://img.shields.io/badge/Tools-22-orange)](docs/development/README.md)
-[![Docstring Compliance](https://img.shields.io/badge/Docstrings-100%25-brightgreen)](docs/TOOL_DOCSTRING_STANDARD.md)
-[![Austrian Efficiency](https://img.shields.io/badge/Austrian-Efficiency-red)](https://en.wikipedia.org/wiki/Austrian_school)
-
-**FastMCP 3.2+ server for Calibre e-book library management with sampling, agentic workflows, skills, prompts, universal connect pattern, and LanceDB metadata RAG**
+[![Status](https://img.shields.io/badge/Status-Industrialized-success)](README.md)
+<br>
+**April 2026 SOTA industrialized FastMCP 3.2.0 server for Calibre e-book library management with sampling, agentic workflows, skills, prompts, universal connect pattern, and LanceDB metadata RAG**
 
 **Features:**
 - **FastMCP 3.2** - Universal connect pattern, sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
@@ -21,8 +18,8 @@
 - **Calibre FTS + phrase locations** - `search_fulltext(resolve_locations=True)`: PDF page / EPUB spine / Calibre `ebook-viewer --open-at search:` hints (`utils/fts_location_resolver.py`)
 - **Full-book RAG** - FTS-driven chunk index (`rag_index_build` / `rag_retrieve`), portmanteau `calibre_rag`, DeepIngestor; consolidation design in `docs/FULL_TEXT_RAG_DESIGN.md`
 - **Skills & Prompts** - Registered prompts and skill workflows (reading recommendations, library health, semantic search, agentic guide); bundled **`skill://calibre-expert/SKILL.md`**
-- **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)**  [MCP prompt catalog](docs/PROMPTS.md)  [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md))  [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md)  [MCP Apps / Prefab (optional rich cards)](docs/mcp-technical/MCP_APPS_PREFAB.md)
-- **MCP Apps (Prefab)**  Optional **`show_book_prefab_card`**, **`show_libraries_prefab_card`** (Our Calibre): install with **`uv sync --extra apps`**; rich cards in capable clients; **`CALIBRE_PREFAB_APPS=0`** to disable. Fleet guide: [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md)
+- **Docs** - **[Full index](docs/DOCUMENTATION_INDEX.md)**  [MCP prompt catalog](docs/PROMPTS.md)  [Cookbook](docs/COOKBOOK.md) (recipes; pairs with [SEARCH_QUERY_EXAMPLES.md](docs/SEARCH_QUERY_EXAMPLES.md))  [MCP output schemas & skills (UTF-8)](docs/mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md)  [MCP Apps / Prefab (rich cards)](docs/mcp-technical/MCP_APPS_PREFAB.md)
+- **MCP Apps (Prefab)**  **`show_book_prefab_card`**, **`show_libraries_prefab_card`** (Our Calibre) — **`prefab-ui`** is a **core** dependency; rich cards in capable clients; **`CALIBRE_PREFAB_APPS=0`** skips tool registration. Fleet guide: [mcp-apps-prefab-ui.md](https://github.com/sandraschi/mcp-central-docs/blob/master/fastmcp/mcp-apps-prefab-ui.md)
 - **Neural Media RAG & DeepIngestor** - Full-text LanceDB retrieval via `calibre_rag` and `rag_retrieve` when index is built
 - **Webapp** - Full browser UI: sidebar nav, books/authors/series/tags, **Semantic Search (RAG)**, **Skills**, **Agentic** pages, AI chat (Ollama/LM Studio), **Stabilized Smart Import Hub** (arXiv, Gutenberg, Anna's Archive with lander detection)
 - **Calibre Plugin** - Edit extended metadata (translator, first_published, user comments) in Calibre GUI; VL from query
@@ -237,7 +234,7 @@ A Next.js webapp provides a full browser UI for the Calibre library.
 - Logs page: Log file viewer with tail, filter, level filter, live tail (polling with backoff), plus System status view
 - Import (add by path), Export (CSV/JSON)
 
-**Start:** Use `webapp\start.ps1` for reservoir ports (10720 backend, 10721 frontend) with kill-port zombie clear. Or legacy: `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
+**Start:** Use `webapp\start.ps1` for reservoir ports (10721 backend, 10722 frontend) with kill-port zombie clear. Or legacy: `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
 See [webapp/README.md](webapp/README.md), [webapp/SETUP.md](webapp/SETUP.md) (port rules, zombie kill).
 
 #### **7. Logging**

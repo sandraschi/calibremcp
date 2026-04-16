@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon",
-    "dev:next": "next dev --turbo",
+    "dev": "next dev -p 10722",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start -p 10722",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "biome:ci": "biome ci .",
+    "biome": "biome check --write ."
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
@@ -29,6 +32,7 @@
     "autoprefixer": "^10.4.0",
     "nodemon": "^3.1.11",
     "postcss": "^8.4.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "@biomejs/biome": "1.9.4"
   }
 }

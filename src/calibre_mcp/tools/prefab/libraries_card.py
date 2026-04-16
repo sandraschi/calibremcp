@@ -1,7 +1,7 @@
 """
 MCP App (Prefab): \"Our Calibre\" card — all discovered libraries and basic stats.
 
-Same optional [apps] extra and CALIBRE_PREFAB_APPS toggle as the book card.
+CALIBRE_PREFAB_APPS=0 skips registration (same as the book card).
 """
 
 from __future__ import annotations
@@ -10,6 +10,9 @@ import os
 from typing import Any
 
 from fastmcp import Context
+from fastmcp.tools import ToolResult
+from prefab_ui.app import PrefabApp
+from prefab_ui.components import Card, CardContent, CardHeader, CardTitle, Text
 
 from calibre_mcp.logging_config import get_logger
 from calibre_mcp.server import mcp
@@ -22,10 +25,7 @@ async def show_libraries_prefab_card(ctx: Context | None = None) -> Any:
     return {
         "success": False,
         "error": "prefab_unavailable",
-        "message": (
-            "Prefab libraries card is not active. Install optional deps (uv sync --extra apps) "
-            "and ensure CALIBRE_PREFAB_APPS is not 0."
-        ),
+        "message": "Prefab libraries card is not active (CALIBRE_PREFAB_APPS=0).",
     }
 
 
@@ -43,21 +43,14 @@ def register_libraries_card_tool() -> None:
     if os.environ.get("CALIBRE_PREFAB_APPS", "1").strip().lower() in ("0", "false", "no", "off"):
         logger.info("Prefab libraries card disabled (CALIBRE_PREFAB_APPS=0)")
         return
-    try:
-        from fastmcp.tools import ToolResult
-        from prefab_ui.app import PrefabApp
-        from prefab_ui.components import Card, CardContent, CardHeader, CardTitle, Text
-    except ImportError as e:
-        logger.info("Prefab apps unavailable — pip install calibre-mcp[apps] (%s)", e)
-        return
 
     @mcp.tool(app=True)
     async def show_libraries_prefab_card(ctx: Context | None = None) -> Any:
         """
         Show an \"Our Calibre\" card (MCP App): all discovered libraries with book counts, size, active flag, paths.
 
-        Uses the same discovery as ``manage_libraries(operation='list')``. Install: ``uv sync --extra apps``.
-        Disable with ``CALIBRE_PREFAB_APPS=0``.
+        Uses the same discovery as ``manage_libraries(operation='list')``.
+        Disable with ``CALIBRE_PREFAB_APPS=0`` (skips registration).
 
         Returns:
             ToolResult with Prefab UI plus a short text summary for the model.

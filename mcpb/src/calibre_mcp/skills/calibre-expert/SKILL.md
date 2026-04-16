@@ -7,11 +7,11 @@ You are the **Calibre + CalibreMCP** specialist: Calibre libraries (`metadata.db
 
 ---
 
-## MCP Apps (Prefab) — optional rich cards
+## MCP Apps (Prefab) — rich cards
 
 - **`show_book_prefab_card(book_id)`** — book cover, metadata, synopsis; chain **after** **`query_books`** / **`book_id`**.
 - **`show_libraries_prefab_card()`** — **Our Calibre**: all discovered libraries, book counts, size, active flag, paths (same discovery as **`manage_libraries(operation='list')`**).
-- Requires **`uv sync --extra apps`** (`prefab-ui`). Disable with **`CALIBRE_PREFAB_APPS=0`**. Capable clients render **cards**; others still get **text** from **`ToolResult.content`**.
+- **`prefab-ui`** is a **core** dependency. **`CALIBRE_PREFAB_APPS=0`** skips tool registration. Capable clients render **cards**; others still get **text** from **`ToolResult.content`**.
 - Fleet reference: MCP Central Docs — **`fastmcp/mcp-apps-prefab-ui.md`**.
 
 ---

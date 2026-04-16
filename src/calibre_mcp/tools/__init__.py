@@ -186,6 +186,7 @@ def register_tools(mcp: Any) -> None:
             from .portmanteau.media_agentic import (
                 media_critical_reception,
                 media_deep_research,
+                media_research_book,
                 media_synopsis,
             )  # noqa: F401
             from .portmanteau.search import calibre_rag  # noqa: F401
@@ -226,13 +227,10 @@ def register_tools(mcp: Any) -> None:
         import_time = time.time() - import_start
         logger.info(f"Help tools loaded in {import_time:.2f}s")
 
-        # MCP Apps / Prefab (optional: calibre-mcp[apps])
-        try:
-            from .prefab import register_prefab_tools
+        # MCP Apps / Prefab (prefab-ui required)
+        from .prefab import register_prefab_tools
 
-            register_prefab_tools()
-        except Exception as e:
-            logger.warning("Prefab tools not registered: %s", e)
+        register_prefab_tools()
 
         # OCR
         import_start = time.time()

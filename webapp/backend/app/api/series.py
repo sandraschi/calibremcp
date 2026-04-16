@@ -54,6 +54,44 @@ async def get_series_stats():
         raise handle_mcp_error(e)
 
 
+@router.get("/analysis")
+async def get_series_analysis(
+    series_name: str = Query(..., min_length=1, description="Series name to analyse"),
+):
+    """Reading order and completion analysis for a named series.
+    Returns owned/missing volumes, recommended reading order, series metadata.
+    Backed by get_series_analysis MCP tool."""
+    try:
+        result = await mcp_client.call_tool(
+            "manage_series",
+            {"operation": "analysis", "series_name": series_name},
+        )
+        return result
+    except Exception as e:
+        raise handle_mcp_error(e)
+
+
+@router.get("/completion")
+async def get_series_completion(
+    min_books: int = Query(2, ge=1, description="Minimum books in series to include"),
+    incomplete_only: bool = Query(True, description="Only return incomplete series"),
+):
+    """Library-wide series completion report.
+    Shows which series are complete, partially owned, or missing volumes."""
+    try:
+        result = await mcp_client.call_tool(
+            "manage_series",
+            {
+                "operation": "completion_report",
+                "min_books": min_books,
+                "incomplete_only": incomplete_only,
+            },
+        )
+        return result
+    except Exception as e:
+        raise handle_mcp_error(e)
+
+
 @router.get("/{series_id}")
 async def get_series(series_id: int):
     """Get series details by ID."""

@@ -361,104 +361,6 @@ wheels = [
 ]
 
 [[package]]
-name = "calibre-mcp"
-version = "1.4.0"
-source = { editable = "." }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "beautifulsoup4" },
-    { name = "ebooklib" },
-    { name = "fastapi" },
-    { name = "fastembed" },
-    { name = "fastmcp" },
-    { name = "httpx" },
-    { name = "keyring" },
-    { name = "lancedb" },
-    { name = "lxml" },
-    { name = "psutil" },
-    { name = "py-key-value-aio", extra = ["filetree"] },
-    { name = "pydantic" },
-    { name = "pymupdf" },
-    { name = "python-dotenv" },
-    { name = "rich" },
-    { name = "ruff" },
-    { name = "sqlalchemy" },
-    { name = "structlog" },
-    { name = "tenacity" },
-]
-
-[package.optional-dependencies]
-apps = [
-    { name = "prefab-ui" },
-]
-dev = [
-    { name = "bandit" },
-    { name = "black" },
-    { name = "build" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "twine" },
-]
-rag = [
-    { name = "chromadb" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiohttp", specifier = ">=3.9.0" },
-    { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.8" },
-    { name = "beautifulsoup4", specifier = ">=4.12.0" },
-    { name = "black", marker = "extra == 'dev'", specifier = ">=24.0.0" },
-    { name = "build", marker = "extra == 'dev'", specifier = ">=1.2.0" },
-    { name = "chromadb", marker = "extra == 'rag'", specifier = ">=0.4.0" },
-    { name = "ebooklib", specifier = ">=0.18.0" },
-    { name = "fastapi", specifier = ">=0.115.0" },
-    { name = "fastembed", specifier = ">=0.4.0" },
-    { name = "fastmcp", specifier = ">=3.2.0" },
-    { name = "httpx", specifier = ">=0.27.0" },
-    { name = "keyring", specifier = ">=24.0.0" },
-    { name = "lancedb", specifier = ">=0.17.0" },
-    { name = "lxml", specifier = ">=5.1.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11.0" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.6.0" },
-    { name = "prefab-ui", marker = "extra == 'apps'", specifier = ">=0.14.0" },
-    { name = "psutil", specifier = ">=5.9.0" },
-    { name = "py-key-value-aio", extras = ["filetree"], specifier = ">=0.4.4,<0.5.0" },
-    { name = "pydantic", specifier = ">=2.9.0" },
-    { name = "pymupdf", specifier = ">=1.24.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
-    { name = "python-dotenv", specifier = ">=1.0.1" },
-    { name = "rich", specifier = ">=13.8.0" },
-    { name = "ruff", specifier = ">=0.14.1" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.0" },
-    { name = "sqlalchemy", specifier = ">=2.0.0" },
-    { name = "structlog", specifier = ">=24.4.0" },
-    { name = "tenacity", specifier = ">=8.2.0" },
-    { name = "twine", marker = "extra == 'dev'", specifier = ">=5.1.0" },
-]
-provides-extras = ["apps", "rag", "dev"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pytest-asyncio", specifier = ">=1.2.0" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-]
-
-[[package]]
 name = "certifi"
 version = "2025.10.5"
 source = { registry = "https://pypi.org/simple" }
@@ -3252,6 +3154,102 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c3/07/3c45562c67933cc35f6d5df4ca77dabbcd88fddaca0d6b8371693d29fd56/ruff-0.14.1-py3-none-win32.whl", hash = "sha256:e037ea374aaaff4103240ae79168c0945ae3d5ae8db190603de3b4012bd1def6", size = 12319467, upload-time = "2025-10-16T18:05:33.261Z" },
     { url = "https://files.pythonhosted.org/packages/02/88/0ee4ca507d4aa05f67e292d2e5eb0b3e358fbcfe527554a2eda9ac422d6b/ruff-0.14.1-py3-none-win_amd64.whl", hash = "sha256:59d599cdff9c7f925a017f6f2c256c908b094e55967f93f2821b1439928746a1", size = 13401123, upload-time = "2025-10-16T18:05:35.984Z" },
     { url = "https://files.pythonhosted.org/packages/b8/81/4b6387be7014858d924b843530e1b2a8e531846807516e9bea2ee0936bf7/ruff-0.14.1-py3-none-win_arm64.whl", hash = "sha256:e3b443c4c9f16ae850906b8d0a707b2a4c16f8d2f0a7fe65c475c5886665ce44", size = 12436636, upload-time = "2025-10-16T18:05:38.995Z" },
+]
+
+[[package]]
+name = "schip-mcp-calibre"
+version = "1.5.0"
+source = { editable = "." }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "beautifulsoup4" },
+    { name = "ebooklib" },
+    { name = "fastapi" },
+    { name = "fastembed" },
+    { name = "fastmcp" },
+    { name = "httpx" },
+    { name = "keyring" },
+    { name = "lancedb" },
+    { name = "lxml" },
+    { name = "prefab-ui" },
+    { name = "psutil" },
+    { name = "py-key-value-aio", extra = ["filetree"] },
+    { name = "pydantic" },
+    { name = "pymupdf" },
+    { name = "python-dotenv" },
+    { name = "rich" },
+    { name = "ruff" },
+    { name = "sqlalchemy" },
+    { name = "structlog" },
+    { name = "tenacity" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "bandit" },
+    { name = "black" },
+    { name = "build" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "twine" },
+]
+rag = [
+    { name = "chromadb" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.9.0" },
+    { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.8" },
+    { name = "beautifulsoup4", specifier = ">=4.12.0" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=24.0.0" },
+    { name = "build", marker = "extra == 'dev'", specifier = ">=1.2.0" },
+    { name = "chromadb", marker = "extra == 'rag'", specifier = ">=0.4.0" },
+    { name = "ebooklib", specifier = ">=0.18.0" },
+    { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "fastembed", specifier = ">=0.4.0" },
+    { name = "fastmcp", specifier = ">=3.2.0" },
+    { name = "httpx", specifier = ">=0.27.0" },
+    { name = "keyring", specifier = ">=24.0.0" },
+    { name = "lancedb", specifier = ">=0.17.0" },
+    { name = "lxml", specifier = ">=5.1.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11.0" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.6.0" },
+    { name = "prefab-ui", specifier = ">=0.14.0" },
+    { name = "psutil", specifier = ">=5.9.0" },
+    { name = "py-key-value-aio", extras = ["filetree"], specifier = ">=0.4.4,<0.5.0" },
+    { name = "pydantic", specifier = ">=2.9.0" },
+    { name = "pymupdf", specifier = ">=1.24.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "rich", specifier = ">=13.8.0" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.0" },
+    { name = "structlog", specifier = ">=24.4.0" },
+    { name = "tenacity", specifier = ">=8.2.0" },
+    { name = "twine", marker = "extra == 'dev'", specifier = ">=5.1.0" },
+]
+provides-extras = ["rag", "dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-asyncio", specifier = ">=1.2.0" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
 ]
 
 [[package]]

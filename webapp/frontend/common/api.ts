@@ -647,6 +647,137 @@ export async function ragMetadataSearch(query: string, topK = 10): Promise<RagMe
   return response.json();
 }
 
+// ── RAG: full-text passage retrieval ─────────────────────────────────────────
+
+export interface RagPassageHit {
+  arxiv_id?: string;
+  book_id?: number;
+  title: string;
+  published?: string;
+  chunk_idx?: number;
+  snippet: string;
+  rank?: number;
+  score?: number;
+}
+
+export interface RagRetrieveResult {
+  query: string;
+  hits: RagPassageHit[];
+  engine?: string;
+  error?: string;
+}
+
+export async function ragRetrieve(query: string, topK = 10): Promise<RagRetrieveResult> {
+  const params = new URLSearchParams({ q: query, top_k: topK.toString() });
+  const response = await fetch(`${getBaseUrl()}/api/rag/retrieve?${params}`);
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+// ── RAG: content index build ──────────────────────────────────────────────────
+
+export async function ragContentBuild(forceRebuild = false): Promise<RagMetadataBuildResult> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/rag/content/build?force_rebuild=${forceRebuild ? 'true' : 'false'}`,
+    { method: 'POST' }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+// ── RAG: synopsis ─────────────────────────────────────────────────────────────
+
+export interface RagSynopsisResult {
+  book_id: number;
+  title?: string;
+  synopsis: string;
+  spoilers: boolean;
+  error?: string;
+}
+
+export async function ragSynopsis(bookId: number, spoilers = false): Promise<RagSynopsisResult> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/rag/synopsis/${bookId}?spoilers=${spoilers}`,
+    { method: 'POST' }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+// ── RAG: book deep research ───────────────────────────────────────────────────
+
+export interface RagResearchResult {
+  success: boolean;
+  book_id: number;
+  title?: string;
+  authors?: string[];
+  report: string;
+  sources_fetched: string[];
+  sources_failed: string[];
+  local_data?: {
+    rating?: number;
+    series?: string;
+    personal_notes?: boolean;
+    rag_passages?: number;
+  };
+  error?: string;
+}
+
+export async function ragResearchBook(
+  bookId: number,
+  includeSpoilers = false
+): Promise<RagResearchResult> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/rag/research/${bookId}?include_spoilers=${includeSpoilers}`,
+    { method: 'POST' }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
+// ── Series: analysis ──────────────────────────────────────────────────────────
+
+export interface SeriesAnalysisBook {
+  index?: number;
+  series_index?: number;
+  title: string;
+  book_id?: number;
+  owned: boolean;
+  read?: boolean;
+}
+
+export interface SeriesAnalysisResult {
+  series: string;
+  books: SeriesAnalysisBook[];
+  missing?: string[];
+  total_volumes?: number;
+  owned_count?: number;
+  error?: string;
+  message?: string;
+}
+
+export async function getSeriesAnalysis(seriesName: string): Promise<SeriesAnalysisResult> {
+  const params = new URLSearchParams({ series_name: seriesName });
+  const response = await fetch(`${getBaseUrl()}/api/series/analysis?${params}`);
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+  }
+  return response.json();
+}
+
 export interface Skill {
   id: string;
   name: string;

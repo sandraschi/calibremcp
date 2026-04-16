@@ -36,7 +36,7 @@ class VLQueryDialog(QDialog):
         if not is_available():
             layout.addWidget(
                 QLabel(
-                    "Backend not running. Start Calibre webapp backend (port 13000)\n"
+                    "Backend not running. Start Calibre webapp backend (port 10720)\n"
                     "and configure URL in Preferences -> Plugins."
                 )
             )
@@ -51,7 +51,7 @@ class VLQueryDialog(QDialog):
             QMessageBox.warning(
                 self,
                 "Backend Unavailable",
-                "Calibre webapp backend is not reachable. Start it on port 13000.",
+                "Calibre webapp backend is not reachable. Start it on port 10720.",
             )
             return
         result = call_search(query=query, limit=500)

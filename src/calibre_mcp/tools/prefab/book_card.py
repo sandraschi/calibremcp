@@ -11,6 +11,9 @@ import os
 from typing import Any
 
 from fastmcp import Context
+from fastmcp.tools import ToolResult
+from prefab_ui.app import PrefabApp
+from prefab_ui.components import Card, CardContent, CardHeader, CardTitle, Image, Text
 
 from calibre_mcp.logging_config import get_logger
 from calibre_mcp.server import mcp
@@ -27,10 +30,7 @@ def show_book_prefab_card(book_id: int, ctx: Context | None = None) -> Any:
     return {
         "success": False,
         "error": "prefab_unavailable",
-        "message": (
-            "Prefab book card is not active. Install optional deps (uv sync --extra apps) "
-            "and ensure CALIBRE_PREFAB_APPS is not 0."
-        ),
+        "message": "Prefab book card is not active (CALIBRE_PREFAB_APPS=0).",
     }
 
 
@@ -104,13 +104,6 @@ def register_book_card_tool() -> None:
     if os.environ.get("CALIBRE_PREFAB_APPS", "1").strip().lower() in ("0", "false", "no", "off"):
         logger.info("Prefab book card disabled (CALIBRE_PREFAB_APPS=0)")
         return
-    try:
-        from fastmcp.tools import ToolResult
-        from prefab_ui.app import PrefabApp
-        from prefab_ui.components import Card, CardContent, CardHeader, CardTitle, Image, Text
-    except ImportError as e:
-        logger.info("Prefab apps unavailable — pip install calibre-mcp[apps] (%s)", e)
-        return
 
     @mcp.tool(app=True)
     def show_book_prefab_card(book_id: int, ctx: Context | None = None) -> Any:
@@ -118,7 +111,7 @@ def register_book_card_tool() -> None:
         Show a rich book card (MCP App) with title, authors, series, tags, comment excerpt, and cover.
 
         Works in clients that render MCP Apps / Prefab (e.g. Claude Desktop; Cursor when supported).
-        Install optional deps: ``uv sync --extra apps``. Disable with ``CALIBRE_PREFAB_APPS=0``.
+        Disable with ``CALIBRE_PREFAB_APPS=0`` (skips registration).
 
         Args:
             book_id: Calibre book id (from ``query_books`` or the library).

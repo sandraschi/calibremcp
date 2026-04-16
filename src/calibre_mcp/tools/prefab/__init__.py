@@ -1,4 +1,4 @@
-"""Optional MCP Apps (Prefab UI) for rich chat surfaces — install ``calibre-mcp[apps]``."""
+"""MCP Apps (Prefab UI) for rich chat surfaces — ``prefab-ui`` is a core dependency."""
 
 from __future__ import annotations
 

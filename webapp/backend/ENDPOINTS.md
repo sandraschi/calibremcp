@@ -304,19 +304,149 @@ Swagger UI documentation (interactive API explorer)
 ### GET `/redoc`
 ReDoc documentation (alternative API docs)
 
-## Additional Endpoints
+## RAG API (`/api/rag`)
 
-The backend also exposes endpoints for all MCP tools:
+### GET `/api/rag/metadata/build/status`
+Poll progress of a running metadata index build.
 
-- `/api/authors` - Author management
-- `/api/tags` - Tag management
-- `/api/comments` - Comment CRUD operations
-- `/api/files` - File operations (convert, download, bulk)
-- `/api/analysis` - Library analysis and statistics
-- `/api/specialized` - Specialized operations (Japanese organizer, IT curator, reading recommendations)
-- `/api/bulk` - Bulk operations (update metadata, export, delete, convert)
-- `/api/export` - Book export (CSV, JSON, HTML, Pandoc formats)
-- `/api/collections` - Smart collections management
-- `/api/system` - System management and help
+**Response:** `{status, current, total, percentage, message}`
 
-See Swagger UI at `/docs` for complete endpoint documentation.
+### POST `/api/rag/metadata/build`
+Start build or rebuild of the LanceDB metadata index (title, authors, tags, comments).
+
+**Query Parameters:**
+- `force_rebuild` (boolean, default: false)
+
+**Response:** `{status, message, books_indexed}`
+
+### POST `/api/rag/content/build`
+Start build or rebuild of the LanceDB full-text content index (full book text).
+Significantly slower than metadata build on large libraries.
+
+**Query Parameters:**
+- `force_rebuild` (boolean, default: false)
+
+### GET `/api/rag/metadata/search`
+Semantic search over book metadata using LanceDB.
+
+**Query Parameters:**
+- `q` (string, required): Natural-language query
+- `top_k` (int, default: 10, max: 50)
+
+**Response:** `{results: [{book_id, title, text, score}]}`
+
+### GET `/api/rag/retrieve`
+Semantic passage retrieval from full book content using LanceDB.
+Requires content index to be built first.
+
+**Query Parameters:**
+- `q` (string, required): Natural-language query
+- `top_k` (int, default: 10, max: 50)
+
+**Response:** `{query, hits: [{book_id, title, chunk_idx, snippet, rank}]}`
+
+### POST `/api/rag/search`
+Combined portmanteau RAG search (metadata + content, auto-selects mode).
+
+**Query Parameters:**
+- `q` (string, required)
+- `top_k` (int, default: 10)
+- `mode` (string, default: "auto"): "metadata" | "content" | "auto"
+
+### POST `/api/rag/synopsis/{book_id}`
+Generate a RAG-synthesised spoiler-aware synopsis for a book.
+
+**Path Parameters:**
+- `book_id` (int): Book ID
+
+**Query Parameters:**
+- `spoilers` (boolean, default: false)
+
+**Response:** `{book_id, title, synopsis, spoilers}`
+
+### POST `/api/rag/research/{book_id}`
+Deep external research on a single book. Fetches Wikipedia (book + author),
+SF Encyclopedia (genre fiction), TVTropes (fiction), Anime News Network
+(manga/light novels), and Open Library (if ISBN present). Combines with
+local Calibre data — rating, tags, personal notes, RAG passages if indexed.
+Synthesises via LLM sampling into a structured markdown research report.
+
+**Requires sampling-capable MCP client context (Claude Desktop / Cursor).**
+Response time: 10–30 seconds.
+
+**Path Parameters:**
+- `book_id` (int): Calibre book ID
+
+**Query Parameters:**
+- `include_spoilers` (boolean, default: false)
+
+**Response:**
+```json
+{
+  "success": true,
+  "book_id": 1234,
+  "title": "Use of Weapons",
+  "authors": ["Iain M. Banks"],
+  "report": "# Use of Weapons\n\n## Overview\n...",
+  "sources_fetched": ["wikipedia_book", "wikipedia_author", "sf_encyclopedia", "tvtropes"],
+  "sources_failed": ["goodreads"],
+  "local_data": {"rating": 5, "personal_notes": true, "rag_passages": 3}
+}
+```
+
+### POST `/api/rag/critical-reception/{book_id}`
+Synthesise external critical reviews and academic reception (web + library).
+
+### POST `/api/rag/deep-research`
+Cross-book thematic analysis using full-text RAG.
+
+**Query Parameters:**
+- `topic` (string, required): Thematic topic
+- `limit` (int, default: 5): Max books to include
+
+### POST `/api/rag/metadata/export`
+Export all library metadata as JSON for external RAG pipelines.
+
+**Query Parameters:**
+- `output_path` (string, optional): Override output file path
+
+## Series API (`/api/series`)
+
+### GET `/api/series`
+List series with optional search. Cached 60s.
+
+**Query Parameters:**
+- `query` (string, optional)
+- `limit` (int, default: 50)
+- `offset` (int, default: 0)
+- `letter` (string, optional): Filter by first letter
+
+### GET `/api/series/stats`
+Library-wide series statistics.
+
+### GET `/api/series/analysis`
+Reading order and completion analysis for a named series.
+
+**Query Parameters:**
+- `series_name` (string, required): Exact or partial series name
+
+**Response:** `{series, books: [{index, title, owned, book_id}], missing, total_volumes, owned_count}`
+
+### GET `/api/series/completion`
+Library-wide series completion report.
+
+**Query Parameters:**
+- `min_books` (int, default: 2)
+- `incomplete_only` (boolean, default: true)
+
+### GET `/api/series/{series_id}`
+Get series details by ID.
+
+### GET `/api/series/{series_id}/books`
+Get all books in a series.
+
+**Query Parameters:**
+- `limit` (int, default: 50)
+- `offset` (int, default: 0)
+
+
