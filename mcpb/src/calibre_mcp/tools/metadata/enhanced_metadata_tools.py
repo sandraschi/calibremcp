@@ -570,7 +570,7 @@ class EnhancedMetadataTools(MCPTool):
             return total % 11 == 0
 
         # Check ISBN-13
-        elif len(isbn) == 13 and isbn.isdigit():
+        if len(isbn) == 13 and isbn.isdigit():
             total = 0
             for i, c in enumerate(isbn):
                 digit = int(c)

@@ -319,10 +319,7 @@ async def append_comment_helper(book_id: int, text: str) -> dict[str, Any]:
         existing_text = _normalize_comment(comment_raw)
 
         # Append new text
-        if existing_text:
-            new_text = f"{existing_text}\n\n{text}"
-        else:
-            new_text = text
+        new_text = f"{existing_text}\n\n{text}" if existing_text else text
 
         # Update with appended text
         update_data = {"comments": new_text}

@@ -273,20 +273,19 @@ async def manage_comments(
 
         # Validate text is provided for operations that require it
         text_required_operations = ["create", "update", "append", "replace"]
-        if operation in text_required_operations:
-            if not text or not text.strip():
-                return format_error_response(
-                    error_msg=f"text is required for operation='{operation}'. Cannot be empty.",
-                    error_code="MISSING_TEXT",
-                    error_type="ValueError",
-                    operation=operation,
-                    suggestions=[
-                        "Provide the text parameter with comment content",
-                        "For append: Provide text to append to existing comment",
-                        "For update/replace: Provide new comment text",
-                    ],
-                    related_tools=["manage_comments"],
-                )
+        if operation in text_required_operations and (not text or not text.strip()):
+            return format_error_response(
+                error_msg=f"text is required for operation='{operation}'. Cannot be empty.",
+                error_code="MISSING_TEXT",
+                error_type="ValueError",
+                operation=operation,
+                suggestions=[
+                    "Provide the text parameter with comment content",
+                    "For append: Provide text to append to existing comment",
+                    "For update/replace: Provide new comment text",
+                ],
+                related_tools=["manage_comments"],
+            )
 
         # Convert book_id to int for API calls
         try:
@@ -307,8 +306,7 @@ async def manage_comments(
         # Route to appropriate helper function
         if operation == "create":
             try:
-                result = await create_comment_helper(book_id_int, text)
-                return result
+                return await create_comment_helper(book_id_int, text)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -320,8 +318,7 @@ async def manage_comments(
 
         elif operation == "read":
             try:
-                result = await read_comment_helper(book_id_int)
-                return result
+                return await read_comment_helper(book_id_int)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -333,8 +330,7 @@ async def manage_comments(
 
         elif operation == "update" or operation == "replace":
             try:
-                result = await update_comment_helper(book_id_int, text)
-                return result
+                return await update_comment_helper(book_id_int, text)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -346,8 +342,7 @@ async def manage_comments(
 
         elif operation == "delete":
             try:
-                result = await delete_comment_helper(book_id_int)
-                return result
+                return await delete_comment_helper(book_id_int)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -359,8 +354,7 @@ async def manage_comments(
 
         elif operation == "append":
             try:
-                result = await append_comment_helper(book_id_int, text)
-                return result
+                return await append_comment_helper(book_id_int, text)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

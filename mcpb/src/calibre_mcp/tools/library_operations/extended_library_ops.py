@@ -11,6 +11,8 @@ try:
     from fastmcp import MCPTool
 except ImportError:
     from ..compat import MCPTool
+import contextlib
+
 from pydantic import BaseModel, Field
 
 
@@ -228,12 +230,10 @@ class ExtendedLibraryOperations(MCPTool):
 
                         added_date = None
                         if "timestamp" in book and book["timestamp"]:
-                            try:
+                            with contextlib.suppress(ValueError, AttributeError):
                                 added_date = datetime.fromisoformat(
                                     book["timestamp"].replace("Z", "+00:00")
                                 )
-                            except (ValueError, AttributeError):
-                                pass
 
                         similar_books.append(
                             {
@@ -569,10 +569,8 @@ class ExtendedLibraryOperations(MCPTool):
             conn.close()
 
             # Remove the backup if everything is OK
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(backup_db)
-            except OSError:
-                pass
 
             return {
                 "repaired": integrity_result != "ok",
@@ -585,10 +583,8 @@ class ExtendedLibraryOperations(MCPTool):
         except Exception as e:
             # Restore from backup if possible
             if os.path.exists(backup_db):
-                try:
+                with contextlib.suppress(OSError):
                     shutil.copy2(backup_db, metadata_db)
-                except OSError:
-                    pass
 
             return {"error": f"Error checking database: {str(e)}", "repaired": False}
 

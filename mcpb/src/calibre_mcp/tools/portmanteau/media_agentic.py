@@ -139,9 +139,8 @@ async def media_synopsis(
             and response.content
             and isinstance(response.content, list)
             and len(response.content) > 0
-        ):
-            if hasattr(response.content[0], "text"):
-                synopsis_text = response.content[0].text
+        ) and hasattr(response.content[0], "text"):
+            synopsis_text = response.content[0].text
 
         return {
             "success": True,
@@ -259,9 +258,8 @@ async def media_critical_reception(
             and response.content
             and isinstance(response.content, list)
             and len(response.content) > 0
-        ):
-            if hasattr(response.content[0], "text"):
-                essay_text = response.content[0].text
+        ) and hasattr(response.content[0], "text"):
+            essay_text = response.content[0].text
 
         return {
             "success": True,
@@ -398,9 +396,8 @@ async def media_deep_research(
             and response.content
             and isinstance(response.content, list)
             and len(response.content) > 0
-        ):
-            if hasattr(response.content[0], "text"):
-                essay_text = response.content[0].text
+        ) and hasattr(response.content[0], "text"):
+            essay_text = response.content[0].text
 
         return {
             "success": True,

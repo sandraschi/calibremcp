@@ -44,8 +44,6 @@ def run_tests(
 
     pytest_args.append(test_path)
 
-    print(f"Running: {' '.join(pytest_args)}")
-    print()
 
     result = subprocess.run(pytest_args)
     return result.returncode

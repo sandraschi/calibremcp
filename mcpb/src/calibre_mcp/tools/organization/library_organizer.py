@@ -82,9 +82,8 @@ class OrganizationRule(BaseModel):
             elif operator == "is_set":
                 if book_value is None or book_value == "":
                     return False
-            elif operator == "is_not_set":
-                if book_value is not None and book_value != "":
-                    return False
+            elif operator == "is_not_set" and book_value is not None and book_value != "":
+                return False
             # Add more operators as needed
 
         return True
@@ -290,8 +289,7 @@ class LibraryOrganizer(MCPTool):
         if name in self._saved_plans:
             del self._saved_plans[name]
             return {"success": True, "message": f"Plan '{name}' deleted"}
-        else:
-            return {"error": f"No plan named '{name}' found", "success": False}
+        return {"error": f"No plan named '{name}' found", "success": False}
 
     # File Organization
     async def organize_files(
@@ -699,9 +697,8 @@ class LibraryOrganizer(MCPTool):
         tag = tag.strip()
 
         # Convert to title case (first letter of each word capitalized)
-        tag = " ".join(word.capitalize() for word in tag.split())
+        return " ".join(word.capitalize() for word in tag.split())
 
-        return tag
 
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize a string to be used as a filename."""
@@ -716,6 +713,5 @@ class LibraryOrganizer(MCPTool):
         sanitized = sanitized.strip(". ")
 
         # Replace multiple spaces/underscores with a single underscore
-        sanitized = re.sub(r"[ _]+", "_", sanitized)
+        return re.sub(r"[ _]+", "_", sanitized)
 
-        return sanitized

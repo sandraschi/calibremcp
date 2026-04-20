@@ -144,7 +144,7 @@ class BookResponse(BookBase):
     comments: str | None = Field(None, description="Book comments/description")
 
     @validator("formats", pre=True)
-    def format_data_to_formats(cls, v, values):
+    def format_data_to_formats(self, v, values):
         """Convert Data objects to format dictionaries"""
         if v is None:
             return []
@@ -153,7 +153,7 @@ class BookResponse(BookBase):
         return v
 
     @validator("authors", "tags", pre=True)
-    def convert_relationships(cls, v):
+    def convert_relationships(self, v):
         """Convert relationship objects to dictionaries"""
         if v is None:
             return []
@@ -162,7 +162,7 @@ class BookResponse(BookBase):
         return v
 
     @validator("series", pre=True)
-    def convert_series(cls, v):
+    def convert_series(self, v):
         """Convert series relationship to dictionary"""
         if v is None:
             return None
@@ -171,7 +171,7 @@ class BookResponse(BookBase):
         return v
 
     @validator("rating", pre=True)
-    def get_rating_value(cls, v, values):
+    def get_rating_value(self, v, values):
         """Extract rating value from ratings relationship"""
         if v is not None:
             return v

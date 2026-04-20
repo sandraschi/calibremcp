@@ -69,7 +69,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # MCP servers use stdio transport, so stdout must be clean for JSON-RPC
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any, AsyncContextManager
 
@@ -633,7 +633,7 @@ async def main():
             if tool_count == 0:
                 logger.error("CRITICAL: No tools registered! Check tool imports.")
         except Exception as e:
-            logger.error(f"Could not verify tool count: {e}")
+            logger.exception(f"Could not verify tool count: {e}")
 
         # Restore stdout explicitly for JSON-RPC communication
         import calibre_mcp
@@ -646,10 +646,8 @@ async def main():
             if os.name == "nt":
                 import msvcrt
 
-                try:
+                with suppress(Exception):
                     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-                except Exception:
-                    pass
 
         # Run the FastMCP server using the SOTA-recommended async stdio transport
         # Standard logic for FastMCP 2.14.1+: use run_stdio_async()
@@ -661,14 +659,14 @@ async def main():
                 await lifespan_context.__aexit__(None, None, None)
                 logger.info("Server lifespan cleaned up successfully")
             except Exception as cleanup_error:
-                logger.error(f"Error during lifespan cleanup: {cleanup_error}")
+                logger.exception(f"Error during lifespan cleanup: {cleanup_error}")
 
     except Exception as e:
         # Cleanup lifespan on error
         try:
             await lifespan_context.__aexit__(type(e), e, e.__traceback__)
         except Exception as cleanup_error:
-            logger.error(f"Error during lifespan cleanup on exception: {cleanup_error}")
+            logger.exception(f"Error during lifespan cleanup on exception: {cleanup_error}")
 
         # Log error to file only (no stdout/stderr output for MCP stdio protocol)
         log_error(logger, "server_startup_error", e)

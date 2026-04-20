@@ -12,8 +12,6 @@ def check_logs(tail: int = 50, errors_only: bool = False):
     log_file = Path("logs/calibremcp.log")
 
     if not log_file.exists():
-        print(f"[INFO] Log file not found: {log_file}")
-        print("[INFO] Server may not have run yet, or logs are in a different location.")
         return 0
 
     try:
@@ -31,19 +29,12 @@ def check_logs(tail: int = 50, errors_only: bool = False):
                 )
             ]
             if not relevant_lines:
-                print("[OK] No errors or warnings in recent logs")
                 return 0
-            print(f"\n{'=' * 80}")
-            print(f"ERRORS/WARNINGS in last {tail} lines:")
-            print("=" * 80)
-            for line in relevant_lines[-tail:]:
-                print(line.rstrip())
+            for _line in relevant_lines[-tail:]:
+                pass
         else:
-            print(f"\n{'=' * 80}")
-            print(f"Last {min(tail, len(lines))} lines from {log_file}:")
-            print("=" * 80)
-            for line in lines[-tail:]:
-                print(line.rstrip())
+            for _line in lines[-tail:]:
+                pass
 
         # Check for common issues
         recent_text = "".join(lines[-tail:])
@@ -61,18 +52,12 @@ def check_logs(tail: int = 50, errors_only: bool = False):
             issues.append("Exception traceback found - check stack trace")
 
         if issues:
-            print(f"\n{'=' * 80}")
-            print("POTENTIAL ISSUES DETECTED:")
-            print("=" * 80)
-            for issue in issues:
-                print(f"  - {issue}")
+            for _issue in issues:
+                pass
             return 1
-        else:
-            print("\n[OK] No obvious errors in recent logs")
-            return 0
+        return 0
 
-    except Exception as e:
-        print(f"[ERROR] Failed to read log file: {e}")
+    except Exception:
         return 1
 
 

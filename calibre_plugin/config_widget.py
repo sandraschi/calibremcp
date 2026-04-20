@@ -2,18 +2,28 @@
 Configuration widget for CalibreMCP Integration plugin.
 """
 
-from calibre_plugins.calibre_mcp_integration.config import prefs
 from calibre_plugins.calibre_mcp_integration import ollama_client
+from calibre_plugins.calibre_mcp_integration.config import prefs
 
 try:
     from qt.core import (
-        QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QPushButton, QVBoxLayout, QWidget,
+        QGroupBox,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QPushButton,
+        QVBoxLayout,
+        QWidget,
     )
 except ImportError:
     from PyQt5.Qt import (
-        QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QPushButton, QVBoxLayout, QWidget,
+        QGroupBox,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QPushButton,
+        QVBoxLayout,
+        QWidget,
     )
 
 

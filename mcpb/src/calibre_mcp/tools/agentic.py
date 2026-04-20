@@ -43,7 +43,7 @@ def register_agentic_tools():
 
             # This would use FastMCP 2.14.3 sampling to execute complex workflows
             # For now, return a conversational response about capabilities
-            result = {
+            return {
                 "success": True,
                 "operation": "agentic_workflow",
                 "message": "Agentic workflow initiated. The LLM can now autonomously orchestrate complex Calibre library operations using the specified tools.",
@@ -59,7 +59,6 @@ def register_agentic_tools():
                 ],
             }
 
-            return result
 
         except Exception as e:
             return {
@@ -104,7 +103,7 @@ def register_agentic_tools():
                 "analysis": "LLM will analyze each book and choose optimal processing operations",
             }
 
-            result = {
+            return {
                 "success": True,
                 "operation": "intelligent_batch_processing",
                 "message": "Intelligent library processing initiated. The LLM will analyze each book and apply optimal operations based on content characteristics.",
@@ -121,7 +120,6 @@ def register_agentic_tools():
                 ],
             }
 
-            return result
 
         except Exception as e:
             return {
@@ -155,7 +153,7 @@ def register_agentic_tools():
                 "detailed": "Welcome to CalibreMCP! I'm equipped with comprehensive e-book library management capabilities including book browsing, metadata editing, format conversion, content searching, collection management, and intelligent library organization workflows.",
             }
 
-            result = {
+            return {
                 "success": True,
                 "operation": "conversational_assistance",
                 "message": response_templates.get(
@@ -178,7 +176,6 @@ def register_agentic_tools():
                 ],
             }
 
-            return result
 
         except Exception as e:
             return {

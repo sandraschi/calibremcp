@@ -47,7 +47,6 @@ def main():
             row += bytes([r, g, b, 255])
         rows.append(row)
     write_png(str(out), w, h, rows)
-    print(f"Created {out}")
 
 
 if __name__ == "__main__":

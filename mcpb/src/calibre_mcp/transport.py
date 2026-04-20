@@ -127,25 +127,24 @@ def resolve_transport(args: argparse.Namespace) -> TransportType:
     """
     if args.http:
         return "http"
-    elif args.sse:
+    if args.sse:
         logger.warning(
             "SSE transport is deprecated. Consider using --http instead. "
             "SSE support will be removed in a future version."
         )
         return "sse"
-    elif args.stdio:
+    if args.stdio:
         return "stdio"
-    else:
-        # Fall back to environment variable
-        env_transport = os.getenv(ENV_TRANSPORT, "stdio").lower()
-        if env_transport not in ("stdio", "http", "sse"):
-            logger.warning(f"Invalid {ENV_TRANSPORT}='{env_transport}', defaulting to stdio")
-            return "stdio"
-        if env_transport == "sse":
-            logger.warning(
-                "SSE transport is deprecated. Consider using MCP_TRANSPORT=http instead."
-            )
-        return env_transport  # type: ignore
+    # Fall back to environment variable
+    env_transport = os.getenv(ENV_TRANSPORT, "stdio").lower()
+    if env_transport not in ("stdio", "http", "sse"):
+        logger.warning(f"Invalid {ENV_TRANSPORT}='{env_transport}', defaulting to stdio")
+        return "stdio"
+    if env_transport == "sse":
+        logger.warning(
+            "SSE transport is deprecated. Consider using MCP_TRANSPORT=http instead."
+        )
+    return env_transport  # type: ignore
 
 
 def resolve_config(args: argparse.Namespace) -> dict:
@@ -292,15 +291,14 @@ async def run_server_async(
                 from calibre_mcp.tools.portmanteau.search import calibre_rag
 
                 try:
-                    results = await calibre_rag(
+                    return await calibre_rag(
                         operation="search",
                         query=req.query,
                         limit=req.limit,
                         search_type=req.search_type,
                     )
-                    return results  # Returns success, message, and results array
                 except Exception as e:
-                    logger.error(f"Search endpoint error: {e}")
+                    logger.exception(f"Search endpoint error: {e}")
                     return {"success": False, "error": str(e)}
 
             @mcp_app.app.post("/api/v1/chat")

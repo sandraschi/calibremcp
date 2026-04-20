@@ -242,7 +242,6 @@ def create_minimal_cbz(output_path: Path, title: str = "Test Comic", num_pages: 
 
 def create_test_files():
     """Create all test files for the test library."""
-    print("Creating test book files...\n")
 
     # Book 1: A Study in Scarlet (EPUB + PDF)
     book1_dir = TEST_LIBRARY_DIR / "Arthur Conan Doyle" / "A Study in Scarlet (1)"
@@ -250,11 +249,9 @@ def create_test_files():
 
     epub1 = book1_dir / "1.epub"
     create_minimal_epub(epub1, "A Study in Scarlet", "Arthur Conan Doyle", num_pages=5)
-    print(f"[OK] Created: {epub1.name} ({epub1.stat().st_size} bytes, 5 pages)")
 
     pdf1 = book1_dir / "1.pdf"
     create_minimal_pdf(pdf1, "A Study in Scarlet", num_pages=5)
-    print(f"[OK] Created: {pdf1.name} ({pdf1.stat().st_size} bytes, 5 pages)")
 
     # Book 2: The Sign of the Four (EPUB)
     book2_dir = TEST_LIBRARY_DIR / "Arthur Conan Doyle" / "The Sign of the Four (2)"
@@ -262,7 +259,6 @@ def create_test_files():
 
     epub2 = book2_dir / "2.epub"
     create_minimal_epub(epub2, "The Sign of the Four", "Arthur Conan Doyle", num_pages=5)
-    print(f"[OK] Created: {epub2.name} ({epub2.stat().st_size} bytes, 5 pages)")
 
     # Book 3: Pride and Prejudice (EPUB)
     book3_dir = TEST_LIBRARY_DIR / "Jane Austen" / "Pride and Prejudice (3)"
@@ -270,7 +266,6 @@ def create_test_files():
 
     epub3 = book3_dir / "3.epub"
     create_minimal_epub(epub3, "Pride and Prejudice", "Jane Austen", num_pages=5)
-    print(f"[OK] Created: {epub3.name} ({epub3.stat().st_size} bytes, 5 pages)")
 
     # Book 4: Tom Sawyer (EPUB + CBZ for comic/manga test)
     book4_dir = TEST_LIBRARY_DIR / "Mark Twain" / "The Adventures of Tom Sawyer (4)"
@@ -278,17 +273,12 @@ def create_test_files():
 
     epub4 = book4_dir / "4.epub"
     create_minimal_epub(epub4, "The Adventures of Tom Sawyer", "Mark Twain", num_pages=5)
-    print(f"[OK] Created: {epub4.name} ({epub4.stat().st_size} bytes, 5 pages)")
 
     # Add a CBZ file (comic format) with 5 pages
     cbz4 = book4_dir / "4.cbz"
     create_minimal_cbz(cbz4, "The Adventures of Tom Sawyer", num_pages=5)
-    print(f"[OK] Created: {cbz4.name} ({cbz4.stat().st_size} bytes, 5 pages)")
 
-    total_size = sum(f.stat().st_size for f in [epub1, pdf1, epub2, epub3, epub4, cbz4])
-    print(f"\n[OK] Created {6} test files")
-    print(f"  Total size: {total_size / 1024:.1f} KB")
-    print(f"\nAll test files ready in: {TEST_LIBRARY_DIR}")
+    sum(f.stat().st_size for f in [epub1, pdf1, epub2, epub3, epub4, cbz4])
 
 
 if __name__ == "__main__":

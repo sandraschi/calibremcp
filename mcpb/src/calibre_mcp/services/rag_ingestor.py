@@ -111,9 +111,9 @@ class CalibreIngestor:
                     )
 
         except sqlite3.Error as e:
-            logger.error(f"Database error while extracting books: {e}")
+            logger.exception(f"Database error while extracting books: {e}")
         except Exception as e:
-            logger.error(f"Unexpected error while extracting books: {e}")
+            logger.exception(f"Unexpected error while extracting books: {e}")
 
         return books
 
@@ -143,5 +143,5 @@ class CalibreIngestor:
             logger.info(f"Successfully ingested {len(documents)} books into '{self.table_name}'")
             return {"status": "success", "count": len(documents)}
         except Exception as e:
-            logger.error(f"Failed to ingest library: {e}")
+            logger.exception(f"Failed to ingest library: {e}")
             return {"status": "error", "error": str(e)}

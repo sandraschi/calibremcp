@@ -57,7 +57,7 @@ async def manage_series(
         if operation == "list":
             return await list_series_helper(query=query, limit=limit, offset=offset)
 
-        elif operation == "get":
+        if operation == "get":
             if series_id is None:
                 return format_error_response(
                     error_msg="series_id is required for operation='get'.",
@@ -72,7 +72,7 @@ async def manage_series(
                 )
             return await get_series_helper(series_id=series_id)
 
-        elif operation == "get_books":
+        if operation == "get_books":
             if series_id is None:
                 return format_error_response(
                     error_msg="series_id is required for operation='get_books'.",
@@ -87,10 +87,10 @@ async def manage_series(
                 )
             return await get_series_books_helper(series_id=series_id, limit=limit, offset=offset)
 
-        elif operation == "stats":
+        if operation == "stats":
             return await get_series_stats_helper()
 
-        elif operation == "by_letter":
+        if operation == "by_letter":
             if not letter:
                 return format_error_response(
                     error_msg="letter is required for operation='by_letter'.",
@@ -102,21 +102,20 @@ async def manage_series(
                 )
             return await get_series_by_letter_helper(letter=letter.strip())
 
-        else:
-            return format_error_response(
-                error_msg=f"Invalid operation: '{operation}'. Use: list, get, get_books, stats, by_letter.",
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "list: List series with optional search",
-                    "get: Get series by ID",
-                    "get_books: Get books in series",
-                    "stats: Series statistics",
-                    "by_letter: Series starting with letter",
-                ],
-                related_tools=["manage_series"],
-            )
+        return format_error_response(
+            error_msg=f"Invalid operation: '{operation}'. Use: list, get, get_books, stats, by_letter.",
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "list: List series with optional search",
+                "get: Get series by ID",
+                "get_books: Get books in series",
+                "stats: Series statistics",
+                "by_letter: Series starting with letter",
+            ],
+            related_tools=["manage_series"],
+        )
 
     except Exception as e:
         return handle_tool_error(

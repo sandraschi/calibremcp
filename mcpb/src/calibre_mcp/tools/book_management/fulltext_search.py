@@ -8,6 +8,7 @@ LIKE on books_text if the Calibre tokenizer is unavailable.
 """
 
 import asyncio
+import contextlib
 from pathlib import Path
 from typing import Any
 
@@ -80,15 +81,13 @@ async def search_fulltext(
     """
     start_ms = __import__("time").time()
     if ctx:
-        try:
+        with contextlib.suppress(Exception):
             ctx.info(
                 "search_fulltext query=%s limit=%s resolve_locations=%s",
                 query,
                 limit,
                 resolve_locations,
             )
-        except Exception:
-            pass
 
     @handle_tool_error(logger, "search_fulltext")
     def _run() -> dict[str, Any]:

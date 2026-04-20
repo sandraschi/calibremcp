@@ -1,17 +1,19 @@
 # CalibreMCP 
 
+[![FastMCP Version](https://img.shields.io/badge/FastMCP-3.2.0-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/sandraschi/fastmcp) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white)](https://biomejs.dev/) [![Built with Just](https://img.shields.io/badge/Built_with-Just-000000?style=flat-square&logo=gnu-bash&logoColor=white)](https://github.com/casey/just)
+
 [![Python](https://img.shields.io/badge/Python-3.12+-green)](https://python.org)
 [![Web Interface](https://img.shields.io/badge/Web--Interface-Professional-purple)]()
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.2.0-blue)](https://github.com/jlowin/fastmcp)
 [![SOTA Compliance](https://img.shields.io/badge/SOTA-v13.1-gold)](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/SOTA_REQUIREMENTS.md)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.5.0-blue)](pyproject.toml)
+[![Version](https://img.shields.io/badge/Version-1.8.0-blue)](pyproject.toml)
 [![Status](https://img.shields.io/badge/Status-Industrialized-success)](README.md)
 <br>
 **April 2026 SOTA industrialized FastMCP 3.2.0 server for Calibre e-book library management with sampling, agentic workflows, skills, prompts, universal connect pattern, and LanceDB metadata RAG**
 
 **Features:**
-- **FastMCP 3.2** - Universal connect pattern, sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
+- **FastMCP 3.2.0** - Universal connect pattern, sampling, agentic tool chaining, optional SearchTools/CodeMode transforms
 - **Concurrency Safety** - Thread-safe database operations with row-level locking for multi-client access
 - **Universal Connect** - Support for simultaneous stdio + HTTP access from multiple clients
 - **Metadata RAG (LanceDB)** - Semantic search over title, authors, tags, comments via `calibre_metadata_index_build` and `calibre_metadata_search` (`lancedb_metadata/`); see `docs/AGENTIC_AND_RAG.md`
@@ -27,7 +29,7 @@
 - **Windows Compatibility** -  Fixed Unicode encoding issues, starts reliably on Windows
 - **Standardized Documentation** - 100% compliance with docstring standards
 - **Default Library Auto-Loading** - No manual library setup needed
-- **Natural Language Search** - Intelligent parsing via FastMCP 3.1 sampling and agentic workflows (SEP-1577)
+- **Natural Language Search** - Intelligent parsing via FastMCP 3.2.0 sampling and agentic workflows (SEP-1577)
 - **Auto-Open Books** -  Unique search results automatically launch in system viewer
 - **Title-Specific Search** -  Fast, exact title matching with `title` parameter
 - **Comprehensive Search** - All verbs (search, list, find, query, get) work seamlessly
@@ -567,7 +569,7 @@ The MCP client LLM automatically parses natural language queries into structured
 - "books from last year"  `query_books(operation="search", added_after="2024-01-01")`
 - "find sapiens"  `query_books(operation="search", title="sapiens")`
 
-**FastMCP 2.14.4 Sampling (SEP-1577):**
+**FastMCP 3.2.0 Sampling (SEP-1577):**
 For ambiguous queries, the server uses `ctx.sample()` with tools to orchestrate agentic workflows. Supports dialogic returns (execution_time_ms, recommendations) for SOTA MCP compliance.
 
 ### **Auto-Open Books**
@@ -869,10 +871,21 @@ calibremcp/
 ### **Phase 1 Complete** 
 
 -  4/4 core MCP tools implemented and tested
--  FastMCP 2.0 compliance with proper structure  
+-  FastMCP 3.2.0 compliance with proper structure  
 -  Comprehensive error handling and diagnostics
 -  Austrian efficiency: 45-minute realistic timeline
 -  Production-ready for immediate use with Claude Desktop and other MCP clients
+
+
+## 🛡️ Industrial Quality Stack
+
+This project adheres to **SOTA 14.1** industrial standards for high-fidelity agentic orchestration:
+
+- **Python (Core)**: [Ruff](https://astral.sh/ruff) for linting and formatting. Zero-tolerance for `print` statements in core handlers (`T201`).
+- **Webapp (UI)**: [Biome](https://biomejs.dev/) for sub-millisecond linting. Strict `noConsoleLog` enforcement.
+- **Protocol Compliance**: Hardened `stdout/stderr` isolation to ensure crash-resistant JSON-RPC communication.
+- **Automation**: [Justfile](./justfile) recipes for all fleet operations (`just lint`, `just fix`, `just dev`).
+- **Security**: Automated audits via `bandit` and `safety`.
 
 ##  License
 

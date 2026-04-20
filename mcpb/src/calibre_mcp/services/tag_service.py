@@ -219,10 +219,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
             NotFoundError: If the tag is not found
             ValidationError: If the update data is invalid
         """
-        if isinstance(tag_data, dict):
-            update_data = tag_data
-        else:
-            update_data = tag_data.dict(exclude_unset=True)
+        update_data = tag_data if isinstance(tag_data, dict) else tag_data.dict(exclude_unset=True)
 
         with self._get_db_session() as session:
             # Get the existing tag
@@ -472,9 +469,8 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
         normalized = tag_name.strip()
 
         # Title case (first letter of each word capitalized)
-        normalized = normalized.title()
+        return normalized.title()
 
-        return normalized
 
     def get_tag_statistics(self) -> dict[str, Any]:
         """

@@ -326,7 +326,7 @@ async def manage_users(
                 )
             return await _handle_create_user(user_data)
 
-        elif operation == "update_user":
+        if operation == "update_user":
             if not user_id:
                 return format_error_response(
                     error_msg="user_id is required for operation='update_user'.",
@@ -347,7 +347,7 @@ async def manage_users(
                 )
             return await _handle_update_user(user_id, update_data)
 
-        elif operation == "delete_user":
+        if operation == "delete_user":
             if not user_id:
                 return format_error_response(
                     error_msg="user_id is required for operation='delete_user'.",
@@ -359,10 +359,10 @@ async def manage_users(
                 )
             return await _handle_delete_user(user_id)
 
-        elif operation == "list_users":
+        if operation == "list_users":
             return await _handle_list_users(page, per_page)
 
-        elif operation == "get_user":
+        if operation == "get_user":
             if not user_id:
                 return format_error_response(
                     error_msg="user_id is required for operation='get_user'.",
@@ -374,7 +374,7 @@ async def manage_users(
                 )
             return await _handle_get_user(user_id)
 
-        elif operation == "login":
+        if operation == "login":
             if not username:
                 return format_error_response(
                     error_msg="username is required for operation='login'.",
@@ -395,7 +395,7 @@ async def manage_users(
                 )
             return await _handle_login(username, password)
 
-        elif operation == "verify_token":
+        if operation == "verify_token":
             if not token:
                 return format_error_response(
                     error_msg="token is required for operation='verify_token'.",
@@ -407,27 +407,26 @@ async def manage_users(
                 )
             return await _handle_verify_token(token)
 
-        else:
-            return format_error_response(
-                error_msg=(
-                    f"Invalid operation: '{operation}'. Must be one of: "
-                    "'create_user', 'update_user', 'delete_user', 'list_users', "
-                    "'get_user', 'login', 'verify_token'"
-                ),
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "Use operation='create_user' to create a new user",
-                    "Use operation='update_user' to update user information",
-                    "Use operation='delete_user' to delete a user",
-                    "Use operation='list_users' to list all users",
-                    "Use operation='get_user' to get user details",
-                    "Use operation='login' to authenticate and get a token",
-                    "Use operation='verify_token' to verify a JWT token",
-                ],
-                related_tools=["manage_users"],
-            )
+        return format_error_response(
+            error_msg=(
+                f"Invalid operation: '{operation}'. Must be one of: "
+                "'create_user', 'update_user', 'delete_user', 'list_users', "
+                "'get_user', 'login', 'verify_token'"
+            ),
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "Use operation='create_user' to create a new user",
+                "Use operation='update_user' to update user information",
+                "Use operation='delete_user' to delete a user",
+                "Use operation='list_users' to list all users",
+                "Use operation='get_user' to get user details",
+                "Use operation='login' to authenticate and get a token",
+                "Use operation='verify_token' to verify a JWT token",
+            ],
+            related_tools=["manage_users"],
+        )
     except Exception as e:
         return handle_tool_error(
             exception=e,

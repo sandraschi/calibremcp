@@ -385,7 +385,7 @@ class BookRepository(BaseRepository[Book]):
         tags = row.get("tags", "").split("|") if row.get("tags") else []
 
         # Create the book dictionary
-        book = {
+        return {
             "id": row["id"],
             "title": row["title"],
             "sort": row.get("sort"),
@@ -409,4 +409,3 @@ class BookRepository(BaseRepository[Book]):
             "comments": row.get("comments"),
         }
 
-        return book

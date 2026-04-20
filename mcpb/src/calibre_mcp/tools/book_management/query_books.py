@@ -564,14 +564,14 @@ async def query_books(
 
             return result
 
-        elif operation == "list":
+        if operation == "list":
             # Use list_books helper (simplified parameters)
             return await _list_books_helper(
                 query=author or tag or text or query,
                 limit=limit,
             )
 
-        elif operation == "recent":
+        if operation == "recent":
             # Get recently added books
             from calibre_mcp.services.book_service import book_service
 
@@ -583,7 +583,7 @@ async def query_books(
                 "limit": limit,
             }
 
-        elif operation == "by_author":
+        if operation == "by_author":
             if author_id is None:
                 return {
                     "success": False,
@@ -601,7 +601,7 @@ async def query_books(
                 offset=offset,
             )
 
-        elif operation == "by_series":
+        if operation == "by_series":
             if series_id is None:
                 return {
                     "success": False,
@@ -615,20 +615,19 @@ async def query_books(
                 }
             return await _get_books_by_series_helper(series_id=series_id)
 
-        else:
-            return {
-                "success": False,
-                "error": f"Invalid operation: '{operation}'. Must be one of: 'search', 'list', 'recent', 'by_author', 'by_series'",
-                "error_code": "INVALID_OPERATION",
-                "suggestions": [
-                    "Use operation='search' to search books with filters (author, tag, text, etc.)",
-                    "Use operation='list' to list all books",
-                    "Use operation='recent' to get recently added books",
-                    "Use operation='by_author' to get books by author_id",
-                    "Use operation='by_series' to get books by series_id",
-                ],
-                "related_tools": ["query_books"],
-            }
+        return {
+            "success": False,
+            "error": f"Invalid operation: '{operation}'. Must be one of: 'search', 'list', 'recent', 'by_author', 'by_series'",
+            "error_code": "INVALID_OPERATION",
+            "suggestions": [
+                "Use operation='search' to search books with filters (author, tag, text, etc.)",
+                "Use operation='list' to list all books",
+                "Use operation='recent' to get recently added books",
+                "Use operation='by_author' to get books by author_id",
+                "Use operation='by_series' to get books by series_id",
+            ],
+            "related_tools": ["query_books"],
+        }
 
     except Exception as e:
         # Use standardized error handling

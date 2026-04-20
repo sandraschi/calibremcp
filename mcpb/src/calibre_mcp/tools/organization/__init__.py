@@ -121,7 +121,7 @@ async def manage_organization(
                 library_path=library_path, plan=plan, book_ids=book_ids
             )
 
-        elif operation == "organize_files":
+        if operation == "organize_files":
             if not pattern or not target_dir:
                 return {
                     "success": False,
@@ -136,7 +136,7 @@ async def manage_organization(
                 dry_run=dry_run,
             )
 
-        elif operation == "clean_tags":
+        if operation == "clean_tags":
             return await library_organizer.clean_tags(
                 library_path=library_path,
                 book_ids=book_ids,
@@ -147,7 +147,7 @@ async def manage_organization(
                 dry_run=dry_run,
             )
 
-        elif operation == "save_plan":
+        if operation == "save_plan":
             if not plan:
                 return {
                     "success": False,
@@ -156,10 +156,10 @@ async def manage_organization(
                 }
             return await library_organizer.save_organization_plan(plan=plan)
 
-        elif operation == "get_plans":
+        if operation == "get_plans":
             return await library_organizer.get_organization_plans()
 
-        elif operation == "get_plan":
+        if operation == "get_plan":
             if not plan_name:
                 return {
                     "success": False,
@@ -168,7 +168,7 @@ async def manage_organization(
                 }
             return await library_organizer.get_organization_plan(name=plan_name)
 
-        elif operation == "delete_plan":
+        if operation == "delete_plan":
             if not plan_name:
                 return {
                     "success": False,
@@ -177,22 +177,21 @@ async def manage_organization(
                 }
             return await library_organizer.delete_organization_plan(name=plan_name)
 
-        else:
-            available_ops = [
-                "organize_library",
-                "organize_files",
-                "clean_tags",
-                "save_plan",
-                "get_plans",
-                "get_plan",
-                "delete_plan",
-            ]
-            return {
-                "success": False,
-                "error": f"Unknown operation: {operation}",
-                "message": f"Available operations: {', '.join(available_ops)}",
-                "available_operations": available_ops,
-            }
+        available_ops = [
+            "organize_library",
+            "organize_files",
+            "clean_tags",
+            "save_plan",
+            "get_plans",
+            "get_plan",
+            "delete_plan",
+        ]
+        return {
+            "success": False,
+            "error": f"Unknown operation: {operation}",
+            "message": f"Available operations: {', '.join(available_ops)}",
+            "available_operations": available_ops,
+        }
 
     except Exception as e:
         logger.error(f"Organization operation '{operation}' failed: {e}", exc_info=True)

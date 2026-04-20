@@ -100,7 +100,10 @@ def _book_to_searchable_text(
         ext = _get_extended_metadata_text(book.id, library_path)
         if ext:
             return f"{base} {ext}".strip()
-    return basebook_id: int, library_path: str) -> str:
+    return base
+
+
+def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
     """Pull extended metadata fields from calibre_mcp_data.db and format
     them as natural-language phrases for semantic embedding.
 

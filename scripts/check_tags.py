@@ -12,13 +12,11 @@ cur = conn.cursor()
 # Count tags
 cur.execute("SELECT COUNT(*) FROM tags")
 tag_count = cur.fetchone()[0]
-print(f"Total tags in database: {tag_count}")
 
 # Get some sample tags
 cur.execute("SELECT id, name FROM tags LIMIT 20")
 tags = cur.fetchall()
-print("\nSample tags (first 20):")
-for tag_id, tag_name in tags:
-    print(f"  {tag_id}: {tag_name}")
+for _tag_id, _tag_name in tags:
+    pass
 
 conn.close()

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "schip-mcp-calibre"
-version = "1.5.0"
+version = "1.8.0"
 description = "SOTA April 2026 industrialized FastMCP 3.2.0 server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -102,10 +102,21 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+exclude = ["mcpb", "webapp/frontend", "node_modules", "dist", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "T20", "RET", "SIM", "ARG", "PTH", "TRY"]
-ignore = ["E501", "B008"]
+ignore = [
+    "E501",   # Line too long
+    "B008",   # Do not perform function call in argument defaults
+    "TRY003", # Avoid long messages outside exception classes (pedantic)
+    "TRY300", # Move statement to else block (pedantic)
+    "TRY301", # Abstract raise to inner function (pedantic)
+    "TRY401", # Verbose log message (pedantic)
+    "ARG001", # Unused function argument
+    "ARG002", # Unused method argument
+    "S101",   # Use of assert (allow in this project)
+]
 
 [tool.ruff.format]
 quote-style = "double"

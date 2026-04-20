@@ -28,7 +28,6 @@ def create_test_database():
     cursor.execute("PRAGMA foreign_keys = ON")
 
     # Create minimal schema (only tables we actually use)
-    print("Creating database schema...")
 
     # Books table
     cursor.execute("""
@@ -172,7 +171,6 @@ def create_test_database():
         CREATE INDEX idx_comments_book ON comments(book)
     """)
 
-    print("Inserting test data...")
 
     # Insert sample authors
     authors = [
@@ -349,18 +347,7 @@ def create_test_database():
     conn.commit()
     conn.close()
 
-    print(f"\n[OK] Test database created: {TEST_DB_PATH}")
-    print("  - 4 books")
-    print("  - 3 authors")
-    print("  - 5 tags")
-    print("  - 1 series")
-    print(f"  - Size: {TEST_DB_PATH.stat().st_size / 1024:.1f} KB")
 
-    print(f"\n[OK] Test library structure created: {TEST_LIBRARY_DIR}")
-    print(
-        "\n[NOTE] Run 'python scripts/create_test_files.py' to create actual book files (EPUB, PDF, CBZ)"
-    )
-    print("   The database is ready, but book files need to be created separately.")
 
 
 if __name__ == "__main__":

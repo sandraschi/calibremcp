@@ -74,7 +74,7 @@ async def manage_extended_metadata(
                 library_path=library_path,
             )
 
-        elif operation == "set_translator":
+        if operation == "set_translator":
             if not translator or not str(translator).strip():
                 return format_error_response(
                     error_msg="translator is required and cannot be empty.",
@@ -88,7 +88,7 @@ async def manage_extended_metadata(
                 library_path=library_path,
             )
 
-        elif operation == "set_first_published":
+        if operation == "set_first_published":
             if not first_published or not str(first_published).strip():
                 return format_error_response(
                     error_msg="first_published is required and cannot be empty.",
@@ -103,7 +103,7 @@ async def manage_extended_metadata(
                 library_path=library_path,
             )
 
-        elif operation == "upsert":
+        if operation == "upsert":
             if translator is None and first_published is None:
                 return format_error_response(
                     error_msg="At least one of translator or first_published is required for upsert.",
@@ -118,27 +118,26 @@ async def manage_extended_metadata(
                 library_path=library_path,
             )
 
-        elif operation == "delete":
+        if operation == "delete":
             return extended_metadata_service.delete(
                 book_id=int(book_id),
                 library_path=library_path,
             )
 
-        else:
-            return format_error_response(
-                error_msg=f"Invalid operation: '{operation}'. Use: get, set_translator, set_first_published, upsert, delete.",
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "get: Get translator and first_published",
-                    "set_translator: Set translator name",
-                    "set_first_published: Set original publication (e.g. 1599)",
-                    "upsert: Set both (partial OK)",
-                    "delete: Remove extended metadata",
-                ],
-                related_tools=["manage_extended_metadata", "query_books"],
-            )
+        return format_error_response(
+            error_msg=f"Invalid operation: '{operation}'. Use: get, set_translator, set_first_published, upsert, delete.",
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "get: Get translator and first_published",
+                "set_translator: Set translator name",
+                "set_first_published: Set original publication (e.g. 1599)",
+                "upsert: Set both (partial OK)",
+                "delete: Remove extended metadata",
+            ],
+            related_tools=["manage_extended_metadata", "query_books"],
+        )
 
     except Exception as e:
         return handle_tool_error(

@@ -218,7 +218,7 @@ async def find_duplicate_books() -> DuplicatesResponse:
             confidence_scores={"exact_match": 1.0},
         )
     except Exception as e:
-        logger.error(f"Duplicate check failed: {e}")
+        logger.exception(f"Duplicate check failed: {e}")
         return DuplicatesResponse(duplicate_groups=[], total_duplicates=0, confidence_scores={})
 
 
@@ -475,7 +475,7 @@ async def analyze_library_health() -> LibraryHealthResponse:
             database_integrity=True,
         )
     except Exception as e:
-        logger.error(f"Health check failed: {e}")
+        logger.exception(f"Health check failed: {e}")
         return LibraryHealthResponse(
             health_score=0.0,
             issues_found=[],
@@ -535,7 +535,7 @@ async def reading_statistics() -> ReadingStats:
                 reading_patterns={"total_collection_size": total_books},
             )
     except Exception as e:
-        logger.error(f"Reading stats failed: {e}")
+        logger.exception(f"Reading stats failed: {e}")
         return ReadingStats(
             total_books_read=0,
             average_rating=0.0,

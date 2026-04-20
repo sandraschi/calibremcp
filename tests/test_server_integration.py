@@ -38,10 +38,8 @@ class TestCalibreMCPServer:
 
         # Get all registered tools from the FastMCP instance
         tools = await mcp.get_tools()
-        print("\nRegistered tools in FastMCP instance:")
-        for tool_name in tools:
-            print(f"- {tool_name}")
-        print()  # Add a newline for better readability
+        for _tool_name in tools:
+            pass
 
         # Create a test client that calls MCP tools through the FastMCP instance
         async def call_method(method: str, params: dict = None) -> dict:

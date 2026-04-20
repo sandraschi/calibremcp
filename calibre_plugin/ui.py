@@ -11,9 +11,9 @@ except ImportError:
 from calibre.gui2.actions import InterfaceAction
 from calibre_plugins.calibre_mcp_integration.dialogs.bulk_enrich_dialog import BulkEnrichDialog
 from calibre_plugins.calibre_mcp_integration.dialogs.metadata_dialog import MetadataDialog
-from calibre_plugins.calibre_mcp_integration.dialogs.vl_query_dialog import VLQueryDialog
-from calibre_plugins.calibre_mcp_integration.dialogs.semantic_search_dialog import SemanticSearchDialog
 from calibre_plugins.calibre_mcp_integration.dialogs.research_dialog import ResearchDialog
+from calibre_plugins.calibre_mcp_integration.dialogs.semantic_search_dialog import SemanticSearchDialog
+from calibre_plugins.calibre_mcp_integration.dialogs.vl_query_dialog import VLQueryDialog
 
 
 class CalibreMCPIntegrationAction(InterfaceAction):

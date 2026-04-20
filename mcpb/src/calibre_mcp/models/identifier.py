@@ -54,14 +54,14 @@ class IdentifierBase(BaseModel):
         orm_mode = True
 
     @validator("type")
-    def validate_type(cls, v):
+    def validate_type(self, v):
         """Validate identifier type"""
         if not v or not v.strip():
             raise ValueError("Identifier type cannot be empty")
         return v.lower().strip()
 
     @validator("val")
-    def validate_val(cls, v):
+    def validate_val(self, v):
         """Validate identifier value"""
         if not v or not v.strip():
             raise ValueError("Identifier value cannot be empty")
@@ -80,7 +80,7 @@ class IdentifierUpdate(BaseModel):
     val: str | None = Field(None, description="The identifier value")
 
     @validator("val")
-    def validate_val(cls, v):
+    def validate_val(self, v):
         """Validate identifier value is not empty if provided"""
         if v is not None and not v.strip():
             raise ValueError("Identifier value cannot be empty")

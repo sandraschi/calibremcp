@@ -10,6 +10,7 @@ try:
     import magic
 except ImportError:
     magic = None  # Optional dependency
+import contextlib
 import hashlib
 from pathlib import Path
 
@@ -421,10 +422,8 @@ async def convert_book(
     except Exception as e:
         # Clean up the output file if it was created but is invalid
         if output_path.exists():
-            try:
+            with contextlib.suppress(OSError):
                 output_path.unlink()
-            except OSError:
-                pass
         raise FileProcessingError(f"Failed to convert {input_path} to {output_format.value}: {e}")
 
 

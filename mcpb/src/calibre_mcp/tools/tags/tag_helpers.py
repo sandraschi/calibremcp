@@ -35,7 +35,7 @@ async def list_tags_helper(
                 "message": "Database not initialized. Use manage_libraries(operation='switch') or ensure webapp backend has loaded a library at startup.",
             }
 
-        result = tag_service.get_all(
+        return tag_service.get_all(
             skip=offset,
             limit=limit,
             search=search,
@@ -46,7 +46,6 @@ async def list_tags_helper(
             max_book_count=max_book_count,
         )
 
-        return result
 
     except Exception as e:
         logger.error(f"Error listing tags: {e}", exc_info=True)
@@ -104,8 +103,7 @@ async def create_tag_helper(name: str) -> dict[str, Any]:
                 "message": "Please use manage_libraries(operation='switch') to configure a library first.",
             }
 
-        result = tag_service.create(TagCreate(name=name))
-        return result
+        return tag_service.create(TagCreate(name=name))
 
     except ValidationError as e:
         return {"error": str(e), "message": str(e)}
@@ -124,8 +122,7 @@ async def update_tag_helper(tag_id: int, name: str) -> dict[str, Any]:
                 "message": "Please use manage_libraries(operation='switch') to configure a library first.",
             }
 
-        result = tag_service.update(tag_id, TagUpdate(name=name))
-        return result
+        return tag_service.update(tag_id, TagUpdate(name=name))
 
     except NotFoundError as e:
         return {"error": str(e), "message": str(e)}
@@ -194,8 +191,7 @@ async def merge_tags_helper(source_tag_ids: list[int], target_tag_id: int) -> di
                 "message": "Please use manage_libraries(operation='switch') to configure a library first.",
             }
 
-        result = tag_service.merge_tags(source_tag_ids, target_tag_id)
-        return result
+        return tag_service.merge_tags(source_tag_ids, target_tag_id)
 
     except NotFoundError as e:
         return {"success": False, "error": str(e), "message": str(e)}
@@ -234,8 +230,7 @@ async def delete_unused_tags_helper() -> dict[str, Any]:
                 "message": "Please use manage_libraries(operation='switch') to configure a library first.",
             }
 
-        result = tag_service.delete_unused_tags()
-        return result
+        return tag_service.delete_unused_tags()
 
     except Exception as e:
         logger.error(f"Error deleting unused tags: {e}", exc_info=True)
@@ -252,8 +247,7 @@ async def get_tag_statistics_helper() -> dict[str, Any]:
                 "message": "Please use manage_libraries(operation='switch') to configure a library first.",
             }
 
-        result = tag_service.get_tag_statistics()
-        return result
+        return tag_service.get_tag_statistics()
 
     except Exception as e:
         logger.error(f"Error getting tag statistics: {e}", exc_info=True)

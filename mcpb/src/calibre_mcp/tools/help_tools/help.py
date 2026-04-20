@@ -443,7 +443,7 @@ async def _get_sampling_help(level: str) -> str:
             "**Example:**\n"
             "`agentic_library_workflow(workflow_prompt='Check for duplicate IT books und merge their metadata')`"
         )
-    elif level == "adv":
+    if level == "adv":
         return (
             "### Advanced Agentic Orchestration\n"
             "The `agentic_library_workflow` tool leverages SEP-1577 sampling to empower the AI to "
@@ -456,23 +456,23 @@ async def _get_sampling_help(level: str) -> str:
             "Agentic workflows may take longer as they involve multiple LLM calls. Progress "
             "notifications are provided through the context object."
         )
-    else:  # expert
-        return (
-            "### Expert Sampling & Orchestration Patterns\n"
-            "The agentic system uses the `ctx.sample()` API to perform recursive task decomposition.\n\n"
-            "**Technical Details:**\n"
-            "- **Sampling Engine:** USes the host LLM to generate tool sequences.\n"
-            "- **Safety Guard:** Built-in loop detection and iteration limits (default: 10).\n"
-            "- **State Management:** Maintains a scratchpad of previous tool results to inform next steps.\n\n"
-            "**Integration Example:**\n"
-            "```python\n"
-            "result = await ctx.sample(\n"
-            "    messages=[f'Workflow: {prompt}'],\n"
-            "    tools=available_tools,\n"
-            "    max_tokens=4096\n"
-            ")\n"
-            "```"
-        )
+    # expert
+    return (
+        "### Expert Sampling & Orchestration Patterns\n"
+        "The agentic system uses the `ctx.sample()` API to perform recursive task decomposition.\n\n"
+        "**Technical Details:**\n"
+        "- **Sampling Engine:** USes the host LLM to generate tool sequences.\n"
+        "- **Safety Guard:** Built-in loop detection and iteration limits (default: 10).\n"
+        "- **State Management:** Maintains a scratchpad of previous tool results to inform next steps.\n\n"
+        "**Integration Example:**\n"
+        "```python\n"
+        "result = await ctx.sample(\n"
+        "    messages=[f'Workflow: {prompt}'],\n"
+        "    tools=available_tools,\n"
+        "    max_tokens=4096\n"
+        ")\n"
+        "```"
+    )
 
 
 @mcp.tool()

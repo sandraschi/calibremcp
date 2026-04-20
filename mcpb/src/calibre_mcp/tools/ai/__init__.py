@@ -137,18 +137,17 @@ async def manage_ai_operations(
                 return await recommendation_engine.get_recommendations(
                     book_id=book_id, options=recommendation_options
                 )
-            elif user_preferences:
+            if user_preferences:
                 return await recommendation_engine.get_personalized_recommendations(
                     user_preferences=user_preferences, options=recommendation_options
                 )
-            else:
-                return {
-                    "success": False,
-                    "error": "Either book_id or user_preferences must be provided for recommendations",
-                    "message": "Please specify a book to base recommendations on, or provide user preferences.",
-                }
+            return {
+                "success": False,
+                "error": "Either book_id or user_preferences must be provided for recommendations",
+                "message": "Please specify a book to base recommendations on, or provide user preferences.",
+            }
 
-        elif operation == "train_model":
+        if operation == "train_model":
             if not training_books:
                 return {
                     "success": False,
@@ -157,7 +156,7 @@ async def manage_ai_operations(
                 }
             return await recommendation_engine.train_model(books=training_books)
 
-        elif operation == "analyze_content":
+        if operation == "analyze_content":
             if not book_content:
                 return {
                     "success": False,
@@ -168,7 +167,7 @@ async def manage_ai_operations(
                 book_content=book_content, options=content_analysis_options
             )
 
-        elif operation == "analyze_habits":
+        if operation == "analyze_habits":
             if not reading_history:
                 return {
                     "success": False,
@@ -179,10 +178,10 @@ async def manage_ai_operations(
                 reading_history=reading_history, options=habit_analysis_options
             )
 
-        elif operation == "check_llm_status":
+        if operation == "check_llm_status":
             return await check_llm_status()
 
-        elif operation == "summarize_book":
+        if operation == "summarize_book":
             if not all([text, title, author]):
                 return {
                     "success": False,
@@ -198,7 +197,7 @@ async def manage_ai_operations(
                 model=model,
             )
 
-        elif operation == "query_books":
+        if operation == "query_books":
             if not query or not book_contents:
                 return {
                     "success": False,
@@ -207,22 +206,21 @@ async def manage_ai_operations(
                 }
             return await llm_query_books(query=query, book_contents=book_contents)
 
-        else:
-            available_ops = [
-                "get_recommendations",
-                "train_model",
-                "analyze_content",
-                "analyze_habits",
-                "check_llm_status",
-                "summarize_book",
-                "query_books",
-            ]
-            return {
-                "success": False,
-                "error": f"Unknown operation: {operation}",
-                "message": f"Available operations: {', '.join(available_ops)}",
-                "available_operations": available_ops,
-            }
+        available_ops = [
+            "get_recommendations",
+            "train_model",
+            "analyze_content",
+            "analyze_habits",
+            "check_llm_status",
+            "summarize_book",
+            "query_books",
+        ]
+        return {
+            "success": False,
+            "error": f"Unknown operation: {operation}",
+            "message": f"Available operations: {', '.join(available_ops)}",
+            "available_operations": available_ops,
+        }
 
     except Exception as e:
         logger.error(f"AI operation '{operation}' failed: {e}", exc_info=True)

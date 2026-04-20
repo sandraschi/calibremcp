@@ -3,7 +3,7 @@ Base service class for all MCP services.
 """
 
 from collections.abc import Callable
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError
@@ -34,7 +34,7 @@ class NotFoundError(ServiceError):
         super().__init__(f"{resource} not found", status_code=404)
 
 
-class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, ResponseSchemaType]):
+class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: BaseModel, ResponseSchemaType: BaseModel]:
     """
     Base service class providing common CRUD operations and utilities.
 

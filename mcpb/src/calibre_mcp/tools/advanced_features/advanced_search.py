@@ -23,7 +23,7 @@ class SearchFilter(BaseModel):
     value: Any
 
     @validator("operator")
-    def validate_operator(cls, v):
+    def validate_operator(self, v):
         valid_operators = [
             "=",
             "!=",
@@ -58,7 +58,7 @@ class SearchQuery(BaseModel):
     highlight_tag: str = "em"  # HTML tag to use for highlighting
 
     @validator("filters", pre=True)
-    def convert_dicts_to_filters(cls, v):
+    def convert_dicts_to_filters(self, v):
         if v is None:
             return []
         return [f if isinstance(f, SearchFilter) else SearchFilter(**f) for f in v]
@@ -302,9 +302,7 @@ class AdvancedSearchTool(MCPTool):
                 field_value = book.get(filter_.field)
                 matches.append(self._evaluate_filter(field_value, filter_.operator, filter_.value))
 
-            if must_match_all and all(matches):
-                filtered.append(book)
-            elif not must_match_all and any(matches):
+            if must_match_all and all(matches) or not must_match_all and any(matches):
                 filtered.append(book)
 
         return filtered
@@ -314,17 +312,17 @@ class AdvancedSearchTool(MCPTool):
         try:
             if operator == "=":
                 return field_value == filter_value
-            elif operator == "!=":
+            if operator == "!=":
                 return field_value != filter_value
-            elif operator == ">":
+            if operator == ">":
                 return field_value > filter_value
-            elif operator == "<":
+            if operator == "<":
                 return field_value < filter_value
-            elif operator == ">=":
+            if operator == ">=":
                 return field_value >= filter_value
-            elif operator == "<=":
+            if operator == "<=":
                 return field_value <= filter_value
-            elif operator == "contains":
+            if operator == "contains":
                 if field_value is None:
                     return False
                 if isinstance(field_value, str):
@@ -332,7 +330,7 @@ class AdvancedSearchTool(MCPTool):
                 if isinstance(field_value, (list, set)):
                     return any(filter_value.lower() in str(v).lower() for v in field_value)
                 return False
-            elif operator == "not_contains":
+            if operator == "not_contains":
                 if field_value is None:
                     return True
                 if isinstance(field_value, str):
@@ -340,19 +338,19 @@ class AdvancedSearchTool(MCPTool):
                 if isinstance(field_value, (list, set)):
                     return all(filter_value.lower() not in str(v).lower() for v in field_value)
                 return True
-            elif operator == "starts_with":
+            if operator == "starts_with":
                 if not field_value:
                     return False
                 return str(field_value).lower().startswith(str(filter_value).lower())
-            elif operator == "ends_with":
+            if operator == "ends_with":
                 if not field_value:
                     return False
                 return str(field_value).lower().endswith(str(filter_value).lower())
-            elif operator == "regex":
+            if operator == "regex":
                 if not field_value:
                     return False
                 return bool(re.search(filter_value, str(field_value), re.IGNORECASE))
-            elif operator == "in":
+            if operator == "in":
                 if not field_value:
                     return False
                 if isinstance(filter_value, (list, set, tuple)):
@@ -360,7 +358,7 @@ class AdvancedSearchTool(MCPTool):
                         return any(f in filter_value for f in field_value)
                     return field_value in filter_value
                 return str(field_value) == str(filter_value)
-            elif operator == "not_in":
+            if operator == "not_in":
                 if not field_value:
                     return True
                 if isinstance(filter_value, (list, set, tuple)):
@@ -368,9 +366,9 @@ class AdvancedSearchTool(MCPTool):
                         return all(f not in filter_value for f in field_value)
                     return field_value not in filter_value
                 return str(field_value) != str(filter_value)
-            elif operator == "exists":
+            if operator == "exists":
                 return field_value is not None and field_value != ""
-            elif operator == "not_exists":
+            if operator == "not_exists":
                 return field_value is None or field_value == ""
 
             return False

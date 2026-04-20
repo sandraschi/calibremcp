@@ -219,7 +219,7 @@ class OCRTool(BaseTool):
             result["provider"] = "got-ocr"
             return result
 
-        elif provider == "finereader":
+        if provider == "finereader":
             # Original FineReader logic
             output_path = source_path.parent / f"{source_path.stem}_ocr.{output_format}"
             language = language or "english"
@@ -232,6 +232,5 @@ class OCRTool(BaseTool):
                 final_result = {"provider": "finereader", **result}
             return final_result
 
-        else:
-            # Defensive fallback (should be unreachable due to Literal validation above)
-            return self._error(error=f"Unsupported provider: {provider}")
+        # Defensive fallback (should be unreachable due to Literal validation above)
+        return self._error(error=f"Unsupported provider: {provider}")

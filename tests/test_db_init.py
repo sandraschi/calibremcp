@@ -12,11 +12,6 @@ from calibre_mcp.services.tag_service import tag_service
 library_path = r"L:\Multimedia Files\Written Word\Calibre-Bibliothek"
 db_path = library_path + r"\metadata.db"
 
-print(f"Initializing database: {db_path}")
 init_database(db_path)
 
-print("Getting tag statistics...")
 stats = tag_service.get_tag_statistics()
-print(f"Total tags: {stats['total_tags']}")
-print(f"Used tags: {stats['used_tags_count']}")
-print(f"Unused tags: {stats['unused_tags_count']}")

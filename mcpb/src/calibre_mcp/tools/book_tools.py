@@ -114,9 +114,7 @@ def _format_books_table(
                             break
                         except (ValueError, AttributeError):
                             continue
-                elif isinstance(pubdate, datetime):
-                    year = str(pubdate.year)
-                elif hasattr(pubdate, "year"):
+                elif isinstance(pubdate, datetime) or hasattr(pubdate, "year"):
                     year = str(pubdate.year)
             except (ValueError, AttributeError, TypeError):
                 year = "-"
@@ -266,7 +264,7 @@ class BookSearchInput(BaseModel):
     offset: int = Field(0, description="Number of results to skip for pagination", ge=0)
 
     @validator("fields", pre=True)
-    def parse_fields(cls, v):
+    def parse_fields(self, v):
         if isinstance(v, str):
             try:
                 # Try to parse as JSON array first
@@ -277,7 +275,7 @@ class BookSearchInput(BaseModel):
         return v
 
     @validator("formats", pre=True)
-    def parse_formats(cls, v):
+    def parse_formats(self, v):
         if isinstance(v, str):
             try:
                 # Try to parse as JSON array first
@@ -822,7 +820,7 @@ async def search_books_helper(
                         f"Initialized database with library: {target_library_name or target_library_path.name}"
                     )
                 except Exception as init_error:
-                    logger.error(f"Failed to initialize database: {init_error}")
+                    logger.exception(f"Failed to initialize database: {init_error}")
                     raise ValueError(f"Cannot initialize database: {init_error}")
             else:
                 raise ValueError("No valid database available")
@@ -1198,7 +1196,7 @@ async def search_books_helper(
                 },
             )
         except RuntimeError as db_check_error:
-            logger.error(
+            logger.exception(
                 "Database not ready for search",
                 extra={
                     "service": "book_tools",

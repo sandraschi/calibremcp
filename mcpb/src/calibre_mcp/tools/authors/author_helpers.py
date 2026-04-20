@@ -33,14 +33,13 @@ async def list_authors_helper(
     try:
         # Use search_authors method which handles async wrapper
         # The service method is sync, but we're calling it from async context
-        result = author_service.get_all(
+        return author_service.get_all(
             skip=offset,
             limit=limit,
             search=query,
             sort_by="name",
             sort_order="asc",
         )
-        return result
     except Exception as e:
         logger.error(f"Error listing authors: {e}", exc_info=True)
         return format_error_response(
@@ -62,8 +61,7 @@ async def get_author_helper(author_id: int) -> dict[str, Any]:
         Dictionary with author details
     """
     try:
-        author = author_service.get_by_id(author_id)
-        return author
+        return author_service.get_by_id(author_id)
     except Exception as e:
         logger.error(f"Error getting author {author_id}: {e}", exc_info=True)
         return format_error_response(
@@ -131,8 +129,7 @@ async def get_author_stats_helper() -> dict[str, Any]:
         Dictionary with author statistics
     """
     try:
-        stats = author_service.get_author_stats()
-        return stats
+        return author_service.get_author_stats()
     except Exception as e:
         logger.error(f"Error getting author statistics: {e}", exc_info=True)
         return format_error_response(

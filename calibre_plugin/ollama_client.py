@@ -7,7 +7,7 @@ Claude Desktop or any sampling-capable MCP client.
 
 import json
 import urllib.request
-from typing import Iterator
+from collections.abc import Iterator
 
 
 def _get_ollama_url() -> str:

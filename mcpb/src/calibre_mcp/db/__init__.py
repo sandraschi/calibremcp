@@ -91,7 +91,7 @@ class ConnectionManager:
             self._in_transaction = False
 
 
-class BaseRepository(Generic[T]):
+class BaseRepository[T]:
     """Base repository class for database operations."""
 
     def __init__(self, conn_manager: ConnectionManager):

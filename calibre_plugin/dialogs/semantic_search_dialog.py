@@ -5,13 +5,25 @@ Double-click or "Select in Library" jumps to the book in Calibre.
 
 try:
     from qt.core import (
-        QDialog, QHBoxLayout, QLabel, QLineEdit, QListWidget,
-        QListWidgetItem, QPushButton, QVBoxLayout,
+        QDialog,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QListWidget,
+        QListWidgetItem,
+        QPushButton,
+        QVBoxLayout,
     )
 except ImportError:
     from PyQt5.QtWidgets import (
-        QDialog, QHBoxLayout, QLabel, QLineEdit, QListWidget,
-        QListWidgetItem, QPushButton, QVBoxLayout,
+        QDialog,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QListWidget,
+        QListWidgetItem,
+        QPushButton,
+        QVBoxLayout,
     )
 
 from calibre_plugins.calibre_mcp_integration import mcp_client

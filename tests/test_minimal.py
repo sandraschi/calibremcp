@@ -15,52 +15,36 @@ sys.path.insert(0, str(src_path))
 def test_minimal():
     """Test minimal Calibre MCP functionality."""
 
-    print("🔧 MINIMAL CALIBRE MCP TEST")
-    print("=" * 30)
 
     try:
         # Test 1: Import server module
-        print("\n📦 TEST 1: Server Module Import")
         from calibre_mcp import server
 
-        print("✓ Server module imported")
 
         # Test 2: Check MCP instance
-        print("\n🔧 TEST 2: MCP Instance")
         mcp = server.mcp
         if mcp is None:
-            print("❌ MCP instance is None")
             return False
-        print(f"✓ MCP instance created: {type(mcp)}")
 
         # Test 3: Check MCP has tool decorator
-        print("\n🛠️  TEST 3: Tool Decorator")
         if not hasattr(mcp, "tool"):
-            print("❌ MCP missing tool decorator")
             return False
-        print("✓ MCP has tool decorator")
 
         # Test 4: Try to import one tool module
-        print("\n📚 TEST 4: Tool Import")
         try:
-            print("✓ Tool module imported")
-        except Exception as e:
-            print(f"❌ Tool import failed: {e}")
+            pass
+        except Exception:
             return False
 
         # Test 5: Check tool registration
-        print("\n📋 TEST 5: Tool Registration")
         try:
             from calibre_mcp.tools import register_tools
 
             register_tools(mcp)
-            print("✓ Tool registration completed")
-        except Exception as e:
-            print(f"❌ Tool registration failed: {e}")
+        except Exception:
             return False
 
         # Test 6: Check registered tools
-        print("\n📊 TEST 6: Tool Count")
         try:
             if hasattr(mcp, "list_tools"):
                 tools = mcp.list_tools()
@@ -70,26 +54,19 @@ def test_minimal():
             else:
                 tool_count = "unknown"
 
-            print(f"✓ Tools registered: {tool_count}")
 
             if tool_count == 0 or tool_count == "unknown":
-                print("⚠️  Warning: No tools detected")
+                pass
             else:
-                print("✅ Tools are registered!")
+                pass
 
-        except Exception as e:
-            print(f"❌ Tool count check failed: {e}")
+        except Exception:
             return False
 
-        print("\n" + "=" * 30)
-        print("🎉 MINIMAL TEST PASSED!")
-        print("Calibre MCP server should work.")
-        print("=" * 30)
 
         return True
 
-    except Exception as e:
-        print(f"\n💥 CRITICAL FAILURE: {e}")
+    except Exception:
         import traceback
 
         traceback.print_exc()

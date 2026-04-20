@@ -63,7 +63,7 @@ async def manage_publishers(
         if operation == "list":
             return await list_publishers_helper(query=query, limit=limit, offset=offset)
 
-        elif operation == "get":
+        if operation == "get":
             if publisher_id is None and not publisher_name:
                 return format_error_response(
                     error_msg="publisher_id or publisher_name is required for operation='get'.",
@@ -81,7 +81,7 @@ async def manage_publishers(
                 publisher_name=publisher_name,
             )
 
-        elif operation == "get_books":
+        if operation == "get_books":
             if publisher_id is None and not publisher_name:
                 return format_error_response(
                     error_msg="publisher_id or publisher_name is required for operation='get_books'.",
@@ -101,10 +101,10 @@ async def manage_publishers(
                 offset=offset,
             )
 
-        elif operation == "stats":
+        if operation == "stats":
             return await get_publisher_stats_helper()
 
-        elif operation == "by_letter":
+        if operation == "by_letter":
             if not letter:
                 return format_error_response(
                     error_msg="letter is required for operation='by_letter'.",
@@ -116,21 +116,20 @@ async def manage_publishers(
                 )
             return await get_publishers_by_letter_helper(letter=letter.strip())
 
-        else:
-            return format_error_response(
-                error_msg=f"Invalid operation: '{operation}'. Use: list, get, get_books, stats, by_letter.",
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "list: List publishers with optional search",
-                    "get: Get publisher by ID or name",
-                    "get_books: Get books from publisher",
-                    "stats: Publisher statistics",
-                    "by_letter: Publishers starting with letter",
-                ],
-                related_tools=["manage_publishers"],
-            )
+        return format_error_response(
+            error_msg=f"Invalid operation: '{operation}'. Use: list, get, get_books, stats, by_letter.",
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "list: List publishers with optional search",
+                "get: Get publisher by ID or name",
+                "get_books: Get books from publisher",
+                "stats: Publisher statistics",
+                "by_letter: Publishers starting with letter",
+            ],
+            related_tools=["manage_publishers"],
+        )
 
     except Exception as e:
         return handle_tool_error(

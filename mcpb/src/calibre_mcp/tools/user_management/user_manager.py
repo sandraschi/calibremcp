@@ -41,7 +41,7 @@ class UserCreate(BaseModel):
     is_active: bool = True
 
     @validator("password")
-    def validate_password(cls, v):
+    def validate_password(self, v):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         if not any(c.isupper() for c in v):
@@ -61,7 +61,7 @@ class UserUpdate(BaseModel):
     is_active: bool | None = None
 
     @validator("password")
-    def validate_password(cls, v):
+    def validate_password(self, v):
         if v is not None and len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         return v

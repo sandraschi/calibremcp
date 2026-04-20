@@ -59,33 +59,26 @@ def main():
     for path in possible_paths:
         if path.exists():
             db_path = path
-            print(f"Found database at: {db_path}")
             break
 
     if not db_path:
-        print("Could not find metadata.db. Please specify the path to your Calibre library.")
         return
 
     # Get schema information
     schema = get_db_schema(str(db_path))
 
     # Print basic information
-    print("\n=== Database Schema ===")
-    for table_name, table_info in schema.items():
-        print(f"\nTable: {table_name}")
-        print(f"Columns: {[col['name'] for col in table_info['columns']]}")
+    for _table_name, table_info in schema.items():
 
         if table_info["foreign_keys"]:
-            print("Foreign Keys:")
-            for fk in table_info["foreign_keys"]:
-                print(f"  {fk['from']} -> {fk['table']}.{fk['to']}")
+            for _fk in table_info["foreign_keys"]:
+                pass
 
     # Save full schema to file
     output_file = Path("calibre_schema.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(schema, f, indent=2)
 
-    print(f"\nFull schema saved to: {output_file.absolute()}")
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ into a single portmanteau tool with operation parameter.
 SOTA: ctx: Context, execution_time_ms, recommendations in responses.
 """
 
+import contextlib
 import time
 from typing import Any
 
@@ -236,17 +237,15 @@ async def manage_libraries(
     """
     start_ms = int(time.time() * 1000)
     if ctx:
-        try:
+        with contextlib.suppress(Exception):
             ctx.info(f"manage_libraries operation={operation}")
-        except Exception:
-            pass
     try:
         if operation == "list":
             r = await _handle_list_libraries()
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
-        elif operation == "switch":
+        if operation == "switch":
             if not library_name:
-                r = format_error_response(
+                return format_error_response(
                     error_msg=(
                         "library_name is required for operation='switch'. "
                         "Use operation='list' to see available libraries."
@@ -262,13 +261,12 @@ async def manage_libraries(
                     related_tools=["manage_libraries"],
                     execution_time_ms=int(time.time() * 1000) - start_ms,
                 )
-                return r
             r = await _handle_switch_library(library_name)
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
-        elif operation == "stats":
+        if operation == "stats":
             r = await _handle_get_library_stats(library_name)
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
-        elif operation == "search":
+        if operation == "search":
             if not query:
                 return format_error_response(
                     error_msg="query is required for operation='search'.",
@@ -285,32 +283,31 @@ async def manage_libraries(
                 )
             r = await _handle_cross_library_search(query, libraries)
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
-        elif operation == "test_connection":
+        if operation == "test_connection":
             r = await _handle_test_connection()
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
-        elif operation == "discover":
+        if operation == "discover":
             r = await _handle_discover(wizfile_allowed, calibre_cli_allowed, common_paths_allowed)
             return _add_dialogic_fields(r, int(time.time() * 1000) - start_ms, operation)
-        else:
-            return format_error_response(
-                error_msg=(
-                    f"Invalid operation: '{operation}'. "
-                    f"Must be one of: 'list', 'switch', 'stats', 'search', 'test_connection', 'discover'"
-                ),
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "Use operation='list' to see all available libraries",
-                    "Use operation='switch' to change the active library",
-                    "Use operation='stats' to get library statistics",
-                    "Use operation='search' to search across libraries",
-                    "Use operation='test_connection' for connection diagnostics",
-                    "Use operation='discover' to find libraries via filesystem/CLI",
-                ],
-                related_tools=["manage_libraries"],
-                execution_time_ms=int(time.time() * 1000) - start_ms,
-            )
+        return format_error_response(
+            error_msg=(
+                f"Invalid operation: '{operation}'. "
+                f"Must be one of: 'list', 'switch', 'stats', 'search', 'test_connection', 'discover'"
+            ),
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "Use operation='list' to see all available libraries",
+                "Use operation='switch' to change the active library",
+                "Use operation='stats' to get library statistics",
+                "Use operation='search' to search across libraries",
+                "Use operation='test_connection' for connection diagnostics",
+                "Use operation='discover' to find libraries via filesystem/CLI",
+            ],
+            related_tools=["manage_libraries"],
+            execution_time_ms=int(time.time() * 1000) - start_ms,
+        )
     except Exception as e:
         return handle_tool_error(
             exception=e,

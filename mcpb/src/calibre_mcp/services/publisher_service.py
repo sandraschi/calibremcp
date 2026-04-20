@@ -86,10 +86,7 @@ class PublisherService:
             query = query.filter(Publisher.name.ilike(f"%{search}%"))
         total = query.count()
         sort_field = getattr(Publisher, sort_by, Publisher.name)
-        if sort_order.lower() == "desc":
-            query = query.order_by(desc(sort_field))
-        else:
-            query = query.order_by(asc(sort_field))
+        query = query.order_by(desc(sort_field)) if sort_order.lower() == "desc" else query.order_by(asc(sort_field))
         publishers = query.offset(skip).limit(limit).all()
         items = []
         for p in publishers:

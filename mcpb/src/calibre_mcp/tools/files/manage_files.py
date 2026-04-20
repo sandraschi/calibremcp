@@ -217,8 +217,7 @@ async def manage_files(
                     related_tools=["manage_files"],
                 )
             try:
-                result = await file_operations.download_book_helper(book_id, format_preference)
-                return result
+                return await file_operations.download_book_helper(book_id, format_preference)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -246,12 +245,11 @@ async def manage_files(
                     related_tools=["manage_files"],
                 )
             try:
-                result = await file_operations.bulk_format_operations_helper(
+                return await file_operations.bulk_format_operations_helper(
                     operation_type=operation_type,
                     target_format=target_format,
                     book_ids=book_ids,
                 )
-                return result
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

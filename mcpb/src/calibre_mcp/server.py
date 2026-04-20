@@ -84,7 +84,7 @@ logger.info(f"Stdio mode detection: {_is_stdio_mode}")
 
 # Import typing and basic modules
 logger.info("Importing typing and basic modules...")
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any
 
@@ -619,13 +619,13 @@ async def main():
             logger.info("SUCCESS: Tool registration completed")
 
         except TimeoutError:
-            logger.error("CRITICAL: Tool registration timed out after 30 seconds")
-            logger.error("This usually indicates a hanging import in one of the tool modules")
-            logger.error("Check for circular imports or heavy initialization in tool modules")
+            logger.exception("CRITICAL: Tool registration timed out after 30 seconds")
+            logger.exception("This usually indicates a hanging import in one of the tool modules")
+            logger.exception("Check for circular imports or heavy initialization in tool modules")
             raise RuntimeError("Tool registration timed out - check for hanging imports")
         except Exception as tool_error:
             logger.error(f"ERROR: Tool registration failed: {tool_error}", exc_info=True)
-            logger.error(f"Tool registration error type: {type(tool_error).__name__}")
+            logger.exception(f"Tool registration error type: {type(tool_error).__name__}")
             raise
 
         # Verify tools were registered
@@ -639,7 +639,7 @@ async def main():
             if tool_count == 0:
                 logger.error("CRITICAL: No tools registered! Check tool imports.")
         except Exception as e:
-            logger.error(f"Could not verify tool count: {e}")
+            logger.exception(f"Could not verify tool count: {e}")
 
         # Restore stdout explicitly for JSON-RPC communication
         import calibre_mcp
@@ -652,10 +652,8 @@ async def main():
             if os.name == "nt":
                 import msvcrt
 
-                try:
+                with suppress(Exception):
                     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-                except Exception:
-                    pass
 
         # PHASE 6: Start FastMCP server
         logger.info("PHASE 6: Starting FastMCP server...")
@@ -671,32 +669,32 @@ async def main():
             await run_server_async(mcp, server_name="CalibreMCP Phase 2")
 
         except Exception as server_error:
-            logger.error("CRITICAL: FastMCP server startup failed")
-            logger.error(f"Server error type: {type(server_error).__name__}")
+            logger.exception("CRITICAL: FastMCP server startup failed")
+            logger.exception(f"Server error type: {type(server_error).__name__}")
             logger.error(f"Server error message: {server_error}", exc_info=True)
 
             # Log additional diagnostic information
             try:
-                logger.error(f"Python version: {sys.version}")
-                logger.error(f"Platform: {__import__('platform').platform()}")
+                logger.exception(f"Python version: {sys.version}")
+                logger.exception(f"Platform: {__import__('platform').platform()}")
 
                 # Check if MCP has tools registered
                 if hasattr(mcp, "_tools"):
                     tool_count = len(mcp._tools)
-                    logger.error(f"MCP tools registered: {tool_count}")
+                    logger.exception(f"MCP tools registered: {tool_count}")
                 else:
-                    logger.error("MCP _tools attribute not found")
+                    logger.exception("MCP _tools attribute not found")
 
             except Exception as diag_error:
-                logger.error(f"Diagnostic logging failed: {diag_error}")
+                logger.exception(f"Diagnostic logging failed: {diag_error}")
 
             raise
 
     except Exception as e:
         # PHASE 7: Global exception handling
         if logger:
-            logger.error("CRITICAL: Unhandled exception in main()")
-            logger.error(f"Exception type: {type(e).__name__}")
+            logger.exception("CRITICAL: Unhandled exception in main()")
+            logger.exception(f"Exception type: {type(e).__name__}")
             logger.error(f"Exception message: {e}", exc_info=True)
 
             # Try to log to file if logging system is available
@@ -704,7 +702,7 @@ async def main():
                 log_error(logger, "server_startup_error", e)
             except Exception:
                 # Last resort logging
-                logger.error(f"CRITICAL ERROR: {e}")
+                logger.exception(f"CRITICAL ERROR: {e}")
         else:
             # No logger available, print to stderr
             # Last resort logging - no logger available

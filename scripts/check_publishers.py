@@ -8,7 +8,6 @@ cur = conn.cursor()
 # Count publishers
 cur.execute("SELECT COUNT(*) FROM publishers")
 publisher_count = cur.fetchone()[0]
-print(f"Total unique publishers in database: {publisher_count}")
 
 # Get some sample publishers
 cur.execute("""
@@ -20,8 +19,7 @@ cur.execute("""
     LIMIT 20
 """)
 publishers = cur.fetchall()
-print("\nTop 20 publishers by book count:")
-for idx, (publisher, count) in enumerate(publishers, 1):
-    print(f"  {idx}. {publisher}: {count} books")
+for _idx, (_publisher, _count) in enumerate(publishers, 1):
+    pass
 
 conn.close()

@@ -78,7 +78,7 @@ async def manage_times(
                 offset=offset,
             )
 
-        elif operation == "published_in_range":
+        if operation == "published_in_range":
             if not published_after:
                 return format_error_response(
                     error_msg="published_after is required for published_in_range.",
@@ -95,34 +95,33 @@ async def manage_times(
                 offset=offset,
             )
 
-        elif operation == "recent_additions":
+        if operation == "recent_additions":
             return svc.recent_additions(limit=limit)
 
-        elif operation == "stats_by_month_added":
+        if operation == "stats_by_month_added":
             return svc.stats_by_month_added(year=year)
 
-        elif operation == "stats_by_month_published":
+        if operation == "stats_by_month_published":
             return svc.stats_by_month_published(year=year)
 
-        elif operation == "date_stats":
+        if operation == "date_stats":
             return svc.date_stats()
 
-        else:
-            return format_error_response(
-                error_msg=f"Invalid operation: '{operation}'. Use: added_in_range, published_in_range, recent_additions, stats_by_month_added, stats_by_month_published, date_stats.",
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "added_in_range: Books added between dates",
-                    "published_in_range: Books by pubdate range",
-                    "recent_additions: Recently added books",
-                    "stats_by_month_added: Count by month (added)",
-                    "stats_by_month_published: Count by month (pubdate)",
-                    "date_stats: Date range summary",
-                ],
-                related_tools=["manage_times", "query_books"],
-            )
+        return format_error_response(
+            error_msg=f"Invalid operation: '{operation}'. Use: added_in_range, published_in_range, recent_additions, stats_by_month_added, stats_by_month_published, date_stats.",
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "added_in_range: Books added between dates",
+                "published_in_range: Books by pubdate range",
+                "recent_additions: Recently added books",
+                "stats_by_month_added: Count by month (added)",
+                "stats_by_month_published: Count by month (pubdate)",
+                "date_stats: Date range summary",
+            ],
+            related_tools=["manage_times", "query_books"],
+        )
 
     except Exception as e:
         return handle_tool_error(

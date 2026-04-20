@@ -75,9 +75,8 @@ class FineReaderCLI:
         """
         # Check environment variable first
         env_path = os.getenv("FINEREADER_CLI_PATH")
-        if env_path:
-            if Path(env_path).exists():
-                return True
+        if env_path and Path(env_path).exists():
+            return True
 
         # Check if FineCmd is in PATH
         if shutil.which("FineCmd.exe") or shutil.which("FineCmd"):
@@ -119,8 +118,7 @@ class FineReaderCLI:
             if path.exists():
                 logger.info(f"Found FineReader CLI via FINEREADER_CLI_PATH: {path}")
                 return path
-            else:
-                logger.warning(f"FINEREADER_CLI_PATH set but path not found: {env_path}")
+            logger.warning(f"FINEREADER_CLI_PATH set but path not found: {env_path}")
 
         # Check if FineCmd is in PATH
         which_result = shutil.which("FineCmd.exe") or shutil.which("FineCmd")
@@ -365,7 +363,7 @@ class FineReaderCLI:
                     {"file": str(input_file), "success": True, "output": result, "error": None}
                 )
             except Exception as e:
-                logger.error(f"Failed to process {input_file.name}: {e}")
+                logger.exception(f"Failed to process {input_file.name}: {e}")
                 results.append(
                     {"file": str(input_file), "success": False, "output": None, "error": str(e)}
                 )
@@ -423,7 +421,7 @@ class FineReaderCLI:
             return detected or "english"
 
         except Exception as e:
-            logger.error(f"Error during language detection: {e}")
+            logger.exception(f"Error during language detection: {e}")
             return "english"
 
     def _parse_detected_language(self, output: str) -> str | None:
@@ -513,7 +511,7 @@ async def safe_ocr_process(
                 )
                 await asyncio.sleep(wait_time)
             else:
-                logger.error(f"OCR failed after {max_retries} attempts: {e}")
+                logger.exception(f"OCR failed after {max_retries} attempts: {e}")
                 return {
                     "success": False,
                     "error": "OCR processing failed after retries",

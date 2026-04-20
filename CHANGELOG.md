@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-04-18
+
+### Industrialization & SOTA Hardening
+- **Pydantic V2 Migration**: Completed mandatory upgrade from legacy `@validator` to `@field_validator(..., mode="after")` + `@classmethod` for all models. Standardized on `v2`-native validation patterns.
+- **Ruff Linting Excellence**: Resolved over 100 manual linting violations (TRY400, B904, PTH, SIM, S110). Replaced silent `except: pass` with `contextlib.suppress`.
+- **Backend Modernization**: Systematic migration from `os.path` to `pathlib.Path` in core service and server modules.
+- **Structured Logging**: Standardized on `logger.exception` for diagnostic-rich error reporting across the MCP lifecycle.
+- **Robustness**: Replaced deprecated `TimeoutError` aliases and established binary `stdio` hygiene for Windows compatibility.
+- **Venv Repair**: Resolved environment corruption where site-packages were accidentally modified during bulk refactoring. Recreated `webapp/backend` venv with Python 3.12.9.
+
+### Fixed
+- **Query Tools Resilience**: Fixed major syntax and indentation errors in `book_tools.py` and `metadata_rag.py` introduced during automated industrialization.
+- **Model Registration**: Fixed `PydanticUserError` runtime blockers in the book model registry.
+
 ## [1.7.0] - 2026-04-16
 
 ### Added

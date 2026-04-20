@@ -180,10 +180,10 @@ Provide a comprehensive answer with citations to specific books:"""
             return data.get("message", {}).get("content", "")
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"Ollama API error: {e.response.status_code}")
+            logger.exception(f"Ollama API error: {e.response.status_code}")
             raise
         except httpx.ConnectError:
-            logger.error("Cannot connect to Ollama. Is it running?")
+            logger.exception("Cannot connect to Ollama. Is it running?")
             raise RuntimeError(
                 "Cannot connect to Ollama at {self.config.base_url}. Start it with: ollama serve"
             )

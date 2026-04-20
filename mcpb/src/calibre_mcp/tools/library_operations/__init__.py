@@ -101,13 +101,13 @@ async def manage_library_operations(
                 library_path=library_path, update_metadata=update_metadata
             )
 
-        elif operation == "fix_series_metadata":
+        if operation == "fix_series_metadata":
             series_manager = SeriesManager()
             return await series_manager.fix_series_metadata(
                 library_path=library_path, dry_run=dry_run
             )
 
-        elif operation == "merge_series":
+        if operation == "merge_series":
             if not source_series or not target_series:
                 return {
                     "success": False,
@@ -122,7 +122,7 @@ async def manage_library_operations(
                 dry_run=dry_run,
             )
 
-        elif operation == "list_books":
+        if operation == "list_books":
             return await list_books(
                 query=query,
                 author=author,
@@ -136,14 +136,13 @@ async def manage_library_operations(
                 library_path=library_path,
             )
 
-        else:
-            available_ops = ["analyze_series", "fix_series_metadata", "merge_series", "list_books"]
-            return {
-                "success": False,
-                "error": f"Unknown operation: {operation}",
-                "message": f"Available operations: {', '.join(available_ops)}",
-                "available_operations": available_ops,
-            }
+        available_ops = ["analyze_series", "fix_series_metadata", "merge_series", "list_books"]
+        return {
+            "success": False,
+            "error": f"Unknown operation: {operation}",
+            "message": f"Available operations: {', '.join(available_ops)}",
+            "available_operations": available_ops,
+        }
 
     except Exception as e:
         logger.error(f"Library operation '{operation}' failed: {e}", exc_info=True)

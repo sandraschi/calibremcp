@@ -115,7 +115,7 @@ Build script (root): [`scripts/build-mcpb-package.ps1`](../scripts/build-mcpb-pa
 
 Hub: [`development/README.md`](development/README.md).
 
-Notable entries: `REMAINING_TOOL_MIGRATION.md`, `FASTMCP_213_COMPLIANCE.md`, `PORTMANTEAU_REFACTORING_SUMMARY.md`, `MCP_SYNC_DEBUGGING_GUIDE.md`, `PYTHON_DEPENDENCY_HELL_FIX.md`, and other phase/migration notes.
+Notable entries: `PYDANTIC_V2_MIGRATION.md`, `REMAINING_TOOL_MIGRATION.md`, `FASTMCP_213_COMPLIANCE.md`, `PORTMANTEAU_REFACTORING_SUMMARY.md`, `MCP_SYNC_DEBUGGING_GUIDE.md`, `PYTHON_DEPENDENCY_HELL_FIX.md`, and other phase/migration notes.
 
 ---
 

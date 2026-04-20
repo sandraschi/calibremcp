@@ -4,6 +4,7 @@ Import management portmanteau tool for CalibreMCP.
 Consolidates import operations: from local path, from URL, from Anna's Archive.
 """
 
+import contextlib
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -63,8 +64,7 @@ async def manage_import(
                     suggestions=["Provide query='author title' or similar"],
                     related_tools=["manage_import"],
                 )
-            result = await search_annas(query=query.strip(), max_results=max_results)
-            return result
+            return await search_annas(query=query.strip(), max_results=max_results)
 
         if operation == "from_url":
             if not url or not url.strip():
@@ -154,7 +154,7 @@ async def _download_and_add(
                 }
 
     except httpx.HTTPError as e:
-        logger.error(f"Download failed for {url}: {e}")
+        logger.exception(f"Download failed for {url}: {e}")
         return {
             "success": False,
             "error": f"Download failed: {str(e)}",
@@ -165,14 +165,11 @@ async def _download_and_add(
         tmp_path = tmp.name
 
     try:
-        result = await add_book_helper(
+        return await add_book_helper(
             file_path=tmp_path,
             fetch_metadata=True,
             library_path=library_path,
         )
-        return result
     finally:
-        try:
+        with contextlib.suppress(OSError):
             Path(tmp_path).unlink(missing_ok=True)
-        except OSError:
-            pass

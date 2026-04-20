@@ -8,6 +8,7 @@ This tool implements the security-aware library discovery mechanism that was
 originally attempted in Calibre++ but with proper permission controls.
 """
 
+import contextlib
 import os
 import subprocess
 import tempfile
@@ -135,15 +136,13 @@ class LibraryDiscoveryTool:
                 except (json.JSONDecodeError, KeyError, UnicodeDecodeError) as e:
                     self.logger.warning(f"Error parsing WizFile results: {e}")
                 finally:
-                    try:
+                    with contextlib.suppress(OSError):
                         os.unlink(temp_path)
-                    except OSError:
-                        pass
 
         except subprocess.TimeoutExpired:
             self.logger.warning("WizFile search timed out")
         except Exception as e:
-            self.logger.error(f"Error using WizFile: {e}")
+            self.logger.exception(f"Error using WizFile: {e}")
 
         return libraries
 

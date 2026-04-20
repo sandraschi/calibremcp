@@ -56,8 +56,7 @@ class RecommendationEngine(MCPTool):
             if texts:
                 self.book_vectors = self.vectorizer.fit_transform(texts)
                 return {"success": True, "books_processed": len(texts)}
-            else:
-                return {"success": False, "error": "No valid book data provided"}
+            return {"success": False, "error": "No valid book data provided"}
 
         except Exception as e:
             self.logger.error(f"Error training recommendation model: {str(e)}", exc_info=True)

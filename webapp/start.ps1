@@ -1,4 +1,14 @@
-﻿# Webapp Start - Standardized SOTA (Auto-Repaired V2.5)
+﻿Param([switch]$Headless)
+
+# --- SOTA Headless Standard ---
+if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
+    Start-Process pwsh -ArgumentList '-NoProfile', '-File', $PSCommandPath, '-Headless' -WindowStyle Hidden
+    exit
+}
+$WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
+# ------------------------------
+
+# Webapp Start - Standardized SOTA (Auto-Repaired V2.5)
 $WebPort = 10721
 $BackendPort = 10720
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -40,5 +50,6 @@ Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "
 
 Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
 npm run dev -- --port $WebPort
+
 
 

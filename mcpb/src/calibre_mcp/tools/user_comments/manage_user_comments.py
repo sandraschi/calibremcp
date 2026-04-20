@@ -71,7 +71,7 @@ async def manage_user_comments(
                 library_path=library_path,
             )
 
-        elif operation == "read":
+        if operation == "read":
             if book_id is None:
                 return format_error_response(
                     error_msg="book_id is required for read.",
@@ -85,7 +85,7 @@ async def manage_user_comments(
                 library_path=library_path,
             )
 
-        elif operation == "delete":
+        if operation == "delete":
             if book_id is None:
                 return format_error_response(
                     error_msg="book_id is required for delete.",
@@ -99,7 +99,7 @@ async def manage_user_comments(
                 library_path=library_path,
             )
 
-        elif operation == "append":
+        if operation == "append":
             if book_id is None:
                 return format_error_response(
                     error_msg="book_id is required for append.",
@@ -122,21 +122,20 @@ async def manage_user_comments(
                 library_path=library_path,
             )
 
-        else:
-            return format_error_response(
-                error_msg=f"Invalid operation: '{operation}'. Use: create, read, update, delete, append.",
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "create: Add or overwrite comment",
-                    "read: Get comment for book",
-                    "update: Same as create",
-                    "delete: Remove comment",
-                    "append: Add text to existing comment",
-                ],
-                related_tools=["manage_user_comments", "manage_comments"],
-            )
+        return format_error_response(
+            error_msg=f"Invalid operation: '{operation}'. Use: create, read, update, delete, append.",
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "create: Add or overwrite comment",
+                "read: Get comment for book",
+                "update: Same as create",
+                "delete: Remove comment",
+                "append: Add text to existing comment",
+            ],
+            related_tools=["manage_user_comments", "manage_comments"],
+        )
 
     except Exception as e:
         return handle_tool_error(

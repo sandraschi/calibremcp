@@ -195,10 +195,7 @@ def _should_prefer_semantic_search(raw: str, parsed: dict[str, Any]) -> bool:
     if parsed.get("author") and genre_hits >= 1 and word_count >= 6:
         return True
 
-    if word_count >= 10 and not parsed.get("author") and not parsed.get("series"):
-        return True
-
-    return False
+    return bool(word_count >= 10 and not parsed.get("author") and not parsed.get("series"))
 
 
 def parse_intelligent_query(query: str) -> dict[str, Any]:

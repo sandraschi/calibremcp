@@ -57,12 +57,11 @@ class DatabaseService:
         if self._engine is not None and not force:
             if self.is_initialized_with(db_url):
                 return
-            else:
-                logger.warning(
-                    "Database initialized with different path. Use force=True to switch.",
-                    extra={"service": "database", "action": "skip_reinit_different_path"},
-                )
-                return
+            logger.warning(
+                "Database initialized with different path. Use force=True to switch.",
+                extra={"service": "database", "action": "skip_reinit_different_path"},
+            )
+            return
 
         # If forcing, close existing connection
         if force and self._engine is not None:
@@ -83,7 +82,7 @@ class DatabaseService:
                     # Store original URL if it's not a file path
                     self._current_db_path = db_url
         except (OSError, ValueError, TypeError) as e:
-            logger.error(
+            logger.exception(
                 f"Failed to process database URL: {e}",
                 extra={
                     "service": "database",

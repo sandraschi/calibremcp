@@ -6,6 +6,7 @@ Vendored across fleet justfiles — keep self-contained (stdlib only).
 
 from __future__ import annotations
 
+import contextlib
 import importlib.metadata
 import os
 import re
@@ -104,9 +105,7 @@ def _git_branch(root: Path) -> str | None:
 def _should_skip_dir(name: str) -> bool:
     if name in SKIP_DIR_NAMES:
         return True
-    if name.endswith(".egg-info"):
-        return True
-    return False
+    return bool(name.endswith(".egg-info"))
 
 
 def _iter_files(root: Path, suffix: str) -> list[Path]:
@@ -175,10 +174,8 @@ def main() -> None:
             pass
 
     fastmcp_installed: str | None = None
-    try:
+    with contextlib.suppress(importlib.metadata.PackageNotFoundError):
         fastmcp_installed = importlib.metadata.version("fastmcp")
-    except importlib.metadata.PackageNotFoundError:
-        pass
 
     md_all = _iter_files(root, ".md")
     md_archived = sum(1 for p in md_all if "not-mcp-related" in p.relative_to(root).parts)

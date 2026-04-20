@@ -79,10 +79,9 @@ class _ChromaStore:
         n_results: int = 10,
         where: dict | None = None,
     ) -> dict:
-        res = self._collection.query(
+        return self._collection.query(
             query_embeddings=query_embeddings,
             n_results=n_results,
             where=where,
             include=["documents", "metadatas", "distances"],
         )
-        return res

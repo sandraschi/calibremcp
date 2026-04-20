@@ -12,9 +12,8 @@ async def main():
 
     # Get tools
     tools = await mcp.get_tools()
-    print(f"Total tools: {len(tools)}")
-    for i, name in enumerate(sorted(tools.keys()), 1):
-        print(f"  {i}. {name}")
+    for _i, _name in enumerate(sorted(tools.keys()), 1):
+        pass
 
 
 if __name__ == "__main__":

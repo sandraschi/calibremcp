@@ -11,8 +11,7 @@ async def test_tools():
 
     register_tools(mcp)
 
-    tools = get_available_tools()
-    print([t["name"] for t in tools])
+    get_available_tools()
 
 
 if __name__ == "__main__":

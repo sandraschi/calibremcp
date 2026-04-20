@@ -24,7 +24,6 @@ try:
     )
 except ImportError:
     from PyQt5.QtWidgets import (
-        QApplication,
         QDialog,
         QHBoxLayout,
         QLabel,
@@ -283,7 +282,7 @@ Omit sections where you have no meaningful content."""
     def _set_status(self, msg: str):
         """Update status label from any thread."""
         try:
-            from qt.core import QMetaObject, Qt, Q_ARG
+            from qt.core import Q_ARG, QMetaObject, Qt
             QMetaObject.invokeMethod(
                 self.status_label, "setText",
                 Qt.ConnectionType.QueuedConnection,
@@ -291,8 +290,7 @@ Omit sections where you have no meaningful content."""
             )
         except Exception:
             try:
-                from PyQt5.QtCore import QMetaObject, Qt
-                from PyQt5.QtCore import Q_ARG
+                from PyQt5.QtCore import Q_ARG, QMetaObject, Qt
                 QMetaObject.invokeMethod(
                     self.status_label, "setText",
                     Qt.QueuedConnection,
@@ -304,7 +302,7 @@ Omit sections where you have no meaningful content."""
     def _append(self, text: str):
         """Append text to the output area from any thread."""
         try:
-            from qt.core import QMetaObject, Qt, Q_ARG
+            from qt.core import Q_ARG, QMetaObject, Qt
             QMetaObject.invokeMethod(
                 self.text_area, "insertPlainText",
                 Qt.ConnectionType.QueuedConnection,
@@ -312,7 +310,7 @@ Omit sections where you have no meaningful content."""
             )
         except Exception:
             try:
-                from PyQt5.QtCore import QMetaObject, Qt, Q_ARG
+                from PyQt5.QtCore import Q_ARG, QMetaObject, Qt
                 QMetaObject.invokeMethod(
                     self.text_area, "insertPlainText",
                     Qt.QueuedConnection,

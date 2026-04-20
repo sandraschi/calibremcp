@@ -168,6 +168,17 @@ async def manage_xxx(
 
 ---
 
+### **5. Pydantic V2 Migration** ✅ NEW
+
+> 📄 **[PYDANTIC_V2_MIGRATION.md](PYDANTIC_V2_MIGRATION.md)**
+
+**Architectural upgrade to Pydantic V2 (SOTA 2026)**
+- 🔧 Migration patterns for field validators
+- 🔧 Model configuration updates
+- 🔧 Best practices for agentic model schema
+
+---
+
 ## 🔗 **Related Documentation**
 
 | Document | Description |

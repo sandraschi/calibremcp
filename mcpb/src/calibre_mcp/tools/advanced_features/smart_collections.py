@@ -27,7 +27,7 @@ class CollectionRule(BaseModel):
     value: Any
 
     @validator("operator")
-    def validate_operator(cls, v):
+    def validate_operator(self, v):
         valid_operators = [
             "==",
             "!=",
@@ -222,17 +222,17 @@ class SmartCollectionsTool(MCPTool):
         try:
             if operator == "==":
                 return field_value == rule_value
-            elif operator == "!=":
+            if operator == "!=":
                 return field_value != rule_value
-            elif operator == ">":
+            if operator == ">":
                 return field_value > rule_value
-            elif operator == "<":
+            if operator == "<":
                 return field_value < rule_value
-            elif operator == ">=":
+            if operator == ">=":
                 return field_value >= rule_value
-            elif operator == "<=":
+            if operator == "<=":
                 return field_value <= rule_value
-            elif operator == "contains":
+            if operator == "contains":
                 if field_value is None:
                     return False
                 if isinstance(field_value, str):
@@ -240,7 +240,7 @@ class SmartCollectionsTool(MCPTool):
                 if isinstance(field_value, (list, set)):
                     return rule_value in field_value
                 return False
-            elif operator == "not_contains":
+            if operator == "not_contains":
                 if field_value is None:
                     return True
                 if isinstance(field_value, str):
@@ -248,17 +248,17 @@ class SmartCollectionsTool(MCPTool):
                 if isinstance(field_value, (list, set)):
                     return rule_value not in field_value
                 return True
-            elif operator == "regex":
+            if operator == "regex":
                 if not field_value:
                     return False
                 return bool(re.search(rule_value, str(field_value), re.IGNORECASE))
-            elif operator == "in":
+            if operator == "in":
                 if not field_value:
                     return False
                 if isinstance(rule_value, (list, set, tuple)):
                     return field_value in rule_value
                 return str(field_value) == str(rule_value)
-            elif operator == "not_in":
+            if operator == "not_in":
                 if not field_value:
                     return True
                 if isinstance(rule_value, (list, set, tuple)):

@@ -106,7 +106,7 @@ def get_extended_metadata(book_id: int, library_path: str) -> dict[str, Any]:
         ).fetchone()
         if row:
             return {f: row[f] or "" for f in _EXT_FIELDS}
-        return {f: "" for f in _EXT_FIELDS}
+        return dict.fromkeys(_EXT_FIELDS, "")
     finally:
         conn.close()
 

@@ -46,7 +46,7 @@ class RatingBase(BaseModel):
         orm_mode = True
 
     @validator("rating")
-    def validate_rating(cls, v):
+    def validate_rating(self, v):
         """Validate that rating is between 0 and 5"""
         if v < 0 or v > 5:
             raise ValueError("Rating must be between 0 and 5")

@@ -2,6 +2,7 @@
 EPUB Viewer for CalibreMCP with full TOC and bookmark support.
 """
 
+import contextlib
 import hashlib
 import os
 import sqlite3
@@ -220,10 +221,8 @@ class EPubViewer:
             self._metadata.rights = rights.text.strip()
 
         if date := metadata.find("dc:date", dc_ns):
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 self._metadata.date = datetime.strptime(date.text.strip(), "%Y-%m-%d")
-            except (ValueError, TypeError):
-                pass
 
         # Cover image
         if meta_cover := metadata.find("meta", {"name": "cover"}):

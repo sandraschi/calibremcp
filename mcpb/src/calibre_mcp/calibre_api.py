@@ -117,12 +117,12 @@ class CalibreAPIClient:
                     "Authentication failed - check username/password. "
                     "Verify CALIBRE_USERNAME and CALIBRE_PASSWORD environment variables."
                 )
-            elif response.status_code == 404:
+            if response.status_code == 404:
                 raise CalibreAPIError(
                     f"Calibre server endpoint not found: {endpoint}. "
                     "Check server URL and ensure Calibre Content Server is running."
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 raise CalibreAPIError(
                     f"HTTP error {response.status_code}: {response.text}. "
                     f"Endpoint: {endpoint}, Method: {method}"
@@ -172,7 +172,7 @@ class CalibreAPIClient:
             init_data = await self._make_request("interface-data/init")
 
             # Extract relevant information
-            server_info = {
+            return {
                 "version": init_data.get("version", "Unknown"),
                 "library_name": init_data.get("library_map", {}).get("", "Default Library"),
                 "total_books": init_data.get("search_result", {}).get("total_num", 0),
@@ -186,7 +186,6 @@ class CalibreAPIClient:
                 ],
             }
 
-            return server_info
 
         except CalibreAPIError:
             raise  # Let specific API errors bubble up unchanged
@@ -225,9 +224,8 @@ class CalibreAPIClient:
                 return []
 
             # Get metadata for found books
-            metadata = await self._get_books_metadata(book_ids)
+            return await self._get_books_metadata(book_ids)
 
-            return metadata
 
         except Exception as e:
             raise CalibreAPIError(f"Library search failed: {str(e)}")
@@ -281,7 +279,7 @@ class CalibreAPIClient:
                 return {}
 
             # Extract and format book data
-            book_data = {
+            return {
                 "id": book_id,
                 "title": response.get("title", "Unknown"),
                 "authors": response.get("authors", []),
@@ -301,7 +299,6 @@ class CalibreAPIClient:
                 ),
             }
 
-            return book_data
 
         except Exception as e:
             raise CalibreAPIError(f"Failed to get book details: {str(e)}")
@@ -388,7 +385,7 @@ class CalibreAPIClient:
         """
         download_links = {}
 
-        for format_name in formats.keys():
+        for format_name in formats:
             download_url = f"{self.config.server_url}/get/{format_name.upper()}/{book_id}"
             download_links[format_name.upper()] = download_url
 

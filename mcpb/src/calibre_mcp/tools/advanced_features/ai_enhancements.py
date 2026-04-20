@@ -279,7 +279,7 @@ class AIEnhancementsTool(MCPTool):
                 )
 
             except Exception as e:
-                logger.error(
+                logger.exception(
                     "Failed to initialize AI client",
                     extra={
                         "service": "ai_enhancements",
@@ -366,7 +366,7 @@ class AIEnhancementsTool(MCPTool):
             return generated_metadata
 
         except httpx.RequestError as e:
-            logger.error(
+            logger.exception(
                 "Request to AI service failed",
                 extra={
                     "service": "ai_enhancements",
@@ -444,7 +444,7 @@ class AIEnhancementsTool(MCPTool):
             return {k: v for k, v in result.items() if k in fields}
 
         except (json.JSONDecodeError, IndexError, AttributeError) as e:
-            logger.error(
+            logger.exception(
                 "Failed to parse AI response",
                 extra={
                     "service": "ai_enhancements",
@@ -528,7 +528,7 @@ class AIEnhancementsTool(MCPTool):
             return embedding
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Failed to generate embedding",
                 extra={
                     "service": "ai_enhancements",

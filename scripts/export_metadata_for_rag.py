@@ -102,7 +102,6 @@ def main() -> None:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(books, f, indent=2, ensure_ascii=False)
 
-    print(f"Exported {len(books)} books to {out_path}")
 
 
 if __name__ == "__main__":

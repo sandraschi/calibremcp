@@ -236,7 +236,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 )
                 raise ValueError(f"sort_by must be one of {valid_sort_fields}")
         except ValueError as ve:
-            logger.error(
+            logger.exception(
                 "Input validation failed",
                 extra={"service": "book_service", "action": "validation_failed", "error": str(ve)},
             )
@@ -927,10 +927,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             }
 
             sort_field = sort_mapping.get(sort_by.lower(), Book.title)
-            if sort_order.lower() == "desc":
-                sort_field = sort_field.desc()
-            else:
-                sort_field = sort_field.asc()
+            sort_field = sort_field.desc() if sort_order.lower() == "desc" else sort_field.asc()
 
             # Special handling for author/series sorting to avoid duplicates
             if sort_by.lower() in ("author", "series"):
@@ -1137,10 +1134,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             NotFoundError: If the book is not found
             ValidationError: If the input data is invalid
         """
-        if isinstance(book_data, dict):
-            update_data = book_data
-        else:
-            update_data = book_data.dict(exclude_unset=True)
+        update_data = book_data if isinstance(book_data, dict) else book_data.dict(exclude_unset=True)
 
         with self._get_db_session() as session:
             # Get the existing book

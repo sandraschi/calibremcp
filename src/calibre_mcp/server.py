@@ -84,6 +84,7 @@ logger.info(f"Stdio mode detection: {_is_stdio_mode}")
 
 # Import typing and basic modules
 logger.info("Importing typing and basic modules...")
+import contextlib
 from contextlib import asynccontextmanager  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
@@ -204,18 +205,15 @@ async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
         try:
             import aiohttp
 
-            async with aiohttp.ClientSession() as session:
-                async with session.get(probe_url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                    if resp.status < 500:
-                        remote_ok = True
-                        startup_log.info(
-                            "STARTUP PROBE: remote server OK (HTTP %d)", resp.status
-                        )
-                    else:
-                        messages.append(
-                            f"CALIBRE_SERVER_URL '{server_url}' returned HTTP {resp.status}"
-                        )
-                        startup_log.warning("STARTUP PROBE: %s", messages[-1])
+            async with aiohttp.ClientSession() as session, session.get(
+                probe_url, timeout=aiohttp.ClientTimeout(total=5)
+            ) as resp:
+                if resp.status < 500:
+                    remote_ok = True
+                    startup_log.info("STARTUP PROBE: remote server OK (HTTP %d)", resp.status)
+                else:
+                    messages.append(f"CALIBRE_SERVER_URL '{server_url}' returned HTTP {resp.status}")
+                    startup_log.warning("STARTUP PROBE: %s", messages[-1])
         except asyncio.TimeoutError:
             messages.append(
                 f"CALIBRE_SERVER_URL '{server_url}' timed out after 5s — "
@@ -651,7 +649,7 @@ async def main():
             logger.info("SUCCESS: User data database initialized")
 
         except Exception as import_error:
-            logger.error(f"CRITICAL: Module import failed: {import_error}", exc_info=True)
+            logger.exception(f"CRITICAL: Module import failed: {import_error}")
             raise RuntimeError(
                 f"Failed to import required modules: {import_error}"
             ) from import_error
@@ -673,10 +671,10 @@ async def main():
             )
             logger.info("SUCCESS: Logging setup completed")
 
-        except TimeoutError:
+        except asyncio.TimeoutError:
             logger.warning("WARNING: Logging setup timed out, continuing with basic logging")
         except Exception as log_error:
-            logger.error(f"ERROR: Logging setup failed: {log_error}", exc_info=True)
+            logger.exception(f"ERROR: Logging setup failed: {log_error}")
             # Continue with basic logging
 
         # Get proper logger after setup
@@ -697,7 +695,7 @@ async def main():
             )
             logger.info("SUCCESS: Startup logging completed")
         except Exception as log_op_error:
-            logger.error(f"Startup logging failed: {log_op_error}", exc_info=True)
+            logger.exception(f"Startup logging failed: {log_op_error}")
 
         # PHASE 4: Verify MCP instance
         logger.info("PHASE 4: Verifying MCP instance...")
@@ -709,7 +707,7 @@ async def main():
             logger.info(f"SUCCESS: MCP instance verified: {type(mcp).__name__} (id: {id(mcp)})")
 
         except Exception as mcp_error:
-            logger.error(f"ERROR: MCP instance verification failed: {mcp_error}", exc_info=True)
+            logger.exception(f"ERROR: MCP instance verification failed: {mcp_error}")
             raise
 
         # PHASE 5: Register tools with comprehensive error handling
@@ -729,13 +727,13 @@ async def main():
             await asyncio.wait_for(register_tools_with_timeout(), timeout=30.0)
             logger.info("SUCCESS: Tool registration completed")
 
-        except TimeoutError:
+        except asyncio.TimeoutError:
             logger.error("CRITICAL: Tool registration timed out after 30 seconds")
             logger.error("This usually indicates a hanging import in one of the tool modules")
             logger.error("Check for circular imports or heavy initialization in tool modules")
             raise RuntimeError("Tool registration timed out - check for hanging imports")
         except Exception as tool_error:
-            logger.error(f"ERROR: Tool registration failed: {tool_error}", exc_info=True)
+            logger.exception(f"ERROR: Tool registration failed: {tool_error}")
             logger.error(f"Tool registration error type: {type(tool_error).__name__}")
             raise
 
@@ -763,10 +761,8 @@ async def main():
             if os.name == "nt":
                 import msvcrt
 
-                try:
+                with contextlib.suppress(Exception):
                     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-                except Exception:
-                    pass
 
         # PHASE 6: Start FastMCP server
         logger.info("PHASE 6: Starting FastMCP server...")
@@ -782,9 +778,9 @@ async def main():
             await run_server_async(mcp, server_name="CalibreMCP Phase 2")
 
         except Exception as server_error:
-            logger.error("CRITICAL: FastMCP server startup failed")
+            logger.exception("CRITICAL: FastMCP server startup failed")
             logger.error(f"Server error type: {type(server_error).__name__}")
-            logger.error(f"Server error message: {server_error}", exc_info=True)
+            # server_error is already logged by logger.exception
 
             # Log additional diagnostic information
             try:
