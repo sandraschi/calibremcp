@@ -5,7 +5,7 @@ SQLAlchemy and Pydantic models for Book in Calibre MCP.
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -143,8 +143,9 @@ class BookResponse(BookBase):
     cover_url: str | None = Field(None, description="URL to the book cover image")
     comments: str | None = Field(None, description="Book comments/description")
 
-    @validator("formats", pre=True)
-    def format_data_to_formats(cls, v, values):
+    @field_validator("formats", mode="before")
+    @classmethod
+    def format_data_to_formats(cls, v):
         """Convert Data objects to format dictionaries"""
         if v is None:
             return []
@@ -152,7 +153,8 @@ class BookResponse(BookBase):
             return [{"format": d.format, "size": d.uncompressed_size} for d in v]
         return v
 
-    @validator("authors", "tags", pre=True)
+    @field_validator("authors", "tags", mode="before")
+    @classmethod
     def convert_relationships(cls, v):
         """Convert relationship objects to dictionaries"""
         if v is None:
@@ -161,7 +163,8 @@ class BookResponse(BookBase):
             return [item.to_dict() for item in v]
         return v
 
-    @validator("series", pre=True)
+    @field_validator("series", mode="before")
+    @classmethod
     def convert_series(cls, v):
         """Convert series relationship to dictionary"""
         if v is None:
@@ -170,13 +173,12 @@ class BookResponse(BookBase):
             return v.to_dict()
         return v
 
-    @validator("rating", pre=True)
-    def get_rating_value(cls, v, values):
+    @field_validator("rating", mode="before")
+    @classmethod
+    def get_rating_value(cls, v):
         """Extract rating value from ratings relationship"""
         if v is not None:
             return v
-        if "ratings" in values and values["ratings"]:
-            return values["ratings"][0].rating if hasattr(values["ratings"][0], "rating") else None
         return None
 
     class Config(BookBase.Config):

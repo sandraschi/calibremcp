@@ -648,10 +648,9 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
 
             if similar:
                 return f"Tool '{tool_name}' not found. Did you mean: {', '.join(similar[:5])}?"
-            else:
-                return (
-                    f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
-                )
+            return (
+                f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
+            )
 
         # Build help content
         content = []
@@ -1092,11 +1091,10 @@ async def maintenance(operation: str = "vacuum") -> str:
         if operation == "vacuum":
             db.execute_raw("VACUUM")
             return "Database vacuumed successfully."
-        elif operation == "integrity_check":
+        if operation == "integrity_check":
             result = db.execute_raw("PRAGMA integrity_check")
             return f"Integrity check result: {result}"
-        else:
-            return f"Unknown maintenance operation: {operation}"
+        return f"Unknown maintenance operation: {operation}"
     except Exception as e:
         return f"Maintenance failed: {str(e)}"
 

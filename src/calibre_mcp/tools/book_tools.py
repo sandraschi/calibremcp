@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from calibre_mcp.logging_config import get_logger
 from calibre_mcp.services.book_service import BookSearchResult, book_service
@@ -114,9 +114,7 @@ def _format_books_table(
                             break
                         except (ValueError, AttributeError):
                             continue
-                elif isinstance(pubdate, datetime):
-                    year = str(pubdate.year)
-                elif hasattr(pubdate, "year"):
+                elif isinstance(pubdate, datetime) or hasattr(pubdate, "year"):
                     year = str(pubdate.year)
             except (ValueError, AttributeError, TypeError):
                 year = "-"
@@ -265,7 +263,8 @@ class BookSearchInput(BaseModel):
     limit: int = Field(50, description="Maximum number of results to return", ge=1, le=1000)
     offset: int = Field(0, description="Number of results to skip for pagination", ge=0)
 
-    @validator("fields", pre=True)
+    @field_validator("fields", mode="before")
+    @classmethod
     def parse_fields(cls, v):
         if isinstance(v, str):
             try:
@@ -276,7 +275,8 @@ class BookSearchInput(BaseModel):
                 return [field.strip() for field in v.split(",") if field.strip()]
         return v
 
-    @validator("formats", pre=True)
+    @field_validator("formats", mode="before")
+    @classmethod
     def parse_formats(cls, v):
         if isinstance(v, str):
             try:
@@ -822,7 +822,7 @@ async def search_books_helper(
                         f"Initialized database with library: {target_library_name or target_library_path.name}"
                     )
                 except Exception as init_error:
-                    logger.error(f"Failed to initialize database: {init_error}")
+                    logger.exception(f"Failed to initialize database: {init_error}")
                     raise ValueError(f"Cannot initialize database: {init_error}")
             else:
                 raise ValueError("No valid database available")
@@ -1198,7 +1198,7 @@ async def search_books_helper(
                 },
             )
         except RuntimeError as db_check_error:
-            logger.error(
+            logger.exception(
                 "Database not ready for search",
                 extra={
                     "service": "book_tools",

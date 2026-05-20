@@ -306,7 +306,7 @@ async def manage_smart_collections(
                 )
             return await _handle_create(collection_data)
 
-        elif operation == "create_series":
+        if operation == "create_series":
             if not name or not series_name:
                 return format_error_response(
                     error_msg="name and series_name are required for operation='create_series'.",
@@ -639,10 +639,9 @@ async def _handle_query(
         # Use legacy tool's query logic for now
         # TODO: Migrate to use book_service directly
         legacy_tool = SmartCollectionsTool()
-        result = await legacy_tool.collection_query(
+        return await legacy_tool.collection_query(
             collection_id=collection_id, library_path=library_path, limit=limit, offset=offset
         )
-        return result
     except Exception as e:
         return handle_tool_error(
             exception=e,

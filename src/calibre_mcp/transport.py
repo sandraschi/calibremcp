@@ -25,8 +25,6 @@ import logging
 import os
 from typing import Literal
 
-from fastapi.responses import StreamingResponse
-
 logger = logging.getLogger(__name__)
 
 TransportType = Literal["stdio", "http", "sse"]
@@ -46,10 +44,10 @@ def get_transport_config() -> dict:
         Dictionary with transport, host, port, and path settings.
     """
     return {
-        "transport": os.getenv(ENV_TRANSPORT, "stdio").lower(),
-        "host": os.getenv(ENV_HOST, "127.0.0.1"),
-        "port": int(os.getenv(ENV_PORT, "10720")),
-        "path": os.getenv(ENV_PATH, "/mcp"),
+        "transport": os.getenv(ENV_TRANSPORT, "stdio").lower().strip(),
+        "host": os.getenv(ENV_HOST, "127.0.0.1").strip(),
+        "port": int(os.getenv(ENV_PORT, "10720").strip()),
+        "path": os.getenv(ENV_PATH, "/mcp").strip(),
     }
 
 
@@ -127,25 +125,24 @@ def resolve_transport(args: argparse.Namespace) -> TransportType:
     """
     if args.http:
         return "http"
-    elif args.sse:
+    if args.sse:
         logger.warning(
             "SSE transport is deprecated. Consider using --http instead. "
             "SSE support will be removed in a future version."
         )
         return "sse"
-    elif args.stdio:
+    if args.stdio:
         return "stdio"
-    else:
-        # Fall back to environment variable
-        env_transport = os.getenv(ENV_TRANSPORT, "stdio").lower()
-        if env_transport not in ("stdio", "http", "sse"):
-            logger.warning(f"Invalid {ENV_TRANSPORT}='{env_transport}', defaulting to stdio")
-            return "stdio"
-        if env_transport == "sse":
-            logger.warning(
-                "SSE transport is deprecated. Consider using MCP_TRANSPORT=http instead."
-            )
-        return env_transport  # type: ignore
+    # Fall back to environment variable
+    env_transport = os.getenv(ENV_TRANSPORT, "stdio").lower().strip()
+    if env_transport not in ("stdio", "http", "sse"):
+        logger.warning(f"Invalid {ENV_TRANSPORT}='{env_transport}', defaulting to stdio")
+        return "stdio"
+    if env_transport == "sse":
+        logger.warning(
+            "SSE transport is deprecated. Consider using MCP_TRANSPORT=http instead."
+        )
+    return env_transport  # type: ignore
 
 
 def resolve_config(args: argparse.Namespace) -> dict:
@@ -228,11 +225,9 @@ async def run_server_async(
             path = config["path"]
             endpoint = f"http://{host}:{port}{path}"
 
-            import subprocess
 
             from pydantic import BaseModel
 
-            from calibre_mcp.llm_http import DEFAULT_SYSTEM, chat_complete
 
             class LaunchRequest(BaseModel):
                 repo_path: str
@@ -264,6 +259,22 @@ async def run_server_async(
             # These endpoints would be integrated into the main HTTP app if needed
 
             logger.info(f"Running in HTTP Streamable mode: {endpoint}")
+
+            # Inject CORS and Health for Antigravity discovery
+            app = mcp_app.http_app()
+            from fastapi.middleware.cors import CORSMiddleware
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+
+            @app.get("/health")
+            async def health():
+                return {"status": "ok", "server": server_name}
+
             await mcp_app.run_http_async(host=host, port=port, path=path)
 
         elif transport == "sse":
@@ -271,7 +282,7 @@ async def run_server_async(
             port = config["port"]
             logger.warning("SSE mode is deprecated. Migrate to HTTP Streamable (--http).")
             logger.info(f"Running in SSE mode: http://{host}:{port}")
-            await mcp_app.run_sse_async(host=host, port=port)
+            await mcp_app.run_async(transport="sse", host=host, port=port)
 
     except asyncio.CancelledError:
         logger.info(f"{server_name} task cancelled")

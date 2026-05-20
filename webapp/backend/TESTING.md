@@ -21,7 +21,7 @@ cd webapp/backend
 python test_endpoints_http.py
 ```
 
-**Note:** Requires backend server running on `http://localhost:13000`
+**Note:** Requires backend server running on `http://localhost:10720` (reservoir port; Docker still exposes backend on host **10720**)
 
 ## Endpoints to Test
 

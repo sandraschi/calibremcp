@@ -77,10 +77,7 @@ class BaseTool:
                     import re
 
                     match = re.search(r"'([^']+)'", ann_str)
-                    if match:
-                        ann_str = match.group(1)
-                    else:
-                        ann_str = "Any"
+                    ann_str = match.group(1) if match else "Any"
                 param_str += f": {ann_str}"
             if param.default != inspect.Parameter.empty:
                 param_str += f" = {repr(param.default)}"

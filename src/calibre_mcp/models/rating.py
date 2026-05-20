@@ -4,7 +4,7 @@ SQLAlchemy and Pydantic models for Ratings in Calibre MCP.
 
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import Float, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -45,7 +45,8 @@ class RatingBase(BaseModel):
     class Config:
         orm_mode = True
 
-    @validator("rating")
+    @field_validator("rating")
+    @classmethod
     def validate_rating(cls, v):
         """Validate that rating is between 0 and 5"""
         if v < 0 or v > 5:

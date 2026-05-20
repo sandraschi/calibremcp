@@ -11,9 +11,8 @@ import os
 from typing import Any
 
 from fastmcp import Context
-from fastmcp.tools import ToolResult
 from prefab_ui.app import PrefabApp
-from prefab_ui.components import Card, CardContent, CardHeader, CardTitle, Image, Text
+from prefab_ui.components import Badge, Card, CardContent, CardHeader, CardTitle, Image, Separator, Text
 
 from calibre_mcp.logging_config import get_logger
 from calibre_mcp.server import mcp
@@ -23,15 +22,6 @@ from calibre_mcp.services.book_service import book_service
 logger = get_logger("calibremcp.tools.prefab.book_card")
 
 _MAX_COVER_BYTES = 512_000
-
-
-def show_book_prefab_card(book_id: int, ctx: Context | None = None) -> Any:
-    """Placeholder until ``register_book_card_tool`` replaces this with the real MCP App tool."""
-    return {
-        "success": False,
-        "error": "prefab_unavailable",
-        "message": "Prefab book card is not active (CALIBRE_PREFAB_APPS=0).",
-    }
 
 
 def _cover_data_uri(book_id: int) -> str | None:
@@ -70,23 +60,21 @@ def _format_series(data: dict[str, Any]) -> str:
     return str(series)
 
 
-def _format_tags(data: dict[str, Any]) -> str:
+def _format_tags(data: dict[str, Any]) -> list[str]:
     tags = data.get("tags") or []
     if not tags:
-        return ""
+        return []
     if isinstance(tags[0], dict):
-        return ", ".join(str(t.get("name", "")) for t in tags if t.get("name"))
-    return ", ".join(str(t) for t in tags)
+        return [str(t.get("name", "")) for t in tags if t.get("name")]
+    return [str(t) for t in tags]
 
 
 def _comments_plain_text(raw: str, max_chars: int = 1200) -> str:
-    """Calibre stores rich comments as HTML; Prefab ``Text`` is plain — strip tags and normalize."""
     if not raw or not str(raw).strip():
         return ""
     s = str(raw).strip()
     if "<" in s and ">" in s:
         from bs4 import BeautifulSoup
-
         s = BeautifulSoup(s, "html.parser").get_text(separator="\n", strip=True)
     lines: list[str] = []
     for line in s.splitlines():
@@ -106,7 +94,7 @@ def register_book_card_tool() -> None:
         return
 
     @mcp.tool(app=True)
-    def show_book_prefab_card(book_id: int, ctx: Context | None = None) -> Any:
+    def show_book_prefab_card(book_id: int, ctx: Context | None = None) -> PrefabApp:
         """
         Show a rich book card (MCP App) with title, authors, series, tags, comment excerpt, and cover.
 
@@ -117,7 +105,7 @@ def register_book_card_tool() -> None:
             book_id: Calibre book id (from ``query_books`` or the library).
 
         Returns:
-            ToolResult with Prefab UI plus a short text summary for the model.
+            PrefabApp card with book details.
         """
         try:
             data = book_service.get_by_id(int(book_id))
@@ -127,61 +115,51 @@ def register_book_card_tool() -> None:
                     CardTitle("Book not found")
                 with CardContent():
                     Text(f"No book with id {book_id}.")
-            return ToolResult(
-                content=f"Book id {book_id} not found.",
-                structured_content=PrefabApp(view=view, title="Not found"),
-            )
+            return PrefabApp(view=view, title="Not found")
         except Exception as e:
             logger.exception("show_book_prefab_card failed")
-            return {
-                "success": False,
-                "error": str(e),
-                "message": f"Could not load book {book_id}.",
-            }
+            with Card(css_class="max-w-md") as view:
+                with CardHeader():
+                    CardTitle("Error")
+                with CardContent():
+                    Text(f"Could not load book {book_id}: {e}")
+            return PrefabApp(view=view, title="Error")
 
         title = (data.get("title") or "Untitled").strip()
         auth_s = _format_authors(data)
         series_s = _format_series(data)
-        tag_s = _format_tags(data)
+        tags = _format_tags(data)
         synopsis = _comments_plain_text(str(data.get("comments") or ""))
-
         cover_uri = _cover_data_uri(int(book_id))
 
         with Card(css_class="max-w-lg") as view:
             with CardHeader():
                 CardTitle(title)
+                if auth_s:
+                    Text(auth_s, css_class="text-sm text-muted-foreground")
             with CardContent():
                 if cover_uri:
                     Image(
                         src=cover_uri,
                         alt=f"Cover: {title}",
                         width="200px",
-                        css_class="rounded shadow object-contain",
+                        css_class="rounded shadow object-contain mb-3",
                     )
-                # One Text per line — Prefab/HTML collapses \n inside a single Text node.
-                Text(f"Authors: {auth_s or '—'}")
                 if series_s:
-                    Text(f"Series: {series_s}")
-                if tag_s:
-                    Text(f"Tags: {tag_s}")
+                    Text(f"Series: {series_s}", css_class="text-sm mb-1")
+                if tags:
+                    for tag in tags[:8]:
+                        Badge(tag, variant="secondary")
                 if synopsis:
-                    Text("Synopsis", css_class="text-sm font-semibold opacity-90 mt-2")
+                    Separator(spacing=3)
+                    Text("Synopsis", css_class="text-sm font-semibold mt-2 mb-1")
                     for para in synopsis.split("\n"):
                         p = para.strip()
                         if p:
                             Text(p, css_class="text-sm leading-relaxed")
 
-        summary_parts = [f"Book card: {title}", auth_s or "—"]
-        if series_s:
-            summary_parts.append(f"series: {series_s}")
-        summary = " — ".join(summary_parts)
-
-        return ToolResult(
-            content=summary,
-            structured_content=PrefabApp(view=view, title=title),
-        )
+        return PrefabApp(view=view, title=title)
 
     import sys
-
     sys.modules[__name__].show_book_prefab_card = show_book_prefab_card
     logger.info("Registered show_book_prefab_card (MCP App / Prefab)")

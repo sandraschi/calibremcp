@@ -42,15 +42,17 @@ class ConnectionManager:
                 str(self.db_path),
                 isolation_level=None,  # Use autocommit mode
                 detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+                timeout=10,  # 10s busy wait for cross-process WAL contention
             )
             self.conn.row_factory = sqlite3.Row
 
             # Enable foreign key support
             self.conn.execute("PRAGMA foreign_keys = ON")
 
-            # Optimize for read-heavy workload
+            # WAL + busy_timeout for cross-process safety (stdio + SSE both open this file)
             self.conn.execute("PRAGMA journal_mode = WAL")
-            self.conn.execute("PRAGMA cache_size = -2000")  # 2MB cache
+            self.conn.execute("PRAGMA busy_timeout = 10000")
+            self.conn.execute("PRAGMA cache_size = -2000")
 
             logger.info(f"Connected to database: {self.db_path}")
 
@@ -91,7 +93,7 @@ class ConnectionManager:
             self._in_transaction = False
 
 
-class BaseRepository(Generic[T]):
+class BaseRepository[T]:
     """Base repository class for database operations."""
 
     def __init__(self, conn_manager: ConnectionManager):

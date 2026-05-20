@@ -2,7 +2,7 @@
 Base repository class with common CRUD operations.
 """
 
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 T = TypeVar("T")
 
 
-class BaseRepository(Generic[T]):
+class BaseRepository[T]:
     """Base repository with common CRUD operations."""
 
     def __init__(self, db, model: type[T]):
@@ -32,7 +32,6 @@ class BaseRepository(Generic[T]):
         """Get multiple records by their IDs."""
         if not ids:
             return []
-
         with self._db.session_scope() as session:
             return session.query(self.model).filter(self.model.id.in_(ids)).all()
 
@@ -61,16 +60,11 @@ class BaseRepository(Generic[T]):
 
     def create(self, data: dict[str, Any] | T, commit: bool = True) -> T:
         """Create a new record."""
-        if isinstance(data, dict):
-            obj = self.model(**data)
-        else:
-            obj = data
-
+        obj = self.model(**data) if isinstance(data, dict) else data
         with self._db.session_scope() as session:
             session.add(obj)
-            if commit:
-                session.commit()
-                session.refresh(obj)
+            session.flush()
+            session.refresh(obj)
             return obj
 
     def update(self, id: int, data: dict[str, Any], commit: bool = True) -> T | None:
@@ -79,15 +73,11 @@ class BaseRepository(Generic[T]):
             obj = session.query(self.model).get(id)
             if not obj:
                 return None
-
             for key, value in data.items():
                 if hasattr(obj, key):
                     setattr(obj, key, value)
-
-            if commit:
-                session.commit()
-                session.refresh(obj)
-
+            session.flush()
+            session.refresh(obj)
             return obj
 
     def delete(self, id: int, commit: bool = True) -> bool:
@@ -96,11 +86,7 @@ class BaseRepository(Generic[T]):
             obj = session.query(self.model).get(id)
             if not obj:
                 return False
-
             session.delete(obj)
-            if commit:
-                session.commit()
-
             return True
 
     def count(self, **filters) -> int:
@@ -150,3 +136,4 @@ class BaseRepository(Generic[T]):
             return (
                 session.query(self.model).filter(or_(*conditions)).offset(offset).limit(limit).all()
             )
+

@@ -5,7 +5,6 @@ Standalone client for searching Anna's Archive. Uses configurable mirrors.
 HTML parsing may break if Anna's changes their page structure.
 """
 
-import asyncio
 import os
 from typing import Any
 from urllib.parse import quote_plus
@@ -105,8 +104,7 @@ async def search_annas(
                         "total_found": len(results),
                         "mirror_used": mirror,
                     }
-                else:
-                    logger.warning(f"No results parsed from {mirror}, trying next")
+                logger.warning(f"No results parsed from {mirror}, trying next")
         except httpx.HTTPError as e:
             logger.warning(f"Mirror {mirror} failed: {e}")
             continue
@@ -246,11 +244,7 @@ async def get_annas_download_links(md5: str, mirror: str | None = None) -> list[
                     link_type = "other"
                     if "slow-partner" in text:
                         link_type = "slow"
-                    elif "libgen.rs" in text or "libgen.li" in text:
-                        link_type = "fast"
-                    elif "z-library" in text:
-                        link_type = "fast"
-                    elif "ipfs" in text:
+                    elif "libgen.rs" in text or "libgen.li" in text or "z-library" in text or "ipfs" in text:
                         link_type = "fast"
 
                     if any(x in text for x in ["download", "mirror", "server", "link"]):
@@ -326,7 +320,7 @@ async def download_annas_book(
                         async for chunk in response.aiter_bytes():
                             f.write(chunk)
                     return path
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(f"Download timed out from {url}")
             continue
         except Exception as e:

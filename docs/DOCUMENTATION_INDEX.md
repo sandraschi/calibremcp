@@ -8,6 +8,11 @@
 
 | If you want to… | Start here |
 |-----------------|------------|
+| Understand what Calibre is and how we use it | [`ABOUT_CALIBRE.md`](ABOUT_CALIBRE.md) |
+| Understand calibre-web and how it relates | [`ABOUT_CALIBRE_WEB.md`](ABOUT_CALIBRE_WEB.md) |
+| Learn about our Calibre plugins and roadmap | [`ABOUT_PLUGINS.md`](ABOUT_PLUGINS.md) |
+| Understand MCP server tools and architecture | [`ABOUT_MCP_TOOLS.md`](ABOUT_MCP_TOOLS.md) |
+| Learn about AI workflows (RAG, FTS, skills) | [`ABOUT_AI_WORKFLOWS.md`](ABOUT_AI_WORKFLOWS.md) |
 | Install and configure the server | [`README.md`](../README.md), [`Configuration.md`](Configuration.md) |
 | Use tools from an AI client | [`USAGE_GUIDE_CLAUDE.md`](USAGE_GUIDE_CLAUDE.md), [`COOKBOOK.md`](COOKBOOK.md), [`PROMPTS.md`](PROMPTS.md) |
 | Understand portmanteau tools | [`TOOLS_CONSOLIDATION.md`](TOOLS_CONSOLIDATION.md), [`TOOL_DOCSTRING_STANDARD.md`](TOOL_DOCSTRING_STANDARD.md) |
@@ -51,6 +56,18 @@ docs/
 ```
 
 ---
+
+## User-friendly overviews (`docs/`)
+
+New to the project? Start here:
+
+| Document | Purpose |
+|----------|---------|
+| [`ABOUT_CALIBRE.md`](ABOUT_CALIBRE.md) | What Calibre is, how it stores data, access methods |
+| [`ABOUT_CALIBRE_WEB.md`](ABOUT_CALIBRE_WEB.md) | calibre-web vs Calibre Content Server, coexistence |
+| [`ABOUT_PLUGINS.md`](ABOUT_PLUGINS.md) | Plugin architecture, calibreops-bridge, roadmap |
+| [`ABOUT_MCP_TOOLS.md`](ABOUT_MCP_TOOLS.md) | 21 portmanteau tools, architecture, agentic flows |
+| [`ABOUT_AI_WORKFLOWS.md`](ABOUT_AI_WORKFLOWS.md) | RAG, FTS, skills, prompts, sampling, agentic chaining |
 
 ## Core reference (repo root `docs/`)
 
@@ -154,7 +171,10 @@ Megatest and universal MCP test harness documentation (see [`testing/UNIVERSAL_M
 
 ## Suggested reading paths
 
-**1. New user (30 min)**  
+**0. New to the ecosystem (15 min)**
+[`ABOUT_CALIBRE.md`](ABOUT_CALIBRE.md) → [`ABOUT_CALIBRE_WEB.md`](ABOUT_CALIBRE_WEB.md) → [`ABOUT_PLUGINS.md`](ABOUT_PLUGINS.md) → [`ABOUT_MCP_TOOLS.md`](ABOUT_MCP_TOOLS.md) → [`ABOUT_AI_WORKFLOWS.md`](ABOUT_AI_WORKFLOWS.md)
+
+**1. New user (30 min)**
 [`README.md`](../README.md) → [`COOKBOOK.md`](COOKBOOK.md) → [`Configuration.md`](Configuration.md)
 
 **2. MCP integrator (1 h)**  

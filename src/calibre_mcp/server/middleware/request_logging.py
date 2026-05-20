@@ -32,8 +32,7 @@ class RequestLoggingMiddleware:
 
         # Process request
         try:
-            response = await self.app(scope, receive, send)
-            return response
+            return await self.app(scope, receive, send)
         except Exception:
             logger.exception("Error processing request")
             raise

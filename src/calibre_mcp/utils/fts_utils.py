@@ -276,7 +276,7 @@ def query_fts(
         finally:
             conn.close()
     except sqlite3.Error as e:
-        logger.error("Error querying FTS database: %s", e)
+        logger.exception("Error querying FTS database: %s", e)
         return [], 0, {}
 
 
@@ -474,5 +474,5 @@ def query_fts_detailed(
         finally:
             conn.close()
     except sqlite3.Error as e:
-        logger.error("Error in query_fts_detailed: %s", e)
+        logger.exception("Error in query_fts_detailed: %s", e)
         return [], 0, False

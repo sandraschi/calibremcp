@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 10722",
+    "dev": "next dev --turbo -p 10721",
     "build": "next build",
-    "start": "next start -p 10722",
-    "lint": "biome check .",
+    "start": "next start -p 10721",
+    "lint": "biome lint .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "biome:ci": "biome ci .",

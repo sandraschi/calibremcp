@@ -179,10 +179,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
             NotFoundError: If the author is not found
             ValidationError: If the update data is invalid
         """
-        if isinstance(author_data, dict):
-            update_data = author_data
-        else:
-            update_data = author_data.dict(exclude_unset=True)
+        update_data = author_data if isinstance(author_data, dict) else author_data.dict(exclude_unset=True)
 
         with self._get_db_session() as session:
             # Get the existing author

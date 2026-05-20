@@ -84,8 +84,19 @@ async def get_tool_help(
         raise handle_mcp_error(e)
 
 
-@router.get("/health")
-async def health_check():
+@router.get("/api-docs-info")
+async def get_api_docs_info():
+    """Return Swagger UI, ReDoc, and OpenAPI schema URLs for this server."""
+    from ..config import settings
+    base = f"http://localhost:{settings.PORT}"
+    return {
+        "swagger_ui": f"{base}/docs",
+        "redoc": f"{base}/redoc",
+        "openapi_json": f"{base}/openapi.json",
+        "backend_port": settings.PORT,
+        "note": "Open swagger_ui in a browser to explore and test all endpoints interactively.",
+    }
+
     """Machine-readable health check for monitoring."""
     try:
         result = await mcp_client.call_tool(

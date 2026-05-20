@@ -352,7 +352,7 @@ async def switch_library_helper(library_name: str) -> dict[str, Any]:
         }
 
     except ValueError as ve:
-        logger.error(f"Validation error switching library: {ve}")
+        logger.exception(f"Validation error switching library: {ve}")
         raise
     except Exception as e:
         logger.error(f"Error switching library: {e}", exc_info=True)
@@ -482,7 +482,7 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
                 last_modified = row["last_modified"]
 
         # Build response
-        stats = LibraryStatsResponse(
+        return LibraryStatsResponse(
             library_name=library_name,
             total_books=total_books,
             total_authors=total_authors,
@@ -494,10 +494,9 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
             last_modified=last_modified,
         )
 
-        return stats
 
     except ValueError as ve:
-        logger.error(f"Validation error getting library stats: {ve}")
+        logger.exception(f"Validation error getting library stats: {ve}")
         raise
     except Exception as e:
         logger.error(f"Error getting library stats: {e}", exc_info=True)
@@ -606,7 +605,7 @@ async def cross_library_search_helper(
                     # Match libraries by name containing the content type
                     matching_libs = [
                         lib_name
-                        for lib_name in discovered_libs.keys()
+                        for lib_name in discovered_libs
                         if content_type in lib_name.lower()
                     ]
                     if matching_libs:
@@ -760,7 +759,7 @@ async def cross_library_search_helper(
         )
 
     except ValueError as ve:
-        logger.error(f"Validation error in cross-library search: {ve}")
+        logger.exception(f"Validation error in cross-library search: {ve}")
         raise
     except Exception as e:
         logger.error(f"Error in cross-library search: {e}", exc_info=True)

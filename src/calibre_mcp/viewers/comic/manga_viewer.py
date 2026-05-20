@@ -2,6 +2,7 @@
 Manga/Comic viewer for CalibreMCP with support for CBZ, CBR, and other formats.
 """
 
+import contextlib
 import hashlib
 import io
 import logging
@@ -237,7 +238,7 @@ class MangaViewer:
                         continue
 
             except Exception as e:
-                logger.error(f"Error processing {filename}: {e}")
+                logger.exception(f"Error processing {filename}: {e}")
 
     def _load_rar_pages(self) -> None:
         """Load pages from a RAR archive."""
@@ -270,7 +271,7 @@ class MangaViewer:
                         continue
 
             except Exception as e:
-                logger.error(f"Error processing {file_info.filename}: {e}")
+                logger.exception(f"Error processing {file_info.filename}: {e}")
 
     def _is_image_file(self, filename: str) -> bool:
         """Check if a filename has an image extension."""
@@ -324,22 +325,16 @@ class MangaViewer:
 
             # Load reading settings if available
             if row[3]:
-                try:
+                with contextlib.suppress(ValueError):
                     self._state.reading_direction = ReadingDirection(row[3])
-                except ValueError:
-                    pass
 
             if row[4]:
-                try:
+                with contextlib.suppress(ValueError):
                     self._state.page_layout = PageLayout(row[4])
-                except ValueError:
-                    pass
 
             if row[5]:
-                try:
+                with contextlib.suppress(ValueError):
                     self._state.zoom_mode = ZoomMode(row[5])
-                except ValueError:
-                    pass
 
             if row[6] is not None:
                 self._state.zoom_level = max(0.1, min(row[6], 5.0))
@@ -468,7 +463,7 @@ class MangaViewer:
             return img_byte_arr.getvalue()
 
         except Exception as e:
-            logger.error(f"Error processing page {page_number}: {e}")
+            logger.exception(f"Error processing page {page_number}: {e}")
             return None
 
     def get_cover_image(self) -> bytes | None:
@@ -549,24 +544,18 @@ class MangaViewer:
     def close(self) -> None:
         """Clean up resources."""
         if self._archive:
-            try:
+            with contextlib.suppress(OSError):
                 self._archive.close()
-            except OSError:
-                pass
             self._archive = None
 
         if self._temp_dir:
-            try:
+            with contextlib.suppress(OSError):
                 self._temp_dir.cleanup()
-            except OSError:
-                pass
             self._temp_dir = None
 
         if self._db_conn:
-            try:
+            with contextlib.suppress(OSError):
                 self._db_conn.close()
-            except OSError:
-                pass
             self._db_conn = None
 
         self._file_path = None

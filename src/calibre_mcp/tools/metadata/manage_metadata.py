@@ -4,6 +4,10 @@ Metadata management portmanteau tool for CalibreMCP.
 Consolidates all metadata-related operations into a single unified interface.
 """
 
+import os
+import platform
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -14,6 +18,8 @@ from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from . import metadata_management
+
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 logger = get_logger("calibremcp.tools.metadata")
 
@@ -98,10 +104,6 @@ async def manage_metadata(
 
         elif operation == "show":
             try:
-                import os
-                import platform
-                import subprocess
-
                 from ...services import book_service
                 from ...tools.book_tools import search_books_helper
 
@@ -365,9 +367,9 @@ Book ID:     {book_id}
                     if system == "Windows":
                         os.startfile(html_path)
                     elif system == "Darwin":  # macOS
-                        subprocess.run(["open", html_path], check=False)
+                        subprocess.run(["open", html_path], check=False, creationflags=_NO_WINDOW)
                     else:  # Linux
-                        subprocess.run(["xdg-open", html_path], check=False)
+                        subprocess.run(["xdg-open", html_path], check=False, creationflags=_NO_WINDOW)
 
                 return {
                     "success": True,

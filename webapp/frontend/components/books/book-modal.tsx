@@ -1,9 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Book, getBook, getBookCoverUrl, openBookViewer } from '@/common/api';
+import Link from 'next/link';
+import {
+  Book,
+  fetchBookMetadataOnline,
+  getBook,
+  getBookCoverUrl,
+  openBookViewer,
+  ratingToFiveStarCount,
+} from '@/common/api';
+import { buildBookExternalLinks, isTvTropesViaConfigured, ragToolHref } from '@/common/book-external-links';
 import { AuthorLinks } from '@/components/authors/author-links';
-import { BookOpen, X, FileText } from 'lucide-react';
+import { BookOpen, ExternalLink, FileText, FlaskConical, Microscope, RefreshCw, Search } from 'lucide-react';
 
 interface BookModalProps {
   book: Book;
@@ -16,6 +25,10 @@ export function BookModal({ book, onClose }: BookModalProps) {
   const [readLoading, setReadLoading] = useState(false);
   const [readError, setReadError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
+  const [coverBust, setCoverBust] = useState(0);
+  const [fetchMetaLoading, setFetchMetaLoading] = useState(false);
+  const [fetchMetaMessage, setFetchMetaMessage] = useState<string | null>(null);
+  const [fetchMetaError, setFetchMetaError] = useState<string | null>(null);
 
   useEffect(() => {
     getBook(book.id)
@@ -37,6 +50,28 @@ export function BookModal({ book, onClose }: BookModalProps) {
     }
   };
 
+  const handleFetchMetadata = async () => {
+    setFetchMetaLoading(true);
+    setFetchMetaError(null);
+    setFetchMetaMessage(null);
+    try {
+      const res = await fetchBookMetadataOnline(book.id, { includeCover: true });
+      if (!res.success) {
+        setFetchMetaError(res.error ?? 'Metadata download failed');
+        return;
+      }
+      setFetchMetaMessage(res.message ?? 'Metadata updated.');
+      const fresh = await getBook(book.id);
+      setDetails(fresh);
+      setCoverBust((n) => n + 1);
+      setCoverError(false);
+    } catch (e) {
+      setFetchMetaError(e instanceof Error ? e.message : 'Request failed');
+    } finally {
+      setFetchMetaLoading(false);
+    }
+  };
+
   const displayBook = details ?? book;
   const tags = displayBook.tags?.map((t) =>
     typeof t === 'string' ? t : (t as { name?: string }).name ?? String(t)
@@ -48,6 +83,15 @@ export function BookModal({ book, onClose }: BookModalProps) {
   const formats = displayBook.formats?.map((f) =>
     typeof f === 'string' ? f : (f as { format?: string }).format ?? ''
   ).filter(Boolean) ?? [];
+
+  const externalLinks = buildBookExternalLinks(displayBook);
+  const firstAuthor =
+    displayBook.authors?.[0] == null
+      ? ''
+      : typeof displayBook.authors[0] === 'string'
+        ? displayBook.authors[0]
+        : (displayBook.authors[0] as { name?: string }).name ?? '';
+  const ragMetadataQuery = [displayBook.title, firstAuthor].filter(Boolean).join(' ').trim();
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950" onClick={onClose}>
@@ -62,7 +106,7 @@ export function BookModal({ book, onClose }: BookModalProps) {
             <div className="sticky top-0">
               {!coverError ? (
                 <img
-                  src={getBookCoverUrl(book.id)}
+                  src={`${getBookCoverUrl(book.id)}${coverBust ? `?v=${coverBust}` : ''}`}
                   alt={book.title}
                   className="w-full aspect-[2/3] object-cover rounded shadow-lg bg-slate-700"
                   onError={() => setCoverError(true)}
@@ -85,6 +129,29 @@ export function BookModal({ book, onClose }: BookModalProps) {
                 </button>
                 {readError && <p className="text-xs text-red-400 text-center">{readError}</p>}
 
+                {!loading && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleFetchMetadata}
+                      disabled={fetchMetaLoading}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-slate-100 font-medium rounded-md hover:bg-slate-600 disabled:opacity-50 transition-colors text-sm border border-slate-500"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${fetchMetaLoading ? 'animate-spin' : ''}`} />
+                      {fetchMetaLoading ? 'Downloading metadata…' : 'Download metadata (online)'}
+                    </button>
+                    {fetchMetaError && (
+                      <p className="text-xs text-red-400 text-center leading-snug">{fetchMetaError}</p>
+                    )}
+                    {fetchMetaMessage && !fetchMetaError && (
+                      <p className="text-xs text-emerald-400/90 text-center leading-snug">{fetchMetaMessage}</p>
+                    )}
+                    <p className="text-[10px] text-slate-500 text-center leading-snug">
+                      Uses Calibre&apos;s tools on PATH. Close the main Calibre app if the library is locked.
+                    </p>
+                  </>
+                )}
+
                 <button
                   type="button"
                   onClick={onClose}
@@ -92,6 +159,96 @@ export function BookModal({ book, onClose }: BookModalProps) {
                 >
                   Close
                 </button>
+
+                {!loading && (
+                  <div className="pt-4 border-t border-slate-700 space-y-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                        External references
+                      </p>
+                      <p className="text-[10px] text-slate-500 mb-2 leading-snug">
+                        Notable works may have Wikipedia articles; guessed links can 404. Search links always work.
+                        {isTvTropesViaConfigured() ? (
+                          <span className="block mt-1 text-emerald-500/90">
+                            TV Tropes deep links use your{' '}
+                            <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_VIA</code> gateway.
+                          </span>
+                        ) : (
+                          <span className="block mt-1">
+                            For TV Tropes, use the Google site search if direct pages are blocked; optional fleet
+                            gateway: set <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_VIA</code> (see{' '}
+                            <code className="text-[9px]">webapp/frontend/env.example</code>).
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {externalLinks.length === 0 ? (
+                          <p className="text-xs text-slate-500 italic">
+                            Add ISBN or a Wikipedia identifier in Calibre for stronger matches. Wikipedia / Wikidata
+                            search still works from title and author.
+                          </p>
+                        ) : (
+                          externalLinks.map((link) => (
+                            <a
+                              key={link.href}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1.5 text-xs text-amber/90 hover:text-amber border border-slate-600 rounded px-2 py-1.5 hover:bg-slate-800/80 transition-colors"
+                            >
+                              <ExternalLink className="w-3 h-3 shrink-0 opacity-80" />
+                              <span className="truncate">{link.label}</span>
+                            </a>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                        Library AI (RAG)
+                      </p>
+                      <p className="text-[10px] text-slate-500 mb-2 leading-snug">
+                        Opens RAG with this book prefilled. Run the action there (can take 10–30s for research).
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        <Link
+                          href={ragToolHref({ mode: 'metadata', query: ragMetadataQuery })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-xs text-slate-200 border border-slate-600 rounded px-2 py-1.5 hover:bg-slate-800/80 transition-colors"
+                        >
+                          <Search className="w-3 h-3 shrink-0 text-amber/80" />
+                          Similar in library
+                        </Link>
+                        <Link
+                          href={ragToolHref({ mode: 'passages', query: ragMetadataQuery })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-xs text-slate-200 border border-slate-600 rounded px-2 py-1.5 hover:bg-slate-800/80 transition-colors"
+                        >
+                          <Search className="w-3 h-3 shrink-0 text-amber/80" />
+                          Search in books (passages)
+                        </Link>
+                        <Link
+                          href={ragToolHref({ mode: 'synopsis', bookId: displayBook.id })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-xs text-slate-200 border border-slate-600 rounded px-2 py-1.5 hover:bg-slate-800/80 transition-colors"
+                        >
+                          <FlaskConical className="w-3 h-3 shrink-0 text-violet-300/90" />
+                          AI synopsis
+                        </Link>
+                        <Link
+                          href={ragToolHref({ mode: 'research', bookId: displayBook.id })}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-xs text-slate-200 border border-slate-600 rounded px-2 py-1.5 hover:bg-slate-800/80 transition-colors"
+                        >
+                          <Microscope className="w-3 h-3 shrink-0 text-emerald-300/90" />
+                          Deep research
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -118,7 +275,7 @@ export function BookModal({ book, onClose }: BookModalProps) {
                         <dt className="text-slate-400">Rating</dt>
                         <dd className="text-amber font-mono tracking-widest text-xs">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <span key={i} className={i < Math.round((displayBook.rating ?? 0) / 2) ? "text-amber" : "text-slate-600"}>★</span>
+                            <span key={i} className={i < ratingToFiveStarCount(displayBook.rating) ? "text-amber" : "text-slate-600"}>★</span>
                           ))}
                         </dd>
                       </div>

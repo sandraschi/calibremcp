@@ -1,4 +1,4 @@
-Param([switch]$Headless)
+Param([switch]$Headless, [switch]$BackendOnly)
 
 # --- SOTA Headless Standard ---
 if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {

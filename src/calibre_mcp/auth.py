@@ -56,7 +56,7 @@ class AuthManager:
             )
             logger.debug(f"Saved credentials for server: {server_name}")
         except Exception as e:
-            logger.error(f"Failed to save credentials for {server_name}: {e}")
+            logger.exception(f"Failed to save credentials for {server_name}: {e}")
             raise
 
     def get_credentials(self, server_name: str) -> tuple[str, str] | None:
@@ -82,7 +82,7 @@ class AuthManager:
                 return username, password
             return None
         except Exception as e:
-            logger.error(f"Failed to get credentials for {server_name}: {e}")
+            logger.exception(f"Failed to get credentials for {server_name}: {e}")
             return None
 
     def delete_credentials(self, server_name: str) -> bool:
@@ -108,5 +108,5 @@ class AuthManager:
             ):
                 logger.debug(f"No credentials found for server: {server_name}")
                 return False
-            logger.error(f"Failed to delete credentials for {server_name}: {e}")
+            logger.exception(f"Failed to delete credentials for {server_name}: {e}")
             return False

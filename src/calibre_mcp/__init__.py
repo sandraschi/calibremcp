@@ -36,37 +36,15 @@ _original_stderr = sys.stderr
 
 # TEMPORARILY DISABLE all complex initialization for debugging
 # This might be causing the hang
-import logging
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("calibre_mcp.init")
-logger.info("DEBUG: __init__.py starting")
-
-# For MCP stdio transport, stderr must be clean or redirected
-# Detect if we're running in stdio mode (Antigravity IDE or Claude Desktop)
-# _is_stdio = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
-
-# Save original streams for restoration
-# _original_stdout = sys.stdout
-# _original_stderr = sys.stderr
-
-# Redirect stderr AND stdout to a file to capture early crashes/output without breaking JSON-RPC
-# Note: logging_config.py will still log to files
-# import tempfile
-
-# try:
-#     debug_log_path = os.path.join(tempfile.gettempdir(), "calibre_mcp_startup.log")
-#     _log_file = open(debug_log_path, "w", encoding="utf-8", buffering=1)
-#     sys.stderr = _log_file
-#     sys.stdout = _log_file
-#     # Write immediate marker
-#     _log_file.write(f"--- Calibre MCP Startup {__version__} ---\n")
-# except Exception:
-#     pass
-
-logger.info("DEBUG: __init__.py complex initialization disabled")
+# import logging
+# 
+# logging.basicConfig(
+#     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# )
+# logger = logging.getLogger("calibre_mcp.init")
+# logger.info("DEBUG: __init__.py starting")
+# 
+# logger.info("DEBUG: __init__.py complex initialization disabled")
 
 # Now safe to proceed with standard imports
 
@@ -102,6 +80,15 @@ def _get_mcp():
     return mcp
 
 
+def main():
+    """Run the CalibreMCP server."""
+    import asyncio
+
+    from .server import main as server_main
+
+    asyncio.run(server_main())
+
+
 __all__ = [
     "CalibreConfig",
     "CalibreAPIClient",
@@ -121,4 +108,5 @@ __all__ = [
     "StorageBackend",
     "LocalStorage",
     "_get_mcp",  # For testing only
+    "main",
 ]

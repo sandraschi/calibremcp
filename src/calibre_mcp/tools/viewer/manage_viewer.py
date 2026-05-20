@@ -4,6 +4,10 @@ Viewer management portmanteau tool for CalibreMCP.
 Consolidates all book viewer operations into a single unified interface.
 """
 
+import os
+import platform
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +15,8 @@ from ...logging_config import get_logger
 from ...server import mcp
 from ...services.viewer_service import viewer_service
 from ..shared.error_handling import format_error_response, handle_tool_error
+
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 logger = get_logger("calibremcp.tools.viewer")
 
@@ -54,10 +60,7 @@ async def manage_viewer(
         # Handle open_random operation first (doesn't require book_id/file_path)
         if operation == "open_random":
             try:
-                import os
-                import platform
                 import random
-                import subprocess
 
                 from sqlalchemy.orm import joinedload
 
@@ -215,9 +218,9 @@ async def manage_viewer(
                     if system == "Windows":
                         os.startfile(file_path_str)
                     elif system == "Darwin":  # macOS
-                        subprocess.run(["open", file_path_str], check=False)
+                        subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
                     else:  # Linux and others
-                        subprocess.run(["xdg-open", file_path_str], check=False)
+                        subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
 
                     return {
                         "success": True,
@@ -524,10 +527,7 @@ async def manage_viewer(
 
         elif operation == "open_file":
             try:
-                import os
-                import platform
                 import re
-                import subprocess
 
                 # If file_path is not provided or invalid, build from database
                 if not file_path or not Path(file_path).exists():
@@ -646,9 +646,9 @@ async def manage_viewer(
                 if system == "Windows":
                     os.startfile(file_path_str)
                 elif system == "Darwin":  # macOS
-                    subprocess.run(["open", file_path_str], check=False)
+                    subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
                 else:  # Linux and others
-                    subprocess.run(["xdg-open", file_path_str], check=False)
+                    subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
 
                 return {
                     "success": True,

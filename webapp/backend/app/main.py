@@ -37,6 +37,7 @@ if src_path.exists():
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import PlainTextResponse  # noqa: E402
 
 from .api import (  # noqa: E402
     analysis,
@@ -70,6 +71,12 @@ from .cache import get_libraries_cache, update_current_library, update_libraries
 from .config import settings  # noqa: E402
 from .mcp_access_log_filter import configure_quiet_mcp_http_logging  # noqa: E402
 
+try:
+    import prometheus_client
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+
 # Ensure logs dir exists and add file handler for webapp (rotation via logging.handlers)
 _log_dir = project_root / "logs"
 _log_dir.mkdir(parents=True, exist_ok=True)
@@ -94,7 +101,7 @@ app = FastAPI(
 )
 
 # Mount FastMCP HTTP endpoints BEFORE other routers
-# FastMCP HTTP endpoints run on same port 13000 - no port hopping!
+# FastMCP HTTP endpoints run on the same port as the API (10720 reservoir; 13000 in Docker container).
 # Dual interface: stdio for MCP clients, HTTP for webapp backend
 logger = logging.getLogger(__name__)
 
@@ -276,6 +283,17 @@ async def root():
 async def health():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    """Prometheus metrics endpoint."""
+    if PROMETHEUS_AVAILABLE:
+        return PlainTextResponse(
+            content=prometheus_client.generate_latest().decode("utf-8"),
+            media_type="text/plain; version=0.0.4",
+        )
+    return PlainTextResponse("# prometheus_client not installed", status_code=501)
 
 
 @app.get("/debug/import")

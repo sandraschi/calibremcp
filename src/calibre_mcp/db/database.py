@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from typing import Any, TypeVar
 
 from sqlalchemy import create_engine, event
-from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .models import Base
@@ -57,12 +56,11 @@ class DatabaseService:
         if self._engine is not None and not force:
             if self.is_initialized_with(db_url):
                 return
-            else:
-                logger.warning(
-                    "Database initialized with different path. Use force=True to switch.",
-                    extra={"service": "database", "action": "skip_reinit_different_path"},
-                )
-                return
+            logger.warning(
+                "Database initialized with different path. Use force=True to switch.",
+                extra={"service": "database", "action": "skip_reinit_different_path"},
+            )
+            return
 
         # If forcing, close existing connection
         if force and self._engine is not None:
@@ -83,7 +81,7 @@ class DatabaseService:
                     # Store original URL if it's not a file path
                     self._current_db_path = db_url
         except (OSError, ValueError, TypeError) as e:
-            logger.error(
+            logger.exception(
                 f"Failed to process database URL: {e}",
                 extra={
                     "service": "database",
@@ -97,7 +95,7 @@ class DatabaseService:
         self._engine = create_engine(
             db_url,
             echo=echo,
-            connect_args={"check_same_thread": False} if "sqlite" in db_url else {},
+            connect_args={"check_same_thread": False, "timeout": 10} if "sqlite" in db_url else {},
             pool_size=20,
             max_overflow=10,
             pool_timeout=30,
@@ -116,14 +114,17 @@ class DatabaseService:
             "library": LibraryRepository(self),
         }
 
-        # Enable WAL mode for SQLite
+        # Enable WAL mode + busy_timeout for SQLite.
+        # busy_timeout=10000: retry for 10s on lock contention (cross-process safety)
+        # instead of raising OperationalError immediately.
+        # Listener is scoped to THIS engine instance, not the Engine class globally.
         if "sqlite" in db_url:
-
-            @event.listens_for(Engine, "connect")
+            @event.listens_for(self._engine, "connect")
             def set_sqlite_pragma(dbapi_connection, connection_record):
                 cursor = dbapi_connection.cursor()
                 cursor.execute("PRAGMA journal_mode=WAL")
                 cursor.execute("PRAGMA synchronous=NORMAL")
+                cursor.execute("PRAGMA busy_timeout=10000")
                 cursor.execute("PRAGMA cache_size=-2000")
                 cursor.execute("PRAGMA temp_store=MEMORY")
                 cursor.close()

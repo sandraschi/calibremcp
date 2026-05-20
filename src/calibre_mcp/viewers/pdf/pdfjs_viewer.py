@@ -384,9 +384,8 @@ class PDFViewer:
                 for bm in bookmarks:
                     if bm.id == parent_id:
                         return bm
-                    if bm.children:
-                        if found := find_parent(bm.children):
-                            return found
+                    if bm.children and (found := find_parent(bm.children)):
+                        return found
                 return None
 
             if parent := find_parent(self._state.bookmarks):

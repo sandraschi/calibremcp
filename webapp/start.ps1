@@ -1,4 +1,5 @@
-﻿Param([switch]$Headless)
+Param([switch]$Headless, [switch]$Rebuild, [switch]$Dev)
+$SkipFrontend = $Headless
 
 # --- SOTA Headless Standard ---
 if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
@@ -8,48 +9,60 @@ if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
 $WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
 # ------------------------------
 
-# Webapp Start - Standardized SOTA (Auto-Repaired V2.5)
 $WebPort = 10721
 $BackendPort = 10720
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+$FrontendDir = "$PSScriptRoot\frontend"
 
-# 1. Kill any process squatting on the ports
-Write-Host "Checking for port squatters on $WebPort and $BackendPort..." -ForegroundColor Yellow
+# 1. Kill port squatters
+Write-Host "Clearing ports $WebPort and $BackendPort..." -ForegroundColor Yellow
 $pids = Get-NetTCPConnection -LocalPort $WebPort, $BackendPort -ErrorAction SilentlyContinue | Where-Object { $_.OwningProcess -gt 4 } | Select-Object -ExpandProperty OwningProcess -Unique
 foreach ($p in $pids) {
-    Write-Host "Found squatter (PID: $p). Terminating..." -ForegroundColor Red
-    try { Stop-Process -Id $p -Force -ErrorAction Stop } catch { Write-Host "Warning: Could not terminate PID $p." -ForegroundColor Gray }
+    Write-Host "  Killing PID $p..." -ForegroundColor Red
+    try { Stop-Process -Id $p -Force -ErrorAction Stop } catch { Write-Host "  Warning: could not terminate PID $p." -ForegroundColor Gray }
 }
 
-# 2. Setup
-Set-Location "$PSScriptRoot\frontend"
-if (-not (Test-Path "node_modules")) { npm install }
-
-# 3. Start the Python backend (Background)
-Write-Host "Starting Python backend on port $BackendPort ..." -ForegroundColor Cyan
-
-# Run the webapp backend (FastAPI) instead of the bare MCP server
-# uv --project finds package; CWD must be webapp/backend for app.main to be found
-$backendCmd = "Set-Location '$PSScriptRoot\backend'; uv run --project '$ProjectRoot' uvicorn app.main:app --host 127.0.0.1 --port $BackendPort --log-level info --reload"
-
+# 2. Start backend (immediately, so it's visible while build runs)
+Write-Host "Starting backend on port $BackendPort..." -ForegroundColor Cyan
+$reloadFlag = if ($Dev) { '--reload' } else { '' }
+$backendCmd = "Set-Location '$PSScriptRoot\backend'; `$env:CALIBRE_LOG_ACCESS_VERBOSE=''; uv run --project '$ProjectRoot' uvicorn app.main:app --host 127.0.0.1 --port $BackendPort $reloadFlag"
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
 
-# 4. Start the Frontend (Background)
-Write-Host "Starting Frontend on port $WebPort ..." -ForegroundColor Green
+# 3. Install frontend deps if missing
+Set-Location $FrontendDir
+if (-not (Test-Path "node_modules")) {
+    Write-Host "Installing npm dependencies..." -ForegroundColor Cyan
+    npm install
+}
 
-# Set environment variables for the frontend process
+# 4. Build frontend (once, or on -Rebuild)
+$buildId = "$FrontendDir\.next\BUILD_ID"
+if ($Dev) {
+    Write-Host "Dev mode — skipping production build." -ForegroundColor Yellow
+} elseif ($Rebuild -or -not (Test-Path $buildId)) {
+    Write-Host "Building frontend for production (approx 60s)..." -ForegroundColor Cyan
+    npm run build
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Build failed! Falling back to dev mode." -ForegroundColor Red
+        $Dev = $true
+    }
+} else {
+    Write-Host "Production build cached — use -Rebuild to force rebuild." -ForegroundColor Gray
+}
+
+# 5. Start frontend
+if ($SkipFrontend) { return }
+
+$modeLabel = if ($Dev) { 'Dev' } else { 'Production' }
+Write-Host "Starting frontend ($modeLabel mode) on port $WebPort..." -ForegroundColor Green
+
 $env:API_URL = "http://127.0.0.1:$BackendPort"
 $env:NEXT_PUBLIC_API_URL = "http://127.0.0.1:$BackendPort"
 
-Set-Location "$PSScriptRoot\frontend"
-
-# 4b. Launch background task to open browser once frontend is ready (Auto-opened by Antigravity)
+# Auto-open browser when ready
 $frontendUrl = "http://127.0.0.1:$WebPort/"
 $pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequest -Uri '$frontendUrl' -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop; Start-Process '$frontendUrl'; exit } catch { Start-Sleep -Seconds 1 } }"
 Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
 
-Write-Host "Browser will open automatically when Vite is ready." -ForegroundColor Gray
-npm run dev -- --port $WebPort
-
-
-
+Set-Location $FrontendDir
+if ($Dev) { npm run dev } else { npm run start }

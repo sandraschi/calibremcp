@@ -248,7 +248,7 @@ async def get_book(book_id: int):
 ```typescript
 /** API client for Calibre webapp. */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:13000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:10720';
 
 export interface Book {
   id: number;
@@ -383,7 +383,7 @@ cd webapp/backend
 python -m venv venv
 venv\Scripts\activate  # Windows
 pip install fastapi uvicorn httpx mcp
-uvicorn app.main:app --reload --port 13000
+uvicorn app.main:app --reload --port 10720
 ```
 
 ### **Frontend Setup**

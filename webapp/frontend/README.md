@@ -14,14 +14,14 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:13001](http://localhost:13001) in your browser.
+With `webapp\start.ps1`, open [http://localhost:10721](http://localhost:10721). For Docker, the mapped UI port is **10722** (see `webapp/SETUP.md`).
 
 ## Environment Variables
 
 Create a `.env.local` file:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:13000
+NEXT_PUBLIC_API_URL=http://127.0.0.1:10720
 ```
 
 ## Build

@@ -164,8 +164,8 @@ All ruff checks passing. Code quality is excellent.
 - **Help** - Static content (Calibre, MCP, Webapp)
 
 ### Architecture
-- **Backend:** FastAPI on 13000; MCP tools via direct import (`MCP_USE_HTTP=false`)
-- **Frontend:** Next.js 15 on 13001; API proxies to backend
+- **Backend:** FastAPI on **10720** (reservoir); MCP tools via direct import (`MCP_USE_HTTP=false`)
+- **Frontend:** Next.js 15 on **10721** with `start.ps1`; API proxies to backend (Docker UI host port **10722**)
 - **Logging:** logs/webapp.log (backend), logs/calibremcp.log (MCP stdio)
 
 ### Known Limitations

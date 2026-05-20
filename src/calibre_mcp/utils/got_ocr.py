@@ -87,16 +87,15 @@ class GOTOCRProcessor:
 
             logger.info(f"GOT-OCR2.0 model loaded successfully on {cls._device}")
         except Exception as e:
-            logger.error(f"Failed to load GOT-OCR2.0 model: {e}")
+            logger.exception(f"Failed to load GOT-OCR2.0 model: {e}")
             raise
 
     def _load_image(self, image_path: str | Path) -> Image.Image | None:
         """Load and preprocess image."""
         try:
-            image = Image.open(image_path).convert("RGB")
-            return image
+            return Image.open(image_path).convert("RGB")
         except Exception as e:
-            logger.error(f"Failed to load image {image_path}: {e}")
+            logger.exception(f"Failed to load image {image_path}: {e}")
             return None
 
     async def process_image(
@@ -161,11 +160,10 @@ class GOTOCRProcessor:
                     "mode": mode,
                     "metadata": result.metadata or {},
                 }
-            else:
-                return {"success": False, "error": "OCR processing failed"}
+            return {"success": False, "error": "OCR processing failed"}
 
         except Exception as e:
-            logger.error(f"GOT-OCR2.0 processing error: {e}")
+            logger.exception(f"GOT-OCR2.0 processing error: {e}")
             return {"success": False, "error": f"OCR processing failed: {str(e)}"}
 
     async def _run_inference(self, image: Image.Image, prompt: str) -> OCRResult | None:
@@ -190,7 +188,7 @@ class GOTOCRProcessor:
                 )
 
         except Exception as e:
-            logger.error(f"GOT-OCR2.0 inference error: {e}")
+            logger.exception(f"GOT-OCR2.0 inference error: {e}")
             return None
 
     def _save_output(
@@ -214,12 +212,12 @@ class GOTOCRProcessor:
             return output_path
 
         except Exception as e:
-            logger.error(f"Failed to save OCR output: {e}")
+            logger.exception(f"Failed to save OCR output: {e}")
             return None
 
     def _generate_html(self, result: OCRResult) -> str:
         """Generate HTML representation of OCR results."""
-        html_template = f"""
+        return f"""
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -244,7 +242,6 @@ class GOTOCRProcessor:
         </body>
         </html>
         """
-        return html_template
 
 
 # Global instance for reuse

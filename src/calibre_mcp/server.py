@@ -1,11 +1,10 @@
-# Setup basic logging for diagnostics
 import logging
+import os
+import sys
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# logger will be initialized properly after logging_config is imported
 logger = logging.getLogger("calibre_mcp.server")
-logger.info("SERVER.PY: Module import starting...")
+
 
 """
 CalibreMCP server module — Calibre e-book libraries over MCP (FastMCP 3.1+).
@@ -23,13 +22,6 @@ avoid tool-sprawl while retaining full Calibre coverage.
 Stateful features use FastMCP storage (py-key-value) where configured.
 """
 
-# CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
-# Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
-# This must happen BEFORE any imports that might write to stdout
-logger.info("Setting stdio binary mode...")
-import os  # noqa: E402
-import sys  # noqa: E402
-
 if os.name == "nt":  # Windows only
     try:
         # Force binary mode for stdin/stdout to prevent CRLF conversion
@@ -37,24 +29,17 @@ if os.name == "nt":  # Windows only
 
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-        logger.info("Binary mode set successfully")
-    except (OSError, AttributeError) as e:
-        # Fallback: just ensure no CRLF conversion
-        logger.warning(f"Binary mode failed: {e}")
+    except (OSError, AttributeError):
+        pass
 
-logger.info("Stdio setup complete")
 
 
 # DevNullStdout class for stdio mode suppression
-logger.info("Defining DevNullStdout class...")
-
-
 class DevNullStdout:
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
 
     def write(self, data):
-        # Suppress all writes to stdout during initialization
         pass
 
     def flush(self):
@@ -64,10 +49,7 @@ class DevNullStdout:
         sys.stdout = self.original_stdout
 
 
-logger.info("DevNullStdout class defined")
-
 # CRITICAL: Suppress all warnings before any imports
-logger.info("Setting up warning suppression...")
 import warnings  # noqa: E402
 
 warnings.filterwarnings("ignore")
@@ -75,63 +57,38 @@ warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
-logger.info("Warning suppression complete")
 
 # CRITICAL: Detect if we're running in stdio mode
-logger.info("Detecting stdio mode...")
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
-logger.info(f"Stdio mode detection: {_is_stdio_mode}")
+logger.debug(f"Stdio mode detection: {_is_stdio_mode}")
 
-# Import typing and basic modules
-logger.info("Importing typing and basic modules...")
 import contextlib
 from contextlib import asynccontextmanager  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
-logger.info("Basic imports complete")
-
-# Import external dependencies
-logger.info("Importing FastMCP...")
 from fastmcp import FastMCP  # noqa: E402
-
-logger.info("FastMCP imported")
-
-logger.info("Importing Pydantic...")
+from fastmcp.server import create_proxy  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
-
-logger.info("Pydantic imported")
-
-logger.info("Importing dotenv...")
 from dotenv import load_dotenv  # noqa: E402
 
-logger.info("dotenv imported")
-
 # Load environment variables
-logger.info("Loading environment variables...")
 load_dotenv()
-logger.info("Environment variables loaded")
+
 
 # Setup proper logging
-logger.info("Setting up proper logging system...")
 from calibre_mcp.logging_config import get_logger  # noqa: E402
 
 logger = get_logger("calibremcp.server")
-logger.info("Logger setup complete")
 
 # Import CalibreAPIClient at module level (needed for type hints)
-logger.info("Importing CalibreAPIClient for type hints...")
 from calibre_mcp.calibre_api import CalibreAPIClient  # noqa: E402
 
-logger.info("SUCCESS: CalibreAPIClient imported for type hints")
-
 # Global API client and database connections (initialized on startup)
-logger.info("Setting up global variables...")
 api_client = None  # CalibreAPIClient
 current_library: str = "main"
 available_libraries: dict[str, str] = {}
 storage = None  # CalibreMCPStorage
-logger.info("Global variables initialized")
 
 
 def create_app(path: str = "/mcp"):
@@ -158,7 +115,6 @@ async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
     Either local libraries OR the remote server must be reachable to pass.
     See: mcp-central-docs/standards/fastmcp-3.2-startup-probes.md
     """
-    import asyncio
     from pathlib import Path
 
     base_path_ok = False
@@ -214,7 +170,7 @@ async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
                 else:
                     messages.append(f"CALIBRE_SERVER_URL '{server_url}' returned HTTP {resp.status}")
                     startup_log.warning("STARTUP PROBE: %s", messages[-1])
-        except asyncio.TimeoutError:
+        except TimeoutError:
             messages.append(
                 f"CALIBRE_SERVER_URL '{server_url}' timed out after 5s — "
                 "is Calibre Content Server running?"
@@ -299,6 +255,19 @@ DESIGN:
 )
 logger.info("FastMCP instance created")
 
+# MCP Bridge: proxy upstream servers via MCP_BRIDGE_URLS (comma-separated)
+_bridge_proxies = []
+bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
+if bridge_urls:
+    for url in bridge_urls.split(","):
+        url = url.strip()
+        if url:
+            try:
+                mcp.add_provider(create_proxy(url))
+                _bridge_proxies.append(url)
+            except Exception:
+                pass
+
 # Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
 _skills_root = Path(__file__).resolve().parent / "skills"
 if _skills_root.is_dir():
@@ -336,7 +305,23 @@ from calibre_mcp.transport import run_server_async  # noqa: E402
 register_prompts(mcp)
 
 # ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
-app = create_app()
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(title="CalibreMCP", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+app.mount("/mcp", create_app())
 
 # Tools registered in main() for stdio. For webapp HTTP mode, MCP_USE_HTTP=false uses direct import.
 
@@ -631,22 +616,12 @@ async def main():
                 setup_logging,
             )
 
-            logger.info("SUCCESS: logging_config imported")
+            logger.debug("SUCCESS: logging_config imported")
 
-            logger.info("Importing CalibreAPIClient...")
-            logger.info("SUCCESS: CalibreAPIClient imported")
-
-            logger.info("Importing CalibreConfig...")
-            logger.info("SUCCESS: CalibreConfig imported")
-
-            logger.info("Importing storage components...")
-            logger.info("SUCCESS: Storage components imported")
-
-            logger.info("Initializing user data database (SQLite for user comments, auth, etc.)...")
             from calibre_mcp.db.user_data import init_user_data_db
 
             init_user_data_db()
-            logger.info("SUCCESS: User data database initialized")
+            logger.debug("User data database initialized")
 
         except Exception as import_error:
             logger.exception(f"CRITICAL: Module import failed: {import_error}")
@@ -655,12 +630,9 @@ async def main():
             ) from import_error
 
         # PHASE 2: Initialize logging with timeout protection
-        logger.info("PHASE 2: Initializing logging system...")
         try:
             log_file_path = Path("logs/calibremcp.log")
-            logger.info(f"Setting up logging to file: {log_file_path}")
 
-            # Add timeout for logging setup (should be fast)
             import asyncio
 
             await asyncio.wait_for(
@@ -669,20 +641,16 @@ async def main():
                 ),
                 timeout=5.0,
             )
-            logger.info("SUCCESS: Logging setup completed")
 
-        except asyncio.TimeoutError:
-            logger.warning("WARNING: Logging setup timed out, continuing with basic logging")
+        except TimeoutError:
+            logger.warning("Logging setup timed out, continuing with basic logging")
         except Exception as log_error:
-            logger.exception(f"ERROR: Logging setup failed: {log_error}")
-            # Continue with basic logging
+            logger.exception(f"Logging setup failed: {log_error}")
 
         # Get proper logger after setup
         logger = get_logger("calibremcp.server")
-        logger.info("PHASE 2: Logger initialized successfully")
 
         # PHASE 3: Log server startup details
-        logger.info("PHASE 3: Logging startup information...")
         try:
             log_operation(
                 logger,
@@ -693,62 +661,50 @@ async def main():
                 fastmcp_version="3.1+",
                 platform=__import__("platform").platform(),
             )
-            logger.info("SUCCESS: Startup logging completed")
         except Exception as log_op_error:
             logger.exception(f"Startup logging failed: {log_op_error}")
 
         # PHASE 4: Verify MCP instance
-        logger.info("PHASE 4: Verifying MCP instance...")
         try:
             if mcp is None:
-                logger.error("CRITICAL: MCP instance is None - cannot register tools!")
+                logger.error("MCP instance is None - cannot register tools!")
                 raise RuntimeError("MCP instance not initialized")
 
-            logger.info(f"SUCCESS: MCP instance verified: {type(mcp).__name__} (id: {id(mcp)})")
-
         except Exception as mcp_error:
-            logger.exception(f"ERROR: MCP instance verification failed: {mcp_error}")
+            logger.exception(f"MCP instance verification failed: {mcp_error}")
             raise
 
         # PHASE 5: Register tools with comprehensive error handling
-        logger.info("PHASE 5: Registering tools...")
         try:
-            # Add timeout for tool registration (may involve heavy imports)
             import asyncio
 
             async def register_tools_with_timeout():
-                logger.info("Starting tool registration...")
                 from calibre_mcp.tools import register_tools
 
-                logger.info("Tools module imported, calling register_tools...")
                 register_tools(mcp)
-                logger.info("register_tools() completed")
 
             await asyncio.wait_for(register_tools_with_timeout(), timeout=30.0)
-            logger.info("SUCCESS: Tool registration completed")
 
-        except asyncio.TimeoutError:
-            logger.error("CRITICAL: Tool registration timed out after 30 seconds")
-            logger.error("This usually indicates a hanging import in one of the tool modules")
-            logger.error("Check for circular imports or heavy initialization in tool modules")
+        except TimeoutError:
+            logger.exception("CRITICAL: Tool registration timed out after 30 seconds")
+            logger.exception("This usually indicates a hanging import in one of the tool modules")
+            logger.exception("Check for circular imports or heavy initialization in tool modules")
             raise RuntimeError("Tool registration timed out - check for hanging imports")
         except Exception as tool_error:
             logger.exception(f"ERROR: Tool registration failed: {tool_error}")
-            logger.error(f"Tool registration error type: {type(tool_error).__name__}")
+            logger.exception(f"Tool registration error type: {type(tool_error).__name__}")
             raise
 
         # Verify tools were registered
         try:
-            # Check if FastMCP has registered tools
             tool_count = "unknown"
             if hasattr(mcp, "_tools"):
                 tool_count = len(mcp._tools)
 
-            logger.info(f"Tool registration verification: {tool_count} tools found")
             if tool_count == 0:
-                logger.error("CRITICAL: No tools registered! Check tool imports.")
+                logger.error("No tools registered! Check tool imports.")
         except Exception as e:
-            logger.error(f"Could not verify tool count: {e}")
+            logger.exception(f"Could not verify tool count: {e}")
 
         # Restore stdout explicitly for JSON-RPC communication
         import calibre_mcp
@@ -765,44 +721,35 @@ async def main():
                     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
 
         # PHASE 6: Start FastMCP server
-        logger.info("PHASE 6: Starting FastMCP server...")
         try:
-            # Log what we're about to do
-            logger.info("Calling await run_server_async(mcp, server_name='CalibreMCP Phase 2')...")
-            logger.info(f"MCP instance: {type(mcp).__name__}")
-            logger.info(
-                f"MCP lifespan configured: {hasattr(mcp, '_lifespan') and mcp._lifespan is not None}"
-            )
-
-            # Run the FastMCP server using the SOTA-recommended async stdio transport
             await run_server_async(mcp, server_name="CalibreMCP Phase 2")
 
         except Exception as server_error:
             logger.exception("CRITICAL: FastMCP server startup failed")
-            logger.error(f"Server error type: {type(server_error).__name__}")
+            logger.exception(f"Server error type: {type(server_error).__name__}")
             # server_error is already logged by logger.exception
 
             # Log additional diagnostic information
             try:
-                logger.error(f"Platform: {__import__('platform').platform()}")
+                logger.exception(f"Platform: {__import__('platform').platform()}")
 
                 # Check if MCP has tools registered
                 if hasattr(mcp, "_tools"):
                     tool_count = len(mcp._tools)
-                    logger.error(f"MCP tools registered: {tool_count}")
+                    logger.exception(f"MCP tools registered: {tool_count}")
                 else:
-                    logger.error("MCP _tools attribute not found")
+                    logger.exception("MCP _tools attribute not found")
 
             except Exception as diag_error:
-                logger.error(f"Diagnostic logging failed: {diag_error}")
+                logger.exception(f"Diagnostic logging failed: {diag_error}")
 
             raise
 
     except Exception as e:
         # PHASE 7: Global exception handling
         if logger:
-            logger.error("CRITICAL: Unhandled exception in main()")
-            logger.error(f"Exception type: {type(e).__name__}")
+            logger.exception("CRITICAL: Unhandled exception in main()")
+            logger.exception(f"Exception type: {type(e).__name__}")
             logger.error(f"Exception message: {e}", exc_info=True)
 
             # Try to log to file if logging system is available
@@ -810,7 +757,7 @@ async def main():
                 log_error(logger, "server_startup_error", e)
             except Exception:
                 # Last resort logging
-                logger.error(f"CRITICAL ERROR: {e}")
+                logger.exception(f"CRITICAL ERROR: {e}")
         else:
             # No logger available, print to stderr
             # Last resort logging - no logger available

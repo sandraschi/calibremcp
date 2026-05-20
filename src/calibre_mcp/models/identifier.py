@@ -4,7 +4,7 @@ SQLAlchemy and Pydantic models for Identifiers in Calibre MCP.
 
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -53,14 +53,16 @@ class IdentifierBase(BaseModel):
     class Config:
         orm_mode = True
 
-    @validator("type")
+    @field_validator("type")
+    @classmethod
     def validate_type(cls, v):
         """Validate identifier type"""
         if not v or not v.strip():
             raise ValueError("Identifier type cannot be empty")
         return v.lower().strip()
 
-    @validator("val")
+    @field_validator("val")
+    @classmethod
     def validate_val(cls, v):
         """Validate identifier value"""
         if not v or not v.strip():
@@ -79,8 +81,9 @@ class IdentifierUpdate(BaseModel):
 
     val: str | None = Field(None, description="The identifier value")
 
-    @validator("val")
-    def validate_val(cls, v):
+    @field_validator("val")
+    @classmethod
+    def validate_val2(cls, v):
         """Validate identifier value is not empty if provided"""
         if v is not None and not v.strip():
             raise ValueError("Identifier value cannot be empty")

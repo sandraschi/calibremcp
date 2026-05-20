@@ -16,7 +16,7 @@ pip install -e ../../
 ## Run
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 13000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 10720
 ```
 
 ## Startup Behavior
@@ -33,8 +33,8 @@ The libraries cache is automatically updated when libraries are switched via `/a
 ## API Documentation
 
 Once running, visit:
-- Swagger UI: http://localhost:13000/docs
-- ReDoc: http://localhost:13000/redoc
+- Swagger UI: http://localhost:10720/docs
+- ReDoc: http://localhost:10720/redoc
 
 ## Key Endpoints
 
@@ -51,7 +51,7 @@ Once running, visit:
 Create a `.env` file:
 
 ```env
-CORS_ORIGINS=http://localhost:13001
+CORS_ORIGINS=http://localhost:10721
 ```
 
 ## Architecture

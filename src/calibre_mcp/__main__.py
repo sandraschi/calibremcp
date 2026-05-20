@@ -40,6 +40,7 @@ if _is_stdio_transport:
 
 # Standard imports
 import asyncio
+import contextlib
 
 from .server import main
 
@@ -49,10 +50,8 @@ if __name__ == "__main__":
     finally:
         # Restore stderr if we redirected it
         if "_original_stderr" in locals() and sys.stderr != _original_stderr:
-            try:
+            with contextlib.suppress(Exception):
                 sys.stderr.close()
-            except Exception:
-                pass
             sys.stderr = _original_stderr
 
 
@@ -62,8 +61,6 @@ def run():
         asyncio.run(main())
     finally:
         if "_original_stderr" in dir() and sys.stderr != _original_stderr:
-            try:
+            with contextlib.suppress(Exception):
                 sys.stderr.close()
-            except Exception:
-                pass
             sys.stderr = _original_stderr

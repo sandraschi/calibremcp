@@ -15,6 +15,34 @@ from . import system_tools
 
 logger = get_logger("calibremcp.tools.system")
 
+BACKEND_PORT = 10720  # fleet-registered port
+
+
+@mcp.tool()
+async def show_api_docs() -> dict[str, Any]:
+    """
+    Return Swagger UI, ReDoc, and OpenAPI schema URLs for the calibre-mcp REST API.
+
+    Rationale: The calibre-mcp webapp backend exposes a full FastAPI surface with 20+
+    tagged endpoint groups. This tool surfaces the docs URLs so Claude can direct the
+    user to the right place without them needing to remember the port.
+
+    Returns: dict with swagger_ui, redoc, openapi_json URLs and a usage note.
+    """
+    base = f"http://localhost:{BACKEND_PORT}"
+    return {
+        "swagger_ui": f"{base}/docs",
+        "redoc": f"{base}/redoc",
+        "openapi_json": f"{base}/openapi.json",
+        "backend_port": BACKEND_PORT,
+        "webapp_url": "http://localhost:10721/api-docs",
+        "note": (
+            "Open swagger_ui in a browser to explore and interactively test all "
+            "calibre-mcp REST endpoints. The webapp /api-docs page embeds it with "
+            "the fleet dark theme."
+        ),
+    }
+
 
 @mcp.tool()
 async def manage_system(

@@ -8,11 +8,15 @@ This tool implements the security-aware library discovery mechanism that was
 originally attempted in Calibre++ but with proper permission controls.
 """
 
+import contextlib
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
+
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 from ...logging_config import get_logger
 from ...server import mcp
@@ -67,7 +71,7 @@ class LibraryDiscoveryTool:
         try:
             # Try to get library list from Calibre CLI
             result = subprocess.run(
-                [calibre_exe, "--with-library"], capture_output=True, text=True, timeout=10
+                [calibre_exe, "--with-library"], capture_output=True, text=True, timeout=10, creationflags=_NO_WINDOW,
             )
 
             if result.returncode == 0:
@@ -106,6 +110,7 @@ class LibraryDiscoveryTool:
                 capture_output=True,
                 text=True,
                 timeout=30,
+                creationflags=_NO_WINDOW,
             )
 
             if result.returncode == 0 and os.path.exists(temp_path):
@@ -135,15 +140,13 @@ class LibraryDiscoveryTool:
                 except (json.JSONDecodeError, KeyError, UnicodeDecodeError) as e:
                     self.logger.warning(f"Error parsing WizFile results: {e}")
                 finally:
-                    try:
+                    with contextlib.suppress(OSError):
                         os.unlink(temp_path)
-                    except OSError:
-                        pass
 
         except subprocess.TimeoutExpired:
             self.logger.warning("WizFile search timed out")
         except Exception as e:
-            self.logger.error(f"Error using WizFile: {e}")
+            self.logger.exception(f"Error using WizFile: {e}")
 
         return libraries
 

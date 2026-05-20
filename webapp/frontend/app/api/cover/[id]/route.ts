@@ -6,8 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const bookId = parseInt(id, 10);
-  if (isNaN(bookId) || bookId < 1) {
+  const bookId = Number.parseInt(id, 10);
+  if (Number.isNaN(bookId) || bookId < 1) {
     return Response.json({ error: 'Invalid book ID' }, { status: 400 });
   }
 

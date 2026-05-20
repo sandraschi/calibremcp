@@ -3,7 +3,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Book, getBookCoverUrl } from '@/common/api';
+import { Book, getBookCoverUrl, ratingToFiveStarCount } from '@/common/api';
 import { AuthorLinks } from '@/components/authors/author-links';
 import { Calendar, Hash, Star } from 'lucide-react';
 
@@ -52,10 +52,13 @@ function BookItem({ book, onClick }: { book: Book; onClick: () => void }) {
             <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start gap-2">
                     <h3 className="font-semibold text-slate-100 truncate flex-1">{book.title}</h3>
-                    {book.rating && (
+                    {book.rating != null && book.rating > 0 && (
                         <div className="flex items-center gap-1 shrink-0 bg-slate-900/50 px-2 py-0.5 rounded border border-slate-600">
                             <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                            <span className="text-xs font-bold text-slate-200">{book.rating}</span>
+                            <span className="text-xs font-bold text-slate-200">
+                                {ratingToFiveStarCount(book.rating)}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-normal">/5</span>
                         </div>
                     )}
                 </div>

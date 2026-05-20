@@ -107,8 +107,7 @@ class MCPClient:
         self.process: subprocess.Popen | None = None
         self._lock = asyncio.Lock()
         # Use HTTP transport via backend's mounted FastMCP endpoints
-        # FastMCP HTTP is mounted at /mcp on the same backend server (port 13000)
-        # No separate port needed - everything on 13000!
+        # FastMCP HTTP is mounted at /mcp on the same backend server (10720 reservoir; 13000 in Docker).
         self.use_http = os.getenv("MCP_USE_HTTP", "true").lower() == "true"
         backend_url = os.getenv("BACKEND_URL", "http://127.0.0.1:10720")
         self.mcp_url = f"{backend_url}/mcp"

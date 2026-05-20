@@ -137,7 +137,7 @@ class LocalStorage(StorageBackend):
                     books.append(book)
 
         except sqlite3.Error as e:
-            logger.error(f"Database error: {e}")
+            logger.exception(f"Database error: {e}")
             raise
 
         return books
@@ -175,7 +175,7 @@ class LocalStorage(StorageBackend):
                 )
 
         except sqlite3.Error as e:
-            logger.error(f"Database error: {e}")
+            logger.exception(f"Database error: {e}")
             raise
 
     async def get_library_info(self) -> LibraryInfo:
@@ -199,7 +199,7 @@ class LocalStorage(StorageBackend):
                 total_size = cursor.fetchone()[0] or 0
 
         except sqlite3.Error as e:
-            logger.error(f"Failed to get library info: {e}")
+            logger.exception(f"Failed to get library info: {e}")
             raise
 
         return LibraryInfo(

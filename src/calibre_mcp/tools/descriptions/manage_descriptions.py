@@ -66,7 +66,7 @@ async def manage_descriptions(
                 offset=offset,
             )
 
-        elif operation == "get":
+        if operation == "get":
             if book_id is None:
                 return format_error_response(
                     error_msg="book_id is required for operation='get'.",
@@ -81,10 +81,10 @@ async def manage_descriptions(
                 )
             return await get_description_helper(book_id=book_id)
 
-        elif operation == "stats":
+        if operation == "stats":
             return await get_description_stats_helper()
 
-        elif operation == "by_letter":
+        if operation == "by_letter":
             if not letter:
                 return format_error_response(
                     error_msg="letter is required for operation='by_letter'.",
@@ -96,20 +96,19 @@ async def manage_descriptions(
                 )
             return await get_descriptions_by_letter_helper(letter=letter.strip())
 
-        else:
-            return format_error_response(
-                error_msg=f"Invalid operation: '{operation}'. Use: list, get, stats, by_letter.",
-                error_code="INVALID_OPERATION",
-                error_type="ValueError",
-                operation=operation,
-                suggestions=[
-                    "list: List books with description filter/search",
-                    "get: Get description for book",
-                    "stats: Description coverage stats",
-                    "by_letter: Books with descriptions by title letter",
-                ],
-                related_tools=["manage_descriptions", "manage_comments"],
-            )
+        return format_error_response(
+            error_msg=f"Invalid operation: '{operation}'. Use: list, get, stats, by_letter.",
+            error_code="INVALID_OPERATION",
+            error_type="ValueError",
+            operation=operation,
+            suggestions=[
+                "list: List books with description filter/search",
+                "get: Get description for book",
+                "stats: Description coverage stats",
+                "by_letter: Books with descriptions by title letter",
+            ],
+            related_tools=["manage_descriptions", "manage_comments"],
+        )
 
     except Exception as e:
         return handle_tool_error(

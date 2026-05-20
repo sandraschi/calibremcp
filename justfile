@@ -2,33 +2,9 @@ set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
-# Display the SOTA Industrial Dashboard
+# Open the interactive recipe dashboard in the browser
 default:
-    @$lines = Get-Content '{{justfile()}}'; \
-    Write-Host ' [SOTA] Industrial Operations Dashboard v1.3.2' -ForegroundColor White -BackgroundColor Cyan; \
-    Write-Host '' ; \
-    $currentCategory = ''; \
-    foreach ($line in $lines) { \
-        if ($line -match '^# ── ([^─]+) ─') { \
-            $currentCategory = $matches[1].Trim(); \
-            Write-Host "`n  $currentCategory" -ForegroundColor Cyan; \
-            Write-Host ('  ' + ('─' * 45)) -ForegroundColor Gray; \
-        } elseif ($line -match '^# ([^─].+)') { \
-            $desc = $matches[1].Trim(); \
-            $idx = [array]::IndexOf($lines, $line); \
-            if ($idx -lt $lines.Count - 1) { \
-                $nextLine = $lines[$idx + 1]; \
-                if ($nextLine -match '^([a-z0-9-]+):') { \
-                    $recipe = $matches[1]; \
-                    $pad = ' ' * [math]::Max(2, (18 - $recipe.Length)); \
-                    Write-Host "    $recipe" -ForegroundColor White -NoNewline; \
-                    Write-Host "$pad$desc" -ForegroundColor Gray; \
-                } \
-            } \
-        } \
-    } \
-    Write-Host "`n  [System State: PROD/HARDENED]" -ForegroundColor DarkGray; \
-    Write-Host ''
+    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File ../mcp-central-docs/scripts/just-dashboard.ps1 -Path .
 
 # ── Quality ───────────────────────────────────────────────────────────────────
 
@@ -73,6 +49,23 @@ sync:
 # Dev + optional extras (pytest, pre-commit, …)
 sync-dev:
     uv sync --all-extras
+
+# Build webapp frontend for production
+build-webapp:
+    Set-Location '{{justfile_directory()}}\webapp\frontend'
+    npm run build
+
+# Start webapp in production mode (builds first if needed)
+start-webapp:
+    pwsh -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1'
+
+# Start webapp in dev mode (slow, recompiles on request)
+start-webapp-dev:
+    pwsh -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1' -Dev
+
+# Rebuild + start webapp (force rebuild)
+rebuild-webapp:
+    pwsh -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1' -Rebuild
 
 # MCP server (stdio)
 mcp:

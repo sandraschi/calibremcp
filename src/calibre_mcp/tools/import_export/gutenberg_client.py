@@ -58,7 +58,7 @@ async def search_gutenberg(query: str) -> dict[str, Any]:
                 "count": data.get("count", 0),
             }
     except Exception as e:
-        logger.error(f"Gutenberg search failed: {e}")
+        logger.exception(f"Gutenberg search failed: {e}")
         return {"success": False, "error": str(e), "results": [], "count": 0}
 
 
@@ -124,5 +124,5 @@ async def download_gutenberg_book(
                 return path
 
     except Exception as e:
-        logger.error(f"Gutenberg download failed for {book_id}: {e}")
+        logger.exception(f"Gutenberg download failed for {book_id}: {e}")
         return None

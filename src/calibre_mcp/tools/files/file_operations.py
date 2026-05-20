@@ -160,7 +160,7 @@ async def download_book_helper(book_id: int, format_preference: str = "EPUB") ->
         }
 
     except ValueError as ve:
-        logger.error(f"Validation error downloading book: {ve}")
+        logger.exception(f"Validation error downloading book: {ve}")
         raise
     except Exception as e:
         logger.error(f"Error downloading book {book_id}: {e}", exc_info=True)

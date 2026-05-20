@@ -23,6 +23,7 @@ import {
   Sparkles,
   ListChecks,
   GitBranch,
+  Code2,
 } from 'lucide-react';
 
 const navItems = [
@@ -42,6 +43,7 @@ const navItems = [
   { href: '/import', label: 'Import', icon: Upload },
   { href: '/export', label: 'Export', icon: Download },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/api-docs', label: 'API Docs', icon: Code2 },
   { href: '/logs', label: 'Logs', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/help', label: 'Help', icon: HelpCircle },

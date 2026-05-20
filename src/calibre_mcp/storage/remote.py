@@ -101,11 +101,11 @@ class RemoteStorage(StorageBackend):
             raise
         except (aiohttp.ClientConnectionError, aiohttp.ServerTimeoutError) as e:
             # These will be retried by tenacity
-            logger.error(f"Remote storage request failed (will retry): {method} {endpoint} - {e}")
+            logger.exception(f"Remote storage request failed (will retry): {method} {endpoint} - {e}")
             raise
         except aiohttp.ClientError as e:
             # Other client errors will be retried
-            logger.error(f"Remote storage request error (will retry): {method} {endpoint} - {e}")
+            logger.exception(f"Remote storage request error (will retry): {method} {endpoint} - {e}")
             raise
 
     async def list_books(self, **filters) -> list[Book]:
@@ -138,7 +138,7 @@ class RemoteStorage(StorageBackend):
                 for book in data
             ]
         except Exception as e:
-            logger.error(f"Failed to list books: {e}")
+            logger.exception(f"Failed to list books: {e}")
             raise
 
     async def get_book(self, book_id: int | str) -> Book | None:
@@ -161,7 +161,7 @@ class RemoteStorage(StorageBackend):
                 uuid=data.get("uuid", ""),
             )
         except Exception as e:
-            logger.error(f"Failed to get book {book_id}: {e}")
+            logger.exception(f"Failed to get book {book_id}: {e}")
             raise
 
     async def get_library_info(self) -> LibraryInfo:
@@ -181,7 +181,7 @@ class RemoteStorage(StorageBackend):
                 is_local=False,
             )
         except Exception as e:
-            logger.error(f"Failed to get library info: {e}")
+            logger.exception(f"Failed to get library info: {e}")
             raise
 
     async def close(self):

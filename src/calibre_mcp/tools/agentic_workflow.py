@@ -118,7 +118,7 @@ async def intelligent_query_parsing(
         return result
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"Intelligent query parsing failed: {e}", extra={"error": str(e), "query": query}
         )
         return {
@@ -573,7 +573,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                     )
 
             except Exception as e:
-                logger.error(f"Error in organization workflow: {e}")
+                logger.exception(f"Error in organization workflow: {e}")
 
         # Metadata enhancement workflow
         elif any(keyword in prompt_lower for keyword in ["metadata", "enhance", "update", "fix"]):
@@ -601,7 +601,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                 )
 
             except Exception as e:
-                logger.error(f"Error in metadata workflow: {e}")
+                logger.exception(f"Error in metadata workflow: {e}")
 
         # Search and analysis workflow
         elif any(keyword in prompt_lower for keyword in ["search", "find", "analyze", "stats"]):
@@ -633,7 +633,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                     )
 
             except Exception as e:
-                logger.error(f"Error in search workflow: {e}")
+                logger.exception(f"Error in search workflow: {e}")
 
         # Bulk operations workflow
         elif any(keyword in prompt_lower for keyword in ["bulk", "batch", "convert", "export"]):
@@ -648,7 +648,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                 results.append({"operation": "get_supported_formats", "result": formats})
 
             except Exception as e:
-                logger.error(f"Error in bulk workflow: {e}")
+                logger.exception(f"Error in bulk workflow: {e}")
 
         return {"executed": executed, "results": results, "workflow_type": "basic_orchestration"}
 

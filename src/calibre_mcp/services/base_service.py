@@ -2,17 +2,15 @@
 Base service class for all MCP services with concurrency safety.
 """
 
-from collections.abc import Callable
-from typing import Any, Generic, TypeVar
-import asyncio
 import logging
+from collections.abc import Callable
 from contextlib import asynccontextmanager
+from typing import Any, TypeVar
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from ..db.database import DatabaseService
 
@@ -41,7 +39,7 @@ class NotFoundError(ServiceError):
         super().__init__(f"{resource} not found", status_code=404)
 
 
-class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, ResponseSchemaType]):
+class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: BaseModel, ResponseSchemaType: BaseModel]:
     """
     Base service class providing common CRUD operations and utilities.
 
@@ -75,7 +73,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.error(f"Concurrent database operation failed: {e}")
+            logger.exception(f"Concurrent database operation failed: {e}")
             raise ServiceError(f"Database concurrency error: {str(e)}", status_code=500) from e
         finally:
             session.close()
@@ -91,7 +89,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Respons
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.error(f"Locked database operation failed for resource {resource_id}: {e}")
+            logger.exception(f"Locked database operation failed for resource {resource_id}: {e}")
             raise ServiceError(f"Database lock error: {str(e)}", status_code=423) from e
         finally:
             session.close()

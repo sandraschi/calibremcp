@@ -24,6 +24,21 @@ logger = logging.getLogger("calibremcp.rag.metadata_rag")
 
 PROGRESS_FILENAME = ".build_progress.json"
 
+_EMBEDDERS: dict[tuple[str, str], Any] = {}
+
+
+def _get_embedder(model_name: str, cache_dir: str) -> Any:
+    """Return a cached TextEmbedding instance (lazy singleton per model/cache_dir pair).
+
+    Prevents re-downloading/re-initializing the ONNX model on every call.
+    """
+    key = (model_name, cache_dir)
+    if key not in _EMBEDDERS:
+        from fastembed import TextEmbedding
+
+        _EMBEDDERS[key] = TextEmbedding(model_name=model_name, cache_dir=cache_dir)
+    return _EMBEDDERS[key]
+
 
 def _write_progress(
     lancedb_dir: Path, status: str, current: int, total: int, message: str = ""
@@ -112,8 +127,8 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
     'locked room', 'impossible crime', 'unread japanese fiction' etc. work.
     """
     try:
-        import sqlite3
         import os
+        import sqlite3
 
         # Locate calibre_mcp_data.db using same logic as plugin db_adapter
         if os.name == "nt":
@@ -210,7 +225,6 @@ def build_metadata_index(
         Number of books indexed.
     """
     import lancedb
-    from fastembed import TextEmbedding
 
     db_svc = get_database()
     current = db_svc.get_current_path()
@@ -295,7 +309,7 @@ def build_metadata_index(
             "Loading embedding model (first run may download ~130 MB)...",
         )
 
-        embedding = TextEmbedding(model_name=embedding_model, cache_dir=str(lancedb_dir / "cache"))
+        embedding = _get_embedder(embedding_model, str(lancedb_dir / "cache"))
 
         _write_progress(lancedb_dir, "embedding", 0, num_docs, "Embedding")
         batch_size = 100
@@ -335,7 +349,6 @@ def search_metadata(
     Semantic search over book metadata. Returns list of hits with book_id, title, text snippet, score.
     """
     import lancedb
-    from fastembed import TextEmbedding
 
     if metadata_db_path is None:
         db_svc = get_database()
@@ -352,7 +365,7 @@ def search_metadata(
     if table_name not in db.table_names():
         return []
 
-    embedding = TextEmbedding(model_name=embedding_model, cache_dir=str(lancedb_dir / "cache"))
+    embedding = _get_embedder(embedding_model, str(lancedb_dir / "cache"))
     query_vector = list(embedding.embed([query]))[0]
 
     tbl = db.open_table(table_name)

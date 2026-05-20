@@ -3,7 +3,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Book, getBookCoverUrl } from '@/common/api';
+import { Book, getBookCoverUrl, ratingToFiveStarCount } from '@/common/api';
 import { AuthorLinks } from '@/components/authors/author-links';
 
 interface BookCardProps {
@@ -39,9 +39,11 @@ export function BookCard({ book, onClick }: BookCardProps) {
         <p className="text-sm text-slate-400 mb-2">
           <AuthorLinks authors={book.authors ?? []} stopPropagation />
         </p>
-        {book.rating && (
+        {book.rating != null && book.rating > 0 && (
           <div className="flex items-center">
-            <span className="text-yellow-500">{'⭐'.repeat(book.rating)}</span>
+            <span className="text-yellow-500">
+              {'⭐'.repeat(ratingToFiveStarCount(book.rating))}
+            </span>
           </div>
         )}
         {book.tags && book.tags.length > 0 && (

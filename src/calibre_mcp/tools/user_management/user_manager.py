@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 import jwt
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator
 
 try:
     from fastmcp import MCPTool
@@ -40,7 +40,8 @@ class UserCreate(BaseModel):
     full_name: str | None = None
     is_active: bool = True
 
-    @validator("password")
+    @field_validator("password")
+    @classmethod
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
@@ -60,7 +61,8 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     is_active: bool | None = None
 
-    @validator("password")
+    @field_validator("password")
+    @classmethod
     def validate_password(cls, v):
         if v is not None and len(v) < 8:
             raise ValueError("Password must be at least 8 characters")

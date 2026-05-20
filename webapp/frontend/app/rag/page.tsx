@@ -10,6 +10,7 @@ import {
   ragRetrieve,
   ragSynopsis,
   ragResearchBook,
+  ratingToFiveStarCount,
   type RagMetadataSearchHit,
   type RagPassageHit,
   type RagResearchResult,
@@ -86,6 +87,19 @@ export default function RagPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  // Deep links from book modal: /rag?mode=research|synopsis|metadata|passages&bookId=&query=
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const m = params.get('mode');
+    const bid = params.get('bookId');
+    const q = params.get('query');
+    const modes: SearchMode[] = ['metadata', 'passages', 'synopsis', 'research'];
+    if (m && (modes as string[]).includes(m)) setMode(m as SearchMode);
+    if (bid != null && /^\d+$/.test(bid.trim())) setBookId(bid.trim());
+    if (q != null && q.length > 0) setQuery(q);
+  }, []);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -439,8 +453,13 @@ export default function RagPage() {
           {/* Local data badges */}
           {researchResult.local_data && (
             <div className="flex flex-wrap gap-2 text-xs text-slate-400">
-              {researchResult.local_data.rating && (
-                <span>Your rating: {'★'.repeat(researchResult.local_data.rating)}{'☆'.repeat(5 - researchResult.local_data.rating)}</span>
+              {researchResult.local_data.rating != null &&
+                researchResult.local_data.rating > 0 && (
+                <span>
+                  Your rating:{' '}
+                  {'★'.repeat(ratingToFiveStarCount(researchResult.local_data.rating))}
+                  {'☆'.repeat(5 - ratingToFiveStarCount(researchResult.local_data.rating))}
+                </span>
               )}
               {researchResult.local_data.series && (
                 <span>Series: {researchResult.local_data.series}</span>

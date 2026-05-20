@@ -3,6 +3,7 @@ Comic viewer module for CalibreMCP - Handles CBZ and CBR formats.
 """
 
 import base64
+import contextlib
 import os
 import re
 import zipfile
@@ -196,10 +197,8 @@ class ComicViewer:
     def close(self) -> None:
         """Clean up resources."""
         if self._archive:
-            try:
+            with contextlib.suppress(OSError):
                 self._archive.close()
-            except OSError:
-                pass
             self._archive = None
         self._file_list = []
         self._metadata = {}

@@ -43,6 +43,14 @@ export interface Book {
   snippet?: string;
 }
 
+/** Calibre stores `rating` on a 0–10 scale; five-star UI uses half steps (same as book modal). */
+export function ratingToFiveStarCount(
+  rating: number | undefined | null
+): number {
+  if (rating == null || rating <= 0) return 0;
+  return Math.min(5, Math.max(0, Math.round(rating / 2)));
+}
+
 export interface BookListResponse {
   items: Book[];
   total: number;
@@ -91,6 +99,40 @@ export async function getBook(id: number): Promise<Book> {
   const response = await fetch(`${getBaseUrl()}/api/books/${id}`);
   if (!response.ok) throw new Error('Failed to fetch book');
   return response.json();
+}
+
+export type FetchBookMetadataOnlineResult = {
+  success: boolean;
+  message?: string;
+  warning?: string;
+  error?: string;
+};
+
+/** Calibre-style “Download metadata” for an existing book (local library + Calibre CLI on PATH). */
+export async function fetchBookMetadataOnline(
+  bookId: number,
+  options?: { includeCover?: boolean },
+): Promise<FetchBookMetadataOnlineResult> {
+  const include_cover = options?.includeCover !== false;
+  const response = await fetch(`${getBaseUrl()}/api/books/${bookId}/fetch-metadata`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ include_cover }),
+  });
+  const data = (await response.json().catch(() => ({}))) as FetchBookMetadataOnlineResult & {
+    detail?: string | { msg?: string }[];
+  };
+  if (!response.ok) {
+    const detail = data.detail;
+    const msg =
+      typeof detail === 'string'
+        ? detail
+        : Array.isArray(detail)
+          ? detail.map((d) => d.msg ?? '').join('; ')
+          : 'Metadata download failed';
+    return { success: false, error: msg || `HTTP ${response.status}` };
+  }
+  return data;
 }
 
 export async function openBookViewer(bookId: number): Promise<void> {

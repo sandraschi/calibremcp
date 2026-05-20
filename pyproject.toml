@@ -43,7 +43,7 @@ dependencies = [
     "lancedb>=0.17.0",
     "fastembed>=0.4.0",
     "lxml>=5.1.0", # Robust XML parsing for arXiv Atom feed
-    "prefab-ui>=0.14.0", # MCP Apps (Prefab) — required for show_*_prefab_card tools
+    "prefab-ui>=0.18.0", # MCP Apps (Prefab) — required for show_*_prefab_card tools
 ]
 
 [project.optional-dependencies]

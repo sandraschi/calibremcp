@@ -181,10 +181,9 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                     raise ValidationError(
                         f"A library with name '{library_data.name}' already exists"
                     )
-                else:
-                    raise ValidationError(
-                        f"A library with path '{library_data.path}' already exists"
-                    )
+                raise ValidationError(
+                    f"A library with path '{library_data.path}' already exists"
+                )
 
             # Create new library
             library = Library(
@@ -217,10 +216,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             NotFoundError: If the library is not found
             ValidationError: If the update data is invalid
         """
-        if isinstance(library_data, dict):
-            update_data = library_data
-        else:
-            update_data = library_data.dict(exclude_unset=True)
+        update_data = library_data if isinstance(library_data, dict) else library_data.dict(exclude_unset=True)
 
         with self._get_db_session() as session:
             # Get the existing library
@@ -248,8 +244,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                 if existing:
                     if existing.name.lower() == name.lower():
                         raise ValidationError(f"A library with name '{name}' already exists")
-                    else:
-                        raise ValidationError(f"A library with path '{path}' already exists")
+                    raise ValidationError(f"A library with path '{path}' already exists")
 
             # Update fields
             for field, value in update_data.items():
@@ -375,27 +370,26 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                         for book in recent_books
                     ],
                 }
-            else:
-                # Get stats for all libraries
-                libraries = session.query(Library).all()
+            # Get stats for all libraries
+            libraries = session.query(Library).all()
 
-                all_stats = []
-                for lib in libraries:
-                    # For each library, get basic stats
-                    stats = {
-                        "library_id": lib.id,
-                        "library_name": lib.name,
-                        "total_books": len(lib.books) if hasattr(lib, "books") else 0,
-                        "is_active": lib.is_active,
-                        "created_at": lib.created_at.isoformat() if lib.created_at else None,
-                    }
-                    all_stats.append(stats)
-
-                return {
-                    "total_libraries": len(all_stats),
-                    "active_libraries": sum(1 for lib in all_stats if lib["is_active"]),
-                    "libraries": all_stats,
+            all_stats = []
+            for lib in libraries:
+                # For each library, get basic stats
+                stats = {
+                    "library_id": lib.id,
+                    "library_name": lib.name,
+                    "total_books": len(lib.books) if hasattr(lib, "books") else 0,
+                    "is_active": lib.is_active,
+                    "created_at": lib.created_at.isoformat() if lib.created_at else None,
                 }
+                all_stats.append(stats)
+
+            return {
+                "total_libraries": len(all_stats),
+                "active_libraries": sum(1 for lib in all_stats if lib["is_active"]),
+                "libraries": all_stats,
+            }
 
     def search_across_library(
         self, library_id: int, query: str, limit: int = 50, offset: int = 0
@@ -485,7 +479,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                     )
 
         # Build response
-        response = {
+        return {
             "id": library.id,
             "name": library.name,
             "path": library.path,
@@ -499,7 +493,6 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             "updated_at": library.updated_at.isoformat() if library.updated_at else None,
         }
 
-        return response
 
     def get_library_health(self) -> dict[str, Any]:
         """Get library health information."""

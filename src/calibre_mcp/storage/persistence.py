@@ -162,7 +162,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(USER_PREFS_KEY)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             return {}
         except Exception:
@@ -190,7 +190,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(key)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             return {}
         except Exception:
@@ -246,7 +246,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(key)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             return None
         except Exception:
@@ -264,7 +264,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(SEARCH_PREFS_KEY)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             return {}
         except Exception:
@@ -320,7 +320,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(SEARCH_HISTORY_KEY)
             if isinstance(value, list):
                 return value[:limit]
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)[:limit]
             return []
         except Exception:
@@ -350,7 +350,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(key)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             return None
         except Exception:
@@ -400,7 +400,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(VIEWER_PREFS_KEY)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             # Default preferences
             return {
@@ -441,7 +441,7 @@ class CalibreMCPStorage:
             value = await self._storage.get(FAVORITES_KEY)
             if isinstance(value, dict):
                 return value
-            elif isinstance(value, str):
+            if isinstance(value, str):
                 return json.loads(value)
             return {"authors": [], "tags": [], "series": [], "books": []}
         except Exception:

@@ -1,14 +1,25 @@
 """Book API endpoints."""
 
+import asyncio
 from pathlib import Path
 
 from fastapi import APIRouter, Body, HTTPException, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 from ..mcp.client import mcp_client
 from ..utils.errors import handle_mcp_error
 
 router = APIRouter()
+
+
+class FetchOnlineMetadataBody(BaseModel):
+    """Options for Calibre-style online metadata download."""
+
+    include_cover: bool = Field(
+        default=True,
+        description="If true, also download cover art when the metadata tool provides one.",
+    )
 
 
 @router.get("/{book_id}/cover")
@@ -182,6 +193,34 @@ async def get_book_details(book_id: int):
         return result
     except Exception as e:
         raise handle_mcp_error(e)
+
+
+@router.post("/{book_id}/fetch-metadata")
+async def fetch_book_metadata_online(
+    book_id: int,
+    body: FetchOnlineMetadataBody | None = Body(None),
+):
+    """Download metadata from Calibre online sources and apply to this book (local library only).
+
+    Runs ``fetch-ebook-metadata`` then ``calibredb set_metadata``, equivalent to Calibre's
+    *Edit metadata → Download metadata*. Requires Calibre CLI tools on PATH and an unlocked
+    local library (close the main Calibre app if it holds the database lock).
+    """
+    from calibre_mcp.services.online_metadata import apply_online_metadata_for_book
+
+    include_cover = body.include_cover if body is not None else True
+    try:
+        result = await asyncio.to_thread(
+            apply_online_metadata_for_book,
+            book_id,
+            include_cover=include_cover,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Metadata download failed"))
+    return result
 
 
 @router.post("/")

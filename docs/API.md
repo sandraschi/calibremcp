@@ -722,7 +722,7 @@ All MCP tools return valid responses even on errors:
 
 ## Webapp HTTP API
 
-The Calibre webapp backend exposes REST endpoints (port 13000). See [webapp/README.md](../webapp/README.md).
+The Calibre webapp backend exposes REST endpoints (reservoir port **10720**). See [webapp/README.md](../webapp/README.md).
 
 ### **LLM / AI Endpoints**
 

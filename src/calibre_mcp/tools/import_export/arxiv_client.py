@@ -4,8 +4,8 @@ Queries the arXiv API (Atom feed) for search and direct PDF acquisition.
 """
 
 import asyncio
-import tempfile
 import re
+import tempfile
 from typing import Any
 
 import httpx
@@ -94,9 +94,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
                 pdf_url = ""
                 abs_url = entry_id_full
                 for link in entry.find_all("link"):
-                    if link.get("title") == "pdf":
-                        pdf_url = link.get("href")
-                    elif link.get("type") == "application/pdf":
+                    if link.get("title") == "pdf" or link.get("type") == "application/pdf":
                         pdf_url = link.get("href")
                 
                 # Ensure PDF link is HTTPS
@@ -124,7 +122,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
             }
             
     except Exception as e:
-        logger.error(f"arXiv search failed: {e}")
+        logger.exception(f"arXiv search failed: {e}")
         return {"success": False, "error": str(e), "results": [], "count": 0}
 
 async def download_arxiv_paper(arxiv_id_or_url: str) -> str | None:
@@ -164,5 +162,5 @@ async def download_arxiv_paper(arxiv_id_or_url: str) -> str | None:
             return path
             
     except Exception as e:
-        logger.error(f"arXiv download failed for {arxiv_id_or_url}: {e}")
+        logger.exception(f"arXiv download failed for {arxiv_id_or_url}: {e}")
         return None

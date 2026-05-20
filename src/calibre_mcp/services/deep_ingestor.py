@@ -100,7 +100,7 @@ class DeepIngestor:
                     "error": f"Unsupported format for deep ingestion: {path.suffix}",
                 }
         except Exception as e:
-            logger.error(f"Failed to parse {file_path}: {e}")
+            logger.exception(f"Failed to parse {file_path}: {e}")
             return {"status": "error", "error": str(e)}
 
         documents = []
@@ -137,5 +137,5 @@ class DeepIngestor:
                 "message": f"Ingested {len(documents)} chunks",
             }
         except Exception as e:
-            logger.error(f"Failed to ingest fulltext chunks: {e}")
+            logger.exception(f"Failed to ingest fulltext chunks: {e}")
             return {"status": "error", "error": str(e)}

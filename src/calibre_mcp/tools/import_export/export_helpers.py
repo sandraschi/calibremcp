@@ -11,11 +11,14 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 from ...logging_config import get_logger
 from ...services.book_service import book_service
@@ -48,9 +51,9 @@ def _open_file_with_app(file_path: Path) -> bool:
         if system == "Windows":
             os.startfile(file_path_str)
         elif system == "Darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=False)
+            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
         else:  # Linux and others
-            subprocess.run(["xdg-open", file_path_str], check=False)
+            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
 
         logger.info(f"Opened file with default application: {file_path}")
         return True
@@ -117,35 +120,34 @@ def _get_books_for_export(
             except Exception as e:
                 logger.warning(f"Could not retrieve book {book_id}: {e}")
         return books
-    else:
-        filters = {}
-        if author:
-            filters["author_name"] = author
-        if tag:
-            filters["tag_name"] = tag
+    filters = {}
+    if author:
+        filters["author_name"] = author
+    if tag:
+        filters["tag_name"] = tag
 
-        search_limit = limit if limit > 0 else 10000
-        offset = 0
-        books = []
+    search_limit = limit if limit > 0 else 10000
+    offset = 0
+    books = []
 
-        while True:
-            result = book_service.get_all(skip=offset, limit=min(search_limit, 1000), **filters)
+    while True:
+        result = book_service.get_all(skip=offset, limit=min(search_limit, 1000), **filters)
 
-            items = result.get("items", [])
-            if not items:
-                break
+        items = result.get("items", [])
+        if not items:
+            break
 
-            books.extend(items)
-            offset += len(items)
+        books.extend(items)
+        offset += len(items)
 
-            if limit > 0 and len(books) >= limit:
-                books = books[:limit]
-                break
+        if limit > 0 and len(books) >= limit:
+            books = books[:limit]
+            break
 
-            if len(items) < 1000:
-                break
+        if len(items) < 1000:
+            break
 
-        return books
+    return books
 
 
 def _get_library_stats_for_export(
@@ -282,11 +284,7 @@ async def export_csv_helper(
             for field in fields_to_include:
                 value = book.get(field, "")
 
-                if field == "authors" and isinstance(value, list):
-                    value = ", ".join(value)
-                elif field == "tags" and isinstance(value, list):
-                    value = ", ".join(value)
-                elif field == "formats" and isinstance(value, list):
+                if field == "authors" and isinstance(value, list) or field == "tags" and isinstance(value, list) or field == "formats" and isinstance(value, list):
                     value = ", ".join(value)
                 elif field == "series" and isinstance(value, dict):
                     value = value.get("name", "") if value else ""
@@ -886,6 +884,7 @@ async def export_pandoc_helper(
                 capture_output=True,
                 text=True,
                 timeout=300,
+                creationflags=_NO_WINDOW,
             )
 
             if result.returncode != 0:

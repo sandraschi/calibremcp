@@ -438,7 +438,7 @@ async def media_research_book(
 
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
 
-    for key, result in zip(tasks.keys(), results):
+    for key, result in zip(tasks.keys(), results, strict=False):
         if isinstance(result, Exception):
             logger.warning("Source %s failed: %s", key, result)
             failed.append(key)
@@ -627,7 +627,7 @@ async def media_synopsis(
                 "error": "This tool requires a client that supports MCP sampling (e.g., Claude Desktop, Cursor).",
             }
 
-        from calibre_mcp.tools.portmanteau.search import calibre_rag, _get_vector_store
+        from calibre_mcp.tools.portmanteau.search import _get_vector_store, calibre_rag
 
         logger.info(f"Retrieving full-text chunks for '{title}' (ID: {book_id})")
         results = await calibre_rag(

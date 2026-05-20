@@ -10,7 +10,7 @@ RUN npm ci
 
 COPY webapp/frontend ./
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:13000
+ARG NEXT_PUBLIC_API_URL=http://localhost:10720
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN npm run build
