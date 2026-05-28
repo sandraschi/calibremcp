@@ -9,7 +9,7 @@ $WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
 # ------------------------------
 
 $env:FASTMCP_LOG_LEVEL = 'WARNING'
-# schip-mcp-calibre Start - Standards-Compliant SOTA
-Write-Host 'Starting schip-mcp-calibre...' -ForegroundColor Cyan
+# calibremcp Start - Standards-Compliant SOTA
+Write-Host 'Starting calibremcp...' -ForegroundColor Cyan
 
-uv run -m schip_mcp_calibre
+uv run calibremcp
