@@ -22,6 +22,8 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $FrontendDir = "$PSScriptRoot\frontend"
 Stop-FleetPortSquatters -Ports @($WebPort, $BackendPort) -Label "calibre-mcp"
 
+if (-not (Assert-FleetPortsAvailable -Ports @($WebPort, $BackendPort) -Label "calibre-mcp")) { exit 1 }
+
 # 2. Start backend (immediately, so it's visible while build runs)
 Write-Host "Starting backend on port $BackendPort..." -ForegroundColor Cyan
 $reloadFlag = if ($Dev) { '--reload' } else { '' }
@@ -82,5 +84,6 @@ Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "
 
 Set-Location $FrontendDir
 if ($Dev) { npm run dev } else { npm run start }
+
 
 

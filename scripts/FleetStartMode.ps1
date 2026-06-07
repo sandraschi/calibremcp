@@ -1,7 +1,8 @@
 ﻿# FleetStartMode.ps1 - vendored per-repo copy (no mcp-central-docs required at runtime)
-# Canonical upstream: sandraschi/mcp-central-docs standards/FleetStartMode.ps1 (private fleet docs)
-
+# Canonical upstream: mcp-central-docs standards/FleetStartMode.ps1
 # FleetStartMode.ps1 - shared launch modes for webapp/start.ps1 launchers
+# Vendored per-repo under scripts/FleetStartMode.ps1 (no mcp-central-docs runtime path).
+# Port clearing uses per-port netstat+findstr (fast); never Get-NetTCPConnection or global python scan.
 
 function Initialize-FleetStartMode {
     param(
@@ -21,10 +22,10 @@ function Initialize-FleetStartMode {
     $skipBrowser = $NoBrowser -or $Headless -or $BackendOnly
 
     return [pscustomobject]@{
-        RunBackend   = $runBackend
-        RunFrontend  = $runFrontend
-        SkipBrowser  = $skipBrowser
-        WindowStyle  = if ($Headless) { "Hidden" } else { "Normal" }
+        RunBackend  = $runBackend
+        RunFrontend = $runFrontend
+        SkipBrowser = $skipBrowser
+        WindowStyle = if ($Headless) { "Hidden" } else { "Normal" }
     }
 }
 
@@ -39,30 +40,24 @@ function Enter-FleetHeadlessConsole {
             '-NoProfile', '-File', $PSCommandPath,
             '-Headless', '-BackendOnly'
         )
-        Start-Process pwsh -ArgumentList $spawnArgs -WindowStyle Hidden
+        Start-Process powershell.exe -ArgumentList $spawnArgs -WindowStyle Hidden
         exit
     }
 }
 
 function Get-FleetPortListenerPids {
-    param(
-        [Parameter(Mandatory)][int]$Port,
-        [string[]]$NetstatLines = $null
-    )
-
-    if ($null -eq $NetstatLines) {
-        $NetstatLines = @(netstat -ano)
-    }
+    param([Parameter(Mandatory)][int]$Port)
 
     $pids = [System.Collections.Generic.HashSet[int]]::new()
-    $portToken = ":$Port"
-    foreach ($line in $NetstatLines) {
-        if ($line -notmatch 'LISTENING') { continue }
-        if ($line -notmatch [regex]::Escape($portToken)) { continue }
-        $tokens = ($line.Trim() -split '\s+')
-        if ($tokens.Count -lt 5) { continue }
+    $needle = ":$Port"
+    $raw = cmd /c "netstat -ano -p TCP 2>nul | findstr `"$needle`" | findstr LISTENING"
+    if (-not $raw) { return @() }
+    foreach ($line in ($raw -split "`r?`n")) {
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        $parts = ($line.Trim() -split '\s+')
+        if ($parts.Count -lt 5) { continue }
         $procId = 0
-        if ([int]::TryParse($tokens[-1], [ref]$procId) -and $procId -gt 4) {
+        if ([int]::TryParse($parts[-1], [ref]$procId) -and $procId -gt 4) {
             [void]$pids.Add($procId)
         }
     }
@@ -72,10 +67,9 @@ function Get-FleetPortListenerPids {
 function Get-FleetPortsStillListening {
     param([Parameter(Mandatory)][int[]]$Ports)
 
-    $lines = @(netstat -ano)
     $still = @{}
     foreach ($port in @($Ports | Where-Object { $_ -gt 0 } | Sort-Object -Unique)) {
-        $pids = @(Get-FleetPortListenerPids -Port $port -NetstatLines $lines)
+        $pids = @(Get-FleetPortListenerPids -Port $port)
         if ($pids.Count -gt 0) {
             $still[$port] = $pids
         }
@@ -85,45 +79,28 @@ function Get-FleetPortsStillListening {
 
 function Stop-FleetPortSquatters {
     param(
-        [Parameter(Mandatory)]
-        [int[]]$Ports,
+        [Parameter(Mandatory)][int[]]$Ports,
         [string]$Label = "fleet"
     )
 
     $uniquePorts = @($Ports | Where-Object { $_ -gt 0 } | Sort-Object -Unique)
     if ($uniquePorts.Count -eq 0) { return }
 
-    $lines = @(netstat -ano)
-    $needsWork = $false
+    $targetPids = [System.Collections.Generic.HashSet[int]]::new()
     foreach ($port in $uniquePorts) {
-        if (@(Get-FleetPortListenerPids -Port $port -NetstatLines $lines).Count -gt 0) {
-            $needsWork = $true
-            break
+        foreach ($procId in @(Get-FleetPortListenerPids -Port $port)) {
+            [void]$targetPids.Add($procId)
         }
     }
-    if (-not $needsWork) { return }
+    if ($targetPids.Count -eq 0) { return }
 
-    Write-Host "[$Label] Clearing port zombies: $($uniquePorts -join ', ')" -ForegroundColor Yellow
-
-    foreach ($pass in 1..2) {
-        $lines = @(netstat -ano)
-        foreach ($port in $uniquePorts) {
-            foreach ($procId in @(Get-FleetPortListenerPids -Port $port -NetstatLines $lines)) {
-                if ($procId -eq $PID) { continue }
-
-                $alive = $null -ne (Get-Process -Id $procId -ErrorAction SilentlyContinue)
-                if (-not $alive) {
-                    Write-Host "  pass $pass - ghost PID $procId on port $port (stale socket, skip kill)" -ForegroundColor DarkGray
-                    continue
-                }
-
-                Write-Host "  pass $pass - stop PID $procId (port $port)" -ForegroundColor DarkGray
-                Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
-                $null = Start-Process -FilePath "taskkill.exe" -ArgumentList @("/F", "/PID", "$procId") -WindowStyle Hidden -PassThru -ErrorAction SilentlyContinue
-            }
-        }
-        if ($pass -lt 2) { Start-Sleep -Milliseconds 500 }
+    Write-Host "[$Label] Clearing port listeners on $($uniquePorts -join ', ') ..." -ForegroundColor Yellow
+    foreach ($procId in $targetPids) {
+        if ($procId -eq $PID) { continue }
+        Write-Host "  stop PID $procId" -ForegroundColor DarkGray
+        Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
     }
+    Start-Sleep -Milliseconds 200
 }
 
 function Assert-FleetPortsAvailable {
