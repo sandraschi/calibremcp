@@ -1,10 +1,10 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+﻿set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 # Open the interactive recipe dashboard in the browser
 default:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File ../mcp-central-docs/scripts/just-dashboard.ps1 -Path .
+    @just --list
 
 # ── Quality ───────────────────────────────────────────────────────────────────
 
@@ -74,6 +74,9 @@ mcp:
 test:
     uv run pytest
 
+e2e:
+    pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
+
 # Unit tests only (fast)
 test-unit:
     uv run pytest tests/unit -q
@@ -88,3 +91,4 @@ check: lint test
 # MCPB → dist/calibre-mcp.mcpb (requires npm global @anthropic-ai/mcpb)
 mcpb-pack:
     pwsh -NoProfile -File scripts/build-mcpb-package.ps1 -NoSign
+
