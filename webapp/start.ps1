@@ -7,6 +7,7 @@
     [switch]$Rebuild
 )
 
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 $FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
 if (-not (Test-Path -LiteralPath $FleetStartPath)) {
     Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
@@ -18,7 +19,6 @@ Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
 
 $WebPort = 10721
 $BackendPort = 10720
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
 $FrontendDir = "$PSScriptRoot\frontend"
 Stop-FleetPortSquatters -Ports @($WebPort, $BackendPort) -Label "calibre-mcp"
 
