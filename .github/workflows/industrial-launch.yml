@@ -42,7 +42,7 @@ jobs:
           uv build
           # Heritage support for legacy MCPB
           if [ -d "mcpb" ]; then
-            zip -r dist/schip-mcp-calibre.mcpb mcpb/ -x "*.git*"
+            zip -r dist/calibremcp.mcpb mcpb/ -x "*.git*"
           fi
 
       - name: Generate Changelog
@@ -66,7 +66,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "schip-mcp-calibre ${{ github.ref_name }}"
+          name: "calibremcp ${{ github.ref_name }}"
           body: |
             ## 🚀 Industrial Launch: ${{ github.ref_name }}
             
@@ -74,7 +74,7 @@ jobs:
 
             ### ⚡ Quick Start (Zero-Install)
             ```powershell
-            uvx schip-mcp-calibre --serve
+            uvx calibremcp --serve
             ```
 
             ### 📖 What's New
