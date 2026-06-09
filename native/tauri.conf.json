@@ -1,0 +1,46 @@
+{
+  "productName": "Calibre MCP",
+  "version": "1.8.6",
+  "identifier": "ai.fleet.calibre-mcp",
+  "build": {
+    "frontendDist": "../webapp/frontend/out",
+    "devUrl": "http://localhost:10721",
+    "beforeDevCommand": "npm --prefix ../webapp/frontend run dev"
+  },
+  "app": {
+    "windows": [{
+      "title": "Calibre MCP",
+      "width": 1280,
+      "height": 800,
+      "minWidth": 900,
+      "minHeight": 600
+    }],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "resources/calibre-mcp-backend.exe",
+      "resources/install-mcp-clients.ps1"
+    ],
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
+      }
+    }
+  },
+  "plugins": {
+    "shell": { "open": true },
+    "fs": { "requireLiteralLeadingDot": false },
+    "process": { "all": true }
+  }
+}

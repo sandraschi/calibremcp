@@ -1,28 +1,62 @@
-import Link from "next/link";
-import { BookOpen, Search, Library, Users, BookMarked, Tags, MessageSquare } from "lucide-react";
-import { getLibraryStats } from "@/common/api";
+'use client';
 
-export default async function Home() {
-  let stats: { total_books: number; total_authors: number; total_series: number; total_tags: number; library_name: string } | null = null;
-  try {
-    const s = await getLibraryStats();
-    stats = {
-      total_books: s.total_books,
-      total_authors: s.total_authors,
-      total_series: s.total_series,
-      total_tags: s.total_tags,
-      library_name: s.library_name,
+import Link from 'next/link';
+import { BookOpen, Search, Library, Users, BookMarked, Tags, MessageSquare } from 'lucide-react';
+import { getLibraryStats } from '@/common/api';
+import { Suspense, useEffect, useState } from 'react';
+
+function HomePageInner() {
+  const [stats, setStats] = useState<{
+    total_books: number;
+    total_authors: number;
+    total_series: number;
+    total_tags: number;
+    library_name: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getLibraryStats()
+      .then((s) => {
+        if (!cancelled) {
+          setStats({
+            total_books: s.total_books,
+            total_authors: s.total_authors,
+            total_series: s.total_series,
+            total_tags: s.total_tags,
+            library_name: s.library_name,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
     };
-  } catch {
-    stats = null;
-  }
+  }, []);
 
   const cards = [
-    { href: "/books", label: "Books", value: stats?.total_books ?? "—", icon: BookOpen },
-    { href: "/authors", label: "Authors", value: stats?.total_authors ?? "—", icon: Users },
-    { href: "/series", label: "Series", value: stats?.total_series ?? "—", icon: BookMarked },
-    { href: "/tags", label: "Tags", value: stats?.total_tags ?? "—", icon: Tags },
+    { href: '/books', label: 'Books', value: stats?.total_books ?? '—', icon: BookOpen },
+    { href: '/authors', label: 'Authors', value: stats?.total_authors ?? '—', icon: Users },
+    { href: '/series', label: 'Series', value: stats?.total_series ?? '—', icon: BookMarked },
+    { href: '/tags', label: 'Tags', value: stats?.total_tags ?? '—', icon: Tags },
   ];
+
+  if (loading) {
+    return (
+      <main className="min-h-screen">
+        <div className="container mx-auto p-6">
+          <p className="text-slate-400">Loading overview…</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen">
@@ -76,5 +110,13 @@ export default async function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<main className="min-h-screen"><div className="container mx-auto p-6"><p className="text-slate-400">Loading…</p></div></main>}>
+      <HomePageInner />
+    </Suspense>
   );
 }

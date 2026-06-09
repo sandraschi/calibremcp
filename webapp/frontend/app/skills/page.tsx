@@ -1,19 +1,45 @@
+'use client';
+
 import Link from 'next/link';
 import { listSkills } from '@/common/api';
+import { Suspense, useEffect, useState } from 'react';
 
-export default async function SkillsPage() {
-  let skills: { id: string; name: string; prompt: string; resource?: string }[] = [];
-  try {
-    const res = await listSkills();
-    skills = res.skills ?? [];
-  } catch {
-    skills = [
-      { id: 'calibre-expert', name: 'Calibre expert (bundled)', prompt: 'calibre_mcp_guide', resource: 'skill://calibre-expert/SKILL.md' },
-      { id: 'reading_recommendations', name: 'Reading Recommendations', prompt: 'reading_recommendations' },
-      { id: 'library_health', name: 'Library Health', prompt: 'library_health' },
-      { id: 'semantic_search', name: 'Semantic Search (Metadata RAG)', prompt: 'calibre_semantic_search' },
-      { id: 'agentic_workflow', name: 'Agentic Workflow', prompt: 'calibre_mcp_guide' },
-    ];
+const FALLBACK_SKILLS = [
+  { id: 'calibre-expert', name: 'Calibre expert (bundled)', prompt: 'calibre_mcp_guide', resource: 'skill://calibre-expert/SKILL.md' },
+  { id: 'reading_recommendations', name: 'Reading Recommendations', prompt: 'reading_recommendations' },
+  { id: 'library_health', name: 'Library Health', prompt: 'library_health' },
+  { id: 'semantic_search', name: 'Semantic Search (Metadata RAG)', prompt: 'calibre_semantic_search' },
+  { id: 'agentic_workflow', name: 'Agentic Workflow', prompt: 'calibre_mcp_guide' },
+];
+
+function SkillsPageInner() {
+  const [skills, setSkills] = useState<{ id: string; name: string; prompt: string; resource?: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    listSkills()
+      .then((res) => {
+        if (!cancelled) setSkills(res.skills ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setSkills(FALLBACK_SKILLS);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <p className="text-slate-400">Loading skills…</p>
+      </div>
+    );
   }
 
   return (
@@ -50,5 +76,13 @@ export default async function SkillsPage() {
         For agentic tool chaining and sampling, see the <Link href="/agentic" className="text-amber hover:underline">Agentic</Link> page.
       </p>
     </div>
+  );
+}
+
+export default function SkillsPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-6"><p className="text-slate-400">Loading…</p></div>}>
+      <SkillsPageInner />
+    </Suspense>
   );
 }

@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { searchBooks, type Book } from '@/common/api';
 import { BookGrid } from '@/components/books/book-grid';
 import { SearchBar } from '@/components/search/search-bar';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function buildSearchPageUrl(
   base: string,
@@ -19,40 +23,54 @@ function buildSearchPageUrl(
   return q ? `${base}?${q}` : base;
 }
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ 
-    query?: string; 
-    author?: string; 
-    tag?: string; 
-    min_rating?: string;
-    fulltext?: string;
-    page?: string;
-  }>;
-}) {
-  const params = await searchParams;
-  const page = Math.max(1, parseInt(params.page || '1'));
+function SearchPageInner() {
+  const searchParams = useSearchParams();
+  const query = searchParams?.get('query') ?? undefined;
+  const author = searchParams?.get('author') ?? undefined;
+  const tag = searchParams?.get('tag') ?? undefined;
+  const minRating = searchParams?.get('min_rating') ?? undefined;
+  const fulltextParam = searchParams?.get('fulltext') ?? undefined;
+  const page = Math.max(1, Number.parseInt(searchParams?.get('page') ?? '1', 10));
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  const fulltextMode = params.fulltext === '1' && params.query?.trim();
-  const hasSearchParams = fulltextMode || params.query || params.author || params.tag || params.min_rating;
+  const fulltextMode = fulltextParam === '1' && query?.trim();
+  const hasSearchParams = Boolean(fulltextMode || query || author || tag || minRating);
 
-  let data: { items?: Book[]; total?: number };
-  if (hasSearchParams) {
-    data = await searchBooks({
-      query: params.query,
-      author: fulltextMode ? undefined : params.author,
-      tag: fulltextMode ? undefined : params.tag,
-      min_rating: fulltextMode ? undefined : (params.min_rating ? parseInt(params.min_rating) : undefined),
+  const [data, setData] = useState<{ items?: Book[]; total?: number }>({ items: [], total: 0 });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!hasSearchParams) {
+      setData({ items: [], total: 0 });
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    searchBooks({
+      query,
+      author: fulltextMode ? undefined : author,
+      tag: fulltextMode ? undefined : tag,
+      min_rating: fulltextMode ? undefined : (minRating ? Number.parseInt(minRating, 10) : undefined),
       fulltext: Boolean(fulltextMode),
       limit,
       offset,
-    });
-  } else {
-    data = { items: [], total: 0 };
-  }
+    })
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
+      .catch(() => {
+        if (!cancelled) setData({ items: [], total: 0 });
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [query, author, tag, minRating, fulltextMode, hasSearchParams, limit, offset]);
 
   const total = data.total ?? 0;
   const totalPages = Math.ceil(total / limit);
@@ -60,18 +78,26 @@ export default async function SearchPage({
   const hasNext = page < totalPages;
   const base = '/search';
 
+  const params = { query, author, tag, min_rating: minRating, fulltext: fulltextParam === '1' ? '1' : undefined };
+
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-slate-100">Search Books</h1>
-      <SearchBar 
-        initialQuery={params.query}
-        initialAuthor={params.author}
-        initialTag={params.tag}
-        initialMinRating={params.min_rating}
-        initialFulltext={params.fulltext === '1'}
+      <SearchBar
+        initialQuery={query}
+        initialAuthor={author}
+        initialTag={tag}
+        initialMinRating={minRating}
+        initialFulltext={fulltextParam === '1'}
       />
-      
-      {hasSearchParams && (
+
+      {hasSearchParams && loading && (
+        <div className="mt-6 text-center text-slate-400">
+          <p>Searching…</p>
+        </div>
+      )}
+
+      {hasSearchParams && !loading && (
         <>
           {data.items && data.items.length > 0 ? (
             <>
@@ -118,12 +144,20 @@ export default async function SearchPage({
           )}
         </>
       )}
-      
+
       {!hasSearchParams && (
         <div className="mt-6 text-center text-slate-400">
           <p>Enter search criteria above to find books.</p>
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-6"><p className="text-slate-400">Loading…</p></div>}>
+      <SearchPageInner />
+    </Suspense>
   );
 }

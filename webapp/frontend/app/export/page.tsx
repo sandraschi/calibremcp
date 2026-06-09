@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getBaseUrl } from '@/common/api';
 
 export default function ExportPage() {
   const [format, setFormat] = useState<'csv' | 'json'>('csv');
@@ -15,7 +16,10 @@ export default function ExportPage() {
     setLoading(true);
     setResult(null);
     try {
-      const endpoint = format === 'csv' ? '/api/export/csv' : '/api/export/json';
+      const endpoint =
+        format === 'csv'
+          ? `${getBaseUrl()}/api/export/csv`
+          : `${getBaseUrl()}/api/export/json`;
       const body: Record<string, unknown> = {
         limit,
         open_file: false,

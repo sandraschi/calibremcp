@@ -9,23 +9,22 @@
 </p>
 
 
-> 📖 **[Installation Guide](INSTALL.md)** — quick start, manual setup, and troubleshooting
+> 📖 **[Installation Guide](INSTALL.md)** — download the `.exe` from Releases, double-click, done
 
 **FastMCP 3.2 MCP server for Calibre e-book library management — AI-assisted search, RAG, and agentic workflows for Sandra's 1000+ book library.**
 
 ## Quick Start
 
+Download **`Calibre MCP_*_x64-setup.exe`** from [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest) → double-click → launch **Calibre MCP**. [Install guide](INSTALL.md).
+
+Developers from source:
+
 ```powershell
 git clone https://github.com/sandraschi/calibre-mcp
 cd calibre-mcp
-just
+just sync
+just start-webapp
 ```
-
-This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` or `just dev` to start.
-
-### Manual Setup
-
-If you don't have `just` installed:
 // claude_desktop_config.json
 {
 "mcpServers": {

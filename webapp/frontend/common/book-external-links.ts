@@ -49,19 +49,34 @@ function tvTropesLiteratureSlug(title: string): string {
     .join('');
 }
 
+/** Fleet **tvtropes-mcp** webapp (local mirror UI). See tvtropes-mcp/docs/CROSS_MCP.md. */
+export function tvtropesMcpWebappBase(): string {
+  const raw =
+    typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_TVTROPES_MCP_URL?.trim() : '';
+  if (!raw || raw === '0' || raw.toLowerCase() === 'false') return '';
+  return raw || 'http://127.0.0.1:10965';
+}
+
+/** Deep-link into tvtropes-mcp: `/?lookup=Literature/HarryPotter` (cached mirror, not tvtropes.org). */
+export function tvtropesMcpLookupHref(namespace: string, pageName: string): string {
+  const base = tvtropesMcpWebappBase().replace(/\/$/, '');
+  const ns = namespace.replace(/^\/+|\/+$/g, '');
+  const page = pageName.replace(/^\/+|\/+$/g, '');
+  return `${base}/?lookup=${ns}/${page}`;
+}
+
+/** Parse `Literature/Slug` from a tvtropes.org pmwiki URL if present. */
+function parseTvtropesLookupPath(url: string): string | null {
+  const m = url.match(/pmwiki\.php\/([^?#]+)/i);
+  if (!m) return null;
+  return decodeURIComponent(m[1].replace(/^\//, ''));
+}
+
 /**
- * Wrap a direct `https://tvtropes.org/...` URL for **human** opens when your fleet uses a
- * reader / reverse proxy (e.g. internal “BrightHand” gateway) so the browser never hits
- * TV Tropes’ edge protections directly.
+ * Wrap a direct `https://tvtropes.org/...` URL for **human** opens when you still need the live site
+ * (optional; prefer {@link tvtropesMcpLookupHref} via fleet **tvtropes-mcp**).
  *
- * Set **`NEXT_PUBLIC_TVTROPES_VIA`** in the webapp env (rebuild after change):
- *
- * - **Template:** `https://brighthand.internal/read?target={url}` — `{url}` is replaced with
- *   `encodeURIComponent(directTvTropesUrl)`.
- * - **Prefix ending in `=` or `?`:** value is concatenated with the encoded URL, e.g.
- *   `https://proxy.example/go?u=` → `...go?u=https%3A%2F%2Ftvtropes.org%2F...`
- * - **Plain host with path, no `?`:** appends `?u=` + encoded URL (change param by using `{url}` template).
- * - **Jina reader:** `jina:` or `jina:https://r.jina.ai` → `https://r.jina.ai/https://tvtropes.org/...`
+ * Set **`NEXT_PUBLIC_TVTROPES_VIA`** only when you must proxy raw tvtropes.org (legacy).
  */
 export function wrapTvTropesUserUrl(directTvTropesUrl: string): string {
   const raw =
@@ -87,7 +102,12 @@ export function wrapTvTropesUserUrl(directTvTropesUrl: string): string {
   return `${raw}${raw.includes('?') ? '&' : '?'}u=${encodeURIComponent(directTvTropesUrl)}`;
 }
 
-/** True when `NEXT_PUBLIC_TVTROPES_VIA` is set (Next inlines this at build time). */
+/** True when fleet tvtropes-mcp webapp links are enabled (default port 10965). */
+export function isTvTropesFleetMirrorEnabled(): boolean {
+  return Boolean(tvtropesMcpWebappBase());
+}
+
+/** True when `NEXT_PUBLIC_TVTROPES_VIA` is set (legacy raw-site proxy). */
 export function isTvTropesViaConfigured(): boolean {
   return Boolean(
     typeof process !== 'undefined' && process.env.NEXT_PUBLIC_TVTROPES_VIA?.trim(),
@@ -211,17 +231,49 @@ export function buildBookExternalLinks(book: {
     push('Saved URL', url.trim());
   }
 
-  // --- TV Tropes (optional gateway via NEXT_PUBLIC_TVTROPES_VIA; Google search needs no proxy) ---
+  // --- TV Tropes: prefer fleet **tvtropes-mcp** mirror (10965); avoid raw tvtropes.org in browser ---
+  const tropesFleetBase = tvtropesMcpWebappBase();
   const tropesId = id.tvtropes ?? id['tv tropes'] ?? id.tvtropesorg ?? id['tv tropes org'];
-  if (tropesId) {
+  if (tropesFleetBase && tropesId) {
     let d = tropesId.trim();
     if (!isHttpUrl(d)) {
       if (d.startsWith('//')) d = `https:${d}`;
       else if (d.startsWith('/')) d = `https://tvtropes.org${d}`;
       else if (/pmwiki\.php/i.test(d)) d = `https://tvtropes.org/${d.replace(/^\/+/, '')}`;
+      else if (d.includes('/')) {
+        const slash = d.indexOf('/');
+        push(
+          'TV Tropes (fleet mirror)',
+          tvtropesMcpLookupHref(d.slice(0, slash), d.slice(slash + 1)),
+        );
+      } else {
+        const slug = tvTropesLiteratureSlug(d) || d;
+        push('TV Tropes (fleet mirror)', tvtropesMcpLookupHref('Literature', slug));
+      }
     }
     if (d.includes('tvtropes.org')) {
-      push('TV Tropes (saved identifier)', wrapTvTropesUserUrl(d));
+      const lookup = parseTvtropesLookupPath(d);
+      if (lookup) {
+        const slash = lookup.indexOf('/');
+        if (slash > 0) {
+          push(
+            'TV Tropes (fleet mirror)',
+            tvtropesMcpLookupHref(lookup.slice(0, slash), lookup.slice(slash + 1)),
+          );
+        } else {
+          push('TV Tropes (fleet mirror)', tvtropesMcpLookupHref('Literature', lookup));
+        }
+      }
+      if (isTvTropesViaConfigured()) {
+        push('TV Tropes (live site)', wrapTvTropesUserUrl(d));
+      }
+    }
+  }
+
+  if (title && tropesFleetBase) {
+    const tt = tvTropesLiteratureSlug(title);
+    if (tt.length > 1) {
+      push('TV Tropes (fleet mirror)', tvtropesMcpLookupHref('Literature', tt));
     }
   }
 
@@ -260,10 +312,12 @@ export function buildBookExternalLinks(book: {
     if (sfe) {
       push('SF Encyclopedia (guess)', `https://www.sf-encyclopedia.com/entry/${sfe}`);
     }
-    const tt = tvTropesLiteratureSlug(title);
-    if (tt.length > 1) {
-      const direct = `https://tvtropes.org/pmwiki/pmwiki.php/Literature/${tt}`;
-      push('TV Tropes — Literature (guess)', wrapTvTropesUserUrl(direct));
+    if (!tropesFleetBase && isTvTropesViaConfigured()) {
+      const tt = tvTropesLiteratureSlug(title);
+      if (tt.length > 1) {
+        const direct = `https://tvtropes.org/pmwiki/pmwiki.php/Literature/${tt}`;
+        push('TV Tropes — Literature (live site)', wrapTvTropesUserUrl(direct));
+      }
     }
   }
 

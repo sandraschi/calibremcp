@@ -1,0 +1,14 @@
+{
+  "name": "calibre-mcp-native",
+  "private": true,
+  "version": "1.8.0",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "postbuild": "pwsh -NoLogo -File ../scripts/update-tauri-starts-link.ps1",
+    "build:debug": "tauri build --debug"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

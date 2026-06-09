@@ -228,10 +228,12 @@ async def startup_event():
         )
 
 
-# CORS middleware
+# CORS middleware (Tauri webview origin is http(s)://tauri.localhost, not localhost:10721)
+_tauri_desktop = os.environ.get("CALIBRE_TAURI", "").lower() in ("1", "true", "yes")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri_desktop else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

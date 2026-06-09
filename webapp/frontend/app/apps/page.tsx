@@ -1,5 +1,6 @@
 'use client';
 
+import { API_BASE } from '@/common/api';
 import { useState } from 'react';
 import { APPS_CATALOG, type AppEntry } from '@/common/apps-catalog';
 import { ExternalLink } from 'lucide-react';
@@ -34,7 +35,7 @@ export default function OurAppsPage() {
     }
     setLaunchTarget({ app, status: 'starting' });
     try {
-      const r = await fetch('/api/webapp-launch', {
+      const r = await fetch(`${API_BASE}/api/webapp-launch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ port: app.port }),

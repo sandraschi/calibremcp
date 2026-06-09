@@ -1,75 +1,105 @@
-# Installation
+# Installing calibre-mcp
 
-## 🚀 Quick Start (recommended)
+## Option A — Desktop app (recommended)
+
+**Download, double-click, done.** No Git, no Python, no `just`, no build step.
+
+1. Go to [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest)
+2. Download **`Calibre MCP_*_x64-setup.exe`**
+3. Double-click the installer → finish the wizard
+4. Launch **Calibre MCP** from the Start menu
+5. Point it at your Calibre library if prompted (`CALIBRE_LIBRARY_PATH` — see [docs/Configuration.md](docs/Configuration.md))
+
+That's it. Backend **10720** starts with the app.
+
+**Requirements:** Windows 10/11 and an existing Calibre library on disk. [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) if prompted.
+
+---
+
+## Other install paths
+
+### Prerequisites (Options B–E only)
+
+| Tool | Purpose |
+|------|---------|
+| Git, uv | Clone and run from source |
+| Node.js | Webapp dev |
+| just | Optional dev shortcuts |
+| Calibre library | Book metadata + files |
+
+Python **3.12+** for source installs.
+
+---
+
+## Option B — MCPB drag and drop
+
+1. Go to [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest)
+2. Download `calibre-mcp*.mcpb` (or build with `just mcpb-pack`)
+3. Claude Desktop → Settings → MCP Servers → Install from file
+
+MCP tools only — no desktop UI.
+
+---
+
+## Option C — Fastest from source (webapp)
 
 ```powershell
-# Install just if you don't have it
-winget install Casey.Just    # Windows
-# scoop install just          # Windows (alternative)
-# brew install just           # macOS
-# sudo apt install just       # Debian/Ubuntu
-# cargo install just          # Linux (Rust)
-
 git clone https://github.com/sandraschi/calibre-mcp
 cd calibre-mcp
-just
+.\start.ps1
 ```
 
-The interactive recipe dashboard opens in your browser. From there:
+Or: `just sync` then `just start-webapp` — backend **10720**, frontend **10721**.
+
+---
+
+## Option D — MCP stdio only
 
 ```powershell
-just bootstrap   # install all dependencies
-just serve       # start the server
-just web         # start the frontend (if applicable)
+git clone https://github.com/sandraschi/calibre-mcp
+cd calibre-mcp
+uv sync
+uv run python -m calibre_mcp
 ```
 
-> **Why not `pip install`?** MCP servers bundle webapps, configs, project scaffolding, and tooling that a flat Python package can't deliver. PyPI offers no safety advantage — it doesn't audit packages either. `just` gives you the complete, ready-to-run stack.
+Or: `just mcp`
 
 ---
 
-## 🐌 Traditional Setup
+## Option E — Developer mode
 
-If you prefer not to use `just`:
+```powershell
+winget install Casey.Just
+git clone https://github.com/sandraschi/calibre-mcp
+cd calibre-mcp
+just sync-dev
+just start-webapp-dev
+```
 
-1. Install [Python 3.13+](https://python.org) and [uv](https://docs.astral.sh/uv/)
-2. Clone and enter the repo:
-   ```powershell
-   git clone https://github.com/sandraschi/calibre-mcp
-   cd calibre-mcp
-   ```
-3. Install dependencies:
-   ```powershell
-   uv sync --all-extras
-   ```
-4. Start the server:
-   ```powershell
-   # stdio mode (for MCP clients like Claude Desktop)
-   uv run python -m calibre_mcp.server
+Other recipes: `just test`, `just lint`, `just mcpb-pack`. List all: `just --list`.
 
-   # HTTP mode (for web dashboard)
-   uv run uvicorn calibre_mcp.server:app --port 10720
-   ```
-
-4. (optional) Start the frontend:
-   ```powershell
-   cd webapp
-   npm install
-   npm run dev
-   ```
-
-5. Open `http://localhost:10720` or the frontend URL.
+**Build the Windows installer** (maintainers only): `just build-native` → [docs/TAURI.md](docs/TAURI.md).
 
 ---
 
-## ❓ Troubleshooting
+## Verify installation
+
+1. Desktop app running — health shows backend on **10720**
+2. `GET http://127.0.0.1:10720/health` → OK
+3. MCP prompt: *Search my Calibre library for recent science fiction.*
+
+---
+
+## Troubleshooting
 
 | Issue | Fix |
-|---|---|
-| `just` not found | Install via `winget install Casey.Just`, `scoop install just`, or `brew install just` |
-| Port conflict | Run `just kill-all` to clear fleet ports (10700–11000) |
-| Dependencies out of sync | `uv sync --all-extras` |
-| Something else | [Open a GitHub issue](https://github.com/sandraschi/calibre-mcp/issues) |
+|-------|-----|
+| Desktop app won't start | Install [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) |
+| Library not found | Set `CALIBRE_LIBRARY_PATH` to your `metadata.db` folder |
+| Port 10720/10721 in use | Stop other service on that port |
+| `just` not found | Use Option A (no just) or Option C without just |
+| Dependencies out of sync | `just sync-dev` or `uv sync --all-extras` |
 
 ---
 
-*See the main [README](README.md) for feature overview and documentation.*
+*Feature overview: [README.md](README.md)*

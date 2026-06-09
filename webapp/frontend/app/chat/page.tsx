@@ -1,5 +1,6 @@
 'use client';
 
+import { API_BASE } from '@/common/api';
 import { useState, useRef, useEffect } from 'react';
 
 interface Message {
@@ -38,7 +39,7 @@ export default function ChatPage() {
       ? [{ role: 'system' as const, content: preprompt }, ...messages, userMsg]
       : [...messages, userMsg];
     try {
-      const res = await fetch('/api/llm/chat', {
+      const res = await fetch(`${API_BASE}/api/llm/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

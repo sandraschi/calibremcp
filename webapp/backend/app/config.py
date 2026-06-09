@@ -1,5 +1,7 @@
 """Configuration for Calibre webapp backend."""
 
+import os
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -7,7 +9,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings."""
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
     # API Configuration
     API_TITLE: str = "Calibre Webapp API"
@@ -23,11 +29,23 @@ class Settings(BaseSettings):
     CALIBRE_CONFIG_PATH: str = "D:/Dev/repos/calibre-mcp/config.json"
 
     # CORS Configuration (comma-separated string in .env)
-    CORS_ORIGINS: str = "http://localhost:10721,http://127.0.0.1:10721"
+    CORS_ORIGINS: str = (
+        "http://localhost:10721,http://127.0.0.1:10721,"
+        "http://tauri.localhost,https://tauri.localhost,tauri://localhost"
+    )
 
     @property
     def cors_origins_list(self) -> list[str]:
-        return [x.strip() for x in self.CORS_ORIGINS.split(",") if x.strip()]
+        origins = [x.strip() for x in self.CORS_ORIGINS.split(",") if x.strip()]
+        if os.environ.get("CALIBRE_TAURI", "").lower() in ("1", "true", "yes"):
+            for extra in (
+                "http://tauri.localhost",
+                "https://tauri.localhost",
+                "tauri://localhost",
+            ):
+                if extra not in origins:
+                    origins.append(extra)
+        return origins
 
     # MCP Server configuration
     # false = direct in-process calls (faster, recommended for webapp)

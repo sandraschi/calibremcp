@@ -1,27 +1,62 @@
-import { listLibraries, Library } from '@/common/api';
+'use client';
+
+import { listLibraries, type Library } from '@/common/api';
 import { LibraryList } from '@/components/libraries/library-list';
 import { LibraryStatsPanel } from '@/components/libraries/library-stats-panel';
 import { LibraryOperations } from '@/components/libraries/library-operations';
 import { ErrorBanner } from '@/components/ui/error-banner';
+import { Suspense, useEffect, useState } from 'react';
 
 const BACKEND_HINT = 'From repo root run webapp\\start.ps1 (backend 10720, frontend 10721).';
 
-export default async function LibrariesPage() {
-  let librariesData: { libraries: Library[]; current_library?: string; total_libraries: number };
-  try {
-    librariesData = await listLibraries();
-  } catch (e) {
+function LibrariesPageInner() {
+  const [librariesData, setLibrariesData] = useState<{
+    libraries: Library[];
+    current_library?: string;
+    total_libraries: number;
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    listLibraries()
+      .then((res) => {
+        if (!cancelled) setLibrariesData(res);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String((e as Error).message));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <p className="text-slate-400">Loading libraries…</p>
+      </div>
+    );
+  }
+
+  if (error || !librariesData) {
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6 text-slate-100">Libraries</h1>
         <ErrorBanner
           title="Could not load libraries"
-          message={String((e as Error).message)}
+          message={error ?? 'Unknown error'}
           hint={BACKEND_HINT}
         />
       </div>
     );
   }
+
   const currentLibraryName = librariesData.current_library;
 
   return (
@@ -51,5 +86,13 @@ export default async function LibrariesPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function LibrariesPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-6"><p className="text-slate-400">Loading…</p></div>}>
+      <LibrariesPageInner />
+    </Suspense>
   );
 }

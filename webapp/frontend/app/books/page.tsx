@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { getBooks, type BookListResponse } from '@/common/api';
 import { BookGrid } from '@/components/books/book-grid';
 import { ErrorBanner } from '@/components/ui/error-banner';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 const BACKEND_HINT = 'From repo root run webapp\\start.ps1 (backend 10720, frontend 10721).';
 
@@ -21,32 +25,53 @@ function buildPageUrl(
   return q ? `${base}?${q}` : base;
 }
 
-export default async function BooksPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ author?: string; tag?: string; publisher?: string; page?: string }>;
-}) {
-  const params = await searchParams;
-  const page = Math.max(1, parseInt(params.page || '1'));
+function BooksPageInner() {
+  const searchParams = useSearchParams();
+  const author = searchParams?.get('author') ?? undefined;
+  const tag = searchParams?.get('tag') ?? undefined;
+  const publisher = searchParams?.get('publisher') ?? undefined;
+  const page = Math.max(1, Number.parseInt(searchParams?.get('page') ?? '1', 10));
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  let data: BookListResponse;
-  try {
-    data = await getBooks({
-      limit,
-      offset,
-      author: params.author,
-      tag: params.tag,
-      publisher: params.publisher,
-    });
-  } catch (e) {
+  const [data, setData] = useState<BookListResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    getBooks({ limit, offset, author, tag, publisher })
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String((e as Error).message));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [author, tag, publisher, limit, offset]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <p className="text-slate-400">Loading books…</p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
     return (
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6 text-slate-100">Browse</h1>
         <ErrorBanner
           title="Could not load books"
-          message={String((e as Error).message)}
+          message={error ?? 'Unknown error'}
           hint={BACKEND_HINT}
         />
       </div>
@@ -58,8 +83,7 @@ export default async function BooksPage({
   const totalPages = Math.ceil(total / limit);
   const base = '/books';
 
-  // Pagination logic: show current page and a few around it
-  const pageRange = 2; // Number of pages to show before/after current
+  const pageRange = 2;
   const pages: number[] = [];
   for (let i = Math.max(1, page - pageRange); i <= Math.min(totalPages, page + pageRange); i++) {
     pages.push(i);
@@ -82,10 +106,9 @@ export default async function BooksPage({
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-1">
-            {/* First Page */}
             {page > 1 && (
               <Link
-                href={buildPageUrl(base, 1, params.author, params.tag, params.publisher)}
+                href={buildPageUrl(base, 1, author, tag, publisher)}
                 className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
                 title="First Page"
               >
@@ -93,10 +116,9 @@ export default async function BooksPage({
               </Link>
             )}
 
-            {/* Previous */}
             {page > 1 ? (
               <Link
-                href={buildPageUrl(base, page - 1, params.author, params.tag, params.publisher)}
+                href={buildPageUrl(base, page - 1, author, tag, publisher)}
                 className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
                 title="Previous Page"
               >
@@ -108,12 +130,11 @@ export default async function BooksPage({
               </span>
             )}
 
-            {/* Page Numbers */}
             {pages[0] > 1 && <span className="px-2 text-slate-600">...</span>}
             {pages.map((p) => (
               <Link
                 key={p}
-                href={buildPageUrl(base, p, params.author, params.tag, params.publisher)}
+                href={buildPageUrl(base, p, author, tag, publisher)}
                 className={`w-10 h-10 flex items-center justify-center text-sm font-medium rounded-md transition-all ${p === page
                     ? 'bg-amber text-slate-900 border border-amber'
                     : 'bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300'
@@ -124,10 +145,9 @@ export default async function BooksPage({
             ))}
             {pages[pages.length - 1] < totalPages && <span className="px-2 text-slate-600">...</span>}
 
-            {/* Next */}
             {page < totalPages ? (
               <Link
-                href={buildPageUrl(base, page + 1, params.author, params.tag, params.publisher)}
+                href={buildPageUrl(base, page + 1, author, tag, publisher)}
                 className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
                 title="Next Page"
               >
@@ -139,10 +159,9 @@ export default async function BooksPage({
               </span>
             )}
 
-            {/* Last Page */}
             {page < totalPages && (
               <Link
-                href={buildPageUrl(base, totalPages, params.author, params.tag, params.publisher)}
+                href={buildPageUrl(base, totalPages, author, tag, publisher)}
                 className="px-3 py-2 text-sm font-medium rounded-md bg-slate-800 border border-slate-700 hover:border-amber/50 text-slate-300 transition-colors"
                 title="Last Page"
               >
@@ -153,5 +172,13 @@ export default async function BooksPage({
         </nav>
       )}
     </div>
+  );
+}
+
+export default function BooksPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-6"><p className="text-slate-400">Loading…</p></div>}>
+      <BooksPageInner />
+    </Suspense>
   );
 }

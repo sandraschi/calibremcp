@@ -92,3 +92,20 @@ check: lint test
 mcpb-pack:
     pwsh -NoProfile -File scripts/build-mcpb-package.ps1 -NoSign
 
+# ── Native (Tauri) ─────────────────────────────────────────────────────────────
+
+# Build embedded Python backend → native/resources/
+build-sidecar:
+    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\native\build-sidecar.ps1'
+
+# Primary end-user deliverable: Next static export + embedded backend + NSIS
+build-native install-desktop:
+    Set-Location '{{justfile_directory()}}\native'
+    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
+    .\build.ps1
+
+build-native-debug:
+    Set-Location '{{justfile_directory()}}\native'
+    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
+    npx @tauri-apps/cli build --debug
+

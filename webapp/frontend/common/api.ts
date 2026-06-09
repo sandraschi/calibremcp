@@ -14,10 +14,31 @@ export async function setAnnasMirrors(mirrors: string | string[]): Promise<void>
   await updateSettings({ annas_mirrors });
 }
 
-/** Base URL for fetch. Server needs absolute URL; client uses relative. */
-function getBaseUrl(): string {
-  if (typeof window !== 'undefined') return '';
-  return process.env.NEXT_PUBLIC_APP_URL ?? 'http://127.0.0.1:10721';
+export const API_BASE =
+  process.env.NODE_ENV === 'development' ? '' : 'http://127.0.0.1:10720';
+
+/** Base URL for fetch. Server needs absolute URL; client uses relative in dev. */
+export function getBaseUrl(): string {
+  return API_BASE;
+}
+
+async function fetchWithRetry(
+  url: string,
+  attempts = 15,
+  delayMs = 400,
+): Promise<Response> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetch(url);
+    } catch (error) {
+      lastError = error;
+      if (i < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw lastError;
 }
 
 export interface Book {
@@ -92,7 +113,7 @@ export async function getBooks(params?: {
 }
 
 export function getBookCoverUrl(bookId: number): string {
-  return `/api/books/${bookId}/cover`;
+  return `${getBaseUrl()}/api/books/${bookId}/cover`;
 }
 
 export async function getBook(id: number): Promise<Book> {
@@ -203,7 +224,7 @@ export interface LibraryStats {
 }
 
 export async function listLibraries(): Promise<LibraryListResponse> {
-  const response = await fetch(`${getBaseUrl()}/api/libraries/list`);
+  const response = await fetchWithRetry(`${getBaseUrl()}/api/libraries/list`);
   if (!response.ok) {
     let detail = '';
     try {

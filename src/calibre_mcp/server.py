@@ -255,6 +255,11 @@ DESIGN:
 )
 logger.info("FastMCP instance created")
 
+from calibre_mcp.fleet_tool_metrics import register_mcp_tool_metrics  # noqa: E402
+
+if register_mcp_tool_metrics(mcp):
+    logger.info("MCP tool-call Prometheus metrics middleware registered")
+
 # MCP Bridge: proxy upstream servers via MCP_BRIDGE_URLS (comma-separated)
 _bridge_proxies = []
 bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
@@ -307,6 +312,7 @@ register_prompts(mcp)
 # ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 app = FastAPI(title="CalibreMCP", version="1.0.0")
 app.add_middleware(
@@ -320,6 +326,16 @@ app.add_middleware(
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics for unified monitoring stack (includes mcp_tool_* when instrumented)."""
+    from calibre_mcp.fleet_tool_metrics import prometheus_metrics_body_and_type
+
+    body, media_type = prometheus_metrics_body_and_type()
+    return Response(content=body, media_type=media_type)
+
 
 app.mount("/mcp", create_app())
 

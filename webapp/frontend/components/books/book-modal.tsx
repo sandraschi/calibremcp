@@ -10,7 +10,7 @@ import {
   openBookViewer,
   ratingToFiveStarCount,
 } from '@/common/api';
-import { buildBookExternalLinks, isTvTropesViaConfigured, ragToolHref } from '@/common/book-external-links';
+import { buildBookExternalLinks, isTvTropesFleetMirrorEnabled, isTvTropesViaConfigured, ragToolHref } from '@/common/book-external-links';
 import { AuthorLinks } from '@/components/authors/author-links';
 import { BookOpen, ExternalLink, FileText, FlaskConical, Microscope, RefreshCw, Search } from 'lucide-react';
 
@@ -168,16 +168,24 @@ export function BookModal({ book, onClose }: BookModalProps) {
                       </p>
                       <p className="text-[10px] text-slate-500 mb-2 leading-snug">
                         Notable works may have Wikipedia articles; guessed links can 404. Search links always work.
-                        {isTvTropesViaConfigured() ? (
+                        {isTvTropesFleetMirrorEnabled() ? (
                           <span className="block mt-1 text-emerald-500/90">
-                            TV Tropes deep links use your{' '}
-                            <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_VIA</code> gateway.
+                            TV Tropes opens in fleet mirror{' '}
+                            <code className="text-[9px]">tvtropes-mcp</code> (port 10965) when running; Google site
+                            search if the page is not cached yet.
+                          </span>
+                        ) : isTvTropesViaConfigured() ? (
+                          <span className="block mt-1 text-emerald-500/90">
+                            TV Tropes live links use{' '}
+                            <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_VIA</code> (legacy proxy).
                           </span>
                         ) : (
                           <span className="block mt-1">
-                            For TV Tropes, use the Google site search if direct pages are blocked; optional fleet
-                            gateway: set <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_VIA</code> (see{' '}
-                            <code className="text-[9px]">webapp/frontend/env.example</code>).
+                            Start <code className="text-[9px]">tvtropes-mcp</code> for cached TV Tropes pages, or use
+                            Google site search. Optional:{' '}
+                            <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_MCP_URL</code> /{' '}
+                            <code className="text-[9px]">NEXT_PUBLIC_TVTROPES_VIA</code> in{' '}
+                            <code className="text-[9px]">env.example</code>.
                           </span>
                         )}
                       </p>

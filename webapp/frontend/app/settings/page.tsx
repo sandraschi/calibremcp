@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSettings, updateSettings } from '@/common/api';
+import { getBaseUrl, getSettings, updateSettings } from '@/common/api';
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState('ollama');
@@ -23,7 +23,7 @@ export default function SettingsPage() {
       const params = new URLSearchParams();
       if (provider) params.set('provider', provider);
       if (baseUrl) params.set('base_url', baseUrl);
-      const res = await fetch(`/api/llm/models?${params}`);
+      const res = await fetch(`${getBaseUrl()}/api/llm/models?${params}`);
       const data = await res.json();
       if (data.models) {
         setModels(data.models);

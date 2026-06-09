@@ -10,6 +10,7 @@ import {
   searchArxiv,
   importArxiv,
   listLibraries,
+  API_BASE,
   type AnnasSearchResult,
   type GutenbergSearchResult,
   type ArxivSearchResult,
@@ -203,7 +204,7 @@ export default function ImportPage() {
     setLocalLoading(true);
     try {
       const opts = getImportOptions();
-      const res = await fetch('/api/books', {
+      const res = await fetch(`${API_BASE}/api/books`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

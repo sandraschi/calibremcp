@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Library, HelpCircle, FileText, ExternalLink, ChevronDown, Container } from 'lucide-react';
-import { listLibraries, switchLibrary, getHelp, getSystemStatus } from '@/common/api';
+import { listLibraries, switchLibrary, getHelp, getSystemStatus, API_BASE } from '@/common/api';
 import { HelpModal } from './help-modal';
 import { LoggerModal } from './logger-modal';
 import { APPS_CATALOG } from '@/common/apps-catalog';
@@ -131,7 +131,7 @@ export function Topbar() {
     }
     setLaunchModal({ label: app.label, url, status: 'starting' });
     try {
-      const r = await fetch('/api/webapp-launch', {
+      const r = await fetch(`${API_BASE}/api/webapp-launch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ port: app.port }),
