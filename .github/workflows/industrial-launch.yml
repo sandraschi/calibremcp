@@ -68,23 +68,17 @@ jobs:
         with:
           name: "calibremcp ${{ github.ref_name }}"
           body: |
-            ## 🚀 Industrial Launch: ${{ github.ref_name }}
-            
-            This release is distributed via PyPI for universal **Zero-Install** support.
+            ## ${{ github.ref_name }}
 
-            ### ⚡ Quick Start (Zero-Install)
-            ```powershell
-            uvx calibremcp --serve
-            ```
+            **Desktop:** NSIS/MSI from `just build-native` (upload manually or via release CI).
 
-            ### 📖 What's New
+            **Python:** `uvx calibremcp` — wheel on **PyPI**, not duplicated on GitHub.
+
+            **Claude Desktop:** `calibre-mcp.mcpb` if attached below.
+
+            ### What's New
             ${{ steps.changelog.outputs.notes }}
-
-            ---
-            *Built by Antigravity SOTA Fleet Orchestration*
           files: |
-            dist/*.whl
-            dist/*.tar.gz
             dist/*.mcpb
           draft: false
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
