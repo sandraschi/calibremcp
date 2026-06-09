@@ -1,7 +1,7 @@
 {
   "name": "calibre-mcp-native",
   "private": true,
-  "version": "1.8.0",
+  "version": "1.8.6",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",

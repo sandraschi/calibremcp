@@ -7,6 +7,9 @@ services:
     build:
       context: ..
       dockerfile: webapp/Dockerfile.backend
+    labels:
+      monitoring.unified: "true"
+      monitoring.job: "calibre-mcp"
     ports:
       - "10720:13000"
     environment:
