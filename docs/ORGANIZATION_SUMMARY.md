@@ -1,6 +1,8 @@
 # 📚 Documentation Organization Summary
 
-**Complete reorganization of notepadpp-mcp documentation - October 8, 2025**
+> **Archive.** Sections below reference **notepadpp-mcp** paths from a fleet doc import. Current index: **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** and **[README.md](README.md)**.
+
+**Complete reorganization of calibre-mcp documentation - October 8, 2025**
 
 ---
 

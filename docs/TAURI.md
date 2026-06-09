@@ -11,7 +11,7 @@ just build-native
 ```
 
 ```text
-native/target/release/bundle/nsis/Calibre MCP_1.8.0_x64-setup.exe
+native/target/release/bundle/nsis/Calibre MCP_1.8.6_x64-setup.exe
 ```
 
 ## Architecture

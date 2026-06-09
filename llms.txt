@@ -17,6 +17,10 @@ Fleet bar: **uv** + **justfile** + **llms.txt** / **llms-full.txt** + **glama.js
 | Doc | Purpose |
 |-----|---------|
 | [README.md](README.md) | Install, features, examples |
+| [docs/README.md](docs/README.md) | Documentation hub |
+| [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) | Full map + archival paths |
+| [docs/TAURI.md](docs/TAURI.md) | Tauri installer (maintainers) |
+| [INSTALL.md](INSTALL.md) | Desktop + dev install |
 | [docs/AGENTIC_AND_RAG.md](docs/AGENTIC_AND_RAG.md) | FTS vs metadata RAG vs chunk RAG; LanceDB paths |
 | [docs/COOKBOOK.md](docs/COOKBOOK.md) | Lane picker, chains |
 | [docs/CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](docs/CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md) | `calibre-debug` JSON export, env caps |

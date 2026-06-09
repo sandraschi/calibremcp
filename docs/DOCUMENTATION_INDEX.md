@@ -1,6 +1,6 @@
 # CalibreMCP — documentation index
 
-**Central map for this repository** ([`README.md`](../README.md) is the primary entry).
+**Central map for this repository.** Primary entry: [`README.md`](../README.md). Curated hub: [`docs/README.md`](README.md).
 
 ---
 
@@ -8,6 +8,7 @@
 
 | If you want to… | Start here |
 |-----------------|------------|
+| Install (desktop or dev) | [`INSTALL.md`](../INSTALL.md), [`TAURI.md`](TAURI.md) |
 | Understand what Calibre is and how we use it | [`ABOUT_CALIBRE.md`](ABOUT_CALIBRE.md) |
 | Understand calibre-web and how it relates | [`ABOUT_CALIBRE_WEB.md`](ABOUT_CALIBRE_WEB.md) |
 | Learn about our Calibre plugins and roadmap | [`ABOUT_PLUGINS.md`](ABOUT_PLUGINS.md) |
@@ -33,8 +34,8 @@ High-level view of `docs/` — not every file is listed; use search or the secti
 
 ```
 docs/
-├── README.md (this index)
-├── API.md, PRD.md, Configuration.md
+├── README.md (hub) · DOCUMENTATION_INDEX.md (this file)
+├── TAURI.md, API.md, PRD.md, Configuration.md
 ├── AGENTIC_AND_RAG.md, CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md, FULL_TEXT_RAG_DESIGN.md, COOKBOOK.md, PROMPTS.md
 ├── TOOLS_CONSOLIDATION.md, TOOL_DOCSTRING_STANDARD.md, TOOL_DOCSTRING_MIGRATION.md
 ├── SEARCH_QUERY_EXAMPLES.md, Troubleshooting.md, VERIFY_SERVER_LOAD.md
@@ -160,12 +161,20 @@ Megatest and universal MCP test harness documentation (see [`testing/UNIVERSAL_M
 
 ---
 
-## Optional / archive
+## Stale or archival material
 
-- **`docs/adn-notes/`** — ADRs and session notes  
-- **`docs/research/`** — Research spikes  
-- **`docs/serena/`** — Serena copy/install notes  
-- **`Full_Documentation.md`**, **`COMPLETE_DOCUMENTATION_STRUCTURE.md`** — Large dumps; prefer topical docs above  
+Do **not** treat these as current source of truth:
+
+| Path | Note |
+|------|------|
+| [`COMPLETE_DOCUMENTATION_STRUCTURE.md`](COMPLETE_DOCUMENTATION_STRUCTURE.md) | Retired notepadpp-mcp tree copy |
+| [`ORGANIZATION_SUMMARY.md`](ORGANIZATION_SUMMARY.md) | Oct 2025 org log; fleet import paths |
+| [`Full_Documentation.md`](Full_Documentation.md) | Retired duplicate README dump |
+| [`STATUS_REPORT.md`](STATUS_REPORT.md), [`PROGRESS_REPORT_2025-01-30.md`](PROGRESS_REPORT_2025-01-30.md) | Point-in-time snapshots |
+| **`docs/adn-notes/`**, **`docs/research/`**, **`docs/serena/`** | Session notes and spikes |
+| **`docs/glama-platform/`** | Historical Glama.ai catalog metadata |
+
+Fleet Tauri installer pitfalls: [mcp-central-docs TAURI_PRODUCTION_PITFALLS](https://github.com/sandraschi/mcp-central-docs/blob/master/standards/TAURI_PRODUCTION_PITFALLS.md).
 
 ---
 
@@ -190,7 +199,7 @@ Megatest and universal MCP test harness documentation (see [`testing/UNIVERSAL_M
 
 ## Getting help
 
-- **Issues:** [github.com/sandra/calibre-mcp/issues](https://github.com/sandra/calibre-mcp/issues)  
+- **Issues:** [github.com/sandraschi/calibre-mcp/issues](https://github.com/sandraschi/calibre-mcp/issues)  
 - **Docs wrong or stale:** open an issue or PR against this file or the specific doc.
 
 ---

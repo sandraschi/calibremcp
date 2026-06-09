@@ -55,7 +55,9 @@ calibre-mcp bridges your Calibre e-book library and AI assistants (Claude Deskto
 
 ## Key links
 
+- **[Documentation hub](docs/README.md)** — curated entry
 - **[Documentation index](docs/DOCUMENTATION_INDEX.md)** — full map of ~100 docs
+- **[Tauri desktop](docs/TAURI.md)** — maintainer build and production pitfalls
 - **[Cookbook](docs/COOKBOOK.md)** — goal-oriented recipes
 - **[API reference](docs/API.md)** — all MCP tools and endpoints
 - **[Configuration](docs/Configuration.md)** — env vars and library setup

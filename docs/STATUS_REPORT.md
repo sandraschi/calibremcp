@@ -1,5 +1,7 @@
 # CalibreMCP Status Report
 
+> **Archive.** January 2025 snapshot (v1.1.0 / FastMCP 2.14). Current state: [CHANGELOG.md](../CHANGELOG.md), [docs/README.md](README.md).
+
 **Generated:** 2025-01-30
 **Version:** 1.1.0
 **FastMCP Version:** 2.14.3+

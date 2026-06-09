@@ -1,5 +1,7 @@
 # CalibreMCP Progress Report
 
+> **Archive.** January 2025 improvement-plan snapshot. See [CHANGELOG.md](../CHANGELOG.md).
+
 **Date**: 2025-01-30  
 **Scope**: Improvement plan execution
 
