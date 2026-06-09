@@ -1,9 +1,7 @@
 name: Build and Release DXT
 
 on:
-  push:
-    tags:
-      - 'v*'  # Run on version tags (v1.0.0, v1.1.0, etc.)
+  workflow_dispatch:
 
 jobs:
   build-dxt:
