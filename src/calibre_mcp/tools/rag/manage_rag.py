@@ -88,12 +88,18 @@ async def rag_index_build(
 async def rag_retrieve(
     query: str,
     top_k: int = 10,
+    book_ids: str | None = None,
+    formats: str | None = None,
     use_ollama: bool = True,
     enrich: bool = True,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
     Semantic 'trope' search over book passages (e.g. 'murder with an icicle').
+
+    Optional filters:
+    - book_ids: comma-separated Calibre book IDs (e.g. "12,34,56")
+    - formats: comma-separated format codes (e.g. "EPUB,MOBI"; default index excludes PDF)
     """
     start = __import__("time").time()
 
@@ -114,11 +120,27 @@ async def rag_retrieve(
                 error_type="ImportError",
             )
         k = max(1, min(50, top_k))
+        bid_list: list[int] | None = None
+        if book_ids and book_ids.strip():
+            bid_list = []
+            for part in book_ids.split(","):
+                part = part.strip()
+                if part.isdigit():
+                    bid_list.append(int(part))
+            if not bid_list:
+                bid_list = None
+        fmt_list: list[str] | None = None
+        if formats and formats.strip():
+            fmt_list = [f.strip().upper() for f in formats.split(",") if f.strip()]
+            if not fmt_list:
+                fmt_list = None
         chunks = retrieve_chunks(
             meta_path,
             query.strip(),
             top_k=k,
             use_ollama=use_ollama,
+            book_ids=bid_list,
+            formats=fmt_list,
         )
         if not chunks:
             return {

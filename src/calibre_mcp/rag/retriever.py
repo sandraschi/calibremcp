@@ -12,6 +12,21 @@ from .storage_paths import fts_chunks_lancedb_dir
 logger = logging.getLogger(__name__)
 
 
+def _build_where_clause(
+    book_ids: list[int] | None = None,
+    formats: list[str] | None = None,
+) -> str | None:
+    """LanceDB prefilter for passage search."""
+    parts: list[str] = []
+    if book_ids:
+        parts.append(f"metadata.book_id IN ({', '.join(str(bid) for bid in book_ids)})")
+    if formats:
+        fmt_literals = ", ".join(f"'{fmt.strip().upper()}'" for fmt in formats if fmt.strip())
+        if fmt_literals:
+            parts.append(f"metadata.format IN ({fmt_literals})")
+    return " AND ".join(parts) if parts else None
+
+
 def retrieve_chunks(
     metadata_db_path: Path,
     query: str,
@@ -22,6 +37,7 @@ def retrieve_chunks(
     ollama_base_url: str = "",
     ollama_model: str = "",
     book_ids: list[int] | None = None,
+    formats: list[str] | None = None,
 ) -> list[dict]:
     """
     Return top-k chunks most similar to the query (semantic search).
@@ -38,10 +54,7 @@ def retrieve_chunks(
 
     store = LanceVectorStore(db_path=db_path, table_name="books_rag")
 
-    where_clause = None
-    if book_ids:
-        id_list = ", ".join(str(bid) for bid in book_ids)
-        where_clause = f"metadata.book_id IN ({id_list})"
+    where_clause = _build_where_clause(book_ids, formats)
 
     try:
         results = store.search(query.strip(), limit=top_k, where=where_clause)

@@ -67,6 +67,8 @@ export default function RagPage() {
   const [bookId, setBookId] = useState('');
   const [spoilers, setSpoilers] = useState(false);
   const [topK, setTopK] = useState(10);
+  const [passageBookIds, setPassageBookIds] = useState('');
+  const [passageFormats, setPassageFormats] = useState('');
 
   const [metaResults, setMetaResults] = useState<RagMetadataSearchHit[]>([]);
   const [passageResults, setPassageResults] = useState<RagPassageHit[]>([]);
@@ -174,7 +176,10 @@ export default function RagPage() {
 
       } else if (mode === 'passages') {
         if (!query.trim()) return;
-        const res = await ragRetrieve(query.trim(), topK);
+        const res = await ragRetrieve(query.trim(), topK, {
+          bookIds: passageBookIds.trim() || undefined,
+          formats: passageFormats.trim() || undefined,
+        });
         setPassageResults(res.hits ?? []);
         if (res.error) setError(res.error);
         else if ((res.hits ?? []).length === 0) setMessage('No results — is the content index built?');
@@ -331,6 +336,30 @@ export default function RagPage() {
               placeholder="Describe what you're looking for…"
               className="w-full rounded-lg border border-slate-600 bg-slate-900 text-slate-100 px-3 py-2 placeholder-slate-500"
             />
+            {mode === 'passages' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="text-xs text-slate-500 block mb-1">Limit to book IDs (optional)</label>
+                  <input
+                    type="text"
+                    value={passageBookIds}
+                    onChange={(e) => setPassageBookIds(e.target.value)}
+                    placeholder="e.g. 12, 34"
+                    className="w-full rounded-lg border border-slate-600 bg-slate-900 text-slate-100 px-3 py-1.5 text-sm placeholder-slate-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 block mb-1">Formats (optional)</label>
+                  <input
+                    type="text"
+                    value={passageFormats}
+                    onChange={(e) => setPassageFormats(e.target.value)}
+                    placeholder="EPUB, MOBI (PDF excluded by default at index time)"
+                    className="w-full rounded-lg border border-slate-600 bg-slate-900 text-slate-100 px-3 py-1.5 text-sm placeholder-slate-500"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -403,6 +432,9 @@ export default function RagPage() {
                   )}
                   {hit.published && (
                     <span className="text-xs text-slate-500 ml-2">{hit.published}</span>
+                  )}
+                  {hit.format && (
+                    <span className="text-xs text-slate-500 ml-2 uppercase">{hit.format}</span>
                   )}
                 </div>
                 <span className="text-xs text-slate-500 shrink-0">#{i + 1}</span>

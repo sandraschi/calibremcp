@@ -1,4 +1,5 @@
-﻿set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+import 'scripts/just/fleet.just'
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,24 @@ rebuild-webapp:
 mcp:
     uv run python -m calibre_mcp
 
+# ── RAG (LanceDB metadata index) ─────────────────────────────────────────────
+
+# Rebuild metadata LanceDB index (CPU)
+rag-metadata:
+    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-metadata.ps1
+
+# Rebuild metadata LanceDB index on GPU (after rag-gpu-install)
+rag-gpu-metadata:
+    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-gpu-metadata.ps1
+
+# One-time: install fastembed-gpu + onnxruntime-gpu + NVIDIA CUDA 12 runtimes (~1.5 GB)
+rag-gpu-install:
+    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-gpu-install.ps1
+
+# Revert to CPU onnxruntime stack
+rag-cpu-install:
+    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-cpu-install.ps1
+
 test:
     uv run pytest
 
@@ -109,3 +128,6 @@ build-native-debug:
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
 
+# Run CUA smoke test against the installed NSIS app
+cua-nsis-test:
+    python scripts/cua-smoke.py

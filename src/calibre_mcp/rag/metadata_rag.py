@@ -25,18 +25,22 @@ logger = logging.getLogger("calibremcp.rag.metadata_rag")
 PROGRESS_FILENAME = ".build_progress.json"
 
 _EMBEDDERS: dict[tuple[str, str], Any] = {}
+_EMBED_BATCH: int = 64
 
 
 def _get_embedder(model_name: str, cache_dir: str) -> Any:
-    """Return a cached TextEmbedding instance (lazy singleton per model/cache_dir pair).
-
-    Prevents re-downloading/re-initializing the ONNX model on every call.
-    """
+    """Return a cached TextEmbedding instance (lazy singleton per model/cache_dir pair)."""
+    global _EMBED_BATCH
     key = (model_name, cache_dir)
     if key not in _EMBEDDERS:
-        from fastembed import TextEmbedding
+        from calibre_mcp.rag.fastembed_gpu import create_text_embedding, repo_root_from_here
 
-        _EMBEDDERS[key] = TextEmbedding(model_name=model_name, cache_dir=cache_dir)
+        model, device, batch = create_text_embedding(
+            model_name, cache_dir, repo_root=repo_root_from_here()
+        )
+        _EMBEDDERS[key] = model
+        _EMBED_BATCH = batch
+        logger.info("[rag] Embed device: %s (batch %s)", device, batch)
     return _EMBEDDERS[key]
 
 
@@ -312,7 +316,7 @@ def build_metadata_index(
         embedding = _get_embedder(embedding_model, str(lancedb_dir / "cache"))
 
         _write_progress(lancedb_dir, "embedding", 0, num_docs, "Embedding")
-        batch_size = 100
+        batch_size = _EMBED_BATCH
         for start in range(0, num_docs, batch_size):
             end = min(start + batch_size, num_docs)
             batch_docs = [rows[i]["text"] for i in range(start, end)]

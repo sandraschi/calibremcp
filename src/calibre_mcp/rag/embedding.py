@@ -17,12 +17,15 @@ def _get_fastembed(model: str, cache_dir: str | None = None) -> Any:
     """Return a cached TextEmbedding instance (lazy singleton per model name)."""
     key = f"{model}:{cache_dir or ''}"
     if key not in _FASTEMBED_CACHE:
-        from fastembed import TextEmbedding
+        from calibre_mcp.rag.fastembed_gpu import create_text_embedding, repo_root_from_here
 
-        kwargs: dict[str, Any] = {"model_name": model}
-        if cache_dir:
-            kwargs["cache_dir"] = cache_dir
-        _FASTEMBED_CACHE[key] = TextEmbedding(**kwargs)
+        model_obj, device, _batch = create_text_embedding(
+            model,
+            cache_dir or "",
+            repo_root=repo_root_from_here(),
+        )
+        _FASTEMBED_CACHE[key] = model_obj
+        logger.info("[rag] FastEmbed device: %s", device)
     return _FASTEMBED_CACHE[key]
 
 OLLAMA_EMBED_DEFAULT = "http://127.0.0.1:11434"

@@ -98,6 +98,12 @@ async def rag_metadata_search(
 async def rag_retrieve(
     q: str = Query(..., min_length=1, description="Natural-language query over book content"),
     top_k: int = Query(10, ge=1, le=50),
+    book_ids: str | None = Query(
+        None, description="Optional comma-separated Calibre book IDs to scope search"
+    ),
+    formats: str | None = Query(
+        None, description="Optional comma-separated format codes (EPUB, MOBI, …)"
+    ),
 ):
     """Semantic passage retrieval from full book content using LanceDB.
     Returns ranked passages with book attribution, page/chapter context.
@@ -105,11 +111,33 @@ async def rag_retrieve(
 
     Example: q='Zakalwe manipulated into accepting a mission'"""
     try:
-        result = await mcp_client.call_tool(
-            "rag_retrieve",
-            {"query": q, "top_k": top_k},
-        )
-        return result
+        args: dict = {"query": q, "top_k": top_k}
+        if book_ids:
+            args["book_ids"] = book_ids
+        if formats:
+            args["formats"] = formats
+        result = await mcp_client.call_tool("rag_retrieve", args)
+        chunks = result.get("chunks") or []
+        hits = []
+        for i, c in enumerate(chunks):
+            hits.append(
+                {
+                    "book_id": c.get("book_id"),
+                    "title": c.get("title") or (f"Book {c.get('book_id')}" if c.get("book_id") else "Unknown"),
+                    "chunk_idx": c.get("chunk_index"),
+                    "format": c.get("format"),
+                    "snippet": c.get("text", ""),
+                    "rank": i + 1,
+                    "score": 1 - float(c.get("distance") or 0),
+                }
+            )
+        return {
+            "query": q,
+            "hits": hits,
+            "filters": {"book_ids": book_ids, "formats": formats},
+            "message": result.get("message"),
+            "execution_time_ms": result.get("execution_time_ms"),
+        }
     except Exception as e:
         raise handle_mcp_error(e)
 

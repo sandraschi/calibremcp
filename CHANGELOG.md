@@ -1,3 +1,42 @@
+
+## [Unreleased] — 2026-06-17
+
+### Added
+- **GPU RAG (fleet standard):** `just rag-gpu-install`, `just rag-gpu-metadata`, `just rag-cpu-install` — fastembed-gpu + onnxruntime-gpu with batched embed (CPU 64 / GPU 256). Scripts: `enable-rag-gpu.ps1`, `run-rag-gpu-metadata.ps1`, `rag_reindex_metadata.py`, `fastembed_gpu.py`.
+- **Passage RAG filters:** `rag_retrieve` and `/rag` webapp support optional `book_ids` and `formats` query filters (LanceDB prefilter).
+
+### Changed
+- Metadata and content LanceDB stores use fleet `create_text_embedding()` instead of plain CPU fastembed.
+
+---
+
+## [Unreleased] — 2026-06-17
+
+### Fixed
+- **PyInstaller PYZ import bug**: stdlib modules (`difflib`, `statistics`, `pydoc`) failed to import at runtime despite being in the PYZ archive. Fix: `noarchive=True` in spec forces all `.pyc` to extract to disk.
+- **Frontend `/app/` 404**: StaticFiles mount returned 404 at request time due to Starlette path normalization on Windows temp dirs. Fix: `os.path.realpath()` + `follow_symlink=True`.
+- **Missing `jwt` module**: Added PyJWT to `collect_all` packages in spec.
+- **Missing `statistics` module**: Added to `hiddenimports`.
+
+### Changed
+- `calibre-mcp-backend.spec`: `noarchive=False` → `noarchive=True`
+- `webapp/backend/app/main.py`: StaticFiles mount uses `os.path.realpath()` + `follow_symlink=True`
+
+---
+
+## [Unreleased] — 2026-06-14
+
+### Added
+- Tauri CORS: 	auri://localhost, http://tauri.localhost, https://tauri.localhost in CORS origins
+- Tauri CORS: _TAURI env var toggle with llow_origin_regex for secure WebView access
+- build.ps1: auto-copy NSIS installer to dist/ on build
+- CUA-NSIS: config-driven smoke test (`scripts/cua-smoke.py`, `scripts/cua-nsis-config.json`)
+- CUA-NSIS: `just build-native` + `just cua-nsis-test` recipes
+- CUA-NSIS: 11-phase smoke (install, launch, WebView OCR, feature route, diagnostics, uninstall)
+- CUA-NSIS: local certification — all 11 phases pass locally (2026-06-14)
+
+### Changed
+- CORS: llow_origins=["*"] → explicit origins list for Tauri webview compatibility
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -182,3 +221,4 @@ Fourth tab on `/rag` page alongside Metadata / Passages / Synopsis.
 ## [1.0.0] - 2025-10-21
 ### Added
 - Initial release with core library management tools.
+

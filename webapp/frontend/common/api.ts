@@ -718,6 +718,7 @@ export interface RagPassageHit {
   title: string;
   published?: string;
   chunk_idx?: number;
+  format?: string;
   snippet: string;
   rank?: number;
   score?: number;
@@ -726,12 +727,20 @@ export interface RagPassageHit {
 export interface RagRetrieveResult {
   query: string;
   hits: RagPassageHit[];
+  filters?: { book_ids?: string | null; formats?: string | null };
   engine?: string;
   error?: string;
+  message?: string;
 }
 
-export async function ragRetrieve(query: string, topK = 10): Promise<RagRetrieveResult> {
+export async function ragRetrieve(
+  query: string,
+  topK = 10,
+  options?: { bookIds?: string; formats?: string },
+): Promise<RagRetrieveResult> {
   const params = new URLSearchParams({ q: query, top_k: topK.toString() });
+  if (options?.bookIds?.trim()) params.set('book_ids', options.bookIds.trim());
+  if (options?.formats?.trim()) params.set('formats', options.formats.trim());
   const response = await fetch(`${getBaseUrl()}/api/rag/retrieve?${params}`);
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));

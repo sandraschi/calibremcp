@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Any
 
 import lancedb
-from fastembed import TextEmbedding
+
+from calibre_mcp.rag.fastembed_gpu import create_text_embedding, repo_root_from_here
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,11 @@ class LanceVectorStore:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.db = lancedb.connect(str(self.db_path))
-        self.embedding_model = TextEmbedding(
-            model_name=embedding_model_name,
-            cache_dir=str(self.db_path / "cache"),
+        cache_dir = str(self.db_path / "cache")
+        self.embedding_model, self.embed_device, self.embed_batch_size = create_text_embedding(
+            embedding_model_name,
+            cache_dir,
+            repo_root=repo_root_from_here(),
         )
         self.table_name = table_name
 
@@ -48,10 +51,14 @@ class LanceVectorStore:
         logger.info("Embedding %s items into '%s'...", len(documents), self.table_name)
 
         contents = [doc["content"] for doc in documents]
-        embeddings = list(self.embedding_model.embed(contents))
+        all_embeddings: list[Any] = []
+        batch = self.embed_batch_size
+        for start in range(0, len(contents), batch):
+            chunk = contents[start : start + batch]
+            all_embeddings.extend(list(self.embedding_model.embed(chunk)))
 
         data: list[dict[str, Any]] = []
-        for doc, emb in zip(documents, embeddings, strict=True):
+        for doc, emb in zip(documents, all_embeddings, strict=True):
             vec = emb.tolist() if hasattr(emb, "tolist") else list(emb)
             entry: dict[str, Any] = {
                 "id": doc.get("id"),
