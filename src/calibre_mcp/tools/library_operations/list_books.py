@@ -18,7 +18,7 @@ async def list_books(
     query: str = "",
     author: str = "",
     tag: str = "",
-    format: str = "",
+    format: str = "",  # noqa: A002
     status: str = "",
     limit: int = 50,
     offset: int = 0,

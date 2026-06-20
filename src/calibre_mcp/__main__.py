@@ -7,6 +7,7 @@ Allows running the server with: python -m calibre_mcp
 # CRITICAL: Suppress ALL warnings and redirect stderr BEFORE ANY imports
 # MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
 import os
+import pathlib
 import sys
 import warnings
 
@@ -23,10 +24,10 @@ if _is_stdio_transport:
     # Running as MCP server (stdio transport) - redirect stderr to devnull
     # Save original stderr for actual errors if needed
     _original_stderr = sys.stderr
-    try:
+    try:  # noqa: SIM105
         # Redirect stderr to devnull to suppress ALL stderr output (including warnings)
-        sys.stderr = open(os.devnull, "w", encoding="utf-8")
-    except Exception:
+        sys.stderr = pathlib.Path(os.devnull).open("w", encoding="utf-8")  # noqa: SIM115
+    except Exception:  # noqa: S110
         # If we can't redirect, at least suppress warnings
         pass
 
@@ -39,10 +40,10 @@ if _is_stdio_transport:
     logging.getLogger("mcp.server.lowlevel.server").setLevel(logging.WARNING)
 
 # Standard imports
-import asyncio
-import contextlib
+import asyncio  # noqa: E402
+import contextlib  # noqa: E402
 
-from .server import main
+from .server import main  # noqa: E402
 
 if __name__ == "__main__":
     try:

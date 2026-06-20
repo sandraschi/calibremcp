@@ -318,7 +318,7 @@ async def help_helper(level: HelpLevel, topic: str | None = None) -> str:
 
 
 # Deprecated: use manage_system(operation="help") - kept as helper only, not registered
-async def help(level: HelpLevel = HelpLevel.BASIC, topic: str | None = None) -> str:
+async def help(level: HelpLevel = HelpLevel.BASIC, topic: str | None = None) -> str:  # noqa: A001
     """
     Comprehensive help system with multiple detail levels.
 

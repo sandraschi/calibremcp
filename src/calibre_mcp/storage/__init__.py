@@ -5,7 +5,6 @@ Provides a unified interface for accessing both local and remote Calibre librari
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
 
 from ..models.book import Book
 from ..models.library import LibraryInfo

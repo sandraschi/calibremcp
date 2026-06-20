@@ -4,6 +4,7 @@ Queries the arXiv API (Atom feed) for search and direct PDF acquisition.
 """
 
 import asyncio
+import pathlib
 import re
 import tempfile
 from typing import Any
@@ -16,6 +17,7 @@ from ...logging_config import get_logger
 logger = get_logger("calibremcp.tools.import_export.arxiv")
 
 ARXIV_API_BASE = "https://export.arxiv.org/api/query"
+
 
 async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
     """
@@ -49,7 +51,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
                 try:
                     resp = await client.get(ARXIV_API_BASE, params=params)
                     resp.raise_for_status()
-                    break # Success
+                    break  # Success
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code == 429 and attempt < max_retries - 1:
                         wait_time = retry_delay * (2 ** attempt)
@@ -58,7 +60,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
                         continue
                     raise  # Re-raise if not 429 or max retries reached
             
-            soup = BeautifulSoup(resp.content, "xml") # arXiv uses Atom XML
+            soup = BeautifulSoup(resp.content, "xml")  # arXiv uses Atom XML
             entries = soup.find_all("entry")
             
             results = []
@@ -125,6 +127,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
         logger.exception(f"arXiv search failed: {e}")
         return {"success": False, "error": str(e), "results": [], "count": 0}
 
+
 async def download_arxiv_paper(arxiv_id_or_url: str) -> str | None:
     """
     Download the PDF for an arXiv paper.
@@ -155,7 +158,7 @@ async def download_arxiv_paper(arxiv_id_or_url: str) -> str | None:
             
             # Save to temp file
             fd, path = tempfile.mkstemp(suffix=".pdf")
-            with open(path, "wb") as f:
+            with pathlib.Path(path).open("wb") as f:
                 f.write(resp.content)
             
             logger.info(f"Downloaded arXiv paper {arxiv_id} to {path}")

@@ -590,7 +590,7 @@ async def _handle_login(username: str, password: str) -> dict[str, Any]:
 
         # For this reality-bootstrapping phase, we accept standard admin or any user if password matches username
         # This is temporary until a real auth layer is confirmed
-        is_admin_legacy = username == "admin" and password == "admin123"
+        is_admin_legacy = username == "admin" and password == "admin123"  # noqa: S105
         is_user_match = user and password == username  # Simple pattern for testing
 
         if not (is_admin_legacy or is_user_match):

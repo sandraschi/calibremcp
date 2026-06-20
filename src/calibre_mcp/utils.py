@@ -18,7 +18,7 @@ from pathlib import Path
 try:
     import aiofiles
 
-    try:
+    try:  # noqa: SIM105
         import aiofiles.os
     except AttributeError:
         # Windows compatibility: aiofiles.os fails on Windows due to missing statvfs
@@ -83,7 +83,7 @@ except ImportError:
 
 
 # Configure MIME type detection
-if magic is not None:
+if magic is not None:  # noqa: SIM108
     mime = magic.Magic(mime=True)
 else:
     mime = None  # Fallback to mimetypes module
@@ -224,7 +224,7 @@ async def extract_metadata(file_path: str | Path) -> BookMetadata:
 
     try:
         # Extract metadata using Calibre
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             calibre_metadata = get_metadata(f, mime_type=None, use_libprs_metadata=True)
 
         # Map Calibre metadata to our model
@@ -473,7 +473,7 @@ def sanitize_filename(filename: str) -> str:
     # Truncate if too long (max 255 characters)
     max_length = 255
     if len(filename) > max_length:
-        name, ext = os.path.splitext(filename)
+        name, ext = os.path.splitext(filename)  # noqa: PTH122
         ext = ext[:10]  # Limit extension length
         name = name[: (max_length - len(ext) - 1)]
         filename = f"{name}{ext}"

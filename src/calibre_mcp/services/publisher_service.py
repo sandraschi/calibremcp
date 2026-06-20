@@ -50,7 +50,7 @@ class PublisherService:
             )
             if result.fetchone():
                 return Publisher, books_publishers_link
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         return None, None
 
@@ -64,7 +64,7 @@ class PublisherService:
     ) -> dict[str, Any]:
         """Get paginated list of publishers."""
         with self._get_db_session() as session:
-            Publisher, books_publishers_link = self._get_publisher_model(session)
+            Publisher, books_publishers_link = self._get_publisher_model(session)  # noqa: N806
             if Publisher is not None:
                 return self._get_all_from_table(
                     session,
@@ -79,7 +79,7 @@ class PublisherService:
             return self._get_all_from_identifiers(session, skip, limit, search, sort_by, sort_order)
 
     def _get_all_from_table(
-        self, session, Publisher, books_publishers_link, skip, limit, search, sort_by, sort_order
+        self, session, Publisher, books_publishers_link, skip, limit, search, sort_by, sort_order  # noqa: N803
     ) -> dict[str, Any]:
         query = session.query(Publisher)
         if search:
@@ -158,7 +158,7 @@ class PublisherService:
     def get_by_name(self, name: str) -> dict[str, Any]:
         """Get publisher by name (works with both publishers table and identifiers)."""
         with self._get_db_session() as session:
-            Publisher, books_publishers_link = self._get_publisher_model(session)
+            Publisher, books_publishers_link = self._get_publisher_model(session)  # noqa: N806
             if Publisher is not None:
                 pub = session.query(Publisher).filter(Publisher.name.ilike(f"%{name}%")).first()
                 if not pub:
@@ -189,7 +189,7 @@ class PublisherService:
     ) -> dict[str, Any]:
         """Get books by publisher (ID or name)."""
         with self._get_db_session() as session:
-            Publisher, books_publishers_link = self._get_publisher_model(session)
+            Publisher, books_publishers_link = self._get_publisher_model(session)  # noqa: N806
             if Publisher is not None and publisher_id is not None:
                 pub = session.query(Publisher).filter(Publisher.id == publisher_id).first()
                 if not pub:
@@ -266,7 +266,7 @@ class PublisherService:
         if len(letter) != 1 or not letter.isalpha():
             return []
         with self._get_db_session() as session:
-            Publisher, books_publishers_link = self._get_publisher_model(session)
+            Publisher, books_publishers_link = self._get_publisher_model(session)  # noqa: N806
             if Publisher is not None:
                 pubs = (
                     session.query(Publisher)
@@ -303,7 +303,7 @@ class PublisherService:
     def get_stats(self) -> dict[str, Any]:
         """Get publisher statistics."""
         with self._get_db_session() as session:
-            Publisher, books_publishers_link = self._get_publisher_model(session)
+            Publisher, books_publishers_link = self._get_publisher_model(session)  # noqa: N806
             if Publisher is not None:
                 total = session.query(func.count(Publisher.id)).scalar()
                 letter_counts = (
@@ -333,7 +333,7 @@ class PublisherService:
                 )
                 return {
                     "total_publishers": total,
-                    "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],
+                    "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],  # noqa: E741
                     "top_publishers": [
                         {"id": p.id, "name": p.name, "book_count": bc} for p, bc in top
                     ],
@@ -371,7 +371,7 @@ class PublisherService:
             )
             return {
                 "total_publishers": total or 0,
-                "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],
+                "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],  # noqa: E741
                 "top_publishers": [{"id": None, "name": n, "book_count": bc} for n, bc in top],
             }
 

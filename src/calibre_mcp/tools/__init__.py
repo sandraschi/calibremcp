@@ -171,24 +171,18 @@ def register_tools(mcp: Any) -> None:
 
         # RAG (semantic search over book text and metadata; lancedb/fastembed in main deps)
         import_start = time.time()
-        try:
+        try:  # noqa: SIM105
             from .rag import (
-                calibre_metadata_export_json,
-                calibre_metadata_index_build,
-                calibre_metadata_search,
-                rag_index_build,
-                rag_retrieve,
+                calibre_metadata_export_json,  # noqa: F401
+                calibre_metadata_index_build,  # noqa: F401
+                calibre_metadata_search,  # noqa: F401
+                rag_index_build,  # noqa: F401
+                rag_retrieve,  # noqa: F401
             )  # noqa: F401
         except ImportError:
             pass
 
         try:
-            from .portmanteau.media_agentic import (
-                media_critical_reception,
-                media_deep_research,
-                media_research_book,
-                media_synopsis,
-            )  # noqa: F401
             from .portmanteau.search import calibre_rag  # noqa: F401
         except Exception as e:
             logger.error(f"Failed to load RAG portmanteaus: {e}", exc_info=True)

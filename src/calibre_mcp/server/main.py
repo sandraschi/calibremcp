@@ -62,7 +62,7 @@ def create_app() -> FastAPI:
     return app
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
+def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):  # noqa: S104
     """Run the server using uvicorn."""
     uvicorn.run(
         "calibre_mcp.server.main:create_app",

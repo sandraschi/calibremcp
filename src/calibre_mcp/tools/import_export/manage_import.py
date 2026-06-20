@@ -31,7 +31,7 @@ async def manage_import(
     md5: str | None = None,
     book_id: int | None = None,
     arxiv_id: str | None = None,
-    format: str | None = None,
+    format: str | None = None,  # noqa: A002
     max_results: int = 20,
     library_path: str | None = None,
 ) -> dict[str, Any]:

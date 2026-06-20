@@ -493,7 +493,6 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             "updated_at": library.updated_at.isoformat() if library.updated_at else None,
         }
 
-
     def get_library_health(self) -> dict[str, Any]:
         """Get library health information."""
         # This is a placeholder for more comprehensive health checks

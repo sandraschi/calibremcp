@@ -2,7 +2,6 @@
 
 import asyncio
 import hashlib
-import os
 from datetime import datetime
 from typing import Any
 
@@ -10,6 +9,8 @@ try:
     from fastmcp import MCPTool
 except ImportError:
     from ..compat import MCPTool
+import pathlib
+
 from pydantic import BaseModel, Field
 
 
@@ -227,7 +228,7 @@ class ContentSyncTool(MCPTool):
         # In a real implementation, this would upload the file to the cloud
         # For now, just simulate the upload
 
-        file_size = os.path.getsize(local_path) if os.path.exists(local_path) else 0
+        file_size = pathlib.Path(local_path).stat().st_size if pathlib.Path(local_path).exists() else 0
 
         return {
             "success": True,
@@ -267,7 +268,7 @@ class ContentSyncTool(MCPTool):
         }
 
     async def sync_to_ereader(
-        self, device_id: str, book_ids: list[str], format: str = "epub"
+        self, device_id: str, book_ids: list[str], format: str = "epub"  # noqa: A002
     ) -> dict:
         """Send books to an e-reader."""
         # In a real implementation, this would transfer the books to the e-reader

@@ -61,7 +61,7 @@ class CalibreMCPStorage:
             # macOS: ~/Library/Application Support/calibre-mcp
             # Linux: ~/.local/share/calibre-mcp
             if os.name == "nt":  # Windows
-                appdata = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
+                appdata = os.getenv("APPDATA", Path("~\\AppData\\Roaming").expanduser())
                 self._storage_dir = Path(appdata) / "calibre-mcp"
             else:  # macOS/Linux
                 home = Path.home()
@@ -147,9 +147,9 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        try:  # noqa: SIM105
             await self._storage.set(CURRENT_LIBRARY_KEY, library_name)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def get_user_preferences(self) -> dict[str, Any]:
@@ -174,9 +174,9 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        try:  # noqa: SIM105
             await self._storage.set(USER_PREFS_KEY, prefs)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def get_session_state(self, session_id: str) -> dict[str, Any]:
@@ -205,7 +205,7 @@ class CalibreMCPStorage:
         try:
             key = f"{SESSION_STATE_KEY}:{session_id}"
             await self._storage.set(key, state)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def clear_session_state(self, session_id: str) -> None:
@@ -217,7 +217,7 @@ class CalibreMCPStorage:
         try:
             key = f"{SESSION_STATE_KEY}:{session_id}"
             await self._storage.delete(key)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def cache_library_stats(
@@ -232,7 +232,7 @@ class CalibreMCPStorage:
             key = f"{LIBRARY_CACHE_KEY}:{library_name}"
             # FastMCP storage supports TTL if the backend supports it
             await self._storage.set(key, stats, ttl=ttl)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def get_cached_library_stats(self, library_name: str) -> dict[str, Any] | None:
@@ -281,7 +281,7 @@ class CalibreMCPStorage:
             current = await self.get_search_preferences()
             current.update(prefs)
             await self._storage.set(SEARCH_PREFS_KEY, current)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     # ==================== SEARCH HISTORY ====================
@@ -307,7 +307,7 @@ class CalibreMCPStorage:
             # Limit to max_history
             history = history[:max_history]
             await self._storage.set(SEARCH_HISTORY_KEY, history)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def get_search_history(self, limit: int = 20) -> list[dict[str, Any]]:
@@ -332,9 +332,9 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        try:  # noqa: SIM105
             await self._storage.delete(SEARCH_HISTORY_KEY)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     # ==================== READING PROGRESS ====================
@@ -370,7 +370,7 @@ class CalibreMCPStorage:
 
                 progress["last_updated"] = time.time()
             await self._storage.set(key, progress)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def get_all_reading_progress(self) -> dict[str, dict[str, Any]]:
@@ -426,7 +426,7 @@ class CalibreMCPStorage:
             current = await self.get_viewer_preferences()
             current.update(prefs)
             await self._storage.set(VIEWER_PREFS_KEY, current)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     # ==================== FAVORITES ====================
@@ -460,7 +460,7 @@ class CalibreMCPStorage:
             if item not in favorites[favorite_type]:
                 favorites[favorite_type].append(item)
             await self._storage.set(FAVORITES_KEY, favorites)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def remove_favorite(self, favorite_type: str, item: str) -> None:
@@ -474,7 +474,7 @@ class CalibreMCPStorage:
             if favorite_type in favorites and item in favorites[favorite_type]:
                 favorites[favorite_type].remove(item)
                 await self._storage.set(FAVORITES_KEY, favorites)
-        except Exception:
+        except Exception:  # noqa: S110
             pass  # Graceful degradation
 
     async def is_favorite(self, favorite_type: str, item: str) -> bool:

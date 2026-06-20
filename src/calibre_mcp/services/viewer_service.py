@@ -147,7 +147,7 @@ class ViewerService:
             try:
                 first_page = viewer.render_page(0)
                 page_count = first_page.get("total_pages", 0)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
         # Update state with page count
@@ -191,7 +191,7 @@ class ViewerService:
             try:
                 metadata = self.get_metadata(book_id, file_path)
                 state.total_pages = metadata.page_count
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
         return state

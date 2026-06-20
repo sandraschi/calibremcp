@@ -237,7 +237,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
 
         return wrapper
 
-    def get(self, id: int) -> dict[str, Any]:
+    def get(self, id: int) -> dict[str, Any]:  # noqa: A002
         """
         Retrieve a single item by ID.
 
@@ -300,7 +300,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def update(self, id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
+    def update(self, id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:  # noqa: A002
         """
         Update an existing item.
 
@@ -327,7 +327,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def delete(self, id: int) -> bool:
+    def delete(self, id: int) -> bool:  # noqa: A002
         """
         Delete an item by ID.
 

@@ -6,7 +6,7 @@ Consolidates all metadata-related operations into a single unified interface.
 
 import os
 import platform
-import subprocess
+import subprocess  # noqa: S404
 import sys
 import tempfile
 from pathlib import Path
@@ -365,11 +365,11 @@ Book ID:     {book_id}
                     # Open in browser
                     system = platform.system()
                     if system == "Windows":
-                        os.startfile(html_path)
+                        os.startfile(html_path)  # noqa: S606
                     elif system == "Darwin":  # macOS
-                        subprocess.run(["open", html_path], check=False, creationflags=_NO_WINDOW)
+                        subprocess.run(["open", html_path], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
                     else:  # Linux
-                        subprocess.run(["xdg-open", html_path], check=False, creationflags=_NO_WINDOW)
+                        subprocess.run(["xdg-open", html_path], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
 
                 return {
                     "success": True,

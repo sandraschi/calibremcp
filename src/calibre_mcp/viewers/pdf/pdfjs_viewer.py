@@ -126,7 +126,7 @@ class PDFViewer:
         file_path = Path(file_path)
         hasher = hashlib.sha256()
 
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             while chunk := f.read(65536):  # 64KB chunks
                 hasher.update(chunk)
 

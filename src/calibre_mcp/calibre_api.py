@@ -186,7 +186,6 @@ class CalibreAPIClient:
                 ],
             }
 
-
         except CalibreAPIError:
             raise  # Let specific API errors bubble up unchanged
         except Exception as e:
@@ -225,7 +224,6 @@ class CalibreAPIClient:
 
             # Get metadata for found books
             return await self._get_books_metadata(book_ids)
-
 
         except Exception as e:
             raise CalibreAPIError(f"Library search failed: {str(e)}") from e
@@ -298,7 +296,6 @@ class CalibreAPIClient:
                     book_id, response.get("formats", {})
                 ),
             }
-
 
         except Exception as e:
             raise CalibreAPIError(f"Failed to get book details: {str(e)}") from e

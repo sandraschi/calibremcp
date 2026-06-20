@@ -312,7 +312,7 @@ Provide a comprehensive answer with citations to specific books:"""
             Summary text
         """
         # Check cache
-        cache_key = hashlib.md5(chunk.text.encode()).hexdigest()
+        cache_key = hashlib.md5(chunk.text.encode()).hexdigest()  # noqa: S324
         if cache_key in self._cache:
             logger.debug(f"Cache hit for chunk {chunk.index}")
             return self._cache[cache_key]

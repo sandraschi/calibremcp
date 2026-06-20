@@ -59,7 +59,6 @@ def register_agentic_tools():
                 ],
             }
 
-
         except Exception as e:
             return {
                 "success": False,
@@ -120,7 +119,6 @@ def register_agentic_tools():
                 ],
             }
 
-
         except Exception as e:
             return {
                 "success": False,
@@ -175,7 +173,6 @@ def register_agentic_tools():
                     "Use 'manage_collections' to organize books",
                 ],
             }
-
 
         except Exception as e:
             return {

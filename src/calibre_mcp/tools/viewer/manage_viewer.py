@@ -6,7 +6,7 @@ Consolidates all book viewer operations into a single unified interface.
 
 import os
 import platform
-import subprocess
+import subprocess  # noqa: S404
 import sys
 from pathlib import Path
 from typing import Any
@@ -111,7 +111,7 @@ async def manage_viewer(
                     )
 
                 # Randomly select a book
-                selected_book = random.choice(books)
+                selected_book = random.choice(books)  # noqa: S311
                 selected_book_id = selected_book["id"]
                 selected_title = selected_book.get("title", "Unknown")
                 authors_list = selected_book.get("authors", [])
@@ -216,11 +216,11 @@ async def manage_viewer(
                     system = platform.system()
 
                     if system == "Windows":
-                        os.startfile(file_path_str)
+                        os.startfile(file_path_str)  # noqa: S606
                     elif system == "Darwin":  # macOS
-                        subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
+                        subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
                     else:  # Linux and others
-                        subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
+                        subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
 
                     return {
                         "success": True,
@@ -644,11 +644,11 @@ async def manage_viewer(
                 system = platform.system()
 
                 if system == "Windows":
-                    os.startfile(file_path_str)
+                    os.startfile(file_path_str)  # noqa: S606
                 elif system == "Darwin":  # macOS
-                    subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
+                    subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
                 else:  # Linux and others
-                    subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
+                    subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
 
                 return {
                     "success": True,

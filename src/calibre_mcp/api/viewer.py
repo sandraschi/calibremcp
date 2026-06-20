@@ -2,7 +2,7 @@
 Viewer API endpoints for CalibreMCP.
 """
 
-import os
+import pathlib
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -28,7 +28,7 @@ async def view_book(book_id: str, page: int = 0, library_id: str | None = None):
         storage = get_storage_backend()
         book = storage.get_book(book_id)
 
-        if not book or not book.file_path or not os.path.exists(book.file_path):
+        if not book or not book.file_path or not pathlib.Path(book.file_path).exists():
             raise HTTPException(status_code=404, detail="Book not found")
 
         # Get or create viewer instance

@@ -49,10 +49,10 @@ _original_stderr = sys.stderr
 # Now safe to proceed with standard imports
 
 # Core exports - clean imports
-from .calibre_api import CalibreAPIClient, CalibreAPIError
-from .config import CalibreConfig
-from .exceptions import BookNotFoundError, CalibreError  # noqa: F401
-from .models import (
+from .calibre_api import CalibreAPIClient, CalibreAPIError  # noqa: E402
+from .config import CalibreConfig  # noqa: E402
+from .exceptions import BookNotFoundError, CalibreError  # noqa: E402, F401
+from .models import (  # noqa: E402
     Author,
     Book,
     Comment,
@@ -64,7 +64,7 @@ from .models import (
     Series,
     Tag,
 )  # noqa: F401
-from .storage import LocalStorage, StorageBackend
+from .storage import LocalStorage, StorageBackend  # noqa: E402
 
 # DO NOT import server or tools here - causes circular import deadlock
 # Server and tools are imported only when actually running the server

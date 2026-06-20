@@ -6,7 +6,7 @@ import logging
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, Generic, List, Optional, TypeVar
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 

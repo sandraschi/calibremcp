@@ -29,17 +29,21 @@ class AnnasError(Exception):
     """Base exception for Anna's Archive operations."""
     pass
 
+
 class AnnasNoLinksError(AnnasError):
     """No download links found for the MD5."""
     pass
+
 
 class AnnasLinkRestrictionError(AnnasError):
     """Mirrors found, but they require manual interaction (landing pages)."""
     pass
 
+
 class AnnasDownloadTimeoutError(AnnasError):
     """Download attempt timed out."""
     pass
+
 
 def _get_mirrors() -> list[str]:
     """Get mirror list from CalibreConfig."""
@@ -291,7 +295,7 @@ async def download_annas_book(
         url = link_info["url"]
         logger.info(f"Attempting download from: {url} ({link_info['label']})")
         try:
-            async with httpx.AsyncClient(
+            async with httpx.AsyncClient(  # noqa: SIM117
                 timeout=300.0,  # Long timeout for slow downloads
                 follow_redirects=True,
                 headers={"User-Agent": "CalibreMCP/1.0 (ebook library manager)"},
@@ -333,6 +337,6 @@ async def download_annas_book(
         )
 
     if total_mirrors == 0:
-         raise AnnasNoLinksError(f"No download links found for MD5: {md5}")
+         raise AnnasNoLinksError(f"No download links found for MD5: {md5}")  # noqa: E111, E117
 
     return None

@@ -14,6 +14,8 @@ try:
     from fastmcp import MCPTool
 except ImportError:
     from ..compat import MCPTool
+import pathlib
+
 from pydantic import BaseModel, Field
 
 
@@ -328,7 +330,7 @@ class LibraryOrganizer(MCPTool):
 
         # Ensure target directory exists
         if not dry_run:
-            os.makedirs(target_dir, exist_ok=True)
+            pathlib.Path(target_dir).mkdir(exist_ok=True, parents=True)
 
         # Process each book
         for book in books:
@@ -340,7 +342,7 @@ class LibraryOrganizer(MCPTool):
                     continue
 
                 file_path = file_info["path"]
-                file_name = os.path.basename(file_path)
+                file_name = pathlib.Path(file_path).name
 
                 # Check if file matches the pattern
                 if not fnmatch.fnmatch(file_name, pattern):
@@ -359,12 +361,12 @@ class LibraryOrganizer(MCPTool):
                         title = self._sanitize_filename(book.get("title", "Unknown"))
 
                         # Create subdirectory path
-                        subdir = os.path.join(target_dir, author, series)
+                        subdir = os.path.join(target_dir, author, series)  # noqa: PTH118
                         new_filename = f"{series_index:03d} - {title}.{fmt.lower()}"
-                        new_path = os.path.join(subdir, new_filename)
+                        new_path = pathlib.Path(subdir) / new_filename
                     else:
                         # Just use the original filename in the target directory
-                        new_path = os.path.join(target_dir, file_name)
+                        new_path = pathlib.Path(target_dir) / file_name
 
                     # Check if this would be a move or copy
                     if os.path.normpath(file_path) == os.path.normpath(new_path):
@@ -388,7 +390,7 @@ class LibraryOrganizer(MCPTool):
                     # Perform the actual move if not in dry run mode
                     if not dry_run:
                         # Create target directory if it doesn't exist
-                        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+                        pathlib.Path(pathlib.Path(new_path).parent).mkdir(exist_ok=True, parents=True)
 
                         # Move the file
                         shutil.move(file_path, new_path)
@@ -618,28 +620,28 @@ class LibraryOrganizer(MCPTool):
         """Create a backup of the library."""
         # This is a simplified version - in a real implementation, you might want to use
         # the backup functionality from extended_library_ops.py
-        backup_dir = os.path.join(library_path, "backups")
-        os.makedirs(backup_dir, exist_ok=True)
+        backup_dir = pathlib.Path(library_path) / "backups"
+        pathlib.Path(backup_dir).mkdir(exist_ok=True, parents=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_name = f"backup_{timestamp}_{suffix}".strip("_") if suffix else f"backup_{timestamp}"
-        backup_path = os.path.join(backup_dir, f"{backup_name}.zip")
+        backup_path = os.path.join(backup_dir, f"{backup_name}.zip")  # noqa: PTH118
 
         try:
             import zipfile
 
             with zipfile.ZipFile(backup_path, "w", zipfile.ZIP_DEFLATED) as zipf:
                 # Add metadata.db
-                metadata_db = os.path.join(library_path, "metadata.db")
-                if os.path.exists(metadata_db):
-                    zipf.write(metadata_db, os.path.basename(metadata_db))
+                metadata_db = pathlib.Path(library_path) / "metadata.db"
+                if pathlib.Path(metadata_db).exists():
+                    zipf.write(metadata_db, pathlib.Path(metadata_db).name)
 
                 # Add covers directory if it exists
-                covers_dir = os.path.join(library_path, "covers")
-                if os.path.isdir(covers_dir):
+                covers_dir = pathlib.Path(library_path) / "covers"
+                if pathlib.Path(covers_dir).is_dir():
                     for root, _, files in os.walk(covers_dir):
                         for file in files:
-                            file_path = os.path.join(root, file)
+                            file_path = pathlib.Path(root) / file
                             arcname = os.path.relpath(file_path, library_path)
                             zipf.write(file_path, arcname)
 
@@ -698,7 +700,6 @@ class LibraryOrganizer(MCPTool):
 
         # Convert to title case (first letter of each word capitalized)
         return " ".join(word.capitalize() for word in tag.split())
-
 
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize a string to be used as a filename."""

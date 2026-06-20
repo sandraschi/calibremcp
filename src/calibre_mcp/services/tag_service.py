@@ -471,7 +471,6 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
         # Title case (first letter of each word capitalized)
         return normalized.title()
 
-
     def get_tag_statistics(self) -> dict[str, Any]:
         """
         Get statistics about tags in the library.

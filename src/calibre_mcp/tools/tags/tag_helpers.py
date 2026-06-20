@@ -46,7 +46,6 @@ async def list_tags_helper(
             max_book_count=max_book_count,
         )
 
-
     except Exception as e:
         logger.error(f"Error listing tags: {e}", exc_info=True)
         return {

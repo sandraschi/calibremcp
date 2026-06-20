@@ -36,7 +36,6 @@ if __name__ != "__main__":
         BookStatus = pydantic_models.BookStatus
     else:
         # Fallback: define minimal enums
-        from enum import Enum
 
         class BookFormat(enum.StrEnum):
             EPUB = "epub"
@@ -49,7 +48,6 @@ if __name__ != "__main__":
             FINISHED = "finished"
 else:
     # Fallback for direct execution
-    from enum import Enum
 
     class BookFormat(enum.StrEnum):
         EPUB = "epub"

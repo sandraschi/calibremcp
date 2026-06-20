@@ -23,7 +23,7 @@ class BaseRepository[T]:
         """Get a database session."""
         return self._db.session
 
-    def get(self, id: int) -> T | None:
+    def get(self, id: int) -> T | None:  # noqa: A002
         """Get a single record by ID."""
         with self._db.session_scope() as session:
             return session.query(self.model).get(id)
@@ -67,7 +67,7 @@ class BaseRepository[T]:
             session.refresh(obj)
             return obj
 
-    def update(self, id: int, data: dict[str, Any], commit: bool = True) -> T | None:
+    def update(self, id: int, data: dict[str, Any], commit: bool = True) -> T | None:  # noqa: A002
         """Update a record by ID."""
         with self._db.session_scope() as session:
             obj = session.query(self.model).get(id)
@@ -80,7 +80,7 @@ class BaseRepository[T]:
             session.refresh(obj)
             return obj
 
-    def delete(self, id: int, commit: bool = True) -> bool:
+    def delete(self, id: int, commit: bool = True) -> bool:  # noqa: A002
         """Delete a record by ID."""
         with self._db.session_scope() as session:
             obj = session.query(self.model).get(id)

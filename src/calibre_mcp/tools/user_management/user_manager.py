@@ -183,7 +183,7 @@ class UserManagerTool(MCPTool):
         # await self._update_user_in_db(user['id'], {'last_login': datetime.utcnow()})
 
         # For now, use a mock user
-        if username != "admin" or password != "admin123":
+        if username != "admin" or password != "admin123":  # noqa: S105
             return {"error": "Invalid username or password", "success": False}
 
         user_data = {

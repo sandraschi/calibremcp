@@ -32,7 +32,7 @@ async def manage_bulk_operations(
     batch_size: int = 10,
     # Export parameters
     export_path: str | None = None,
-    format: str = "directory",
+    format: str = "directory",  # noqa: A002
     # Delete parameters
     delete_files: bool = True,
     # Convert parameters

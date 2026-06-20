@@ -83,7 +83,7 @@ async def chat_complete(
         if stream:
 
             async def _stream_ollama():
-                async with httpx.AsyncClient(timeout=120.0) as client:
+                async with httpx.AsyncClient(timeout=120.0) as client:  # noqa: SIM117
                     async with client.stream("POST", req_url, json=payload) as r:
                         async for chunk in r.aiter_text():
                             yield chunk
@@ -121,7 +121,7 @@ async def chat_complete(
     if stream:
 
         async def _stream_openai():
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:  # noqa: SIM117
                 async with client.stream("POST", req_url, json=payload, headers=headers) as r:
                     async for chunk in r.aiter_text():
                         yield chunk

@@ -489,7 +489,7 @@ class SocialFeaturesTool(MCPTool):
 
     # Helper Methods
     async def _create_notification(
-        self, user_id: str, type: str, data: dict, from_user_id: str | None = None
+        self, user_id: str, type: str, data: dict, from_user_id: str | None = None  # noqa: A002
     ):
         """Create a new notification for a user."""
         if user_id not in self._notifications:

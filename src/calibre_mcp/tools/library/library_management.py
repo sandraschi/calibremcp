@@ -83,7 +83,7 @@ def _stats_from_ephemeral_db(metadata_db: Path, total_books_fallback: int) -> di
         pool_pre_ping=True,
     )
     try:
-        Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # noqa: N806
         session = Session()
         try:
             return _collect_library_stats_from_session(session, total_books_fallback)
@@ -493,7 +493,6 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
             rating_distribution=rating_distribution,
             last_modified=last_modified,
         )
-
 
     except ValueError as ve:
         logger.exception(f"Validation error getting library stats: {ve}")

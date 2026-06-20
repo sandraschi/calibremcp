@@ -159,7 +159,7 @@ class CalibreConfig(BaseModel):
             config_path = Path(config_file)
             if config_path.exists():
                 try:
-                    with open(config_path, encoding="utf-8") as f:
+                    with Path(config_path).open(encoding="utf-8") as f:
                         file_data = json.load(f)
                         config_data.update(file_data)
                 except (OSError, json.JSONDecodeError) as e:
@@ -206,7 +206,7 @@ class CalibreConfig(BaseModel):
         # Handle base library path
         if "CALIBRE_BASE_PATH" in os.environ:
             base_path = os.environ["CALIBRE_BASE_PATH"]
-            if os.path.exists(base_path):
+            if Path(base_path).exists():
                 config_data["base_library_path"] = base_path
 
         # Process other environment variables
@@ -276,7 +276,7 @@ class CalibreConfig(BaseModel):
             # Remove sensitive data from saved config
             config_dict.pop("password", None)
 
-            with open(config_path, "w", encoding="utf-8") as f:
+            with Path(config_path).open("w", encoding="utf-8") as f:
                 json.dump(config_dict, f, indent=2, ensure_ascii=False)
             return True
         except OSError as e:
@@ -349,7 +349,7 @@ class CalibreConfig(BaseModel):
                     # Prioritize libraries from L:\Multimedia Files\Written Word
                     user_library_path = Path("L:/Multimedia Files/Written Word")
                     preferred_library = None
-                    for lib_name, lib_info in libraries.items():
+                    for lib_name, lib_info in libraries.items():  # noqa: B007
                         # Check if library is in the user's preferred location
                         try:
                             if lib_info.path.is_relative_to(user_library_path) or str(

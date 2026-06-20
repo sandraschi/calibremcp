@@ -6,7 +6,7 @@ import contextlib
 import hashlib
 import os
 import sqlite3
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # noqa: S405
 import zipfile
 from datetime import datetime
 from pathlib import Path
@@ -128,7 +128,7 @@ class EPubViewer:
         file_path = Path(file_path)
         hasher = hashlib.sha256()
 
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             while chunk := f.read(65536):  # 64KB chunks
                 hasher.update(chunk)
 
@@ -156,7 +156,7 @@ class EPubViewer:
         rootfile_path = self._parse_container(container_data)
 
         # Set the root directory
-        self._root_dir = os.path.dirname(rootfile_path) if "/" in rootfile_path else ""
+        self._root_dir = Path(rootfile_path).parent if "/" in rootfile_path else ""
 
         # Parse the root file (OPF)
         rootfile_data = self._zip_file.read(rootfile_path).decode("utf-8")
@@ -240,7 +240,7 @@ class EPubViewer:
 
             # Resolve relative paths
             if self._root_dir:
-                href = os.path.join(self._root_dir, href)
+                href = os.path.join(self._root_dir, href)  # noqa: PTH118
 
             self._manifest[item_id] = {
                 "id": item_id,
@@ -417,7 +417,7 @@ class EPubViewer:
 
         try:
             content = self._zip_file.read(item["href"]).decode("utf-8")
-            return self._process_content(content, os.path.dirname(item["href"]))
+            return self._process_content(content, Path(item["href"]).parent)
         except (KeyError, UnicodeDecodeError):
             return None
 

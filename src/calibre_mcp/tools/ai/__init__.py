@@ -8,7 +8,7 @@ Consolidates all AI operations into a single unified interface:
 - LLM-powered summarization and cross-book querying
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp

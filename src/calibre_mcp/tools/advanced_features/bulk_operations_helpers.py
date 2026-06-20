@@ -53,7 +53,7 @@ async def export_helper(
     book_ids: list[int | str],
     export_path: str,
     library_path: str | None = None,
-    format: str = "directory",
+    format: str = "directory",  # noqa: A002
 ) -> dict[str, Any]:
     """Helper to export multiple books."""
     try:

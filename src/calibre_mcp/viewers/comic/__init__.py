@@ -7,7 +7,7 @@ import contextlib
 import os
 import re
 import zipfile
-from enum import Enum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -94,7 +94,7 @@ class ComicViewer:
                 "title": self._file_path.stem,
                 "page_count": len(self._file_list),
                 "format": ext.upper(),
-                "file_size": os.path.getsize(file_path),
+                "file_size": Path(file_path).stat().st_size,
             }
 
         except Exception as e:
@@ -134,7 +134,7 @@ class ComicViewer:
             img_base64 = base64.b64encode(img_data).decode("utf-8")
 
             # Determine MIME type from file extension
-            ext = os.path.splitext(page_file)[1].lower()
+            ext = os.path.splitext(page_file)[1].lower()  # noqa: PTH122
             mime_type = f"image/{ext[1:]}"  # Remove the dot
             if ext == ".jpg":
                 mime_type = "image/jpeg"

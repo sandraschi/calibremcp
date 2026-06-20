@@ -10,7 +10,7 @@ import json
 import os
 import platform
 import shutil
-import subprocess
+import subprocess  # noqa: S404
 import sys
 import tempfile
 from collections import defaultdict
@@ -20,8 +20,8 @@ from typing import Any
 
 _NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
-from ...logging_config import get_logger
-from ...services.book_service import book_service
+from ...logging_config import get_logger  # noqa: E402
+from ...services.book_service import book_service  # noqa: E402
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -36,7 +36,7 @@ def _get_export_dir() -> Path:
     """Get the export directory (Desktop/calibre_exports/)."""
     desktop = Path.home() / "Desktop"
     if not desktop.exists():
-        desktop = Path(os.path.expanduser("~/Desktop"))
+        desktop = Path(Path("~/Desktop").expanduser())
     export_dir = desktop / "calibre_exports"
     export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
@@ -49,11 +49,11 @@ def _open_file_with_app(file_path: Path) -> bool:
         file_path_str = str(file_path)
 
         if system == "Windows":
-            os.startfile(file_path_str)
+            os.startfile(file_path_str)  # noqa: S606
         elif system == "Darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
+            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
         else:  # Linux and others
-            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
+            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
 
         logger.info(f"Opened file with default application: {file_path}")
         return True
@@ -297,7 +297,7 @@ async def export_csv_helper(
 
             csv_rows.append(row)
 
-        with open(output_path, "w", newline="", encoding="utf-8-sig") as csvfile:
+        with Path(output_path).open("w", newline="", encoding="utf-8-sig") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fields_to_include, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(csv_rows)
@@ -365,7 +365,7 @@ async def export_json_helper(
         if detail_level:
             books = [_filter_book_by_detail_level(b, detail_level) for b in books]
 
-        with open(output_path, "w", encoding="utf-8") as jsonfile:
+        with Path(output_path).open("w", encoding="utf-8") as jsonfile:
             if pretty:
                 json.dump(books, jsonfile, indent=2, ensure_ascii=False, default=str)
             else:
@@ -679,7 +679,7 @@ async def export_html_helper(
             books, author, tag, book_ids, export_date, export_date_formatted, style=html_style
         )
 
-        with open(output_path, "w", encoding="utf-8") as htmlfile:
+        with Path(output_path).open("w", encoding="utf-8") as htmlfile:
             htmlfile.write(html_content)
 
         logger.info(f"Exported {len(books)} books to {output_path}")
@@ -879,7 +879,7 @@ async def export_pandoc_helper(
         ]
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 cmd,
                 capture_output=True,
                 text=True,
@@ -888,7 +888,7 @@ async def export_pandoc_helper(
             )
 
             if result.returncode != 0:
-                raise Exception(f"Pandoc conversion failed: {result.stderr}")
+                raise Exception(f"Pandoc conversion failed: {result.stderr}")  # noqa: TRY002
 
             Path(tmp_md_path).unlink()
 
@@ -910,7 +910,7 @@ async def export_pandoc_helper(
 
         except subprocess.TimeoutExpired:
             Path(tmp_md_path).unlink()
-            raise Exception("Pandoc conversion timed out") from None
+            raise Exception("Pandoc conversion timed out") from None  # noqa: TRY002
         except FileNotFoundError:
             return {
                 "success": False,
@@ -951,7 +951,7 @@ async def export_stats_csv_helper(
             output_path = orig.parent / f"{orig.stem} ({counter}){orig.suffix}"
             counter += 1
 
-        with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
+        with Path(output_path).open("w", newline="", encoding="utf-8-sig") as f:
             w = csv.writer(f)
             w.writerow(["Metric", "Value"])
             w.writerow(["total_books", stats.get("total_books", 0)])
@@ -998,7 +998,7 @@ async def export_stats_json_helper(
             output_path = orig.parent / f"{orig.stem} ({counter}){orig.suffix}"
             counter += 1
 
-        with open(output_path, "w", encoding="utf-8") as f:
+        with Path(output_path).open("w", encoding="utf-8") as f:
             if pretty:
                 json.dump(stats, f, indent=2, default=str)
             else:
@@ -1104,7 +1104,7 @@ async def export_stats_html_helper(
 </body>
 </html>"""
 
-        with open(output_path, "w", encoding="utf-8") as f:
+        with Path(output_path).open("w", encoding="utf-8") as f:
             f.write(html)
 
         opened = _open_file_with_app(output_path) if open_file else False

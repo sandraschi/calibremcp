@@ -51,7 +51,7 @@ class DevNullStdout:
 
 # CRITICAL: Suppress all warnings before any imports
 # MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
-import warnings
+import warnings  # noqa: E402
 
 # Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
@@ -69,18 +69,18 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # MCP servers use stdio transport, so stdout must be clean for JSON-RPC
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 
-import logging
-from contextlib import asynccontextmanager, suppress
-from pathlib import Path
-from typing import Any, AsyncContextManager
+import logging  # noqa: E402
+from contextlib import asynccontextmanager, suppress  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any, AsyncContextManager  # noqa: E402, UP035
 
-from fastmcp import FastMCP
-from pydantic import BaseModel
+from fastmcp import FastMCP  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
 
-from .calibre_api import CalibreAPIClient
-from .config import CalibreConfig
-from .logging_config import get_logger, log_operation
-from .storage.persistence import CalibreMCPStorage, set_storage
+from .calibre_api import CalibreAPIClient  # noqa: E402
+from .config import CalibreConfig  # noqa: E402
+from .logging_config import get_logger, log_operation  # noqa: E402
+from .storage.persistence import CalibreMCPStorage, set_storage  # noqa: E402
 
 # Load environment variables first
 # load_dotenv()  # Temporarily disabled for testing
@@ -302,7 +302,7 @@ if not _is_stdio_mode:
     )
 
 # Register prompt templates
-from .prompts import register_prompts
+from .prompts import register_prompts  # noqa: E402
 
 register_prompts(mcp)
 
@@ -571,7 +571,7 @@ async def discover_libraries() -> dict[str, str]:
 # ==================== SERVER INITIALIZATION ====================
 
 
-def create_app() -> FastMCP:
+def create_app() -> FastMCP:  # noqa: F811
     """Create and configure the FastMCP application"""
     return mcp
 

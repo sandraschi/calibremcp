@@ -136,24 +136,24 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
 
         # Locate calibre_mcp_data.db using same logic as plugin db_adapter
         if os.name == "nt":
-            appdata = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
-            db_path = os.path.join(appdata, "calibre-mcp", "calibre_mcp_data.db")
+            appdata = os.getenv("APPDATA", Path("~\\AppData\\Roaming").expanduser())
+            db_path = Path(appdata) / "calibre-mcp" / "calibre_mcp_data.db"
         else:
             import platform
-            home = os.path.expanduser("~")
+            home = Path("~").expanduser()
             if platform.system() == "Darwin":
-                db_path = os.path.join(home, "Library", "Application Support",
+                db_path = os.path.join(home, "Library", "Application Support",  # noqa: PTH118
                                        "calibre-mcp", "calibre_mcp_data.db")
             else:
-                db_path = os.path.join(home, ".local", "share",
+                db_path = os.path.join(home, ".local", "share",  # noqa: PTH118
                                        "calibre-mcp", "calibre_mcp_data.db")
 
         # Allow env override
         env_dir = os.getenv("CALIBRE_MCP_USER_DATA_DIR")
         if env_dir:
-            db_path = os.path.join(env_dir, "calibre_mcp_data.db")
+            db_path = Path(env_dir) / "calibre_mcp_data.db"
 
-        if not os.path.exists(db_path):
+        if not Path(db_path).exists():
             return ""
 
         conn = sqlite3.connect(db_path)

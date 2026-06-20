@@ -12,6 +12,7 @@ try:
 except ImportError:
     from ..compat import MCPTool
 import contextlib
+import pathlib
 
 from pydantic import BaseModel, Field
 
@@ -193,7 +194,7 @@ class ExtendedLibraryOperations(MCPTool):
         duplicate_groups = []
         group_id = 0
 
-        for key, book_group in groups.items():
+        for key, book_group in groups.items():  # noqa: B007
             if len(book_group) < 2:
                 continue
 
@@ -339,70 +340,70 @@ class ExtendedLibraryOperations(MCPTool):
         self, library_path: str, backup_dir: str, max_backups: int = 5, compress: bool = True
     ) -> dict:
         """Create a backup of the library."""
-        if not os.path.isdir(library_path):
+        if not pathlib.Path(library_path).is_dir():
             return {"error": f"Library directory not found: {library_path}", "success": False}
 
-        os.makedirs(backup_dir, exist_ok=True)
+        pathlib.Path(backup_dir).mkdir(exist_ok=True, parents=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_name = f"calibre_backup_{timestamp}"
-        backup_path = os.path.join(backup_dir, backup_name)
+        backup_path = pathlib.Path(backup_dir) / backup_name
 
         try:
             if compress:
                 backup_path += ".zip"
                 with zipfile.ZipFile(backup_path, "w", zipfile.ZIP_DEFLATED) as zipf:
                     # Add metadata.db
-                    metadata_db = os.path.join(library_path, "metadata.db")
-                    if os.path.exists(metadata_db):
-                        zipf.write(metadata_db, os.path.join(backup_name, "metadata.db"))
+                    metadata_db = pathlib.Path(library_path) / "metadata.db"
+                    if pathlib.Path(metadata_db).exists():
+                        zipf.write(metadata_db, pathlib.Path(backup_name) / "metadata.db")
 
                     # Add books
-                    books_dir = os.path.join(library_path, "books")
-                    if os.path.isdir(books_dir):
+                    books_dir = pathlib.Path(library_path) / "books"
+                    if pathlib.Path(books_dir).is_dir():
                         for root, _, files in os.walk(books_dir):
                             for file in files:
-                                file_path = os.path.join(root, file)
-                                arcname = os.path.join(
+                                file_path = pathlib.Path(root) / file
+                                arcname = os.path.join(  # noqa: PTH118
                                     backup_name, "books", os.path.relpath(file_path, books_dir)
                                 )
                                 zipf.write(file_path, arcname)
 
                     # Add covers
-                    covers_dir = os.path.join(library_path, "covers")
-                    if os.path.isdir(covers_dir):
+                    covers_dir = pathlib.Path(library_path) / "covers"
+                    if pathlib.Path(covers_dir).is_dir():
                         for root, _, files in os.walk(covers_dir):
                             for file in files:
-                                file_path = os.path.join(root, file)
-                                arcname = os.path.join(
+                                file_path = pathlib.Path(root) / file
+                                arcname = os.path.join(  # noqa: PTH118
                                     backup_name, "covers", os.path.relpath(file_path, covers_dir)
                                 )
                                 zipf.write(file_path, arcname)
             else:
-                backup_path = os.path.join(backup_path, os.path.basename(library_path))
+                backup_path = os.path.join(backup_path, pathlib.Path(library_path).name)  # noqa: PTH118
 
                 def copy_dir(src, dst):
-                    if not os.path.isdir(src):
+                    if not pathlib.Path(src).is_dir():
                         return
 
-                    os.makedirs(dst, exist_ok=True)
-                    for item in os.listdir(src):
-                        s = os.path.join(src, item)
-                        d = os.path.join(dst, item)
+                    pathlib.Path(dst).mkdir(exist_ok=True, parents=True)
+                    for item in os.listdir(src):  # noqa: PTH208
+                        s = pathlib.Path(src) / item
+                        d = pathlib.Path(dst) / item
 
-                        if os.path.isdir(s):
+                        if pathlib.Path(s).is_dir():
                             copy_dir(s, d)
                         else:
                             shutil.copy2(s, d)
 
                 # Copy metadata.db
-                metadata_db = os.path.join(library_path, "metadata.db")
-                if os.path.exists(metadata_db):
-                    os.makedirs(os.path.dirname(backup_path), exist_ok=True)
-                    shutil.copy2(metadata_db, os.path.join(backup_path, "metadata.db"))
+                metadata_db = pathlib.Path(library_path) / "metadata.db"
+                if pathlib.Path(metadata_db).exists():
+                    pathlib.Path(pathlib.Path(backup_path).parent).mkdir(exist_ok=True, parents=True)
+                    shutil.copy2(metadata_db, pathlib.Path(backup_path) / "metadata.db")
 
                 # Copy books and covers
-                copy_dir(os.path.join(library_path, "books"), os.path.join(backup_path, "books"))
-                copy_dir(os.path.join(library_path, "covers"), os.path.join(backup_path, "covers"))
+                copy_dir(pathlib.Path(library_path) / "books", pathlib.Path(backup_path) / "books")
+                copy_dir(pathlib.Path(library_path) / "covers", pathlib.Path(backup_path) / "covers")
 
             # Clean up old backups
             if max_backups > 0:
@@ -411,7 +412,7 @@ class ExtendedLibraryOperations(MCPTool):
             return {
                 "success": True,
                 "backup_path": backup_path,
-                "backup_size": os.path.getsize(backup_path) if os.path.exists(backup_path) else 0,
+                "backup_size": pathlib.Path(backup_path).stat().st_size if pathlib.Path(backup_path).exists() else 0,
                 "timestamp": datetime.now().isoformat(),
             }
 
@@ -423,19 +424,19 @@ class ExtendedLibraryOperations(MCPTool):
         try:
             backups = []
 
-            for item in os.listdir(backup_dir):
-                path = os.path.join(backup_dir, item)
-                if os.path.isdir(path) or item.endswith(".zip"):
-                    backups.append((os.path.getmtime(path), path))
+            for item in os.listdir(backup_dir):  # noqa: PTH208
+                path = pathlib.Path(backup_dir) / item
+                if pathlib.Path(path).is_dir() or item.endswith(".zip"):
+                    backups.append((pathlib.Path(path).stat().st_mtime, path))
 
             backups.sort()
 
             for _, path in backups[:-max_backups]:
                 try:
-                    if os.path.isdir(path):
+                    if pathlib.Path(path).is_dir():
                         shutil.rmtree(path)
                     else:
-                        os.remove(path)
+                        pathlib.Path(path).unlink()
                 except Exception as e:
                     self.logger.warning(f"Failed to remove old backup {path}: {str(e)}")
 
@@ -498,8 +499,8 @@ class ExtendedLibraryOperations(MCPTool):
         """Check and repair the metadata database."""
         import sqlite3
 
-        metadata_db = os.path.join(library_path, "metadata.db")
-        if not os.path.exists(metadata_db):
+        metadata_db = pathlib.Path(library_path) / "metadata.db"
+        if not pathlib.Path(metadata_db).exists():
             return {"error": "metadata.db not found", "repaired": False}
 
         backup_db = f"{metadata_db}.backup"
@@ -536,7 +537,7 @@ class ExtendedLibraryOperations(MCPTool):
                             pass
 
                         # Remove the corrupted database
-                        os.remove(metadata_db)
+                        pathlib.Path(metadata_db).unlink()
 
                         # Restore from backup
                         shutil.copy2(backup_db, metadata_db)
@@ -570,7 +571,7 @@ class ExtendedLibraryOperations(MCPTool):
 
             # Remove the backup if everything is OK
             with contextlib.suppress(OSError):
-                os.remove(backup_db)
+                pathlib.Path(backup_db).unlink()
 
             return {
                 "repaired": integrity_result != "ok",
@@ -582,7 +583,7 @@ class ExtendedLibraryOperations(MCPTool):
 
         except Exception as e:
             # Restore from backup if possible
-            if os.path.exists(backup_db):
+            if pathlib.Path(backup_db).exists():
                 with contextlib.suppress(OSError):
                     shutil.copy2(backup_db, metadata_db)
 
@@ -607,11 +608,11 @@ class ExtendedLibraryOperations(MCPTool):
         # Scan the library directory for files
         orphaned = []
 
-        books_dir = os.path.join(library_path, "books")
-        if os.path.isdir(books_dir):
+        books_dir = pathlib.Path(library_path) / "books"
+        if pathlib.Path(books_dir).is_dir():
             for root, _, files in os.walk(books_dir):
                 for file in files:
-                    file_path = os.path.normpath(os.path.join(root, file))
+                    file_path = os.path.normpath(pathlib.Path(root) / file)
                     rel_path = os.path.relpath(file_path, library_path)
 
                     if file_path not in referenced_files and not file.startswith("."):
@@ -619,11 +620,11 @@ class ExtendedLibraryOperations(MCPTool):
                             {
                                 "path": file_path,
                                 "relative_path": rel_path,
-                                "size": os.path.getsize(file_path)
-                                if os.path.exists(file_path)
+                                "size": pathlib.Path(file_path).stat().st_size
+                                if pathlib.Path(file_path).exists()
                                 else 0,
-                                "modified": os.path.getmtime(file_path)
-                                if os.path.exists(file_path)
+                                "modified": pathlib.Path(file_path).stat().st_mtime
+                                if pathlib.Path(file_path).exists()
                                 else 0,
                             }
                         )

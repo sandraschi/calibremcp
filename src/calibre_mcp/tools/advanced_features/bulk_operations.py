@@ -71,7 +71,7 @@ class BulkOperationsTool(MCPTool):
         book_ids: list[int | str],
         export_path: str,
         library_path: str | None = None,
-        format: str = "directory",
+        format: str = "directory",  # noqa: A002
     ) -> dict:
         """
         Export multiple books to a specified location.
@@ -156,7 +156,7 @@ class BulkOperationsTool(MCPTool):
                 if not metadata:
                     raise ValueError(f"Book {book_id} not found")
 
-                if target_format.lower() in [f.lower() for f in (metadata.formats or [])]:
+                if target_format.lower() in [f.lower() for f in (metadata.formats or [])]:  # noqa: SIM102
                     if not replace_existing:
                         results["errors"].append(
                             {

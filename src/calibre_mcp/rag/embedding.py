@@ -28,6 +28,7 @@ def _get_fastembed(model: str, cache_dir: str | None = None) -> Any:
         logger.info("[rag] FastEmbed device: %s", device)
     return _FASTEMBED_CACHE[key]
 
+
 OLLAMA_EMBED_DEFAULT = "http://127.0.0.1:11434"
 OLLAMA_EMBED_MODEL = "nomic-embed-text"
 
@@ -60,7 +61,7 @@ def _embed_via_fastembed(
     texts: list[str], model: str, cache_dir: str | None = None
 ) -> list[list[float]]:
     try:
-        from fastembed import TextEmbedding
+        from fastembed import TextEmbedding  # noqa: F401
     except ImportError:
         raise ImportError("Install RAG extras: pip install calibre-mcp[rag]") from None
     embedder = _get_fastembed(model, cache_dir)

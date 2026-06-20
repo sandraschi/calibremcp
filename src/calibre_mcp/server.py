@@ -33,7 +33,6 @@ if os.name == "nt":  # Windows only
         pass
 
 
-
 # DevNullStdout class for stdio mode suppression
 class DevNullStdout:
     def __init__(self, original_stdout):
@@ -62,7 +61,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 logger.debug(f"Stdio mode detection: {_is_stdio_mode}")
 
-import contextlib
+import contextlib  # noqa: E402
 from contextlib import asynccontextmanager  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
@@ -270,7 +269,7 @@ if bridge_urls:
             try:
                 mcp.add_provider(create_proxy(url))
                 _bridge_proxies.append(url)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
 # Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
@@ -310,9 +309,9 @@ from calibre_mcp.transport import run_server_async  # noqa: E402
 register_prompts(mcp)
 
 # ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi import FastAPI  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import Response  # noqa: E402
 
 app = FastAPI(title="CalibreMCP", version="1.0.0")
 app.add_middleware(
@@ -322,6 +321,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/health")
 async def health():

@@ -144,7 +144,7 @@ class MangaViewer:
         file_path = Path(file_path)
         hasher = hashlib.sha256()
 
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             while chunk := f.read(65536):
                 hasher.update(chunk)
 
@@ -227,7 +227,7 @@ class MangaViewer:
                         self._pages.append(
                             {
                                 "index": idx,
-                                "name": os.path.basename(filename),
+                                "name": Path(filename).name,
                                 "data": data,
                                 "width": img.width,
                                 "height": img.height,
@@ -260,7 +260,7 @@ class MangaViewer:
                         self._pages.append(
                             {
                                 "index": idx,
-                                "name": os.path.basename(file_info.filename),
+                                "name": Path(file_info.filename).name,
                                 "data": data,
                                 "width": img.width,
                                 "height": img.height,
@@ -275,7 +275,7 @@ class MangaViewer:
 
     def _is_image_file(self, filename: str) -> bool:
         """Check if a filename has an image extension."""
-        ext = os.path.splitext(filename)[1].lower()[1:]
+        ext = os.path.splitext(filename)[1].lower()[1:]  # noqa: PTH122
         return ext in self.IMAGE_EXTENSIONS
 
     def _load_bookmarks(self, file_hash: str) -> None:

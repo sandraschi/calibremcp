@@ -225,9 +225,7 @@ async def run_server_async(
             path = config["path"]
             endpoint = f"http://{host}:{port}{path}"
 
-
             from pydantic import BaseModel
-
 
             class LaunchRequest(BaseModel):
                 repo_path: str

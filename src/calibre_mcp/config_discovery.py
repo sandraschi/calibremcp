@@ -7,7 +7,7 @@ Calibre's configuration files and scanning common locations.
 
 import json
 import os
-import pickle
+import pickle  # noqa: S403
 import platform
 from dataclasses import dataclass
 from pathlib import Path
@@ -138,10 +138,10 @@ class CalibreConfigDiscovery:
                 # Calibre stores library info in library_infos.pickle
                 library_infos_path = self.calibre_config_dir / "library_infos.pickle"
                 if library_infos_path.exists():
-                    with open(library_infos_path, "rb") as f:
-                        import pickle
+                    with Path(library_infos_path).open("rb") as f:
+                        import pickle  # noqa: S403
 
-                        lib_infos = pickle.load(f)
+                        lib_infos = pickle.load(f)  # noqa: S301
                         for lib_name, lib_info in lib_infos.items():
                             if isinstance(lib_info, dict) and "path" in lib_info:
                                 lib_path = Path(lib_info["path"])
@@ -207,7 +207,7 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         try:
-            with open(global_py, encoding="utf-8") as f:
+            with Path(global_py).open(encoding="utf-8") as f:
                 content = f.read()
 
             # Look for library path patterns
@@ -238,7 +238,7 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         try:
-            with open(global_py_json, encoding="utf-8") as f:
+            with Path(global_py_json).open(encoding="utf-8") as f:
                 data = json.load(f)
 
             # Extract library_path from JSON
@@ -262,7 +262,7 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         try:
-            with open(library_db, encoding="utf-8") as f:
+            with Path(library_db).open(encoding="utf-8") as f:
                 data = json.load(f)
 
             for library_name, library_info in data.items():
@@ -286,8 +286,8 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         try:
-            with open(library_pickle, "rb") as f:
-                data = pickle.load(f)
+            with Path(library_pickle).open("rb") as f:
+                data = pickle.load(f)  # noqa: S301
 
             for library_name, library_info in data.items():
                 if isinstance(library_info, dict) and "path" in library_info:
@@ -402,7 +402,7 @@ class CalibreConfigDiscovery:
             # Scan parent directory for other libraries
             if parent_dir.exists() and parent_dir.is_dir():
                 for item in parent_dir.iterdir():
-                    if item.is_dir() and item != library.path and (item / "metadata.db").exists():
+                    if item.is_dir() and item != library.path and (item / "metadata.db").exists():  # noqa: SIM102
                         # Avoid duplicates
                         if item.name not in existing_libraries:
                             libraries[item.name] = CalibreLibrary(
