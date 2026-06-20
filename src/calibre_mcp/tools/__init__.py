@@ -6,6 +6,7 @@ organized by functionality into submodules. Tools are automatically discovered
 and loaded from all subdirectories.
 """
 
+import contextlib
 import importlib
 import inspect
 import logging
@@ -15,13 +16,15 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
-from .base_tool import BaseTool, mcp_tool  # noqa: F401
+from .base_tool import BaseTool, mcp_tool
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=Callable[..., Any])
 
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {}
+
+__all__ = ["BaseTool", "mcp_tool"]
 
 CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
 
@@ -151,33 +154,25 @@ def register_tools(mcp: Any) -> None:
 
         # Core: manage_libraries (includes test_connection, discover); no standalone core/library_discovery
         import_start = time.time()
-        from .library import manage_libraries  # noqa: F401
+        importlib.import_module("calibre_mcp.tools.library")
 
         import_time = time.time() - import_start
         logger.info(f"Library tools loaded in {import_time:.2f}s")
 
         # Book management (manage_books, query_books, search_fulltext)
         import_start = time.time()
-        from .book_management import manage_books, query_books, search_fulltext  # noqa: F401
+        importlib.import_module("calibre_mcp.tools.book_management")
 
         import_time = time.time() - import_start
         logger.info(f"Book management loaded in {import_time:.2f}s")
 
         # RAG (semantic search over book text and metadata; lancedb/fastembed in main deps)
         import_start = time.time()
-        try:  # noqa: SIM105
-            from .rag import (
-                calibre_metadata_export_json,  # noqa: F401
-                calibre_metadata_index_build,  # noqa: F401
-                calibre_metadata_search,  # noqa: F401
-                rag_index_build,  # noqa: F401
-                rag_retrieve,  # noqa: F401
-            )  # noqa: F401
-        except ImportError:
-            pass
+        with contextlib.suppress(ImportError):
+            importlib.import_module("calibre_mcp.tools.rag")
 
         try:
-            from .portmanteau.search import calibre_rag  # noqa: F401
+            importlib.import_module("calibre_mcp.tools.portmanteau.search")
         except Exception as e:
             logger.error(f"Failed to load RAG portmanteaus: {e}", exc_info=True)
 
@@ -186,31 +181,31 @@ def register_tools(mcp: Any) -> None:
 
         # Metadata, tags, comments, series, publishers, authors (core)
         import_start = time.time()
-        from .authors import manage_authors  # noqa: F401
-        from .comments import manage_comments  # noqa: F401
-        from .metadata import manage_metadata  # noqa: F401
-        from .publishers import manage_publishers  # noqa: F401
-        from .series import manage_series  # noqa: F401
-        from .tags import manage_tags  # noqa: F401
+        importlib.import_module("calibre_mcp.tools.authors")
+        importlib.import_module("calibre_mcp.tools.comments")
+        importlib.import_module("calibre_mcp.tools.metadata")
+        importlib.import_module("calibre_mcp.tools.publishers")
+        importlib.import_module("calibre_mcp.tools.series")
+        importlib.import_module("calibre_mcp.tools.tags")
 
         import_time = time.time() - import_start
         logger.info(f"Metadata/tags/authors loaded in {import_time:.2f}s")
 
         # Files, analysis, library operations, system, import/export, viewer
         import_start = time.time()
-        from .analysis import manage_analysis  # noqa: F401
-        from .files import manage_files  # noqa: F401
-        from .import_export import export_books  # noqa: F401
-        from .library_operations import manage_library_operations  # noqa: F401
-        from .system import manage_system  # noqa: F401
-        from .viewer import manage_viewer  # noqa: F401
+        importlib.import_module("calibre_mcp.tools.analysis")
+        importlib.import_module("calibre_mcp.tools.files")
+        importlib.import_module("calibre_mcp.tools.import_export")
+        importlib.import_module("calibre_mcp.tools.library_operations")
+        importlib.import_module("calibre_mcp.tools.system")
+        importlib.import_module("calibre_mcp.tools.viewer")
 
         import_time = time.time() - import_start
         logger.info(f"Files/analysis/system loaded in {import_time:.2f}s")
 
         # Help system
         import_start = time.time()
-        from .help_tools import help_tool  # noqa: F401
+        importlib.import_module("calibre_mcp.tools.help_tools")
 
         import_time = time.time() - import_start
         logger.info(f"Help tools loaded in {import_time:.2f}s")
@@ -235,18 +230,18 @@ def register_tools(mcp: Any) -> None:
         # content_sync, ai_operations, bulk_operations, organization, users, specialized, agentic
         if load_beta:
             import_start = time.time()
-            from .advanced_features import manage_bulk_operations, manage_content_sync  # noqa: F401
+            importlib.import_module("calibre_mcp.tools.advanced_features")
             from .agentic import register_agentic_tools
-            from .agentic_workflow import agentic_library_workflow  # noqa: F401
-            from .ai import manage_ai_operations  # noqa: F401
-            from .descriptions import manage_descriptions  # noqa: F401
-            from .extended_metadata import manage_extended_metadata  # noqa: F401
-            from .import_export.manage_import import manage_import  # noqa: F401
-            from .organization import manage_organization  # noqa: F401
-            from .specialized import manage_specialized  # noqa: F401
-            from .times import manage_times  # noqa: F401
-            from .user_comments import manage_user_comments  # noqa: F401
-            from .user_management import manage_users  # noqa: F401
+            importlib.import_module("calibre_mcp.tools.agentic_workflow")
+            importlib.import_module("calibre_mcp.tools.ai")
+            importlib.import_module("calibre_mcp.tools.descriptions")
+            importlib.import_module("calibre_mcp.tools.extended_metadata")
+            importlib.import_module("calibre_mcp.tools.import_export.manage_import")
+            importlib.import_module("calibre_mcp.tools.organization")
+            importlib.import_module("calibre_mcp.tools.specialized")
+            importlib.import_module("calibre_mcp.tools.times")
+            importlib.import_module("calibre_mcp.tools.user_comments")
+            importlib.import_module("calibre_mcp.tools.user_management")
 
             register_agentic_tools()
             import_time = time.time() - import_start

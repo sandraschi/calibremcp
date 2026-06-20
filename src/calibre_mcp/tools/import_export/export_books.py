@@ -5,6 +5,6 @@ The mcp client expects calibre_mcp.tools.import_export.export_books module
 with export_books attribute. This module provides that.
 """
 
-from .export_books_portmanteau import export_books  # noqa: F401
+from .export_books_portmanteau import export_books
 
 __all__ = ["export_books"]

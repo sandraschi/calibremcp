@@ -43,7 +43,7 @@ _original_stderr = sys.stderr
 # DO NOT import server or tools here - causes circular import deadlock
 # Server and tools are imported only when actually running the server
 # from .server import create_app, mcp
-# from . import tools  # noqa: F401
+# from . import tools
 
 
 # Lazy import for mcp instance to avoid circular imports in tests

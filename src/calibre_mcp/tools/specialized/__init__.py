@@ -7,14 +7,14 @@ Helper functions are imported but NOT registered (they have no @mcp.tool() decor
 
 # Helper functions (no @mcp.tool(); kept for reference / future manage_specialized)
 from .specialized_tools import (
-    it_book_curator_helper,  # noqa: F401
-    japanese_book_organizer_helper,  # noqa: F401
-    reading_recommendations_helper,  # noqa: F401
+    it_book_curator_helper,
+    japanese_book_organizer_helper,
+    reading_recommendations_helper,
 )
 
 # Portmanteau tool: optional until manage_specialized.py exists
 try:
-    from .manage_specialized import manage_specialized  # noqa: F401
+    from .manage_specialized import manage_specialized
 
     tools = [manage_specialized]
     __all__ = [

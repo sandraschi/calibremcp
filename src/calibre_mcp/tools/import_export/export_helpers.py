@@ -7,11 +7,8 @@ by the export_books portmanteau tool.
 
 import csv
 import json
-import os
-import platform
 import shutil
 import subprocess
-import sys
 import tempfile
 from collections import defaultdict
 from datetime import datetime
@@ -20,8 +17,7 @@ from typing import Any
 
 from ...logging_config import get_logger
 from ...services.book_service import book_service
-
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+from ...utils.subprocess_utils import _cmd, _open_file
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -45,16 +41,7 @@ def _get_export_dir() -> Path:
 def _open_file_with_app(file_path: Path) -> bool:
     """Open a file with the system's default application."""
     try:
-        system = platform.system()
-        file_path_str = str(file_path)
-
-        if system == "Windows":
-            os.startfile(file_path_str)  # noqa: S606
-        elif system == "Darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607  # deliberate: hardcoded args, no shell
-        else:  # Linux and others
-            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607  # deliberate: hardcoded args, no shell
-
+        _open_file(file_path)
         logger.info(f"Opened file with default application: {file_path}")
         return True
     except Exception as e:
@@ -879,12 +866,9 @@ async def export_pandoc_helper(
         ]
 
         try:
-            result = subprocess.run(  # noqa: S603  # deliberate: hardcoded args, no shell
+            result = _cmd(
                 cmd,
-                capture_output=True,
-                text=True,
                 timeout=300,
-                creationflags=_NO_WINDOW,
             )
 
             if result.returncode != 0:

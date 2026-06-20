@@ -98,21 +98,12 @@ def _parse_time_expression(time_expr: str) -> tuple[str, str] | None:
         if "month" in time_expr_lower:
             if "last" in time_expr_lower:
                 # Last month: first day of last month to last day of last month
-                if HAS_DATEUTIL:  # noqa: SIM108
-                    end_date = now.replace(day=1) - timedelta(days=1)
-                else:
-                    # Approximate: 30 days ago
-                    end_date = now - timedelta(days=30)
+                end_date = now.replace(day=1) - timedelta(days=1) if HAS_DATEUTIL else now - timedelta(days=30)
             else:
                 # This month: first day to today
                 end_date = now
         elif "week" in time_expr_lower:
-            if "last" in time_expr_lower:  # noqa: SIM108
-                # Last week: 7 days ago to today
-                end_date = now
-            else:
-                # This week: start of week to today
-                end_date = now
+            end_date = now
         elif "year" in time_expr_lower:
             if "last" in time_expr_lower:
                 # Last year: Jan 1 to Dec 31 of last year

@@ -60,10 +60,10 @@ def _embed_via_ollama(texts: list[str], base_url: str, model: str) -> list[list[
 def _embed_via_fastembed(
     texts: list[str], model: str, cache_dir: str | None = None
 ) -> list[list[float]]:
-    try:
-        from fastembed import TextEmbedding  # noqa: F401
-    except ImportError:
-        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]") from None
+    import importlib.util
+
+    if importlib.util.find_spec("fastembed") is None:
+        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]")
     embedder = _get_fastembed(model, cache_dir)
     embeddings = list(embedder.embed(texts))
     return [list(e) for e in embeddings]

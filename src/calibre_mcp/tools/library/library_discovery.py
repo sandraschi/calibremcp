@@ -9,17 +9,15 @@ originally attempted in Calibre++ but with proper permission controls.
 """
 
 import contextlib
-import subprocess  # noqa: S404
-import sys
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-
-from ...logging_config import get_logger  # noqa: E402
-from ...server import mcp  # noqa: E402
-from ..shared.error_handling import format_error_response  # noqa: E402
+from ...logging_config import get_logger
+from ...server import mcp
+from ...utils.subprocess_utils import _cmd
+from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.library_discovery")
 
@@ -69,8 +67,8 @@ class LibraryDiscoveryTool:
 
         try:
             # Try to get library list from Calibre CLI
-            result = subprocess.run(  # noqa: S603
-                [calibre_exe, "--with-library"], capture_output=True, text=True, timeout=10, creationflags=_NO_WINDOW,
+            result = _cmd(
+                [calibre_exe, "--with-library"], timeout=10,
             )
 
             if result.returncode == 0:
@@ -104,12 +102,9 @@ class LibraryDiscoveryTool:
                 temp_path = temp_file.name
 
             # Run WizFile search for metadata.db files
-            result = subprocess.run(  # noqa: S603
+            result = _cmd(
                 [wizfile_path, "metadata.db", f"/export={temp_path}"],
-                capture_output=True,
-                text=True,
                 timeout=30,
-                creationflags=_NO_WINDOW,
             )
 
             if result.returncode == 0 and Path(temp_path).exists():

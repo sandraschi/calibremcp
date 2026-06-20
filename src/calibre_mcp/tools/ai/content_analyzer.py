@@ -17,8 +17,7 @@ from pydantic import BaseModel, Field
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
-    # If the model is not found, download it
-    import subprocess  # noqa: S404
+    import subprocess
     import sys
 
     subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
@@ -58,7 +57,7 @@ class ContentAnalyzer(MCPTool):
         """
         try:
             # Create a hash of the content for caching
-            content_hash = hashlib.md5(book_content.encode("utf-8")).hexdigest()  # noqa: S324
+            content_hash = hashlib.sha256(book_content.encode("utf-8")).hexdigest()
 
             # Check if we have a cached analysis
             if content_hash in self.cached_analyses:

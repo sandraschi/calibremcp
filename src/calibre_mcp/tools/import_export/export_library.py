@@ -4,7 +4,6 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 try:
     from fastmcp import MCPTool, Param
@@ -25,12 +24,12 @@ class ExportLibraryTool(MCPTool):
         Param("include_covers", bool, "Whether to include book covers", default=True),
         Param(
             "book_ids",
-            Optional[list[int | str]],  # noqa: UP045
+            list[int | str] | None,
             "Specific book IDs to export (all if None)",
             default=None,
         ),
         Param("fmt", str, "Export format (directory, zip, calibre)", default="directory"),
-        Param("progress_callback", Optional[str], "Callback for progress updates", required=False),  # noqa: UP045
+        Param("progress_callback", str | None, "Callback for progress updates", required=False),
     ]
 
     async def _run(

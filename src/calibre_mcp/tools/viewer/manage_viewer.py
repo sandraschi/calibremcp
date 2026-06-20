@@ -4,19 +4,17 @@ Viewer management portmanteau tool for CalibreMCP.
 Consolidates all book viewer operations into a single unified interface.
 """
 
-import os
 import platform
-import subprocess  # noqa: S404
-import sys
 from pathlib import Path
 from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp
 from ...services.viewer_service import viewer_service
+from ...utils.subprocess_utils import _open_file
 from ..shared.error_handling import format_error_response, handle_tool_error
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+_NO_WINDOW = 0
 
 logger = get_logger("calibremcp.tools.viewer")
 
@@ -111,7 +109,7 @@ async def manage_viewer(
                     )
 
                 # Randomly select a book
-                selected_book = random.choice(books)  # noqa: S311
+                selected_book = random.SystemRandom().choice(books)
                 selected_book_id = selected_book["id"]
                 selected_title = selected_book.get("title", "Unknown")
                 authors_list = selected_book.get("authors", [])
@@ -213,14 +211,7 @@ async def manage_viewer(
 
                     # Open file with system default application
                     file_path_str = str(file_path.resolve())
-                    system = platform.system()
-
-                    if system == "Windows":
-                        os.startfile(file_path_str)  # noqa: S606
-                    elif system == "Darwin":  # macOS
-                        subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
-                    else:  # Linux and others
-                        subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
+                    _open_file(file_path_str)
 
                     return {
                         "success": True,
@@ -640,15 +631,7 @@ async def manage_viewer(
                         related_tools=["query_books"],
                     )
 
-                # Open file with system default application
-                system = platform.system()
-
-                if system == "Windows":
-                    os.startfile(file_path_str)  # noqa: S606
-                elif system == "Darwin":  # macOS
-                    subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
-                else:  # Linux and others
-                    subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
+                _open_file(file_path_str)
 
                 return {
                     "success": True,

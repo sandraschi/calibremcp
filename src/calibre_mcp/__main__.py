@@ -4,9 +4,9 @@ CalibreMCP Module Entry Point
 
 import asyncio
 import contextlib
+import io
 import logging
 import os
-import pathlib
 import sys
 import warnings
 
@@ -20,7 +20,8 @@ _is_stdio_transport = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") els
 if _is_stdio_transport:
     _original_stderr = sys.stderr
     with contextlib.suppress(Exception):
-        sys.stderr = pathlib.Path(os.devnull).open("w", encoding="utf-8")  # noqa: SIM115  # deliberate: replacing sys.stderr
+        _fd = os.open(os.devnull, os.O_WRONLY | os.O_TEXT)
+        sys.stderr = io.TextIOWrapper(io.FileIO(_fd, mode="w"), encoding="utf-8")
 
     logging.getLogger("mcp").setLevel(logging.WARNING)
     logging.getLogger("mcp.server").setLevel(logging.WARNING)

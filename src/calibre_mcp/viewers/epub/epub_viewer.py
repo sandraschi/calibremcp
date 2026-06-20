@@ -5,13 +5,13 @@ EPUB Viewer for CalibreMCP with full TOC and bookmark support.
 import contextlib
 import hashlib
 import sqlite3
-import xml.etree.ElementTree as ET
 import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from bs4 import BeautifulSoup
+from defusedxml.ElementTree import fromstring
 from pydantic import BaseModel, Field
 
 
@@ -167,7 +167,7 @@ class EPubViewer:
 
     def _parse_container(self, container_data: bytes) -> str:
         """Parse the container.xml file to find the root file."""
-        root = ET.fromstring(container_data)  # noqa: S314  # deliberate: EPUB container XML (local library file)
+        root = fromstring(container_data)
         ns = {"ocf": "urn:oasis:names:tc:opendocument:xmlns:container"}
 
         # Find the rootfile element

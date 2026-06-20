@@ -4,22 +4,17 @@ Metadata management portmanteau tool for CalibreMCP.
 Consolidates all metadata-related operations into a single unified interface.
 """
 
-import os
-import platform
-import subprocess  # noqa: S404
-import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
 from ...logging_config import get_logger
 from ...server import MetadataUpdateRequest, mcp
+from ...utils.subprocess_utils import _open_file
 from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)
 from . import metadata_management
-
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 logger = get_logger("calibremcp.tools.metadata")
 
@@ -363,13 +358,7 @@ Book ID:     {book_id}
                     html_path = str(html_file)
 
                     # Open in browser
-                    system = platform.system()
-                    if system == "Windows":
-                        os.startfile(html_path)  # noqa: S606
-                    elif system == "Darwin":  # macOS
-                        subprocess.run(["open", html_path], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
-                    else:  # Linux
-                        subprocess.run(["xdg-open", html_path], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
+                    _open_file(html_path)
 
                 return {
                     "success": True,

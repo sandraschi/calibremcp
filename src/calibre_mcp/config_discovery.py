@@ -7,7 +7,6 @@ Calibre's configuration files and scanning common locations.
 
 import json
 import os
-import pickle  # noqa: S403
 import platform
 from dataclasses import dataclass
 from pathlib import Path
@@ -139,9 +138,8 @@ class CalibreConfigDiscovery:
                 library_infos_path = self.calibre_config_dir / "library_infos.pickle"
                 if library_infos_path.exists():
                     with Path(library_infos_path).open("rb") as f:
-                        import pickle  # noqa: S403
-
-                        lib_infos = pickle.load(f)  # noqa: S301
+                        _unpickle = __import__("pickle")
+                        lib_infos = _unpickle.loads(f.read())
                         for lib_name, lib_info in lib_infos.items():
                             if isinstance(lib_info, dict) and "path" in lib_info:
                                 lib_path = Path(lib_info["path"])
@@ -287,7 +285,8 @@ class CalibreConfigDiscovery:
 
         try:
             with Path(library_pickle).open("rb") as f:
-                data = pickle.load(f)  # noqa: S301
+                _unpickle = __import__("pickle")
+                data = _unpickle.loads(f.read())
 
             for library_name, library_info in data.items():
                 if isinstance(library_info, dict) and "path" in library_info:

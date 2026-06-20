@@ -83,8 +83,8 @@ def _stats_from_ephemeral_db(metadata_db: Path, total_books_fallback: int) -> di
         pool_pre_ping=True,
     )
     try:
-        Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # noqa: N806
-        session = Session()
+        session_maker = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = session_maker()
         try:
             return _collect_library_stats_from_session(session, total_books_fallback)
         finally:

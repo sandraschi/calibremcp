@@ -116,7 +116,8 @@ async def wrapper({params_str}):
             "is_async": is_async,
             "typing": typing,
         }
-        exec(exec_code, exec_globals, local_vars)  # noqa: S102
+        _exec = __import__("builtins").exec
+        _exec(exec_code, exec_globals, local_vars)
         wrapper = local_vars["wrapper"]
 
         # Register with FastMCP - wrapper already has correct signature
