@@ -132,7 +132,7 @@ async def list_books(
         }
 
     except ValueError as e:
-        raise MCPServerError(f"Invalid input: {str(e)}")
+        raise MCPServerError(f"Invalid input: {str(e)}") from e
     except Exception as e:
         logger.error(f"Error listing books: {e}", exc_info=True)
-        raise MCPServerError(f"Failed to list books: {str(e)}")
+        raise MCPServerError(f"Failed to list books: {str(e)}") from e

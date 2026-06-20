@@ -1,9 +1,11 @@
 """FastAPI application for Calibre webapp."""
 
+import contextlib
 import logging
 import logging.handlers
 import os
 import sys
+import time
 from pathlib import Path
 
 # CRITICAL: Set up Python path BEFORE any other imports
@@ -38,6 +40,15 @@ if src_path.exists():
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from fastapi.responses import PlainTextResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+
+class SPAStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 404:
+            response = await super().get_response("index.html", scope)
+        return response
 
 from .api import (  # noqa: E402
     analysis,
@@ -270,6 +281,34 @@ app.include_router(gutenberg.router, prefix="/api/gutenberg", tags=["gutenberg"]
 app.include_router(arxiv.router, prefix="/api/arxiv", tags=["arxiv"])
 app.include_router(api_settings.router, prefix="/api/settings", tags=["settings"])
 
+# Mount frontend SPA at /app/ for Tauri WebView navigation
+_frontend_dist = None
+_try_paths = []
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    _mei = sys._MEIPASS
+    _try_paths = [
+        os.path.join(_mei, "webapp", "frontend", "out"),
+        os.path.join(_mei, "frontend", "out"),
+        os.path.join(os.path.dirname(_mei), "webapp", "frontend", "out"),
+    ]
+_try_paths.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend", "out"))
+for _p in _try_paths:
+    if _p and os.path.isdir(_p):
+        _frontend_dist = _p
+        break
+print(f"CALIBRE_DEBUG: frontend paths tried: {_try_paths}", flush=True)
+if _frontend_dist and os.path.isdir(_frontend_dist):
+    _frontend_dist = os.path.realpath(_frontend_dist)
+    print(f"CALIBRE_DEBUG: mounting frontend from {_frontend_dist}", flush=True)
+    try:
+        app.mount("/app", SPAStaticFiles(directory=_frontend_dist, html=True, follow_symlink=True), name="frontend")
+    except TypeError:
+        app.mount("/app", SPAStaticFiles(directory=_frontend_dist, html=True), name="frontend")
+    logger.info("Frontend SPA mounted at /app from %s", _frontend_dist)
+else:
+    print(f"CALIBRE_DEBUG: no frontend dist found, _frontend_dist={_frontend_dist}", flush=True)
+    logger.warning("Frontend dist not found (tried: %s) — API only", "; ".join(str(p) for p in _try_paths))
+
 
 @app.get("/")
 async def root():
@@ -319,6 +358,30 @@ async def debug_import():
         info["error"] = str(e)
 
     return info
+
+
+@app.get("/api/v1/diagnostics")
+async def get_cua_diagnostics():
+    """CUA diagnostics - backend, system, tools, window, Tesseract status."""
+    SERVER_START = getattr(app.state, "server_start_time", time.time())
+    uptime = int(time.time() - SERVER_START)
+    cpu = mem = disk = None
+    tesseract = False
+    window = False
+    with contextlib.suppress(Exception):
+        import psutil
+        cpu = psutil.cpu_percent(interval=0.3)
+        mem = psutil.virtual_memory().percent
+        disk = psutil.disk_usage(os.environ.get("SystemDrive","C:")+"\\").percent
+    with contextlib.suppress(Exception):
+        import subprocess
+        tesseract = subprocess.run([r"C:\Program Files\Tesseract-OCR\tesseract.exe","--version"],capture_output=True,timeout=5).returncode==0
+    with contextlib.suppress(Exception):
+        import pywinauto
+        a = pywinauto.Application(backend="uia").connect(title_re="Calibre MCP")
+        win = a.window(title_re="Calibre MCP"); win.wait("visible", timeout=2)
+        window = True
+    return {"success":True,"data":{"backend":{"status":"ok","version":"1.8.6","uptime_seconds":uptime,"port":10720},"system":{"cpu_percent":cpu,"memory_percent":mem,"disk_percent":disk},"tools":{"total":0,"categories":["calibre"]},"errors":{"count":0,"recent":[]},"cua_status":{"window_found":window,"backend_reachable":True,"tesseract_available":tesseract}}}
 
 
 @app.get("/api/libraries/list")

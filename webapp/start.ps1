@@ -1,11 +1,11 @@
-﻿param(
+param(
     [switch]$Headless,
     [switch]$BackendOnly,
     [switch]$FrontendOnly,
     [switch]$NoBrowser,
     [switch]$Dev,
-    [switch]$Rebuild
-)
+    [switch]$Rebuild,
+    [switch]$ReuseIfRunning)
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
@@ -17,12 +17,24 @@ if (-not (Test-Path -LiteralPath $FleetStartPath)) {
 $FleetStart = Initialize-FleetStartMode @PSBoundParameters
 Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
 
+$portResolve = @{
+    Ports      = @($WebPort, $BackendPort)
+    Label      = "calibre-mcp"
+    AllowReuse = $ReuseIfRunning
+}
+if ($ReuseIfRunning) {
+    $portResolve.HealthChecks = @{
+        $WebPort = "http://127.0.0.1:$WebPort/"
+        $BackendPort = "http://127.0.0.1:$BackendPort/health"
+    }
+}
+$portState = Resolve-FleetPortConflict @portResolve
+if ($portState.Action -eq 'Blocked') { exit 1 }
+if ($portState.Reuse) { return }
 $WebPort = 10721
 $BackendPort = 10720
 $FrontendDir = "$PSScriptRoot\frontend"
-Stop-FleetPortSquatters -Ports @($WebPort, $BackendPort) -Label "calibre-mcp"
 
-if (-not (Assert-FleetPortsAvailable -Ports @($WebPort, $BackendPort) -Label "calibre-mcp")) { exit 1 }
 
 # 2. Start backend (immediately, so it's visible while build runs)
 Write-Host "Starting backend on port $BackendPort..." -ForegroundColor Cyan

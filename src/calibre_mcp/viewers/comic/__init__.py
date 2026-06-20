@@ -7,7 +7,7 @@ import contextlib
 import os
 import re
 import zipfile
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -17,14 +17,14 @@ except ImportError:
     rarfile = None  # Optional dependency
 
 
-class ReadingDirection(str, Enum):
+class ReadingDirection(StrEnum):
     """Reading direction for comics/manga."""
 
     LEFT_TO_RIGHT = "ltr"
     RIGHT_TO_LEFT = "rtl"
 
 
-class PageLayout(str, Enum):
+class PageLayout(StrEnum):
     """Page layout options."""
 
     SINGLE = "single"
@@ -99,7 +99,7 @@ class ComicViewer:
 
         except Exception as e:
             self.close()
-            raise ValueError(f"Failed to load comic file: {str(e)}")
+            raise ValueError(f"Failed to load comic file: {str(e)}") from e
 
     def set_setting(self, key: str, value: Any) -> None:
         """Update a viewer setting."""

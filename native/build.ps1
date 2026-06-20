@@ -1,54 +1,105 @@
-#!/usr/bin/env pwsh
-<#
-.SYNOPSIS
-    Full release build: Next.js frontend + PyInstaller sidecar + Tauri installer.
-#>
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
+$RepoName = Split-Path -Leaf $Root
+$Triple = "x86_64-pc-windows-msvc"
+$ResourceDir = "$PSScriptRoot\resources"
+$DevDir = "$PSScriptRoot\binaries"
+New-Item -ItemType Directory -Force -Path $ResourceDir, $DevDir | Out-Null
 
-Write-Host "=== calibre-mcp Tauri Release Build ===" -ForegroundColor Cyan
+Write-Host "=== ${RepoName} Tauri Release Build ===" -ForegroundColor Cyan
 
-Write-Host "-> [1/4] Building frontend..." -ForegroundColor Yellow
-Push-Location "$Root\webapp\frontend"
-try {
-    npm install
-    if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
-    pwsh -NoLogo -File "$Root\scripts\build-tauri-frontend.ps1" -FrontendDir "$Root\webapp\frontend"
-} finally {
-    Pop-Location
-}
+# Step 1: TypeScript lint gate + frontend build
+$frontendDirs = @("web_sota", "webapp/frontend", "webapp")
+foreach ($dir in $frontendDirs) {
+    $frontend = Join-Path $Root $dir
+    if (Test-Path "$frontend\package.json") {
+        Write-Host "-> [1/4] Building frontend ($dir)..." -ForegroundColor Yellow
+        Push-Location $frontend
+        npm install --silent 2>$null
 
-Write-Host "-> [2/4] Tauri icons..." -ForegroundColor Yellow
-pwsh -NoLogo -File "$Root\scripts\generate-tauri-icon.ps1" -Letter "C"
-Push-Location $PSScriptRoot
-try {
-    if (-not (Test-Path "icons\icon.ico")) {
-        npx --yes @tauri-apps/cli icon icons/icon.png
+        Write-Host "  tsc --noEmit..." -ForegroundColor Gray
+        $tscOut = npx tsc --noEmit 2>&1
+        $tscExit = $LASTEXITCODE
+        if ($tscExit -ne 0) {
+            Write-Host "  TypeScript compilation FAILED — fix errors before building NSIS" -ForegroundColor Red
+            Write-Host $tscOut
+            throw "TypeScript compilation failed — fix all errors before building NSIS installer"
+        }
+
+        $isNextJs = (Test-Path "next.config.js") -or (Test-Path "next.config.ts") -or (Test-Path "next.config.mjs")
+        if ($isNextJs) {
+            Write-Host "  Detected Next.js project" -ForegroundColor Cyan
+            $tauriBuildScript = Join-Path $Root "scripts\build-tauri-frontend.ps1"
+            if (Test-Path $tauriBuildScript) {
+                & $tauriBuildScript -FrontendDir $frontend
+                if ($LASTEXITCODE -ne 0) { throw "Next.js Tauri frontend build failed" }
+            } else {
+                $env:TAURI_BUILD = "1"
+                npm run build 2>&1
+                Remove-Item env:TAURI_BUILD -ErrorAction SilentlyContinue
+                if ($LASTEXITCODE -ne 0) { throw "Next.js build failed" }
+            }
+            if (-not (Test-Path "out\index.html")) { throw "Next.js export produced no out/index.html" }
+        } else {
+            npm run build
+            if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
+        }
+        Pop-Location
+        break
     }
-} finally {
-    Pop-Location
 }
 
-Write-Host "-> [3/4] PyInstaller sidecar..." -ForegroundColor Yellow
-pwsh -NoLogo -File "$PSScriptRoot\build-sidecar.ps1"
+# Step 2: PyInstaller backend (onefile)
+Write-Host "-> [2/4] PyInstaller backend..." -ForegroundColor Yellow
+$specFile = "$Root\${RepoName}-backend.spec"
+if (Test-Path $specFile) {
+    Push-Location $Root
+    # Patch fastmcp to not crash on missing metadata (dist-info stripped below)
+    $fm = "$Root\.venv\Lib\site-packages\fastmcp\__init__.py"
+    if (Test-Path $fm) {
+        $c = Get-Content $fm -Raw
+        if ($c -match 'except PackageNotFoundError:\s+    __version__ = _version\("fastmcp"\)') {
+            $c = $c -replace 'except PackageNotFoundError:\s+    __version__ = _version\("fastmcp"\)', 'except PackageNotFoundError:
+    try:
+        __version__ = _version("fastmcp")
+    except PackageNotFoundError:
+        __version__ = "0.0.0"'
+            Set-Content $fm -Value $c -Encoding utf8
+            Write-Host "  Patched fastmcp metadata fallback" -ForegroundColor Yellow
+        }
+    }
+    uv run pyinstaller "$specFile" --clean --noconfirm
+    if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
+    Pop-Location
+} else {
+    Write-Host "  WARNING: spec file not found at $specFile — using existing backend exe if present" -ForegroundColor DarkYellow
+}
 
-Write-Host "-> [4/4] Tauri bundle..." -ForegroundColor Yellow
+# Step 3: Embed in Tauri resources (+ dev fallback)
+Write-Host "-> [3/4] Embedding backend..." -ForegroundColor Yellow
+$src = "$Root\dist\${RepoName}-backend.exe"
+if (-not (Test-Path $src)) { throw "Backend exe not found at $src — PyInstaller step failed" }
+Copy-Item $src "$ResourceDir\${RepoName}-backend.exe" -Force
+Copy-Item $src "$DevDir\${RepoName}-backend-$Triple.exe" -Force
+Write-Host "  Backend exe: $((Get-Item $src).Length / 1MB) MB" -ForegroundColor Green
+
+# Step 4: Single NSIS installer
+Write-Host "-> [4/4] Tauri NSIS bundle..." -ForegroundColor Yellow
 Push-Location $PSScriptRoot
-try {
-    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-    npm install
-    if ($LASTEXITCODE -ne 0) { throw "npm install in native/ failed" }
-    npx @tauri-apps/cli build
-    if ($LASTEXITCODE -ne 0) { throw "tauri build failed" }
-} finally {
-    Pop-Location
-}
+$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
+npx @tauri-apps/cli build --bundles nsis
+if ($LASTEXITCODE -ne 0) { throw "Tauri build failed with exit code $LASTEXITCODE" }
+Pop-Location
 
-$nsis = Get-ChildItem "$PSScriptRoot\target\release\bundle\nsis\*-setup.exe" -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
+# Stage to repo dist/
+$distDir = Join-Path $Root "dist"
+New-Item -ItemType Directory -Force -Path $distDir | Out-Null
+$nsisDir = "$PSScriptRoot\target\release\bundle\nsis"
+if (Test-Path $nsisDir) { Copy-Item "$nsisDir\*-setup.exe" "$distDir\" -Force }
+
+# Clean up stray backend exe that Tauri drops in target/release/ (shadow copy risk)
+$strayExe = "$PSScriptRoot\target\release\${RepoName}-backend.exe"
+if (Test-Path $strayExe) { Remove-Item $strayExe -Force; Write-Host "  Cleaned stray: $strayExe" -ForegroundColor DarkGray }
+
 Write-Host "=== Build complete ===" -ForegroundColor Green
-if ($nsis) {
-    Write-Host "Installer: $($nsis.FullName)" -ForegroundColor Cyan
-    pwsh -NoLogo -File "$Root\scripts\update-tauri-starts-link.ps1" -InstallerPath $nsis.FullName
-}
+Write-Host "Ship: $nsisDir\*.exe"

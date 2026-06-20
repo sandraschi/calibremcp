@@ -109,7 +109,7 @@ class CalibreMCPServer(MCPServer):
             ]
             return {"status": "ok", "books": books}
         except Exception as e:
-            raise MCPServerError(f"Failed to get books: {str(e)}")
+            raise MCPServerError(f"Failed to get books: {str(e)}") from e
 
     async def handle_get_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle get_book command."""
@@ -129,7 +129,7 @@ class CalibreMCPServer(MCPServer):
         except CalibreError:
             raise
         except Exception as e:
-            raise MCPServerError(f"Failed to get book: {str(e)}")
+            raise MCPServerError(f"Failed to get book: {str(e)}") from e
 
     async def handle_add_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle add_book command."""
@@ -145,7 +145,7 @@ class CalibreMCPServer(MCPServer):
             return {"status": "ok", "message": "Book added successfully", "book_id": book_id}
 
         except Exception as e:
-            raise MCPServerError(f"Failed to add book: {str(e)}")
+            raise MCPServerError(f"Failed to add book: {str(e)}") from e
 
     async def handle_update_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle update_book command."""
@@ -164,7 +164,7 @@ class CalibreMCPServer(MCPServer):
             return {"status": "ok", "message": "Book updated successfully", "book_id": book_id}
 
         except Exception as e:
-            raise MCPServerError(f"Failed to update book: {str(e)}")
+            raise MCPServerError(f"Failed to update book: {str(e)}") from e
 
     async def handle_delete_book(self, message: MCPMessage) -> dict[str, Any]:
         """Handle delete_book command."""
@@ -178,7 +178,7 @@ class CalibreMCPServer(MCPServer):
             return {"status": "ok", "message": "Book deleted successfully", "book_id": book_id}
 
         except Exception as e:
-            raise MCPServerError(f"Failed to delete book: {str(e)}")
+            raise MCPServerError(f"Failed to delete book: {str(e)}") from e
 
 
 def create_mcp_server(library_path: str | None = None) -> CalibreMCPServer:

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # CORS Configuration (comma-separated string in .env)
     CORS_ORIGINS: str = (
-        "http://localhost:10721,http://127.0.0.1:10721,"
+        "http://localhost:10721,http://127.0.0.1:10721,http://goliath:10721,"
         "http://tauri.localhost,https://tauri.localhost,tauri://localhost"
     )
 

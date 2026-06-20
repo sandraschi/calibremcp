@@ -823,9 +823,9 @@ async def search_books_helper(
                     )
                 except Exception as init_error:
                     logger.exception(f"Failed to initialize database: {init_error}")
-                    raise ValueError(f"Cannot initialize database: {init_error}")
+                    raise ValueError(f"Cannot initialize database: {init_error}") from init_error
             else:
-                raise ValueError("No valid database available")
+                raise ValueError("No valid database available") from None
 
         # Input validation
         logger.debug(

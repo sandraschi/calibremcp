@@ -79,11 +79,17 @@ try {
     # Step 1: MCPB CLI (global install only — trivial)
     Write-Step "Checking prerequisites..."
 
-    if (-not (Get-Command mcpb -ErrorAction SilentlyContinue)) {
-        Write-Error "mcpb not in PATH. Install once: npm install -g @anthropic-ai/mcpb"
-        exit 1
+    $mcpbCmd = Get-Command mcpb -ErrorAction SilentlyContinue
+    if (-not $mcpbCmd) {
+        $npmMcpb = "$env:APPDATA\npm\mcpb.ps1"
+        if (Test-Path $npmMcpb) {
+            $mcpbCmd = $npmMcpb
+        } else {
+            Write-Error "mcpb not in PATH. Install once: npm install -g @anthropic-ai/mcpb"
+            exit 1
+        }
     }
-    $mcpbVersion = (& mcpb --version 2>&1 | Out-String).Trim()
+    $mcpbVersion = (& $mcpbCmd --version 2>&1 | Out-String).Trim()
     Write-Success "mcpb $mcpbVersion"
 
     # Sync canonical server source into mcpb/ (pack root — see mcpb/README.md)
@@ -119,7 +125,7 @@ try {
     # Step 2: Validate mcpb/manifest.json (MCPB v0.2)
     Write-Step "Validating mcpb\manifest.json..."
 
-    $validateOutput = & mcpb validate $mcpbManifest 2>&1
+    $validateOutput = & $mcpbCmd validate $mcpbManifest 2>&1
     $validateOk = $?
     if (-not $validateOk) {
         Write-Error "Manifest validation failed:"
@@ -171,7 +177,7 @@ try {
 
     $packOk = $false
     try {
-        $buildOutput = & mcpb @buildArgs 2>&1
+        $buildOutput = & $mcpbCmd @buildArgs 2>&1
         $packOk = $?
     } finally {
         if ($pushedPackRoot) {
@@ -208,7 +214,7 @@ try {
 
     Write-ColorOutput "`n=== Package Details ===" $Green
     Write-ColorOutput "Name: calibre-mcp.mcpb" $Green
-    Write-ColorOutput "Version: 1.1.0 (see mcpb/manifest.json)" $Green
+    Write-ColorOutput "Version: $(Get-Content -Path "$RepoRoot\pyproject.toml" | Select-String -Pattern '^version = ' | ForEach-Object { $_ -replace 'version = "', '' -replace '".*', '' })" $Green
     Write-ColorOutput "Size: $packageSizeMB MB" $Green
     Write-ColorOutput "Location: $packagePath" $Green
     Write-ColorOutput "Signed: $(if ($NoSign) { 'No' } else { 'Yes' })" $Green

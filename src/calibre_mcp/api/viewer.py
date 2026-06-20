@@ -46,7 +46,7 @@ async def view_book(book_id: str, page: int = 0, library_id: str | None = None):
         return get_viewer_html(book, page, viewer)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/api/viewer/page")
@@ -65,7 +65,7 @@ async def get_page(
         return viewer.render_page(page)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/api/viewer/settings")
@@ -90,7 +90,7 @@ async def update_viewer_settings(
         return {"status": "success", "settings": settings}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 def get_viewer_html(book: Book, current_page: int, viewer: Any) -> str:

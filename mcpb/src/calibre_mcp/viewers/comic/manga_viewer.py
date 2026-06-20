@@ -205,7 +205,7 @@ class MangaViewer:
 
         except Exception as e:
             self.close()
-            raise RuntimeError(f"Failed to open archive: {e}")
+            raise RuntimeError(f"Failed to open archive: {e}") from e
 
     def _load_zip_pages(self) -> None:
         """Load pages from a ZIP archive."""

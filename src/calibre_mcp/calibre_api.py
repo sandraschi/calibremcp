@@ -190,7 +190,7 @@ class CalibreAPIClient:
         except CalibreAPIError:
             raise  # Let specific API errors bubble up unchanged
         except Exception as e:
-            raise CalibreAPIError(f"Connection test failed: {str(e)}")
+            raise CalibreAPIError(f"Connection test failed: {str(e)}") from e
 
     async def search_library(
         self, query: str | None = None, limit: int = 50, sort: str = "title"
@@ -228,7 +228,7 @@ class CalibreAPIClient:
 
 
         except Exception as e:
-            raise CalibreAPIError(f"Library search failed: {str(e)}")
+            raise CalibreAPIError(f"Library search failed: {str(e)}") from e
 
     async def advanced_search(
         self, text: str, fields: list[str], operator: str = "AND"
@@ -259,7 +259,7 @@ class CalibreAPIClient:
             return await self.search_library(query=query)
 
         except Exception as e:
-            raise CalibreAPIError(f"Advanced search failed: {str(e)}")
+            raise CalibreAPIError(f"Advanced search failed: {str(e)}") from e
 
     async def get_book_details(self, book_id: int) -> dict[str, Any]:
         """
@@ -301,7 +301,7 @@ class CalibreAPIClient:
 
 
         except Exception as e:
-            raise CalibreAPIError(f"Failed to get book details: {str(e)}")
+            raise CalibreAPIError(f"Failed to get book details: {str(e)}") from e
 
     async def _get_books_metadata(self, book_ids: list[int]) -> list[dict[str, Any]]:
         """

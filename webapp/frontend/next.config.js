@@ -6,7 +6,7 @@ const isTauri = process.env.TAURI_BUILD === "1";
 const nextConfig = {
 	reactStrictMode: true,
 	trailingSlash: isTauri,
-	...(isTauri ? { output: "export" } : { output: "standalone" }),
+	...(isTauri ? { output: "export", basePath: "/app" } : { output: "standalone" }),
 	images: {
 		unoptimized: isTauri,
 		domains: ["localhost"],

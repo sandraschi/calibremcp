@@ -30,7 +30,7 @@ def get_rag_store(
         import chromadb
         from chromadb.config import Settings
     except ImportError:
-        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]")
+        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]") from None
 
     persist = persist_directory or (metadata_db_path.parent / ".calibre-rag")
     persist.mkdir(parents=True, exist_ok=True)

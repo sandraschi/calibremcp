@@ -1,0 +1,798 @@
+import logging
+import os
+import sys
+
+# logger will be initialized properly after logging_config is imported
+logger = logging.getLogger("calibre_mcp.server")
+
+
+"""
+CalibreMCP server module — Calibre e-book libraries over MCP (FastMCP 3.1+).
+
+PORTMANTEAU PATTERN RATIONALE: Exposes one coherent MCP server with prompts, bundled
+skills (``skill://`` via SkillsDirectoryProvider), and portmanteau tools so clients
+avoid tool-sprawl while retaining full Calibre coverage.
+
+2026 surface:
+- **Prompts**: ``@mcp.prompt()`` templates (reading, library health, RAG, guides).
+- **Skills**: packaged ``skills/*/SKILL.md`` for discoverable expert workflows.
+- **Sampling / agentic**: ``agentic_library_workflow`` and media tools use ``ctx.sample`` when the host supports SEP-1577.
+- **Transport**: stdio and HTTP (see ``transport``).
+
+Stateful features use FastMCP storage (py-key-value) where configured.
+"""
+
+if os.name == "nt":  # Windows only
+    try:
+        # Force binary mode for stdin/stdout to prevent CRLF conversion
+        import msvcrt
+
+        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
+        msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+    except (OSError, AttributeError):
+        pass
+
+
+
+# DevNullStdout class for stdio mode suppression
+class DevNullStdout:
+    def __init__(self, original_stdout):
+        self.original_stdout = original_stdout
+
+    def write(self, data):
+        pass
+
+    def flush(self):
+        pass
+
+    def restore(self):
+        sys.stdout = self.original_stdout
+
+
+# CRITICAL: Suppress all warnings before any imports
+import warnings  # noqa: E402
+
+warnings.filterwarnings("ignore")
+warnings.simplefilter("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
+# CRITICAL: Detect if we're running in stdio mode
+_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
+logger.debug(f"Stdio mode detection: {_is_stdio_mode}")
+
+import contextlib
+from contextlib import asynccontextmanager  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
+
+from fastmcp import FastMCP  # noqa: E402
+from fastmcp.server import create_proxy  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
+from dotenv import load_dotenv  # noqa: E402
+
+# Load environment variables
+load_dotenv()
+
+
+# Setup proper logging
+from calibre_mcp.logging_config import get_logger  # noqa: E402
+
+logger = get_logger("calibremcp.server")
+
+# Import CalibreAPIClient at module level (needed for type hints)
+from calibre_mcp.calibre_api import CalibreAPIClient  # noqa: E402
+
+# Global API client and database connections (initialized on startup)
+api_client = None  # CalibreAPIClient
+current_library: str = "main"
+available_libraries: dict[str, str] = {}
+storage = None  # CalibreMCPStorage
+
+
+def create_app(path: str = "/mcp"):
+    """Return the FastMCP ASGI app for mounting (e.g. FastAPI ``/mcp``).
+
+    Args:
+        path: Reserved for API compatibility; mount path is defined by the host app.
+
+    Returns:
+        ASGI application from ``mcp.http_app()`` (FastMCP 3.1+).
+    """
+    return mcp.http_app()
+
+
+async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
+    """Probe Calibre connectivity at startup and raise RuntimeError with a clear message
+    if nothing is reachable, so Claude Desktop shows the server as failed rather than
+    silently registering a broken server.
+
+    Checks (in order):
+    1. CALIBRE_BASE_PATH — shallow scan for direct-child metadata.db files.
+    2. CALIBRE_SERVER_URL — HTTP GET /ajax/library-info with a 5-second timeout.
+
+    Either local libraries OR the remote server must be reachable to pass.
+    See: mcp-central-docs/standards/fastmcp-3.2-startup-probes.md
+    """
+    from pathlib import Path
+
+    base_path_ok = False
+    remote_ok = False
+    remote_configured = False
+    messages: list[str] = []
+
+    # --- 1. Local library probe ---
+    base_path_str = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+    if base_path_str:
+        base_path = Path(base_path_str)
+        if base_path.exists():
+            # Shallow scan — one level of subdirs only. rglob on a large NAS share
+            # is slow and unnecessary; Calibre libraries are always direct children.
+            dbs = [
+                item / "metadata.db"
+                for item in base_path.iterdir()
+                if item.is_dir() and (item / "metadata.db").exists()
+            ]
+            if dbs:
+                base_path_ok = True
+                startup_log.info(
+                    "STARTUP PROBE: local libraries OK — found %d metadata.db under %s",
+                    len(dbs),
+                    base_path,
+                )
+            else:
+                messages.append(
+                    f"CALIBRE_BASE_PATH '{base_path}' exists but contains no metadata.db files"
+                )
+                startup_log.warning("STARTUP PROBE: %s", messages[-1])
+        else:
+            messages.append(f"CALIBRE_BASE_PATH '{base_path}' does not exist")
+            startup_log.warning("STARTUP PROBE: %s", messages[-1])
+    else:
+        startup_log.info("STARTUP PROBE: CALIBRE_BASE_PATH not set, skipping local probe")
+
+    # --- 2. Remote server probe ---
+    server_url = os.environ.get("CALIBRE_SERVER_URL", "").strip()
+    if server_url:
+        remote_configured = True
+        probe_url = server_url.rstrip("/") + "/ajax/library-info"
+        startup_log.info("STARTUP PROBE: probing remote Calibre server at %s", probe_url)
+        try:
+            import aiohttp
+
+            async with aiohttp.ClientSession() as session, session.get(
+                probe_url, timeout=aiohttp.ClientTimeout(total=5)
+            ) as resp:
+                if resp.status < 500:
+                    remote_ok = True
+                    startup_log.info("STARTUP PROBE: remote server OK (HTTP %d)", resp.status)
+                else:
+                    messages.append(f"CALIBRE_SERVER_URL '{server_url}' returned HTTP {resp.status}")
+                    startup_log.warning("STARTUP PROBE: %s", messages[-1])
+        except TimeoutError:
+            messages.append(
+                f"CALIBRE_SERVER_URL '{server_url}' timed out after 5s — "
+                "is Calibre Content Server running?"
+            )
+            startup_log.warning("STARTUP PROBE: %s", messages[-1])
+        except Exception as exc:
+            messages.append(
+                f"CALIBRE_SERVER_URL '{server_url}' unreachable: {type(exc).__name__}: {exc}"
+            )
+            startup_log.warning("STARTUP PROBE: %s", messages[-1])
+
+    # --- 3. Decision ---
+    if base_path_ok or remote_ok:
+        # At least one data source is good — proceed normally.
+        return
+
+    if not base_path_str and not remote_configured:
+        # Nothing configured at all — warn but don't hard-fail so the server can still
+        # start in degraded mode (user can configure later via tool args).
+        startup_log.warning(
+            "STARTUP PROBE: neither CALIBRE_BASE_PATH nor CALIBRE_SERVER_URL is configured. "
+            "CalibreMCP will start but most tools will return errors until a library is accessible."
+        )
+        return
+
+    # Something was configured but nothing is reachable — hard fail with actionable message.
+    detail = "; ".join(messages) if messages else "no reachable data source"
+    raise RuntimeError(
+        f"CalibreMCP startup failed — Calibre is not reachable. {detail}. "
+        "Fix: ensure Calibre Content Server is running on port 8099, or that "
+        "CALIBRE_BASE_PATH points to a directory containing metadata.db files, "
+        "then restart Claude Desktop."
+    )
+
+
+@asynccontextmanager
+async def server_lifespan(mcp_instance: FastMCP):
+    """FastMCP 3.1 lifespan hook: startup connectivity probe + shutdown.
+
+    Args:
+        mcp_instance: FastMCP instance (provided by the framework).
+
+    Yields:
+        Control to the running server until shutdown.
+    """
+    import logging
+
+    lifespan_log = logging.getLogger("calibremcp.lifespan")
+    lifespan_log.info("SERVER LIFESPAN: starting")
+
+    await _probe_calibre_connectivity(lifespan_log)
+
+    lifespan_log.info("SERVER LIFESPAN: connectivity probe passed, server ready")
+    yield
+    lifespan_log.info("SERVER LIFESPAN: shutdown complete")
+
+
+# Create MCP instance
+logger.info("Creating FastMCP instance...")
+mcp = FastMCP(
+    "CalibreMCP",
+    instructions="""You are CalibreMCP (FastMCP 3.1): Calibre e-book libraries over MCP.
+
+PLATFORM (2026):
+- Prompts: registered templates for reading, library health, semantic search, and guides.
+- Skills: bundled expert instructions under skill:// (e.g. skill://calibre-expert/SKILL.md); read when the user needs workflow-level guidance.
+- Sampling: use agentic_library_workflow and media tools when the host supports ctx.sample() (SEP-1577); otherwise chain portmanteau tools step-by-step.
+
+CORE:
+- Libraries: manage_libraries (list/switch/stats), multi-library discovery.
+- Books: query_books, manage_books; authors, series, tags, publishers, files, viewer.
+- RAG: calibre_metadata_search, rag_retrieve when indexes exist (LanceDB); calibre_metadata_export_json for JSON dumps (external RAG pipelines).
+
+RETURNS:
+- Prefer structured dicts with success, message, and domain fields; errors include error and recovery hints.
+
+DESIGN:
+- Portmanteau tools: always pass operation=...; discover sub-operations from tool docstrings.
+""",
+    lifespan=server_lifespan,
+    on_duplicate="replace",
+)
+logger.info("FastMCP instance created")
+
+from calibre_mcp.fleet_tool_metrics import register_mcp_tool_metrics  # noqa: E402
+
+if register_mcp_tool_metrics(mcp):
+    logger.info("MCP tool-call Prometheus metrics middleware registered")
+
+# MCP Bridge: proxy upstream servers via MCP_BRIDGE_URLS (comma-separated)
+_bridge_proxies = []
+bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
+if bridge_urls:
+    for url in bridge_urls.split(","):
+        url = url.strip()
+        if url:
+            try:
+                mcp.add_provider(create_proxy(url))
+                _bridge_proxies.append(url)
+            except Exception:
+                pass
+
+# Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
+_skills_root = Path(__file__).resolve().parent / "skills"
+if _skills_root.is_dir():
+    from .skills_encoding import install_skills_utf8_read_patch  # noqa: E402
+
+    install_skills_utf8_read_patch([_skills_root])
+
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider  # noqa: E402
+
+    mcp.add_provider(SkillsDirectoryProvider(roots=[_skills_root]))
+    logger.info("SkillsDirectoryProvider registered: %s", _skills_root)
+else:
+    logger.warning("Bundled skills directory missing: %s", _skills_root)
+
+# CRITICAL: For MCP stdio mode, stderr is already redirected to devnull in __main__.py
+# We should not set up additional logging to stderr as it would override the redirection
+# and break the MCP JSON-RPC protocol.
+
+# For non-MCP modes (if any), we could set up logging here, but since this is MCP-only,
+# we rely on the structured logging from logging_config.py which handles MCP compatibility.
+
+if not _is_stdio_mode:
+    # Only set up logging for non-MCP modes (if any)
+    import logging
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+# Register prompt templates
+from calibre_mcp.prompts import register_prompts  # noqa: E402
+from calibre_mcp.transport import run_server_async  # noqa: E402
+
+register_prompts(mcp)
+
+# ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+
+app = FastAPI(title="CalibreMCP", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics for unified monitoring stack (includes mcp_tool_* when instrumented)."""
+    from calibre_mcp.fleet_tool_metrics import prometheus_metrics_body_and_type
+
+    body, media_type = prometheus_metrics_body_and_type()
+    return Response(content=body, media_type=media_type)
+
+
+app.mount("/mcp", create_app())
+
+# Tools registered in main() for stdio. For webapp HTTP mode, MCP_USE_HTTP=false uses direct import.
+
+
+# ==================== RESPONSE MODELS ====================
+
+
+class LibrarySearchResponse(BaseModel):
+    """Response model for library search operations"""
+
+    model_config = {"from_attributes": True}
+
+    results: list[dict[str, Any]]
+    total_found: int
+    query_used: str | None = None
+    search_time_ms: int = 0
+    library_searched: str = "main"
+
+
+class BookDetailResponse(BaseModel):
+    """Response model for detailed book information"""
+
+    model_config = {"from_attributes": True}
+
+    book_id: int
+    title: str
+    authors: list[str]
+    series: str | None = None
+    series_index: float | None = None
+    rating: float | None = None
+    tags: list[str] = []
+    comments: str | None = None
+    published: str | None = None
+    languages: list[str] = ["en"]
+    formats: list[str] = []
+    identifiers: dict[str, str] = {}
+    last_modified: str | None = None
+    cover_url: str | None = None
+    download_links: dict[str, str] = {}
+    library_name: str = "main"
+
+
+class ConnectionTestResponse(BaseModel):
+    """Response model for connection testing"""
+
+    connected: bool
+    server_url: str
+    server_version: str | None = None
+    library_count: int = 0
+    total_books: int = 0
+    response_time_ms: int = 0
+    error_message: str | None = None
+
+
+class LibraryListResponse(BaseModel):
+    """Response model for library listing"""
+
+    model_config = {"from_attributes": True}
+
+    libraries: list[dict[str, Any]]
+    current_library: str
+    total_libraries: int
+
+
+class LibraryStatsResponse(BaseModel):
+    """Response model for library statistics"""
+
+    model_config = {"from_attributes": True}
+
+    library_name: str
+    total_books: int
+    total_authors: int
+    total_series: int
+    total_tags: int
+    format_distribution: dict[str, int]
+    language_distribution: dict[str, int]
+    rating_distribution: dict[str, int]
+    last_modified: str | None = None
+
+
+class TagStatsResponse(BaseModel):
+    """Response model for tag statistics"""
+
+    model_config = {"from_attributes": True}
+
+    total_tags: int
+    unique_tags: int
+    duplicate_tags: list[dict[str, Any]]
+    unused_tags: list[str]
+    suggestions: list[dict[str, Any]]
+
+
+class DuplicatesResponse(BaseModel):
+    """Response model for duplicate detection"""
+
+    model_config = {"from_attributes": True}
+
+    duplicate_groups: list[dict[str, Any]]
+    total_duplicates: int
+    confidence_scores: dict[str, float]
+
+
+class SeriesAnalysisResponse(BaseModel):
+    """Response model for series analysis"""
+
+    model_config = {"from_attributes": True}
+
+    incomplete_series: list[dict[str, Any]]
+    reading_order_suggestions: list[dict[str, Any]]
+    series_statistics: dict[str, Any]
+
+
+class LibraryHealthResponse(BaseModel):
+    """Response model for library health analysis"""
+
+    model_config = {"from_attributes": True}
+
+    health_score: float
+    issues_found: list[dict[str, Any]]
+    recommendations: list[str]
+    database_integrity: bool
+
+
+class UnreadPriorityResponse(BaseModel):
+    """Response model for unread priority list"""
+
+    model_config = {"from_attributes": True}
+
+    prioritized_books: list[dict[str, Any]]
+    priority_reasons: dict[str, str]
+    total_unread: int
+
+
+class MetadataUpdateRequest(BaseModel):
+    """Request model for metadata updates"""
+
+    model_config = {"from_attributes": True}
+
+    book_id: int
+    field: str
+    value: Any
+
+
+class MetadataUpdateResponse(BaseModel):
+    """Response model for metadata updates"""
+
+    model_config = {"from_attributes": True}
+
+    updated_books: list[int]
+    failed_updates: list[dict[str, Any]]
+    success_count: int
+
+
+class ReadingStats(BaseModel):
+    """Response model for reading statistics"""
+
+    model_config = {"from_attributes": True}
+
+    total_books_read: int
+    average_rating: float
+    favorite_genres: list[str]
+    reading_patterns: dict[str, Any]
+
+
+class ConversionRequest(BaseModel):
+    """Request model for format conversion"""
+
+    model_config = {"from_attributes": True}
+
+    book_id: int
+    source_format: str
+    target_format: str
+    quality: str = "high"
+
+
+class ConversionResponse(BaseModel):
+    """Response model for format conversion"""
+
+    model_config = {"from_attributes": True}
+
+    book_id: int
+    success: bool
+    output_path: str | None = None
+    error_message: str | None = None
+
+
+class JapaneseBookOrganization(BaseModel):
+    """Response model for Japanese book organization"""
+
+    model_config = {"from_attributes": True}
+
+    manga_series: list[dict[str, Any]]
+    light_novels: list[dict[str, Any]]
+    language_learning: list[dict[str, Any]]
+    reading_recommendations: list[str]
+
+
+class ITBookCuration(BaseModel):
+    """Response model for IT book curation"""
+
+    model_config = {"from_attributes": True}
+
+    programming_languages: dict[str, list[dict[str, Any]]]
+    outdated_books: list[dict[str, Any]]
+    learning_paths: list[dict[str, Any]]
+
+
+class ReadingRecommendations(BaseModel):
+    """Response model for reading recommendations"""
+
+    model_config = {"from_attributes": True}
+
+    recommendations: list[dict[str, Any]]
+    reasoning: dict[str, str]
+    confidence_scores: dict[str, float]
+
+
+# ==================== HELPER FUNCTIONS ====================
+
+
+async def get_api_client() -> CalibreAPIClient | None:
+    """
+    Get or create API client instance for remote Calibre Content Server access.
+
+    Only creates HTTP client if use_remote=True in config.
+    For local libraries, this returns None and tools should use direct SQLite access.
+    """
+    from calibre_mcp.config import CalibreConfig
+
+    global api_client
+    config = CalibreConfig()
+
+    # Only create HTTP client if remote access is enabled
+    if not config.use_remote:
+        return None
+
+    if api_client is None:
+        api_client = CalibreAPIClient(config)
+        await api_client.initialize()
+    return api_client
+
+
+async def discover_libraries() -> dict[str, str]:
+    """Discover available Calibre libraries"""
+    global available_libraries
+
+    if available_libraries:
+        return available_libraries
+
+    from calibre_mcp.config import CalibreConfig
+    config = CalibreConfig()
+    libraries = {}
+
+    # Check configured library path
+    if config.local_library_path and config.local_library_path.exists():
+        libraries["main"] = str(config.local_library_path)
+
+    # Discover additional libraries — shallow scan, same logic as startup probe
+    base_dir = Path("L:/Multimedia Files/Written Word")
+    if base_dir.exists():
+        for item in base_dir.iterdir():
+            if item.is_dir() and (item / "metadata.db").exists():
+                libraries[item.name] = str(item)
+
+    available_libraries = libraries
+    return libraries
+
+
+# ==================== SERVER INITIALIZATION ====================
+
+
+def get_mcp_instance() -> FastMCP:
+    """Return the FastMCP instance (for internal use). Use create_app() for HTTP mounting."""
+    return mcp
+
+
+async def main():
+    """Main server entry point with comprehensive error handling and logging"""
+    logger = None
+
+    try:
+        # PHASE 1: Import heavy modules with error handling
+        logger = logging.getLogger("calibremcp.server")
+        logger.info("PHASE 1: Starting module imports...")
+
+        try:
+            logger.info("Importing logging_config...")
+            from calibre_mcp.logging_config import (
+                get_logger,
+                log_error,
+                log_operation,
+                setup_logging,
+            )
+
+            logger.debug("SUCCESS: logging_config imported")
+
+            from calibre_mcp.db.user_data import init_user_data_db
+
+            init_user_data_db()
+            logger.debug("User data database initialized")
+
+        except Exception as import_error:
+            logger.exception(f"CRITICAL: Module import failed: {import_error}")
+            raise RuntimeError(
+                f"Failed to import required modules: {import_error}"
+            ) from import_error
+
+        # PHASE 2: Initialize logging with timeout protection
+        try:
+            log_file_path = Path("logs/calibremcp.log")
+
+            import asyncio
+
+            await asyncio.wait_for(
+                asyncio.to_thread(
+                    setup_logging, level="INFO", log_file=log_file_path, enable_console=False
+                ),
+                timeout=5.0,
+            )
+
+        except TimeoutError:
+            logger.warning("Logging setup timed out, continuing with basic logging")
+        except Exception as log_error:
+            logger.exception(f"Logging setup failed: {log_error}")
+
+        # Get proper logger after setup
+        logger = get_logger("calibremcp.server")
+
+        # PHASE 3: Log server startup details
+        try:
+            log_operation(
+                logger,
+                "server_startup",
+                level="INFO",
+                version="1.0.0",
+                collection_size="1000+ books",
+                fastmcp_version="3.1+",
+                platform=__import__("platform").platform(),
+            )
+        except Exception as log_op_error:
+            logger.exception(f"Startup logging failed: {log_op_error}")
+
+        # PHASE 4: Verify MCP instance
+        try:
+            if mcp is None:
+                logger.error("MCP instance is None - cannot register tools!")
+                raise RuntimeError("MCP instance not initialized")
+
+        except Exception as mcp_error:
+            logger.exception(f"MCP instance verification failed: {mcp_error}")
+            raise
+
+        # PHASE 5: Register tools with comprehensive error handling
+        try:
+            import asyncio
+
+            async def register_tools_with_timeout():
+                from calibre_mcp.tools import register_tools
+
+                register_tools(mcp)
+
+            await asyncio.wait_for(register_tools_with_timeout(), timeout=30.0)
+
+        except TimeoutError:
+            logger.exception("CRITICAL: Tool registration timed out after 30 seconds")
+            logger.exception("This usually indicates a hanging import in one of the tool modules")
+            logger.exception("Check for circular imports or heavy initialization in tool modules")
+            raise RuntimeError("Tool registration timed out - check for hanging imports")
+        except Exception as tool_error:
+            logger.exception(f"ERROR: Tool registration failed: {tool_error}")
+            logger.exception(f"Tool registration error type: {type(tool_error).__name__}")
+            raise
+
+        # Verify tools were registered
+        try:
+            tool_count = "unknown"
+            if hasattr(mcp, "_tools"):
+                tool_count = len(mcp._tools)
+
+            if tool_count == 0:
+                logger.error("No tools registered! Check tool imports.")
+        except Exception as e:
+            logger.exception(f"Could not verify tool count: {e}")
+
+        # Restore stdout explicitly for JSON-RPC communication
+        import calibre_mcp
+
+        if hasattr(calibre_mcp, "_original_stdout") and calibre_mcp._original_stdout:
+            sys.stdout.flush()
+            sys.stdout = calibre_mcp._original_stdout
+
+            # Re-configure binary mode for Windows if needed
+            if os.name == "nt":
+                import msvcrt
+
+                with contextlib.suppress(Exception):
+                    msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+
+        # PHASE 6: Start FastMCP server
+        try:
+            await run_server_async(mcp, server_name="CalibreMCP Phase 2")
+
+        except Exception as server_error:
+            logger.exception("CRITICAL: FastMCP server startup failed")
+            logger.exception(f"Server error type: {type(server_error).__name__}")
+            # server_error is already logged by logger.exception
+
+            # Log additional diagnostic information
+            try:
+                logger.exception(f"Platform: {__import__('platform').platform()}")
+
+                # Check if MCP has tools registered
+                if hasattr(mcp, "_tools"):
+                    tool_count = len(mcp._tools)
+                    logger.exception(f"MCP tools registered: {tool_count}")
+                else:
+                    logger.exception("MCP _tools attribute not found")
+
+            except Exception as diag_error:
+                logger.exception(f"Diagnostic logging failed: {diag_error}")
+
+            raise
+
+    except Exception as e:
+        # PHASE 7: Global exception handling
+        if logger:
+            logger.exception("CRITICAL: Unhandled exception in main()")
+            logger.exception(f"Exception type: {type(e).__name__}")
+            logger.error(f"Exception message: {e}", exc_info=True)
+
+            # Try to log to file if logging system is available
+            try:
+                log_error(logger, "server_startup_error", e)
+            except Exception:
+                # Last resort logging
+                logger.exception(f"CRITICAL ERROR: {e}")
+        else:
+            # No logger available, print to stderr
+            # Last resort logging - no logger available
+            sys.stderr.write(f"CRITICAL ERROR (no logger): {e}\n")
+
+        # Re-raise to let FastMCP handle it properly
+        raise
+
+
+if __name__ == "__main__":
+    # Handle both direct execution and module execution
+    import asyncio
+    import sys
+    from pathlib import Path
+
+    # If running directly (not as module), ensure src is on path for calibre_mcp imports
+    current_file = Path(__file__).resolve()
+    src_path = current_file.parent.parent
+    if str(src_path) not in sys.path:
+        sys.path.insert(0, str(src_path))
+
+    asyncio.run(main())

@@ -153,7 +153,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
         try:
             return data.dict(exclude_unset=True)
         except ValidationError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e)) from e
 
     def _validate_update_data(self, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
         """
@@ -173,7 +173,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
                 return data
             return data.dict(exclude_unset=True)
         except ValidationError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e)) from e
 
     def _to_response(self, obj: ModelType, schema: type[BaseModel] | None = None) -> dict[str, Any]:
         """
@@ -222,18 +222,18 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             except NotFoundError as e:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail={"message": str(e)}
-                )
+                ) from e
             except ValidationError as e:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"message": str(e)}
-                )
+                ) from e
             except ServiceError as e:
-                raise HTTPException(status_code=e.status_code, detail={"message": str(e)})
+                raise HTTPException(status_code=e.status_code, detail={"message": str(e)}) from e
             except Exception as e:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail={"message": f"Internal server error: {str(e)}"},
-                )
+                ) from e
 
         return wrapper
 

@@ -2,12 +2,12 @@
 Viewer module for CalibreMCP - Handles rendering and displaying different book formats.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Protocol
 
 
-class ViewerType(str, Enum):
+class ViewerType(StrEnum):
     """Supported viewer types."""
 
     EPUB = "epub"

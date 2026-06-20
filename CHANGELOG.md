@@ -21,6 +21,8 @@
 ### Changed
 - `calibre-mcp-backend.spec`: `noarchive=False` → `noarchive=True`
 - `webapp/backend/app/main.py`: StaticFiles mount uses `os.path.realpath()` + `follow_symlink=True`
+- `webapp/frontend/next.config.js`: Added `basePath: '/app'` for Tauri builds (fixes `/_next/` asset 404s)
+- `webapp/backend/app/config.py`: Added `http://goliath:10721` to CORS_ORIGINS for Tailscale access
 
 ---
 

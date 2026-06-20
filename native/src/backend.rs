@@ -102,7 +102,7 @@ fn free_port(port: u16) {
     #[cfg(windows)]
     {
         let script = format!(
-            "Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | ForEach-Object {{ if ($_.OwningProcess -ne $PID) {{ Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }} }}"
+            "Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | ForEach-Object {{ taskkill /F /PID $_.OwningProcess /T 2>$null }}"
         );
         let _ = Command::new("powershell.exe")
             .args(["-NoProfile", "-Command", &script])

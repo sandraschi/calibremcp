@@ -11,11 +11,14 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 from ...logging_config import get_logger
 from ...services.book_service import book_service
@@ -48,9 +51,9 @@ def _open_file_with_app(file_path: Path) -> bool:
         if system == "Windows":
             os.startfile(file_path_str)
         elif system == "Darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=False)
+            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
         else:  # Linux and others
-            subprocess.run(["xdg-open", file_path_str], check=False)
+            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
 
         logger.info(f"Opened file with default application: {file_path}")
         return True
@@ -881,6 +884,7 @@ async def export_pandoc_helper(
                 capture_output=True,
                 text=True,
                 timeout=300,
+                creationflags=_NO_WINDOW,
             )
 
             if result.returncode != 0:
@@ -906,7 +910,7 @@ async def export_pandoc_helper(
 
         except subprocess.TimeoutExpired:
             Path(tmp_md_path).unlink()
-            raise Exception("Pandoc conversion timed out")
+            raise Exception("Pandoc conversion timed out") from None
         except FileNotFoundError:
             return {
                 "success": False,

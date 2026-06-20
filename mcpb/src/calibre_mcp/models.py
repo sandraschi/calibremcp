@@ -4,14 +4,14 @@ Data models for Calibre MCP server.
 
 import os
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 
-class BookFormat(str, Enum):
+class BookFormat(StrEnum):
     """Supported book formats."""
 
     EPUB = "epub"
@@ -36,7 +36,7 @@ class BookFormat(str, Enum):
     TXTZ = "txtz"
 
 
-class BookStatus(str, Enum):
+class BookStatus(StrEnum):
     """Book reading status."""
 
     UNREAD = "unread"
@@ -172,7 +172,7 @@ class SearchQuery(BaseModel):
     sort_desc: bool = False
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """User roles for access control."""
 
     ADMIN = "admin"

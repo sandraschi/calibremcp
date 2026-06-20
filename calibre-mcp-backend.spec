@@ -24,13 +24,24 @@ _sqlite3_bin = Path(sysconfig.get_config_var("prefix")) / "DLLs" / "_sqlite3.pyd
 if _sqlite3_bin.exists():
     binaries.append((str(_sqlite3_bin), "."))
 
+_stdlib_dir = Path(sysconfig.get_config_var("prefix")) / "Lib"
+
 datas = [
 
     ("src/calibre_mcp", "calibre_mcp"),
 
     ("webapp/backend/app", "app"),
+    ("webapp/frontend/out", "webapp/frontend/out"),
 
 ]
+
+for _mod in ("difflib.py", "statistics.py", "pydoc.py"):
+    _mod_path = _stdlib_dir / _mod
+    if _mod_path.exists():
+        datas.append((str(_mod_path), "."))
+_pydoc_data = _stdlib_dir / "pydoc_data"
+if _pydoc_data.exists():
+    datas.append((str(_pydoc_data), "pydoc_data"))
 
 
 
@@ -141,6 +152,7 @@ for pkg in (
     "rich",
     "fastembed",
     "pyarrow",
+    "jwt",
 ):
 
     try:
@@ -227,6 +239,8 @@ hiddenimports += [
 
     "difflib",
 
+    "statistics",
+
     "pydoc",
 
     "jwt",
@@ -248,11 +262,10 @@ a = Analysis(
     hiddenimports=hiddenimports,
 
     hookspath=[],
-
+    
     hooksconfig={},
 
     runtime_hooks=[],
-
     excludes=[
 
         "torch",
@@ -265,7 +278,7 @@ a = Analysis(
 
     ],
 
-    noarchive=False,
+    noarchive=True,
 
     optimize=0,
 
@@ -286,6 +299,7 @@ exe = EXE(
     a.datas,
 
     [],
+    
 
     name="calibre-mcp-backend",
 
@@ -295,10 +309,9 @@ exe = EXE(
 
     strip=False,
 
-    upx=True,
+    upx=False,
 
     upx_exclude=[],
-
     runtime_tmpdir=None,
 
     console=True,
@@ -314,4 +327,11 @@ exe = EXE(
     entitlements_file=None,
 
 )
+
+
+
+
+
+
+
 

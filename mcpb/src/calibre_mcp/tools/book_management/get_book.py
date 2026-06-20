@@ -111,7 +111,7 @@ async def get_book_helper(
 
                 book = session.query(Book).filter(Book.uuid == book_id).first()
                 if not book:
-                    raise MCPServerError(f"Book with ID or UUID {book_id} not found")
+                    raise MCPServerError(f"Book with ID or UUID {book_id} not found") from None
                 book_id_int = book.id
 
         # Get book using book service (same database as search)
@@ -119,7 +119,7 @@ async def get_book_helper(
             book_data = book_service.get_by_id(book_id_int)
         except Exception as e:
             if "not found" in str(e).lower():
-                raise MCPServerError(f"Book with ID {book_id} not found")
+                raise MCPServerError(f"Book with ID {book_id} not found") from e
             raise
 
         if not book_data:
@@ -192,4 +192,4 @@ async def get_book_helper(
         raise
     except Exception as e:
         logger.error(f"Error getting book {book_id}: {e}", exc_info=True)
-        raise MCPServerError(f"Failed to get book: {str(e)}")
+        raise MCPServerError(f"Failed to get book: {str(e)}") from e

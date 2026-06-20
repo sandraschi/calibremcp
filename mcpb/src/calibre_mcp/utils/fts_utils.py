@@ -85,6 +85,46 @@ def _escape_fts5_query(raw: str) -> str:
     return s
 
 
+_ALLOWED_FTS_TABLES = {"books_fts", "books_fts_data", "books_fts_idx", "books_fts_config", "books_fts_docsize"}
+
+
+def _sanitize_fts_table(fts_table: str) -> str:
+    """Validate FTS table name against known Calibre FTS tables."""
+    if fts_table in _ALLOWED_FTS_TABLES:
+        return fts_table
+    return "books_fts"
+
+
+_FTS_COUNT_SQL = """SELECT COUNT(DISTINCT books_text.book) FROM books_text JOIN {t} ON books_text.id = {t}.rowid WHERE {t} MATCH ?"""
+
+_FTS_SEL_SNIPPET = "books_text.book, snippet({t}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text"
+_FTS_SEL_PLAIN = "books_text.book"
+
+_FTS_QUERY_SQL = "SELECT {sel} FROM books_text JOIN {t} ON books_text.id = {t}.rowid WHERE {t} MATCH ? ORDER BY {t}.rank LIMIT ? OFFSET ?"
+
+_FTS_COUNT_SQL_DETAILED = """SELECT COUNT(*) FROM (SELECT DISTINCT books_text.book FROM books_text JOIN {t} ON books_text.id = {t}.rowid WHERE {t} MATCH ?)"""
+
+_FTS_SEL_SNIPPET_DETAILED = "books_text.id AS btid, books_text.book AS bid, books_text.format AS bfmt, books_text.searchable_text AS stext, snippet({t}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text"
+
+_FTS_SEL_PLAIN_DETAILED = "books_text.id AS btid, books_text.book AS bid, books_text.format AS bfmt, books_text.searchable_text AS stext, '' AS snippet_text"
+
+_FTS_QUERY_SQL_DETAILED = "SELECT {sel} FROM books_text JOIN {t} ON books_text.id = {t}.rowid WHERE {t} MATCH ? ORDER BY {t}.rank LIMIT ? OFFSET ?"
+
+
+def _build_count_query(table_name: str) -> str:
+    return _FTS_COUNT_SQL.replace("{t}", table_name)
+
+
+def _build_sel_query(table_name: str, include_snippets: bool) -> str:
+    if include_snippets:
+        return _FTS_SEL_SNIPPET.replace("{t}", table_name)
+    return _FTS_SEL_PLAIN
+
+
+def _build_full_query(table_name: str, sel: str) -> str:
+    return _FTS_QUERY_SQL.replace("{t}", table_name).replace("{sel}", sel)
+
+
 def _query_via_fts(
     conn: sqlite3.Connection,
     fts_table: str,
@@ -98,36 +138,13 @@ def _query_via_fts(
     Run FTS using Calibre schema: JOIN books_text WITH fts_table ON id = rowid.
     Returns (book_ids, total_count, book_id -> snippet).
     """
+    tbl = _sanitize_fts_table(fts_table)
     cursor = conn.cursor()
-    # Total count (distinct books matching)
-    cursor.execute(
-        f"""
-        SELECT COUNT(DISTINCT books_text.book) FROM books_text
-        JOIN {fts_table} ON books_text.id = {fts_table}.rowid
-        WHERE {fts_table} MATCH ?
-        """,
-        (fts_query,),
-    )
+    cursor.execute(_build_count_query(tbl), (fts_query,))
     total = cursor.fetchone()[0] or 0
 
-    if include_snippets:
-        # FTS5 snippet(fts_table, column_index, start, end, ellipsis, max_tokens)
-        # Single content column -> index 0
-        sel = f"""
-            books_text.book,
-            snippet({fts_table}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text
-        """
-    else:
-        sel = "books_text.book"
-
-    q = f"""
-        SELECT {sel}
-        FROM books_text
-        JOIN {fts_table} ON books_text.id = {fts_table}.rowid
-        WHERE {fts_table} MATCH ?
-        ORDER BY {fts_table}.rank
-        LIMIT ? OFFSET ?
-    """
+    sel = _build_sel_query(tbl, include_snippets)
+    q = _build_full_query(tbl, sel)
     args = (
         (snippet_size, fts_query, limit, offset) if include_snippets else (fts_query, limit, offset)
     )
@@ -280,6 +297,20 @@ def query_fts(
         return [], 0, {}
 
 
+def _build_detailed_count_query(table_name: str) -> str:
+    return _FTS_COUNT_SQL_DETAILED.replace("{t}", table_name)
+
+
+def _build_detailed_sel_query(table_name: str, include_snippets: bool) -> str:
+    if include_snippets:
+        return _FTS_SEL_SNIPPET_DETAILED.replace("{t}", table_name)
+    return _FTS_SEL_PLAIN_DETAILED
+
+
+def _build_detailed_full_query(table_name: str, sel: str) -> str:
+    return _FTS_QUERY_SQL_DETAILED.replace("{t}", table_name).replace("{sel}", sel)
+
+
 def _query_via_fts_detailed(
     conn: sqlite3.Connection,
     fts_table: str,
@@ -291,46 +322,22 @@ def _query_via_fts_detailed(
     snippet_size: int,
 ) -> tuple[list[dict[str, Any]], int]:
     """FTS rows with books_text id, format, offsets into searchable_text."""
+    tbl = _sanitize_fts_table(fts_table)
     cursor = conn.cursor()
     cursor.execute(
-        f"""
-        SELECT COUNT(*) FROM (
-            SELECT DISTINCT books_text.book FROM books_text
-            JOIN {fts_table} ON books_text.id = {fts_table}.rowid
-            WHERE {fts_table} MATCH ?
-        )
-        """,
+        _build_detailed_count_query(tbl),
         (fts_query,),
     )
     total_books = cursor.fetchone()[0] or 0
 
     if include_snippets:
-        sel = f"""
-            books_text.id AS btid,
-            books_text.book AS bid,
-            books_text.format AS bfmt,
-            books_text.searchable_text AS stext,
-            snippet({fts_table}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text
-        """
+        sel = _build_detailed_sel_query(tbl, include_snippets=True)
         args_head: tuple[int, ...] = (snippet_size,)
     else:
-        sel = """
-            books_text.id AS btid,
-            books_text.book AS bid,
-            books_text.format AS bfmt,
-            books_text.searchable_text AS stext,
-            '' AS snippet_text
-        """
+        sel = _build_detailed_sel_query(tbl, include_snippets=False)
         args_head = ()
 
-    q = f"""
-        SELECT {sel}
-        FROM books_text
-        JOIN {fts_table} ON books_text.id = {fts_table}.rowid
-        WHERE {fts_table} MATCH ?
-        ORDER BY {fts_table}.rank
-        LIMIT ? OFFSET ?
-    """
+    q = _build_detailed_full_query(tbl, sel)
     args = (*args_head, fts_query, limit, offset)
     cursor.execute(q, args)
     rows = cursor.fetchall()

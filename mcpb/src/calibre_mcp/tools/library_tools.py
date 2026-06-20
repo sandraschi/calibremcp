@@ -5,7 +5,7 @@ Provides functionality to manage Calibre libraries including CRUD operations,
 statistics, and search capabilities through the FastMCP interface.
 """
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 try:
@@ -19,7 +19,7 @@ from ..services.base_service import NotFoundError, ValidationError
 from ..services.library_service import library_service as lib_service
 
 
-class LibrarySortField(str, Enum):
+class LibrarySortField(StrEnum):
     """Available fields to sort libraries by."""
 
     NAME = "name"
@@ -29,7 +29,7 @@ class LibrarySortField(str, Enum):
     UPDATED_AT = "updated_at"
 
 
-class SortOrder(str, Enum):
+class SortOrder(StrEnum):
     """Sort order options."""
 
     ASC = "asc"

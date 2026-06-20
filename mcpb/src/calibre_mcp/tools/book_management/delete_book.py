@@ -189,7 +189,7 @@ async def delete_book_helper(
             try:
                 book_service.delete(book_id_int)
             except NotFoundError:
-                raise MCPServerError(f"Book with ID {book_id} not found")
+                raise MCPServerError(f"Book with ID {book_id} not found") from None
 
             # Delete files if requested
             if delete_files:
@@ -212,7 +212,7 @@ async def delete_book_helper(
         raise
     except Exception as e:
         logger.error(f"Error deleting book {book_id}: {e}", exc_info=True)
-        raise MCPServerError(f"Failed to delete book: {str(e)}")
+        raise MCPServerError(f"Failed to delete book: {str(e)}") from e
 
 
 async def _check_book_dependencies(book_id: int) -> bool:

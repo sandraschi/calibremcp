@@ -191,7 +191,7 @@ def get_book_format_from_extension(extension: str) -> BookFormat:
     try:
         return extension_map[extension]
     except KeyError:
-        raise FileTypeNotSupportedError(f"Unsupported book format: {extension}")
+        raise FileTypeNotSupportedError(f"Unsupported book format: {extension}") from None
 
 
 async def extract_metadata(file_path: str | Path) -> BookMetadata:
@@ -214,7 +214,7 @@ async def extract_metadata(file_path: str | Path) -> BookMetadata:
         _, extension = await detect_file_type(file_path)
         book_format = get_book_format_from_extension(extension)
     except (FileTypeNotSupportedError, FileNotFoundError, PermissionError) as e:
-        raise FileProcessingError(f"Cannot process file {file_path}: {e}")
+        raise FileProcessingError(f"Cannot process file {file_path}: {e}") from e
 
     # Initialize metadata with default values
     metadata = BookMetadata(
@@ -424,7 +424,7 @@ async def convert_book(
         if output_path.exists():
             with contextlib.suppress(OSError):
                 output_path.unlink()
-        raise FileProcessingError(f"Failed to convert {input_path} to {output_format.value}: {e}")
+        raise FileProcessingError(f"Failed to convert {input_path} to {output_format.value}: {e}") from e
 
 
 async def calculate_file_hash(file_path: str | Path, algorithm: str = "sha256") -> str:

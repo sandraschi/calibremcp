@@ -63,7 +63,7 @@ async def create_library(library: LibraryCreate, db: Session = Depends(get_db)) 
     try:
         return library_service.create(library)
     except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.get(
@@ -80,7 +80,7 @@ async def get_library(library_id: int, db: Session = Depends(get_db)) -> dict:
     try:
         return library_service.get_by_id(library_id)
     except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.put(
@@ -99,9 +99,9 @@ async def update_library(
     try:
         return library_service.update(library_id, library)
     except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.delete(
@@ -126,9 +126,9 @@ async def delete_library(library_id: int, db: Session = Depends(get_db)) -> None
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete library"
             )
     except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.get(
@@ -145,7 +145,7 @@ async def get_library_stats(library_id: int, db: Session = Depends(get_db)) -> d
     try:
         return library_service.get_library_stats(library_id=library_id)
     except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.get(
@@ -183,4 +183,4 @@ async def search_library(
             library_id=library_id, query=query, limit=limit, offset=offset
         )
     except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

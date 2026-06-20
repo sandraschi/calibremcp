@@ -186,7 +186,7 @@ Provide a comprehensive answer with citations to specific books:"""
             logger.exception("Cannot connect to Ollama. Is it running?")
             raise RuntimeError(
                 "Cannot connect to Ollama at {self.config.base_url}. Start it with: ollama serve"
-            )
+            ) from None
 
     async def check_ollama_status(self) -> dict[str, Any]:
         """Check if Ollama is running and which models are available.

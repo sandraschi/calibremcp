@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from calibre_mcp.logging_config import get_logger
 from calibre_mcp.services.book_service import BookSearchResult, book_service
@@ -263,8 +263,9 @@ class BookSearchInput(BaseModel):
     limit: int = Field(50, description="Maximum number of results to return", ge=1, le=1000)
     offset: int = Field(0, description="Number of results to skip for pagination", ge=0)
 
-    @validator("fields", pre=True)
-    def parse_fields(self, v):
+    @field_validator("fields", mode="before")
+    @classmethod
+    def parse_fields(cls, v):
         if isinstance(v, str):
             try:
                 # Try to parse as JSON array first
@@ -274,8 +275,9 @@ class BookSearchInput(BaseModel):
                 return [field.strip() for field in v.split(",") if field.strip()]
         return v
 
-    @validator("formats", pre=True)
-    def parse_formats(self, v):
+    @field_validator("formats", mode="before")
+    @classmethod
+    def parse_formats(cls, v):
         if isinstance(v, str):
             try:
                 # Try to parse as JSON array first
@@ -821,9 +823,9 @@ async def search_books_helper(
                     )
                 except Exception as init_error:
                     logger.exception(f"Failed to initialize database: {init_error}")
-                    raise ValueError(f"Cannot initialize database: {init_error}")
+                    raise ValueError(f"Cannot initialize database: {init_error}") from init_error
             else:
-                raise ValueError("No valid database available")
+                raise ValueError("No valid database available") from None
 
         # Input validation
         logger.debug(

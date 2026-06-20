@@ -283,37 +283,37 @@ class BookRepository(BaseRepository[Book]):
         if not book_ids:
             return []
 
-        placeholders = ",".join("?" * len(book_ids))
         # Omit b.flags: column exists only in newer Calibre metadata.db
-        query = f"""
-            SELECT b.id, b.title, b.sort, b.timestamp, b.pubdate, b.series_index,
-                   b.author_sort, b.path, b.uuid, b.has_cover, b.last_modified,
-                   (SELECT val FROM identifiers WHERE book = b.id AND type = 'isbn' LIMIT 1) AS isbn,
-                   (SELECT val FROM identifiers WHERE book = b.id AND type = 'lccn' LIMIT 1) AS lccn,
-                   GROUP_CONCAT(DISTINCT a.name, '|') as authors,
-                   GROUP_CONCAT(DISTINCT t.name, '|') as tags,
-                   s.name as series_name,
-                   b.series_index as series_index,
-                   r.rating as rating,
-                   p.name as publisher,
-                   l.lang_code as language
-            FROM books b
-            LEFT JOIN books_authors_link bal ON b.id = bal.book
-            LEFT JOIN authors a ON bal.author = a.id
-            LEFT JOIN books_tags_link btl ON b.id = btl.book
-            LEFT JOIN tags t ON btl.tag = t.id
-            LEFT JOIN books_series_link bsl ON b.id = bsl.book
-            LEFT JOIN series s ON bsl.series = s.id
-            LEFT JOIN books_ratings_link brl ON b.id = brl.book
-            LEFT JOIN ratings r ON brl.rating = r.id
-            LEFT JOIN books_publishers_link bpl ON b.id = bpl.book
-            LEFT JOIN publishers p ON bpl.publisher = p.id
-            LEFT JOIN books_languages_link bll ON b.id = bll.book
-            LEFT JOIN languages l ON bll.lang_code = l.id
-            WHERE b.id IN ({placeholders})
-            GROUP BY b.id
-            ORDER BY b.sort
-        """
+        sql_prefix = (
+            "SELECT b.id, b.title, b.sort, b.timestamp, b.pubdate, b.series_index,"
+            " b.author_sort, b.path, b.uuid, b.has_cover, b.last_modified,"
+            " (SELECT val FROM identifiers WHERE book = b.id AND type = 'isbn' LIMIT 1) AS isbn,"
+            " (SELECT val FROM identifiers WHERE book = b.id AND type = 'lccn' LIMIT 1) AS lccn,"
+            " GROUP_CONCAT(DISTINCT a.name, '|') as authors,"
+            " GROUP_CONCAT(DISTINCT t.name, '|') as tags,"
+            " s.name as series_name,"
+            " b.series_index as series_index,"
+            " r.rating as rating,"
+            " p.name as publisher,"
+            " l.lang_code as language"
+            " FROM books b"
+            " LEFT JOIN books_authors_link bal ON b.id = bal.book"
+            " LEFT JOIN authors a ON bal.author = a.id"
+            " LEFT JOIN books_tags_link btl ON b.id = btl.book"
+            " LEFT JOIN tags t ON btl.tag = t.id"
+            " LEFT JOIN books_series_link bsl ON b.id = bsl.book"
+            " LEFT JOIN series s ON bsl.series = s.id"
+            " LEFT JOIN books_ratings_link brl ON b.id = brl.book"
+            " LEFT JOIN ratings r ON brl.rating = r.id"
+            " LEFT JOIN books_publishers_link bpl ON b.id = bpl.book"
+            " LEFT JOIN publishers p ON bpl.publisher = p.id"
+            " LEFT JOIN books_languages_link bll ON b.id = bll.book"
+            " LEFT JOIN languages l ON bll.lang_code = l.id"
+            " WHERE b.id IN "
+        )
+        in_clause = "(" + ",".join("?" * len(book_ids)) + ")"
+        sql_suffix = " GROUP BY b.id ORDER BY b.sort"
+        query = sql_prefix + in_clause + sql_suffix
 
         results = self._fetch_all(query, book_ids)
         return [self._process_book_result(row) for row in results]

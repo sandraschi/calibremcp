@@ -910,7 +910,7 @@ async def export_pandoc_helper(
 
         except subprocess.TimeoutExpired:
             Path(tmp_md_path).unlink()
-            raise Exception("Pandoc conversion timed out")
+            raise Exception("Pandoc conversion timed out") from None
         except FileNotFoundError:
             return {
                 "success": False,

@@ -8,18 +8,25 @@
     "beforeDevCommand": "npm --prefix ../webapp/frontend run dev"
   },
   "app": {
-    "windows": [{
-      "title": "Calibre MCP",
-      "width": 1280,
-      "height": 800,
-      "minWidth": 900,
-      "minHeight": 600
-    }],
-    "security": { "csp": null }
+    "windows": [
+      {
+        "title": "Calibre MCP",
+        "label": "main",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -32,15 +39,26 @@
       "resources/install-mcp-clients.ps1"
     ],
     "windows": {
-      "webviewInstallMode": { "type": "downloadBootstrapper" },
       "nsis": {
+        "installMode": "currentUser",
+        "createDesktopShortcut": true,
+        "createStartMenuShortcut": true,
         "installerHooks": "./windows/hooks.nsh"
+      },
+      "webviewInstallMode": {
+        "type": "skip"
       }
     }
   },
   "plugins": {
-    "shell": { "open": true },
-    "fs": { "requireLiteralLeadingDot": false },
-    "process": { "all": true }
+    "shell": {
+      "open": true
+    },
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
+    "process": {
+      "all": true
+    }
   }
 }

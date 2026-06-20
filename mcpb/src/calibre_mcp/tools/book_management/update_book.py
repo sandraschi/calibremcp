@@ -137,7 +137,7 @@ async def update_book_helper(
             try:
                 book_service.get_by_id(book_id_int)
             except NotFoundError:
-                raise MCPServerError(f"Book with ID {book_id} not found")
+                raise MCPServerError(f"Book with ID {book_id} not found") from None
 
         updated_fields = []
 
@@ -300,14 +300,14 @@ async def update_book_helper(
         }
 
     except ValueError as e:
-        raise MCPServerError(f"Invalid input: {str(e)}")
+        raise MCPServerError(f"Invalid input: {str(e)}") from e
     except FileNotFoundError as e:
-        raise MCPServerError(f"File not found: {str(e)}")
+        raise MCPServerError(f"File not found: {str(e)}") from e
     except MCPServerError:
         raise
     except Exception as e:
         logger.error(f"Error updating book {book_id}: {e}", exc_info=True)
-        raise MCPServerError(f"Failed to update book: {str(e)}")
+        raise MCPServerError(f"Failed to update book: {str(e)}") from e
 
 
 def _validate_metadata_update(metadata: dict[str, Any]) -> None:

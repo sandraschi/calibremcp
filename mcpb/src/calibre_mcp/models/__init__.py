@@ -4,6 +4,7 @@ Data models for Calibre MCP.
 
 # Import Pydantic models (BookFormat, BookStatus) from the parent package's models.py
 # These are in the Pydantic models.py file, not SQLAlchemy models
+import enum
 from pathlib import Path
 
 from sqlalchemy import Column, ForeignKey, Integer, Table
@@ -37,12 +38,12 @@ if __name__ != "__main__":
         # Fallback: define minimal enums
         from enum import Enum
 
-        class BookFormat(str, Enum):
+        class BookFormat(enum.StrEnum):
             EPUB = "epub"
             PDF = "pdf"
             MOBI = "mobi"
 
-        class BookStatus(str, Enum):
+        class BookStatus(enum.StrEnum):
             UNREAD = "unread"
             READING = "reading"
             FINISHED = "finished"
@@ -50,12 +51,12 @@ else:
     # Fallback for direct execution
     from enum import Enum
 
-    class BookFormat(str, Enum):
+    class BookFormat(enum.StrEnum):
         EPUB = "epub"
         PDF = "pdf"
         MOBI = "mobi"
 
-    class BookStatus(str, Enum):
+    class BookStatus(enum.StrEnum):
         UNREAD = "unread"
         READING = "reading"
         FINISHED = "finished"

@@ -100,7 +100,7 @@ async def create_comment_helper(book_id: int, text: str) -> dict[str, Any]:
             extra={"book_id": book_id},
             exc_info=True,
         )
-        raise CalibreAPIError(f"Failed to create comment: {str(e)}")
+        raise CalibreAPIError(f"Failed to create comment: {str(e)}") from e
 
 
 async def read_comment_helper(book_id: int) -> dict[str, Any]:
@@ -162,7 +162,7 @@ async def read_comment_helper(book_id: int) -> dict[str, Any]:
             extra={"book_id": book_id},
             exc_info=True,
         )
-        raise CalibreAPIError(f"Failed to read comment: {str(e)}")
+        raise CalibreAPIError(f"Failed to read comment: {str(e)}") from e
 
 
 async def update_comment_helper(book_id: int, text: str) -> dict[str, Any]:
@@ -228,7 +228,7 @@ async def update_comment_helper(book_id: int, text: str) -> dict[str, Any]:
             extra={"book_id": book_id},
             exc_info=True,
         )
-        raise CalibreAPIError(f"Failed to update comment: {str(e)}")
+        raise CalibreAPIError(f"Failed to update comment: {str(e)}") from e
 
 
 async def delete_comment_helper(book_id: int) -> dict[str, Any]:
@@ -280,7 +280,7 @@ async def delete_comment_helper(book_id: int) -> dict[str, Any]:
             extra={"book_id": book_id},
             exc_info=True,
         )
-        raise CalibreAPIError(f"Failed to delete comment: {str(e)}")
+        raise CalibreAPIError(f"Failed to delete comment: {str(e)}") from e
 
 
 async def append_comment_helper(book_id: int, text: str) -> dict[str, Any]:
@@ -355,4 +355,4 @@ async def append_comment_helper(book_id: int, text: str) -> dict[str, Any]:
             extra={"book_id": book_id},
             exc_info=True,
         )
-        raise CalibreAPIError(f"Failed to append comment: {str(e)}")
+        raise CalibreAPIError(f"Failed to append comment: {str(e)}") from e

@@ -1,57 +1,35 @@
-# calibre-mcp — Implementation TODO
+# calibre-mcp Tauri NSIS — Remaining Work
 
-**Canonical tracker:** `D:\Dev\repos\mcp-central-docs\projects\calibre-mcp\TODO.md`
-(mirrored here for convenience).
+## Status (2026-06-17)
 
-This file tracks implementation progress on roadmap projects. Each has a
-full spec at `docs/plans/{PROJECT}.md` and an Agent Skill at
-`.cursor/skills/calibre-mcp-{project}/SKILL.md` for AI-assisted building.
+- Backend starts, health 200 ✅
+- Frontend static mount at `/app/` works ✅ (confirmed by debug output)
+- CORS configured for tauri://localhost ✅
+- Rust `main.rs` navigates WebView to `http://127.0.0.1:10720/app/` after backend starts ✅
+- CSP set to `null` ✅
+- Frontend dist bundled in PyInstaller ✅ (confirmed in EXE-00.toc)
 
-## At a glance
+## Blocker: PyInstaller excludes stdlib modules
 
-| # | Project              | Status      | Effort | Branch               |
-|---|----------------------|-------------|--------|----------------------|
-| 1 | Reading flow         | ⬜ not started | 2–3 d  | `feat/reading-flow`  |
-| 2 | Annotations          | ⬜ not started | 3–4 d  | `feat/annotations`   |
-| 3 | Book of the day      | ⬜ not started | 1 d    | `feat/botd`          |
-| 4 | Duplicate detection  | ⬜ not started | 1–2 d  | `feat/dupes`         |
-| 5 | Audiobook generator  | ⬜ not started | 5–7 d  | `feat/audiobook`     |
+The built exe crashes with `ModuleNotFoundError: No module named 'difflib'` and `No module named 'statistics'`. These are Python standard library modules. The spec file likely has an `excludes` list that accidentally includes them.
 
-## How to start a project
+**Fix**: Check `calibre-mcp-backend.spec` line 257 for the `excludes` list. Remove `difflib` and `statistics` from it (they should not be there — they're needed by `calibre_mcp` tools).
+
+Alternatively, add them to `hiddenimports` in the spec.
+
+**After fix**: Rebuild PyInstaller + NSIS, install, and verify `/app/` serves the SPA correctly.
+
+## To verify
 
 ```powershell
-# Pick a project, e.g. reading flow
-cd D:\Dev\repos\calibre-mcp
-git checkout -b feat/reading-flow
-
-# Read the spec
-cat docs\plans\READING_FLOW_INTEGRATION.md
-
-# Then in Cursor (or Claude Code, or Antigravity):
-# > "Implement the reading-flow integration per the spec"
-# The Agent Skill for this project loads automatically.
+# After rebuilding:
+& .\native\build.ps1
+# Install
+Start-Process "dist\Calibre MCP_1.8.6_x64-setup.exe" -ArgumentList "/S" -Wait
+Start-Process "$env:LOCALAPPDATA\Calibre MCP\calibre-mcp-native.exe"
+Start-Sleep 30
+# Check health
+Invoke-WebRequest -Uri "http://127.0.0.1:10720/health"
+# Check SPA (frontend served by backend)
+Invoke-WebRequest -Uri "http://127.0.0.1:10720/app/"
 ```
-
-## Phase-level checklists
-
-See the canonical tracker at
-`D:\Dev\repos\mcp-central-docs\projects\calibre-mcp\TODO.md` for the
-full phase-by-phase breakdown per project.
-
-## Shipping a project
-
-Each Agent Skill ends with an "Update on completion" section. Follow it:
-
-1. Merge feature branch to master
-2. Update `CHANGELOG.md` with new version entry
-3. Bump version in `pyproject.toml` and `calibre_plugin/__init__.py`
-4. Mark ✅ shipped in this TODO
-5. Mark ✅ shipped in `docs/plans/README.md`
-6. Update `D:\Dev\repos\mcp-central-docs\projects\FLEET_INDEX.md`
-7. Update `D:\Dev\repos\mcp-central-docs\projects\calibre-mcp\TODO.md`
-8. Add a dated `## Shipped` header at the top of the project spec
-   (`docs/plans/{PROJECT}.md`)
-
----
-
-*Roadmap and specs by Claude Opus 4.7 (Anthropic), April 2026.*

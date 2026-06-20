@@ -3,7 +3,7 @@
 import secrets
 import string
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import jwt
@@ -16,7 +16,7 @@ except ImportError:
 
 
 # Models
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """User roles with permissions."""
 
     ADMIN = "admin"  # Full access, including user management

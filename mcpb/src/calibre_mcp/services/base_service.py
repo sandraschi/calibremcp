@@ -1,15 +1,20 @@
 """
-Base service class for all MCP services.
+Base service class for all MCP services with concurrency safety.
 """
 
+import logging
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from typing import Any, TypeVar
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..db.database import DatabaseService
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 ModelType = TypeVar("ModelType")
@@ -56,8 +61,38 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
         self.response_schema = response_schema
 
     def _get_db_session(self) -> Session:
-        """Get a database session."""
+        """Get a database session with concurrency safety."""
         return self.db.session
+
+    @asynccontextmanager
+    async def _get_safe_session(self) -> Session:
+        """Get a thread-safe database session for concurrent operations."""
+        session = self._get_db_session()
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.exception(f"Concurrent database operation failed: {e}")
+            raise ServiceError(f"Database concurrency error: {str(e)}", status_code=500) from e
+        finally:
+            session.close()
+
+    @asynccontextmanager
+    async def _get_locked_session(self, resource_id: Any) -> Session:
+        """Get a session with row-level locking for specific resource."""
+        session = self._get_db_session()
+        try:
+            # Begin immediate transaction for write operations
+            session.execute(text("BEGIN IMMEDIATE"))
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.exception(f"Locked database operation failed for resource {resource_id}: {e}")
+            raise ServiceError(f"Database lock error: {str(e)}", status_code=423) from e
+        finally:
+            session.close()
 
     def _commit_or_rollback(self, session: Session) -> None:
         """Commit the session or rollback on error."""
@@ -118,7 +153,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
         try:
             return data.dict(exclude_unset=True)
         except ValidationError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e)) from e
 
     def _validate_update_data(self, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
         """
@@ -138,7 +173,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
                 return data
             return data.dict(exclude_unset=True)
         except ValidationError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e)) from e
 
     def _to_response(self, obj: ModelType, schema: type[BaseModel] | None = None) -> dict[str, Any]:
         """
@@ -187,18 +222,18 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             except NotFoundError as e:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail={"message": str(e)}
-                )
+                ) from e
             except ValidationError as e:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"message": str(e)}
-                )
+                ) from e
             except ServiceError as e:
-                raise HTTPException(status_code=e.status_code, detail={"message": str(e)})
+                raise HTTPException(status_code=e.status_code, detail={"message": str(e)}) from e
             except Exception as e:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail={"message": f"Internal server error: {str(e)}"},
-                )
+                ) from e
 
         return wrapper
 

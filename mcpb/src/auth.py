@@ -1,0 +1,112 @@
+"""
+Authentication and credential management for Calibre MCP.
+
+Handles secure storage and retrieval of credentials using the system keyring.
+"""
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+_keyring = None
+
+
+def _get_keyring():
+    """Lazy import keyring so server startup does not fail if keyring is missing or broken."""
+    global _keyring
+    if _keyring is None:
+        try:
+            import keyring as kr
+
+            _keyring = kr
+        except ImportError as e:
+            raise RuntimeError(
+                "keyring is required for credential storage. Install it with: pip install keyring"
+            ) from e
+    return _keyring
+
+
+class AuthManager:
+    """Manages authentication for Calibre content servers"""
+
+    def __init__(self, service_name: str = "calibre_mcp"):
+        """Initialize with a service name for keyring storage"""
+        self.service_name = service_name
+
+    def save_credentials(self, server_name: str, username: str, password: str) -> None:
+        """
+        Securely store credentials in the system keyring.
+
+        Args:
+            server_name: Unique identifier for the server
+            username: Username for authentication
+            password: Password for authentication
+        """
+        try:
+            kr = _get_keyring()
+            kr.set_password(
+                service_name=self.service_name,
+                username=f"{server_name}_username",
+                password=username,
+            )
+            kr.set_password(
+                service_name=self.service_name,
+                username=f"{server_name}_password",
+                password=password,
+            )
+            logger.debug(f"Saved credentials for server: {server_name}")
+        except Exception as e:
+            logger.exception(f"Failed to save credentials for {server_name}: {e}")
+            raise
+
+    def get_credentials(self, server_name: str) -> tuple[str, str] | None:
+        """
+        Retrieve stored credentials from the system keyring.
+
+        Args:
+            server_name: Unique identifier for the server
+
+        Returns:
+            Tuple of (username, password) if found, None otherwise
+        """
+        try:
+            kr = _get_keyring()
+            username = kr.get_password(
+                service_name=self.service_name, username=f"{server_name}_username"
+            )
+            password = kr.get_password(
+                service_name=self.service_name, username=f"{server_name}_password"
+            )
+
+            if username and password:
+                return username, password
+            return None
+        except Exception as e:
+            logger.exception(f"Failed to get credentials for {server_name}: {e}")
+            return None
+
+    def delete_credentials(self, server_name: str) -> bool:
+        """
+        Remove stored credentials for a server.
+
+        Args:
+            server_name: Unique identifier for the server
+
+        Returns:
+            True if credentials were deleted, False otherwise
+        """
+        try:
+            kr = _get_keyring()
+            kr.delete_password(service_name=self.service_name, username=f"{server_name}_username")
+            kr.delete_password(service_name=self.service_name, username=f"{server_name}_password")
+            logger.debug(f"Deleted credentials for server: {server_name}")
+            return True
+        except Exception as e:
+            if (
+                getattr(e.__class__, "__module__", "") == "keyring.errors"
+                and e.__class__.__name__ == "PasswordDeleteError"
+            ):
+                logger.debug(f"No credentials found for server: {server_name}")
+                return False
+            logger.exception(f"Failed to delete credentials for {server_name}: {e}")
+            return False

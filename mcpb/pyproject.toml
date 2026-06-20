@@ -1,0 +1,123 @@
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning>=0.7.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "calibremcp"
+version = "1.8.6"
+description = "SOTA April 2026 industrialized FastMCP 3.2.0 server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Sandra Schipal", email = "sandra@schipal.at" }
+]
+keywords = ["mcp", "calibre", "ebooks", "fastmcp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+
+dependencies = [
+    "fastmcp>=3.2.0",
+    "fastapi>=0.115.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.9.0",
+    "python-dotenv>=1.0.1",
+    "rich>=13.8.0",
+    "structlog>=24.4.0",
+    "sqlalchemy>=2.0.0",
+    "aiohttp>=3.9.0",
+    "keyring>=24.0.0",
+    "py-key-value-aio[filetree]>=0.4.4,<0.5.0", # FastMCP 2.14.1+ persistent storage backend
+    "tenacity>=8.2.0", # Retry logic
+    "psutil>=5.9.0", # System and process utilities (required by system_tools)
+    "beautifulsoup4>=4.12.0", # Anna's Archive HTML parsing; EPUB location resolver
+    "ebooklib>=0.18.0", # EPUB spine / phrase resolution for FTS locations
+    "pymupdf>=1.24.0", # PDF page search for FTS locations (import fitz)
+    "ruff>=0.14.1",
+    "lancedb>=0.17.0",
+    "fastembed>=0.4.0",
+    "lxml>=5.1.0", # Robust XML parsing for arXiv Atom feed
+    "prefab-ui>=0.18.0", # MCP Apps (Prefab) — required for show_*_prefab_card tools
+]
+
+[project.optional-dependencies]
+rag = [
+    "chromadb>=0.4.0",
+]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "black>=24.0.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+    "bandit>=1.7.8",
+    "twine>=5.1.0",
+    "build>=1.2.0",
+    "pre-commit>=3.6.0"  # Git hooks for code quality
+]
+
+[project.scripts]
+schip-mcp-calibre = "calibre_mcp.__main__:run"
+
+[project.urls]
+Homepage = "https://github.com/sandraschi/calibremcp"
+Repository = "https://github.com/sandraschi/calibremcp.git"
+Issues = "https://github.com/sandraschi/calibremcp/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/calibre_mcp"]
+
+[tool.uv-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+
+[tool.setuptools.package-data]
+calibre_mcp = ["skills/**/*.md"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = ["mcpb", "webapp/frontend", "node_modules", "dist", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "T20", "RET", "SIM", "ARG", "PTH", "TRY"]
+ignore = [
+    "E501",   # Line too long
+    "B008",   # Do not perform function call in argument defaults
+    "TRY003", # Avoid long messages outside exception classes (pedantic)
+    "TRY300", # Move statement to else block (pedantic)
+    "TRY301", # Abstract raise to inner function (pedantic)
+    "TRY401", # Verbose log message (pedantic)
+    "ARG001", # Unused function argument
+    "ARG002", # Unused method argument
+    "S101",   # Use of assert (allow in this project)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

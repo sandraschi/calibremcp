@@ -280,4 +280,4 @@ async def add_book_helper(
         raise
     except Exception as e:
         logger.error(f"Error adding book: {e}", exc_info=True)
-        raise MCPServerError(f"Failed to add book: {str(e)}")
+        raise MCPServerError(f"Failed to add book: {str(e)}") from e

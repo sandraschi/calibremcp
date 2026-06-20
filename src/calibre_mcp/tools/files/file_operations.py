@@ -164,7 +164,7 @@ async def download_book_helper(book_id: int, format_preference: str = "EPUB") ->
         raise
     except Exception as e:
         logger.error(f"Error downloading book {book_id}: {e}", exc_info=True)
-        raise ValueError(f"Failed to download book: {str(e)}")
+        raise ValueError(f"Failed to download book: {str(e)}") from e
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead

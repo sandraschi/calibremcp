@@ -67,10 +67,10 @@ from contextlib import asynccontextmanager  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
+from dotenv import load_dotenv  # noqa: E402
 from fastmcp import FastMCP  # noqa: E402
 from fastmcp.server import create_proxy  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
-from dotenv import load_dotenv  # noqa: E402
 
 # Load environment variables
 load_dotenv()
@@ -705,7 +705,7 @@ async def main():
             logger.exception("CRITICAL: Tool registration timed out after 30 seconds")
             logger.exception("This usually indicates a hanging import in one of the tool modules")
             logger.exception("Check for circular imports or heavy initialization in tool modules")
-            raise RuntimeError("Tool registration timed out - check for hanging imports")
+            raise RuntimeError("Tool registration timed out - check for hanging imports") from None
         except Exception as tool_error:
             logger.exception(f"ERROR: Tool registration failed: {tool_error}")
             logger.exception(f"Tool registration error type: {type(tool_error).__name__}")

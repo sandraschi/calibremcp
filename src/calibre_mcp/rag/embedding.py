@@ -62,7 +62,7 @@ def _embed_via_fastembed(
     try:
         from fastembed import TextEmbedding
     except ImportError:
-        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]")
+        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]") from None
     embedder = _get_fastembed(model, cache_dir)
     embeddings = list(embedder.embed(texts))
     return [list(e) for e in embeddings]

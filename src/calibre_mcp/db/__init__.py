@@ -57,7 +57,7 @@ class ConnectionManager:
             logger.info(f"Connected to database: {self.db_path}")
 
         except sqlite3.Error as e:
-            raise DatabaseError(f"Failed to connect to database: {e}")
+            raise DatabaseError(f"Failed to connect to database: {e}") from e
 
     def close(self) -> None:
         """Close the database connection."""
@@ -88,7 +88,7 @@ class ConnectionManager:
                 self.conn.commit()
             except Exception as e:
                 self.conn.rollback()
-                raise DatabaseError(f"Transaction failed: {e}")
+                raise DatabaseError(f"Transaction failed: {e}") from e
         finally:
             self._in_transaction = False
 
@@ -108,7 +108,7 @@ class BaseRepository[T]:
             row = cursor.fetchone()
             return dict(row) if row else None
         except sqlite3.Error as e:
-            raise DatabaseError(f"Query failed: {e}\nQuery: {query}")
+            raise DatabaseError(f"Query failed: {e}\nQuery: {query}") from e
 
     def _fetch_all(self, query: str, params: tuple = ()) -> list[dict]:
         """Execute a query and return all rows as a list of dicts."""
@@ -117,7 +117,7 @@ class BaseRepository[T]:
             cursor.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]
         except sqlite3.Error as e:
-            raise DatabaseError(f"Query failed: {e}\nQuery: {query}")
+            raise DatabaseError(f"Query failed: {e}\nQuery: {query}") from e
 
     def _execute(self, query: str, params: tuple = ()) -> int:
         """Execute a query and return the last row ID."""
@@ -126,7 +126,7 @@ class BaseRepository[T]:
             cursor.execute(query, params)
             return cursor.lastrowid
         except sqlite3.Error as e:
-            raise DatabaseError(f"Execute failed: {e}\nQuery: {query}")
+            raise DatabaseError(f"Execute failed: {e}\nQuery: {query}") from e
 
     def _execute_many(self, query: str, params_list: list[tuple]) -> None:
         """Execute a query multiple times with different parameters."""
@@ -134,7 +134,7 @@ class BaseRepository[T]:
             cursor = self.conn_manager.conn.cursor()
             cursor.executemany(query, params_list)
         except sqlite3.Error as e:
-            raise DatabaseError(f"Execute many failed: {e}\nQuery: {query}")
+            raise DatabaseError(f"Execute many failed: {e}\nQuery: {query}") from e
 
     def _get_last_insert_id(self) -> int:
         """Get the last inserted row ID."""
