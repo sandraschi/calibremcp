@@ -31,7 +31,7 @@ async def manage_import(
     md5: str | None = None,
     book_id: int | None = None,
     arxiv_id: str | None = None,
-    format: str | None = None,  # noqa: A002
+    fmt: str | None = None,
     max_results: int = 20,
     library_path: str | None = None,
 ) -> dict[str, Any]:
@@ -100,7 +100,7 @@ async def manage_import(
             if not book_id:
                 return {"success": False, "error": "book_id is required for gutenberg_import"}
             logger.info(f"Starting Gutenberg import for #{book_id}")
-            tmp_path = await download_gutenberg_book(book_id, preferred_format=format or "application/epub+zip")
+            tmp_path = await download_gutenberg_book(book_id, preferred_format=fmt or "application/epub+zip")
             if not tmp_path:
                 return {"success": False, "error": f"Failed to download Gutenberg book {book_id}"}
             try:

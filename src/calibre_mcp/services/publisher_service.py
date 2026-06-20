@@ -50,8 +50,8 @@ class PublisherService:
             )
             if result.fetchone():
                 return Publisher, books_publishers_link
-        except Exception:  # noqa: S110
-            pass
+        except Exception:
+            logger.debug("Publishers table not available, will use identifiers fallback")
         return None, None
 
     def get_all(
@@ -333,7 +333,7 @@ class PublisherService:
                 )
                 return {
                     "total_publishers": total,
-                    "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],  # noqa: E741
+                    "publishers_by_letter": [{"letter": ln, "count": c} for ln, c in letter_counts],
                     "top_publishers": [
                         {"id": p.id, "name": p.name, "book_count": bc} for p, bc in top
                     ],
@@ -371,7 +371,7 @@ class PublisherService:
             )
             return {
                 "total_publishers": total or 0,
-                "publishers_by_letter": [{"letter": l, "count": c} for l, c in letter_counts],  # noqa: E741
+                "publishers_by_letter": [{"letter": ln, "count": c} for ln, c in letter_counts],
                 "top_publishers": [{"id": None, "name": n, "book_count": bc} for n, bc in top],
             }
 

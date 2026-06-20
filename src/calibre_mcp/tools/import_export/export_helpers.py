@@ -888,7 +888,7 @@ async def export_pandoc_helper(
             )
 
             if result.returncode != 0:
-                raise Exception(f"Pandoc conversion failed: {result.stderr}")  # noqa: TRY002
+                raise RuntimeError(f"Pandoc conversion failed: {result.stderr}")
 
             Path(tmp_md_path).unlink()
 
@@ -910,7 +910,7 @@ async def export_pandoc_helper(
 
         except subprocess.TimeoutExpired:
             Path(tmp_md_path).unlink()
-            raise Exception("Pandoc conversion timed out") from None  # noqa: TRY002
+            raise TimeoutError("Pandoc conversion timed out") from None
         except FileNotFoundError:
             return {
                 "success": False,

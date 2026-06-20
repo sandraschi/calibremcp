@@ -156,8 +156,7 @@ class BulkOperationsTool(MCPTool):
                 if not metadata:
                     raise ValueError(f"Book {book_id} not found")
 
-                if target_format.lower() in [f.lower() for f in (metadata.formats or [])]:  # noqa: SIM102
-                    if not replace_existing:
+                if target_format.lower() in [f.lower() for f in (metadata.formats or [])] and not replace_existing:
                         results["errors"].append(
                             {
                                 "book_id": book_id,

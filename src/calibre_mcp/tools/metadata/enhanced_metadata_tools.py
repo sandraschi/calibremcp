@@ -254,9 +254,8 @@ class EnhancedMetadataTools(MCPTool):
                         # Clean up author name
                         clean_author = author.strip()
 
-                        if opts.author_invert_names:  # noqa: SIM102
+                        if opts.author_invert_names and "," in clean_author:
                             # Simple inversion of "Last, First" to "First Last"
-                            if "," in clean_author:
                                 parts = [p.strip() for p in clean_author.split(",", 1)]
                                 if len(parts) == 2:
                                     clean_author = f"{parts[1]} {parts[0]}"

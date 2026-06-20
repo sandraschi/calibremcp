@@ -194,7 +194,7 @@ class ExtendedLibraryOperations(MCPTool):
         duplicate_groups = []
         group_id = 0
 
-        for key, book_group in groups.items():  # noqa: B007
+        for _, book_group in groups.items():
             if len(book_group) < 2:
                 continue
 
@@ -363,9 +363,7 @@ class ExtendedLibraryOperations(MCPTool):
                         for root, _, files in os.walk(books_dir):
                             for file in files:
                                 file_path = pathlib.Path(root) / file
-                                arcname = os.path.join(  # noqa: PTH118
-                                    backup_name, "books", os.path.relpath(file_path, books_dir)
-                                )
+                                arcname = str(pathlib.Path(backup_name) / "books" / os.path.relpath(file_path, books_dir))
                                 zipf.write(file_path, arcname)
 
                     # Add covers
@@ -374,26 +372,22 @@ class ExtendedLibraryOperations(MCPTool):
                         for root, _, files in os.walk(covers_dir):
                             for file in files:
                                 file_path = pathlib.Path(root) / file
-                                arcname = os.path.join(  # noqa: PTH118
-                                    backup_name, "covers", os.path.relpath(file_path, covers_dir)
-                                )
+                                arcname = str(pathlib.Path(backup_name) / "covers" / os.path.relpath(file_path, covers_dir))
                                 zipf.write(file_path, arcname)
             else:
-                backup_path = os.path.join(backup_path, pathlib.Path(library_path).name)  # noqa: PTH118
+                backup_path = str(pathlib.Path(backup_path) / pathlib.Path(library_path).name)
 
                 def copy_dir(src, dst):
                     if not pathlib.Path(src).is_dir():
                         return
 
                     pathlib.Path(dst).mkdir(exist_ok=True, parents=True)
-                    for item in os.listdir(src):  # noqa: PTH208
-                        s = pathlib.Path(src) / item
-                        d = pathlib.Path(dst) / item
-
-                        if pathlib.Path(s).is_dir():
-                            copy_dir(s, d)
+                    for item in pathlib.Path(src).iterdir():
+                        d = pathlib.Path(dst) / item.name
+                        if item.is_dir():
+                            copy_dir(str(item), str(d))
                         else:
-                            shutil.copy2(s, d)
+                            shutil.copy2(str(item), str(d))
 
                 # Copy metadata.db
                 metadata_db = pathlib.Path(library_path) / "metadata.db"
@@ -424,10 +418,9 @@ class ExtendedLibraryOperations(MCPTool):
         try:
             backups = []
 
-            for item in os.listdir(backup_dir):  # noqa: PTH208
-                path = pathlib.Path(backup_dir) / item
-                if pathlib.Path(path).is_dir() or item.endswith(".zip"):
-                    backups.append((pathlib.Path(path).stat().st_mtime, path))
+            for item in pathlib.Path(backup_dir).iterdir():
+                if item.is_dir() or item.suffix == ".zip":
+                    backups.append((item.stat().st_mtime, item))
 
             backups.sort()
 

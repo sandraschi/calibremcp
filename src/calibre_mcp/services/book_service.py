@@ -88,8 +88,8 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 self._library_path_cache_key = abs_db
                 self._library_path_cache = library_path
                 return library_path
-        except Exception:  # noqa: S110
-            pass
+        except Exception:
+            logger.debug("Failed to resolve library path from DB path")
 
         return None
 

@@ -361,7 +361,7 @@ class LibraryOrganizer(MCPTool):
                         title = self._sanitize_filename(book.get("title", "Unknown"))
 
                         # Create subdirectory path
-                        subdir = os.path.join(target_dir, author, series)  # noqa: PTH118
+                        subdir = str(pathlib.Path(target_dir) / author / series)
                         new_filename = f"{series_index:03d} - {title}.{fmt.lower()}"
                         new_path = pathlib.Path(subdir) / new_filename
                     else:
@@ -625,7 +625,7 @@ class LibraryOrganizer(MCPTool):
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_name = f"backup_{timestamp}_{suffix}".strip("_") if suffix else f"backup_{timestamp}"
-        backup_path = os.path.join(backup_dir, f"{backup_name}.zip")  # noqa: PTH118
+        backup_path = str(pathlib.Path(backup_dir) / f"{backup_name}.zip")
 
         try:
             import zipfile

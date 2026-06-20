@@ -4,7 +4,7 @@ portmanteau tool (see tools/system/manage_system.py). These functions are kept
 as helpers but are no longer registered with FastMCP 2.13+.
 
 Use manage_system(operation="...") instead:
-- help() → manage_system(operation="help", level=..., topic=...)
+- help_topic() → manage_system(operation="help", level=..., topic=...)
 - status() → manage_system(operation="status", status_level=..., focus=...)
 - tool_help() → manage_system(operation="tool_help", tool_name=..., tool_help_level=...)
 - list_tools() → manage_system(operation="list_tools", category=...)
@@ -318,7 +318,7 @@ async def help_helper(level: HelpLevel, topic: str | None = None) -> str:
 
 
 # Deprecated: use manage_system(operation="help") - kept as helper only, not registered
-async def help(level: HelpLevel = HelpLevel.BASIC, topic: str | None = None) -> str:  # noqa: A001
+async def help_topic(level: HelpLevel = HelpLevel.BASIC, topic: str | None = None) -> str:
     """
     Comprehensive help system with multiple detail levels.
 

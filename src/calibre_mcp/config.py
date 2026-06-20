@@ -349,7 +349,7 @@ class CalibreConfig(BaseModel):
                     # Prioritize libraries from L:\Multimedia Files\Written Word
                     user_library_path = Path("L:/Multimedia Files/Written Word")
                     preferred_library = None
-                    for lib_name, lib_info in libraries.items():  # noqa: B007
+                    for _, lib_info in libraries.items():
                         # Check if library is in the user's preferred location
                         try:
                             if lib_info.path.is_relative_to(user_library_path) or str(

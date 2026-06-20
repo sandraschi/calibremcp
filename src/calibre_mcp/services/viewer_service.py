@@ -7,7 +7,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..logging_config import get_logger
 from ..viewers import get_viewer
+
+logger = get_logger("calibremcp.services.viewer")
 
 
 class ViewerState(BaseModel):
@@ -147,8 +150,8 @@ class ViewerService:
             try:
                 first_page = viewer.render_page(0)
                 page_count = first_page.get("total_pages", 0)
-            except Exception:  # noqa: S110
-                pass
+            except Exception:
+                logger.debug("Failed to get page count from rendering")
 
         # Update state with page count
         if book_id in self._states:
@@ -191,8 +194,8 @@ class ViewerService:
             try:
                 metadata = self.get_metadata(book_id, file_path)
                 state.total_pages = metadata.page_count
-            except Exception:  # noqa: S110
-                pass
+            except Exception:
+                logger.debug("Failed to update total_pages from metadata")
 
         return state
 

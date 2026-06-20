@@ -9,7 +9,6 @@ originally attempted in Calibre++ but with proper permission controls.
 """
 
 import contextlib
-import os
 import subprocess  # noqa: S404
 import sys
 import tempfile
@@ -180,25 +179,24 @@ class LibraryDiscoveryTool:
 
                 # Also check subdirectories
                 try:
-                    for item in os.listdir(base_path):  # noqa: PTH208
-                        sub_path = Path(base_path) / item
-                        if Path(sub_path).is_dir():
-                            metadata_path = Path(sub_path) / "metadata.db"
-                            if Path(metadata_path).exists() and self._is_valid_calibre_db(
-                                metadata_path
+                    for item in Path(base_path).iterdir():
+                        if item.is_dir():
+                            metadata_path = item / "metadata.db"
+                            if metadata_path.exists() and self._is_valid_calibre_db(
+                                str(metadata_path)
                             ):
-                                library_id = f"common_sub_{hash(sub_path) % 10000}"
+                                library_id = f"common_sub_{hash(item) % 10000}"
                                 library_info = {
                                     "id": library_id,
-                                    "name": f"Common Sub: {Path(sub_path).name}",
-                                    "path": sub_path,
-                                    "metadata_db_path": metadata_path,
+                                    "name": f"Common Sub: {item.name}",
+                                    "path": str(item),
+                                    "metadata_db_path": str(metadata_path),
                                     "discovery_method": "common_paths_subdir",
                                     "is_valid": True,
                                 }
                                 libraries.append(library_info)
                                 self.logger.info(
-                                    f"Found library in common subdirectory: {sub_path}"
+                                    f"Found library in common subdirectory: {item}"
                                 )
                 except (OSError, PermissionError) as e:
                     self.logger.warning(f"Could not scan subdirectories of {base_path}: {e}")

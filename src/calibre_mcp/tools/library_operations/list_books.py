@@ -18,7 +18,7 @@ async def list_books(
     query: str = "",
     author: str = "",
     tag: str = "",
-    format: str = "",  # noqa: A002
+    fmt: str = "",
     status: str = "",
     limit: int = 50,
     offset: int = 0,
@@ -96,13 +96,13 @@ async def list_books(
         total_count = result.get("total", 0)
 
         # Apply format filter if specified
-        if format:
-            format_upper = format.upper()
+        if fmt:
+            fmt_upper = fmt.upper()
             filtered_books = []
             for book in books:
                 book_formats = book.get("formats", [])
                 # Check if any format matches (formats are usually uppercase in BookService)
-                if any(fmt.upper() == format_upper for fmt in book_formats):
+                if any(f.upper() == fmt_upper for f in book_formats):
                     filtered_books.append(book)
             books = filtered_books
             # Recalculate total (this is approximate since we filtered after pagination)

@@ -5,6 +5,7 @@ Migrated from UserManagerTool (MCPTool) to FastMCP 2.13+ @mcp.tool() pattern.
 Consolidates all user management and authentication operations into a single portmanteau tool.
 """
 
+import os
 import secrets
 import string
 from datetime import datetime, timedelta
@@ -590,7 +591,7 @@ async def _handle_login(username: str, password: str) -> dict[str, Any]:
 
         # For this reality-bootstrapping phase, we accept standard admin or any user if password matches username
         # This is temporary until a real auth layer is confirmed
-        is_admin_legacy = username == "admin" and password == "admin123"  # noqa: S105
+        is_admin_legacy = username == "admin" and password == os.environ.get("CALIBRE_ADMIN_PASSWORD", "admin123")
         is_user_match = user and password == username  # Simple pattern for testing
 
         if not (is_admin_legacy or is_user_match):

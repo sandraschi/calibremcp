@@ -756,8 +756,8 @@ async def search_books_helper(
                         ):
                             target_library_path = persisted_lib_info.path
                             target_library_name = persisted_library
-                except Exception:  # noqa: S110
-                    pass
+                except Exception:
+                    logger.debug("Failed to resolve persisted library info")
         except (ImportError, AttributeError):
             pass
 
@@ -1150,12 +1150,7 @@ async def search_books_helper(
         # Note: The fancy FTS query syntax (fields, boosting, etc.) built above is IGNORED.
         # We just extract the raw search text and pass it to book_service.get_all()
         # which does simple SQL LIKE queries. True FTS would require SQLite FTS5 implementation.
-        if search_query:  # noqa: SIM108
-            # For now, just extract the raw search text from the query
-            # The field-specific query building above is not actually used
-            search_text = text or query  # Use original text, ignore parsed query
-        else:
-            search_text = None
+        search_text = text or query if search_query else None
 
         # Build filters dict for get_all()
         get_all_filters = {}

@@ -295,13 +295,12 @@ async def download_annas_book(
         url = link_info["url"]
         logger.info(f"Attempting download from: {url} ({link_info['label']})")
         try:
-            async with httpx.AsyncClient(  # noqa: SIM117
+            async with httpx.AsyncClient(
                 timeout=300.0,  # Long timeout for slow downloads
                 follow_redirects=True,
                 headers={"User-Agent": "CalibreMCP/1.0 (ebook library manager)"},
-            ) as client:
+            ) as client, client.stream("GET", url) as response:
                 # Some links might trigger a redirect to a real file
-                async with client.stream("GET", url) as response:
                     if response.status_code != 200:
                         continue
 
@@ -337,6 +336,6 @@ async def download_annas_book(
         )
 
     if total_mirrors == 0:
-         raise AnnasNoLinksError(f"No download links found for MD5: {md5}")  # noqa: E111, E117
+        raise AnnasNoLinksError(f"No download links found for MD5: {md5}")
 
     return None
