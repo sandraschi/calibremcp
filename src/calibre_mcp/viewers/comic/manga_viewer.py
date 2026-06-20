@@ -6,7 +6,6 @@ import contextlib
 import hashlib
 import io
 import logging
-import os
 import sqlite3
 import tempfile
 import zipfile
@@ -275,7 +274,7 @@ class MangaViewer:
 
     def _is_image_file(self, filename: str) -> bool:
         """Check if a filename has an image extension."""
-        ext = os.path.splitext(filename)[1].lower()[1:]  # noqa: PTH122
+        ext = Path(filename).suffix.lower()[1:]
         return ext in self.IMAGE_EXTENSIONS
 
     def _load_bookmarks(self, file_hash: str) -> None:

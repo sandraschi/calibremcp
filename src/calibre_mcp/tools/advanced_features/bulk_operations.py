@@ -71,7 +71,7 @@ class BulkOperationsTool(MCPTool):
         book_ids: list[int | str],
         export_path: str,
         library_path: str | None = None,
-        format: str = "directory",  # noqa: A002
+        fmt: str = "directory",
     ) -> dict:
         """
         Export multiple books to a specified location.
@@ -87,7 +87,7 @@ class BulkOperationsTool(MCPTool):
         export_tool = ExportLibraryTool()
 
         return await export_tool._run(
-            export_path=export_path, library_path=library_path, book_ids=book_ids, format=format
+            export_path=export_path, library_path=library_path, book_ids=book_ids, format=fmt
         )
 
     async def bulk_delete(

@@ -1,49 +1,31 @@
 """
 CalibreMCP Module Entry Point
-
-Allows running the server with: python -m calibre_mcp
 """
 
-# CRITICAL: Suppress ALL warnings and redirect stderr BEFORE ANY imports
-# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
+import asyncio
+import contextlib
+import logging
 import os
 import pathlib
 import sys
 import warnings
 
-# Suppress all warnings immediately
+from .server import main
+
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
 
-# For MCP stdio transport, redirect stderr to devnull to prevent warning output
-# This is necessary because warnings are printed to stderr, breaking JSON-RPC protocol
-# Check if we're running as MCP server (stdio transport - stdin is not a TTY)
 _is_stdio_transport = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 
 if _is_stdio_transport:
-    # Running as MCP server (stdio transport) - redirect stderr to devnull
-    # Save original stderr for actual errors if needed
     _original_stderr = sys.stderr
-    try:  # noqa: SIM105
-        # Redirect stderr to devnull to suppress ALL stderr output (including warnings)
-        sys.stderr = pathlib.Path(os.devnull).open("w", encoding="utf-8")  # noqa: SIM115
-    except Exception:  # noqa: S110
-        # If we can't redirect, at least suppress warnings
-        pass
-
-    # Also suppress FastMCP internal logging that interferes with MCP protocol
-    import logging
+    with contextlib.suppress(Exception):
+        sys.stderr = pathlib.Path(os.devnull).open("w", encoding="utf-8")  # noqa: SIM115  # deliberate: replacing sys.stderr
 
     logging.getLogger("mcp").setLevel(logging.WARNING)
     logging.getLogger("mcp.server").setLevel(logging.WARNING)
     logging.getLogger("mcp.server.lowlevel").setLevel(logging.WARNING)
     logging.getLogger("mcp.server.lowlevel.server").setLevel(logging.WARNING)
-
-# Standard imports
-import asyncio  # noqa: E402
-import contextlib  # noqa: E402
-
-from .server import main  # noqa: E402
 
 if __name__ == "__main__":
     try:

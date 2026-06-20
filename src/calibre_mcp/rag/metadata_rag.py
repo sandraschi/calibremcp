@@ -142,11 +142,9 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
             import platform
             home = Path("~").expanduser()
             if platform.system() == "Darwin":
-                db_path = os.path.join(home, "Library", "Application Support",  # noqa: PTH118
-                                       "calibre-mcp", "calibre_mcp_data.db")
+                db_path = home / "Library" / "Application Support" / "calibre-mcp" / "calibre_mcp_data.db"
             else:
-                db_path = os.path.join(home, ".local", "share",  # noqa: PTH118
-                                       "calibre-mcp", "calibre_mcp_data.db")
+                db_path = home / ".local" / "share" / "calibre-mcp" / "calibre_mcp_data.db"
 
         # Allow env override
         env_dir = os.getenv("CALIBRE_MCP_USER_DATA_DIR")

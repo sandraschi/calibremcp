@@ -10,7 +10,7 @@ import json
 import os
 import platform
 import shutil
-import subprocess  # noqa: S404
+import subprocess
 import sys
 import tempfile
 from collections import defaultdict
@@ -18,10 +18,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+from ...logging_config import get_logger
+from ...services.book_service import book_service
 
-from ...logging_config import get_logger  # noqa: E402
-from ...services.book_service import book_service  # noqa: E402
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -51,9 +51,9 @@ def _open_file_with_app(file_path: Path) -> bool:
         if system == "Windows":
             os.startfile(file_path_str)  # noqa: S606
         elif system == "Darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
+            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607  # deliberate: hardcoded args, no shell
         else:  # Linux and others
-            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607
+            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)  # noqa: S603, S607  # deliberate: hardcoded args, no shell
 
         logger.info(f"Opened file with default application: {file_path}")
         return True
@@ -879,7 +879,7 @@ async def export_pandoc_helper(
         ]
 
         try:
-            result = subprocess.run(  # noqa: S603
+            result = subprocess.run(  # noqa: S603  # deliberate: hardcoded args, no shell
                 cmd,
                 capture_output=True,
                 text=True,

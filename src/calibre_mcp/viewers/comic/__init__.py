@@ -4,7 +4,6 @@ Comic viewer module for CalibreMCP - Handles CBZ and CBR formats.
 
 import base64
 import contextlib
-import os
 import re
 import zipfile
 from enum import StrEnum
@@ -134,7 +133,7 @@ class ComicViewer:
             img_base64 = base64.b64encode(img_data).decode("utf-8")
 
             # Determine MIME type from file extension
-            ext = os.path.splitext(page_file)[1].lower()  # noqa: PTH122
+            ext = Path(page_file).suffix.lower()
             mime_type = f"image/{ext[1:]}"  # Remove the dot
             if ext == ".jpg":
                 mime_type = "image/jpeg"

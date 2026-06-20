@@ -1,36 +1,55 @@
+"""
+CalibreMCP server module — Calibre e-book libraries over MCP (FastMCP 3.1+).
+"""
+
+import contextlib
 import logging
 import os
 import sys
+import warnings
+from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any
 
-# logger will be initialized properly after logging_config is imported
-logger = logging.getLogger("calibre_mcp.server")
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from fastmcp import FastMCP
+from fastmcp.server import create_proxy
+from pydantic import BaseModel
 
+from calibre_mcp.calibre_api import CalibreAPIClient
+from calibre_mcp.fleet_tool_metrics import register_mcp_tool_metrics
+from calibre_mcp.logging_config import get_logger
+from calibre_mcp.prompts import register_prompts
+from calibre_mcp.transport import run_server_async
 
-"""
-CalibreMCP server module — Calibre e-book libraries over MCP (FastMCP 3.1+).
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+warnings.simplefilter("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
-PORTMANTEAU PATTERN RATIONALE: Exposes one coherent MCP server with prompts, bundled
-skills (``skill://`` via SkillsDirectoryProvider), and portmanteau tools so clients
-avoid tool-sprawl while retaining full Calibre coverage.
-
-2026 surface:
-- **Prompts**: ``@mcp.prompt()`` templates (reading, library health, RAG, guides).
-- **Skills**: packaged ``skills/*/SKILL.md`` for discoverable expert workflows.
-- **Sampling / agentic**: ``agentic_library_workflow`` and media tools use ``ctx.sample`` when the host supports SEP-1577.
-- **Transport**: stdio and HTTP (see ``transport``).
-
-Stateful features use FastMCP storage (py-key-value) where configured.
-"""
+logger = get_logger("calibremcp.server")
 
 if os.name == "nt":  # Windows only
     try:
-        # Force binary mode for stdin/stdout to prevent CRLF conversion
         import msvcrt
 
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     except (OSError, AttributeError):
         pass
+
+
+# CRITICAL: Detect if we're running in stdio mode
+_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
+logger.debug(f"Stdio mode detection: {_is_stdio_mode}")
+
+# Load environment variables
+load_dotenv()
 
 
 # DevNullStdout class for stdio mode suppression
@@ -48,40 +67,11 @@ class DevNullStdout:
         sys.stdout = self.original_stdout
 
 
-# CRITICAL: Suppress all warnings before any imports
-import warnings  # noqa: E402
-
-warnings.filterwarnings("ignore")
-warnings.simplefilter("ignore")
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-
-# CRITICAL: Detect if we're running in stdio mode
-_is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
-logger.debug(f"Stdio mode detection: {_is_stdio_mode}")
-
-import contextlib  # noqa: E402
-from contextlib import asynccontextmanager  # noqa: E402
-from pathlib import Path  # noqa: E402
-from typing import Any  # noqa: E402
-
-from dotenv import load_dotenv  # noqa: E402
-from fastmcp import FastMCP  # noqa: E402
-from fastmcp.server import create_proxy  # noqa: E402
-from pydantic import BaseModel  # noqa: E402
-
-# Load environment variables
-load_dotenv()
-
-
-# Setup proper logging
-from calibre_mcp.logging_config import get_logger  # noqa: E402
-
-logger = get_logger("calibremcp.server")
-
-# Import CalibreAPIClient at module level (needed for type hints)
-from calibre_mcp.calibre_api import CalibreAPIClient  # noqa: E402
+# Global API client and database connections (initialized on startup)
+api_client = None  # CalibreAPIClient
+current_library: str = "main"
+available_libraries: dict[str, str] = {}
+storage = None  # CalibreMCPStorage
 
 # Global API client and database connections (initialized on startup)
 api_client = None  # CalibreAPIClient
@@ -254,8 +244,6 @@ DESIGN:
 )
 logger.info("FastMCP instance created")
 
-from calibre_mcp.fleet_tool_metrics import register_mcp_tool_metrics  # noqa: E402
-
 if register_mcp_tool_metrics(mcp):
     logger.info("MCP tool-call Prometheus metrics middleware registered")
 
@@ -269,17 +257,17 @@ if bridge_urls:
             try:
                 mcp.add_provider(create_proxy(url))
                 _bridge_proxies.append(url)
-            except Exception:  # noqa: S110
-                pass
+            except Exception:
+                logger.warning("Failed to add bridge proxy %s", url)
 
 # Bundled skills: MCP resources skill://<id>/SKILL.md (FastMCP 3.1 SkillsDirectoryProvider)
 _skills_root = Path(__file__).resolve().parent / "skills"
 if _skills_root.is_dir():
-    from .skills_encoding import install_skills_utf8_read_patch  # noqa: E402
+    from .skills_encoding import install_skills_utf8_read_patch
 
     install_skills_utf8_read_patch([_skills_root])
 
-    from fastmcp.server.providers.skills import SkillsDirectoryProvider  # noqa: E402
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     mcp.add_provider(SkillsDirectoryProvider(roots=[_skills_root]))
     logger.info("SkillsDirectoryProvider registered: %s", _skills_root)
@@ -303,15 +291,9 @@ if not _is_stdio_mode:
     )
 
 # Register prompt templates
-from calibre_mcp.prompts import register_prompts  # noqa: E402
-from calibre_mcp.transport import run_server_async  # noqa: E402
-
 register_prompts(mcp)
 
 # ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
-from fastapi import FastAPI  # noqa: E402
-from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
-from fastapi.responses import Response  # noqa: E402
 
 app = FastAPI(title="CalibreMCP", version="1.0.0")
 app.add_middleware(

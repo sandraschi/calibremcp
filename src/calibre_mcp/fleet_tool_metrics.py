@@ -5,6 +5,9 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING, Any
 
+from fastmcp.server.middleware import Middleware
+from fastmcp.server.middleware.middleware import CallNext, MiddlewareContext
+
 if TYPE_CHECKING:
     from fastmcp import FastMCP
 
@@ -34,10 +37,6 @@ except ImportError:
 
     def generate_latest() -> bytes:  # type: ignore[misc]
         return b"# mcp_prometheus_client_available 0\n"
-
-
-from fastmcp.server.middleware import Middleware  # noqa: E402
-from fastmcp.server.middleware.middleware import CallNext, MiddlewareContext  # noqa: E402
 
 
 class McpToolMetricsMiddleware(Middleware):

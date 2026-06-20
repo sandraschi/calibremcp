@@ -1,13 +1,13 @@
 """
 Storage backends for Calibre MCP.
-
-Provides a unified interface for accessing both local and remote Calibre libraries.
 """
 
 from abc import ABC, abstractmethod
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
+from .local import LocalStorage
+from .remote import RemoteStorage
 
 
 class StorageBackend(ABC):
@@ -27,11 +27,6 @@ class StorageBackend(ABC):
     async def get_library_info(self) -> LibraryInfo:
         """Get library metadata"""
         pass
-
-
-# Import backends after base class is defined (intentional - prevents circular imports)
-from .local import LocalStorage  # noqa: E402
-from .remote import RemoteStorage  # noqa: E402
 
 
 def get_storage_backend(server_name: str | None = None, **kwargs) -> StorageBackend:

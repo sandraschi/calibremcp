@@ -32,7 +32,7 @@ async def manage_bulk_operations(
     batch_size: int = 10,
     # Export parameters
     export_path: str | None = None,
-    format: str = "directory",  # noqa: A002
+    fmt: str = "directory",
     # Delete parameters
     delete_files: bool = True,
     # Convert parameters
@@ -189,7 +189,7 @@ async def manage_bulk_operations(
                     book_ids=book_ids,
                     export_path=export_path,
                     library_path=library_path,
-                    format=format,
+                    format=fmt,
                 )
             except Exception as e:
                 return handle_tool_error(

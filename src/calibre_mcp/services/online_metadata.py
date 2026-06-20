@@ -10,17 +10,17 @@ from __future__ import annotations
 import logging
 import re
 import shutil
-import subprocess  # noqa: S404
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+from ..db.database import DatabaseService
+from .base_service import NotFoundError
+from .book_service import BookService
 
-from ..db.database import DatabaseService  # noqa: E402
-from .base_service import NotFoundError  # noqa: E402
-from .book_service import BookService  # noqa: E402
+_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 logger = logging.getLogger(__name__)
 

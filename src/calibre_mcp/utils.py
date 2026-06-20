@@ -16,14 +16,11 @@ from pathlib import Path
 
 # Optional dependencies - imported only when needed
 try:
-    import aiofiles
+    from contextlib import suppress
 
-    try:  # noqa: SIM105
+    import aiofiles
+    with suppress(AttributeError):
         import aiofiles.os
-    except AttributeError:
-        # Windows compatibility: aiofiles.os fails on Windows due to missing statvfs
-        # We still have aiofiles for file operations, just not aiofiles.os
-        pass
 except ImportError:
     aiofiles = None  # Optional dependency
 
@@ -83,10 +80,7 @@ except ImportError:
 
 
 # Configure MIME type detection
-if magic is not None:  # noqa: SIM108
-    mime = magic.Magic(mime=True)
-else:
-    mime = None  # Fallback to mimetypes module
+mime = magic.Magic(mime=True) if magic is not None else None
 
 # Add custom MIME type mappings
 mimetypes.add_type("application/x-cbz", ".cbz")
@@ -473,9 +467,9 @@ def sanitize_filename(filename: str) -> str:
     # Truncate if too long (max 255 characters)
     max_length = 255
     if len(filename) > max_length:
-        name, ext = os.path.splitext(filename)  # noqa: PTH122
-        ext = ext[:10]  # Limit extension length
-        name = name[: (max_length - len(ext) - 1)]
+        p = Path(filename)
+        ext = p.suffix[:10]
+        name = p.stem[: (max_length - len(ext) - 1)]
         filename = f"{name}{ext}"
 
     return filename

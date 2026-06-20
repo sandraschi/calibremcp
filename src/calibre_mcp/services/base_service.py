@@ -237,12 +237,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
 
         return wrapper
 
-    def get(self, id: int) -> dict[str, Any]:  # noqa: A002
+    def get(self, item_id: int) -> dict[str, Any]:
         """
         Retrieve a single item by ID.
 
         Args:
-            id: Item ID
+            item_id: Item ID
 
         Returns:
             Dictionary with item data
@@ -251,7 +251,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             NotFoundError: If item is not found
         """
         with self._get_db_session() as session:
-            item = session.query(self.model).get(id)
+            item = session.query(self.model).get(item_id)
             if not item:
                 raise NotFoundError(f"{self.model.__name__} not found")
             return self._to_response(item)
@@ -300,12 +300,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def update(self, id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:  # noqa: A002
+    def update(self, item_id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing item.
 
         Args:
-            id: Item ID
+            item_id: Item ID
             data: Updated data
 
         Returns:
@@ -315,7 +315,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             NotFoundError: If item is not found
         """
         with self._get_db_session() as session:
-            item = session.query(self.model).get(id)
+            item = session.query(self.model).get(item_id)
             if not item:
                 raise NotFoundError(f"{self.model.__name__} not found")
 
@@ -327,12 +327,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def delete(self, id: int) -> bool:  # noqa: A002
+    def delete(self, item_id: int) -> bool:
         """
         Delete an item by ID.
 
         Args:
-            id: Item ID
+            item_id: Item ID
 
         Returns:
             True if deletion was successful
@@ -341,7 +341,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             NotFoundError: If item is not found
         """
         with self._get_db_session() as session:
-            item = session.query(self.model).get(id)
+            item = session.query(self.model).get(item_id)
             if not item:
                 raise NotFoundError(f"{self.model.__name__} not found")
 

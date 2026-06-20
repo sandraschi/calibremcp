@@ -29,7 +29,7 @@ class ExportLibraryTool(MCPTool):
             "Specific book IDs to export (all if None)",
             default=None,
         ),
-        Param("format", str, "Export format (directory, zip, calibre)", default="directory"),
+        Param("fmt", str, "Export format (directory, zip, calibre)", default="directory"),
         Param("progress_callback", Optional[str], "Callback for progress updates", required=False),  # noqa: UP045
     ]
 
@@ -41,7 +41,7 @@ class ExportLibraryTool(MCPTool):
         include_metadata: bool = True,
         include_covers: bool = True,
         book_ids: list[int | str] | None = None,
-        format: str = "directory",  # noqa: A002
+        fmt: str = "directory",
         progress_callback: str | None = None,
     ) -> dict:
         """Export the library to the specified location."""
@@ -135,7 +135,7 @@ class ExportLibraryTool(MCPTool):
             json.dump(manifest, f, ensure_ascii=False, indent=2)
 
         # Package if requested
-        if format.lower() == "zip":
+        if fmt.lower() == "zip":
             self._update_progress(progress_callback, 0, 1, "Creating archive...")
             shutil.make_archive(str(export_path), "zip", export_path)
             shutil.rmtree(export_path)
@@ -151,9 +151,10 @@ class ExportLibraryTool(MCPTool):
         if not callback_url:
             return
 
-        import requests
+        from contextlib import suppress
 
-        try:  # noqa: SIM105
+        import requests
+        with suppress(Exception):
             requests.post(
                 callback_url,
                 json={
@@ -164,5 +165,3 @@ class ExportLibraryTool(MCPTool):
                 },
                 timeout=5,
             )
-        except Exception:  # noqa: S110
-            pass  # Don't fail the export if the callback fails

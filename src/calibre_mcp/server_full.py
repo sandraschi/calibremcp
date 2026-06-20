@@ -1,45 +1,39 @@
 """
 CalibreMCP Phase 2 - FastMCP 2.13+ Server for Calibre E-book Library Management
-
-Austrian efficiency for Sandra's 1000+ book collection across multiple libraries.
-Now with 23 comprehensive tools including multi-library, Japanese weeb optimization,
-and IT book curation. All tools properly categorized and FastMCP 2.13+ compliant.
-
-FastMCP 2.13 introduces persistent storage backends for stateful applications.
-
-Phase 2 adds 19 additional tools:
-- Multi-Library Management (4 tools)
-- Advanced Organization & Analysis (5 tools)
-- Metadata & Database Operations (4 tools)
-- File Operations (3 tools)
-- Austrian Efficiency Specials (3 tools)
 """
 
-# CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
-# Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
-# This must happen BEFORE any imports that might write to stdout
+import logging
 import os
 import sys
+import warnings
+from contextlib import AbstractAsyncContextManager, asynccontextmanager, suppress
+from pathlib import Path
+from typing import Any
 
-if os.name == "nt":  # Windows only
+from fastmcp import FastMCP
+from pydantic import BaseModel
+
+from .calibre_api import CalibreAPIClient
+from .config import CalibreConfig
+from .logging_config import get_logger, log_operation
+from .prompts import register_prompts
+from .storage.persistence import CalibreMCPStorage, set_storage
+
+if os.name == "nt":
     try:
-        # Force binary mode for stdin/stdout to prevent CRLF conversion
         import msvcrt
 
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     except (OSError, AttributeError):
-        # Fallback: just ensure no CRLF conversion
         pass
 
 
-# DevNullStdout class for stdio mode suppression
 class DevNullStdout:
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
 
     def write(self, data):
-        # Suppress all writes to stdout during initialization
         pass
 
     def flush(self):
@@ -47,11 +41,6 @@ class DevNullStdout:
 
     def restore(self):
         sys.stdout = self.original_stdout
-
-
-# CRITICAL: Suppress all warnings before any imports
-# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
-import warnings  # noqa: E402
 
 # Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
@@ -61,26 +50,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# For MCP stdio transport, we need to prevent ANY output to stderr
-# Warnings are printed to stderr, which breaks JSON-RPC protocol
-# Note: This is handled in __main__.py before imports
-
 # CRITICAL: Detect if we're running in stdio mode (MCP server)
-# MCP servers use stdio transport, so stdout must be clean for JSON-RPC
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
-
-import logging  # noqa: E402
-from contextlib import asynccontextmanager, suppress  # noqa: E402
-from pathlib import Path  # noqa: E402
-from typing import Any, AsyncContextManager  # noqa: E402, UP035
-
-from fastmcp import FastMCP  # noqa: E402
-from pydantic import BaseModel  # noqa: E402
-
-from .calibre_api import CalibreAPIClient  # noqa: E402
-from .config import CalibreConfig  # noqa: E402
-from .logging_config import get_logger, log_operation  # noqa: E402
-from .storage.persistence import CalibreMCPStorage, set_storage  # noqa: E402
 
 # Load environment variables first
 # load_dotenv()  # Temporarily disabled for testing
@@ -112,7 +83,7 @@ def create_app(path: str = "/mcp"):
 
 
 @asynccontextmanager
-async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
+async def server_lifespan(mcp_instance: FastMCP) -> AbstractAsyncContextManager[None]:
     """FastMCP 2.13 server lifespan for initialization and cleanup."""
     global api_client, current_library, available_libraries, storage, logger
 
@@ -300,9 +271,6 @@ if not _is_stdio_mode:
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-
-# Register prompt templates
-from .prompts import register_prompts  # noqa: E402
 
 register_prompts(mcp)
 
@@ -569,11 +537,6 @@ async def discover_libraries() -> dict[str, str]:
 
 
 # ==================== SERVER INITIALIZATION ====================
-
-
-def create_app() -> FastMCP:  # noqa: F811
-    """Create and configure the FastMCP application"""
-    return mcp
 
 
 async def main():

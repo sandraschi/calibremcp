@@ -23,10 +23,10 @@ class BaseRepository[T]:
         """Get a database session."""
         return self._db.session
 
-    def get(self, id: int) -> T | None:  # noqa: A002
+    def get(self, item_id: int) -> T | None:
         """Get a single record by ID."""
         with self._db.session_scope() as session:
-            return session.query(self.model).get(id)
+            return session.query(self.model).get(item_id)
 
     def get_by_ids(self, ids: list[int]) -> list[T]:
         """Get multiple records by their IDs."""
@@ -67,10 +67,10 @@ class BaseRepository[T]:
             session.refresh(obj)
             return obj
 
-    def update(self, id: int, data: dict[str, Any], commit: bool = True) -> T | None:  # noqa: A002
+    def update(self, item_id: int, data: dict[str, Any], commit: bool = True) -> T | None:
         """Update a record by ID."""
         with self._db.session_scope() as session:
-            obj = session.query(self.model).get(id)
+            obj = session.query(self.model).get(item_id)
             if not obj:
                 return None
             for key, value in data.items():
@@ -80,10 +80,10 @@ class BaseRepository[T]:
             session.refresh(obj)
             return obj
 
-    def delete(self, id: int, commit: bool = True) -> bool:  # noqa: A002
+    def delete(self, item_id: int, commit: bool = True) -> bool:
         """Delete a record by ID."""
         with self._db.session_scope() as session:
-            obj = session.query(self.model).get(id)
+            obj = session.query(self.model).get(item_id)
             if not obj:
                 return False
             session.delete(obj)

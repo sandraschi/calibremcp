@@ -15,6 +15,7 @@ import json
 import os
 import platform
 import time
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
@@ -147,10 +148,8 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:  # noqa: SIM105
+        with suppress(Exception):
             await self._storage.set(CURRENT_LIBRARY_KEY, library_name)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def get_user_preferences(self) -> dict[str, Any]:
         """Get user preferences from persistent storage."""
@@ -174,10 +173,8 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:  # noqa: SIM105
+        with suppress(Exception):
             await self._storage.set(USER_PREFS_KEY, prefs)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def get_session_state(self, session_id: str) -> dict[str, Any]:
         """Get session-specific state."""
@@ -202,11 +199,9 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             key = f"{SESSION_STATE_KEY}:{session_id}"
             await self._storage.set(key, state)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def clear_session_state(self, session_id: str) -> None:
         """Clear session-specific state."""
@@ -214,11 +209,9 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             key = f"{SESSION_STATE_KEY}:{session_id}"
             await self._storage.delete(key)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def cache_library_stats(
         self, library_name: str, stats: dict[str, Any], ttl: int = 3600
@@ -228,12 +221,9 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             key = f"{LIBRARY_CACHE_KEY}:{library_name}"
-            # FastMCP storage supports TTL if the backend supports it
             await self._storage.set(key, stats, ttl=ttl)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def get_cached_library_stats(self, library_name: str) -> dict[str, Any] | None:
         """Get cached library statistics if available and not expired."""
@@ -276,13 +266,10 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
-            # Merge with existing preferences
+        with suppress(Exception):
             current = await self.get_search_preferences()
             current.update(prefs)
             await self._storage.set(SEARCH_PREFS_KEY, current)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     # ==================== SEARCH HISTORY ====================
 
@@ -294,21 +281,16 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             history = await self.get_search_history()
-            # Add timestamp
             entry = {
                 "query": query,
                 "filters": filters,
                 "timestamp": time.time(),
             }
-            # Prepend new entry
             history.insert(0, entry)
-            # Limit to max_history
             history = history[:max_history]
             await self._storage.set(SEARCH_HISTORY_KEY, history)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def get_search_history(self, limit: int = 20) -> list[dict[str, Any]]:
         """Get recent search history."""
@@ -332,10 +314,8 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:  # noqa: SIM105
+        with suppress(Exception):
             await self._storage.delete(SEARCH_HISTORY_KEY)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     # ==================== READING PROGRESS ====================
 
@@ -362,16 +342,12 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             key = f"{READING_PROGRESS_KEY}:{book_id}"
-            # Add timestamp if not present
             if "last_updated" not in progress:
                 import time
-
                 progress["last_updated"] = time.time()
             await self._storage.set(key, progress)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def get_all_reading_progress(self) -> dict[str, dict[str, Any]]:
         """Get reading progress for all books."""
@@ -421,13 +397,10 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
-            # Merge with existing preferences
+        with suppress(Exception):
             current = await self.get_viewer_preferences()
             current.update(prefs)
             await self._storage.set(VIEWER_PREFS_KEY, current)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     # ==================== FAVORITES ====================
 
@@ -453,15 +426,13 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             favorites = await self.get_favorites()
             if favorite_type not in favorites:
                 favorites[favorite_type] = []
             if item not in favorites[favorite_type]:
                 favorites[favorite_type].append(item)
             await self._storage.set(FAVORITES_KEY, favorites)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def remove_favorite(self, favorite_type: str, item: str) -> None:
         """Remove an item from favorites."""
@@ -469,13 +440,11 @@ class CalibreMCPStorage:
         if not self._storage:
             return
 
-        try:
+        with suppress(Exception):
             favorites = await self.get_favorites()
             if favorite_type in favorites and item in favorites[favorite_type]:
                 favorites[favorite_type].remove(item)
                 await self._storage.set(FAVORITES_KEY, favorites)
-        except Exception:  # noqa: S110
-            pass  # Graceful degradation
 
     async def is_favorite(self, favorite_type: str, item: str) -> bool:
         """Check if an item is in favorites."""

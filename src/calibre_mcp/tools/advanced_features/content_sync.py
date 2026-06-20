@@ -268,7 +268,7 @@ class ContentSyncTool(MCPTool):
         }
 
     async def sync_to_ereader(
-        self, device_id: str, book_ids: list[str], format: str = "epub"  # noqa: A002
+        self, device_id: str, book_ids: list[str], fmt: str = "epub"
     ) -> dict:
         """Send books to an e-reader."""
         # In a real implementation, this would transfer the books to the e-reader

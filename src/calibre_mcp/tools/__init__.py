@@ -15,23 +15,17 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
-# Set up logging (stderr is OK for MCP servers)
+from .base_tool import BaseTool, mcp_tool  # noqa: F401
+
 logger = logging.getLogger(__name__)
 
-# Type variable for tool functions
 T = TypeVar("T", bound=Callable[..., Any])
 
-# Global tool registry
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {}
 
-# Base directory for Calibre libraries
 CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
 
-# Set of directories to ignore when discovering tools
 IGNORE_DIRS = {"__pycache__", ".mypy_cache", ".pytest_cache"}
-
-# Import the base tool class (after type definitions)
-from .base_tool import BaseTool, mcp_tool  # noqa: E402, F401
 
 
 def tool(
