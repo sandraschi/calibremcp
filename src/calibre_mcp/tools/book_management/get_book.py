@@ -41,10 +41,17 @@ async def get_book_helper(
         MCPServerError: If the book cannot be found or there's an error
     """
     try:
+        from ..shared.db_init import ensure_db_initialized
+
         # Try API client first (same as search_books_helper and details operation)
         from ...server import get_api_client
 
         client = await get_api_client()
+        if not client:
+            # Local SQLite mode: make sure the DB singleton is initialized before use
+            db_err = ensure_db_initialized()
+            if db_err:
+                raise MCPServerError(db_err)
         if client:
             # Use API client to get book details (same as details operation)
             try:

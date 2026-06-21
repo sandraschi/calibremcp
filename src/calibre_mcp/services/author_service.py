@@ -270,37 +270,27 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
 
         Raises:
             NotFoundError: If the author is not found
+
+        Note:
+            Delegates to book_service.get_all(author_id=...) which uses the correct
+            db.models.Book (with the proper 'book' column in the data table, not 'book_id').
+            A previous implementation queried models.book.Book directly; that caused
+            'no such column: data.book_id' errors when _to_response accessed book.data.
         """
         with self._get_db_session() as session:
-            # First verify author exists
+            # Verify author exists before delegating
             author = session.query(Author).get(author_id)
             if not author:
                 raise NotFoundError(f"Author with ID {author_id} not found")
 
-            # Get books with pagination
-            books_query = (
-                session.query(Book)
-                .join(Book.authors)
-                .filter(Author.id == author_id)
-                .options(joinedload(Book.authors))
-            )
+        # Delegate to book_service.get_all which uses db.models.Book and eagerly loads Book.data
+        from .book_service import book_service as _book_service_singleton
 
-            total = books_query.count()
-            books = books_query.offset(offset).limit(limit).all()
-
-            # Convert to response format
-            from .book_service import BookService
-
-            book_service = BookService(self.db)
-            items = [book_service._to_response(book) for book in books]
-
-            return {
-                "items": items,
-                "total": total,
-                "page": (offset // limit) + 1,
-                "per_page": limit,
-                "total_pages": (total + limit - 1) // limit if total > 0 else 1,
-            }
+        return _book_service_singleton.get_all(
+            skip=offset,
+            limit=limit,
+            author_id=author_id,
+        )
 
     def get_authors_by_letter(self, letter: str) -> list[dict[str, Any]]:
         """

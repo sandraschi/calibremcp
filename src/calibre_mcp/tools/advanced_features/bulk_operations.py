@@ -42,8 +42,8 @@ class BulkOperationsTool(MCPTool):
             library_path: Path to the Calibre library
             batch_size: Number of books to process in parallel
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
-        from calibre_plugins.calibremcp.tools.metadata.update_metadata import UpdateMetadataTool
+        from calibre_mcp.storage.local import LocalStorage
+        from calibre_mcp.tools.metadata.update_metadata import UpdateMetadataTool
 
         LocalStorage(library_path)
         update_tool = UpdateMetadataTool()
@@ -82,7 +82,7 @@ class BulkOperationsTool(MCPTool):
             library_path: Path to the source Calibre library
             format: Export format (directory, zip)
         """
-        from calibre_plugins.calibremcp.tools.import_export.export_library import ExportLibraryTool
+        from calibre_mcp.tools.import_export.export_library import ExportLibraryTool
 
         export_tool = ExportLibraryTool()
 
@@ -104,7 +104,7 @@ class BulkOperationsTool(MCPTool):
             library_path: Path to the Calibre library
             delete_files: Whether to delete the actual book files
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         results = {"total": len(book_ids), "successful": 0, "failed": 0, "errors": []}
@@ -135,8 +135,8 @@ class BulkOperationsTool(MCPTool):
             library_path: Path to the Calibre library
             replace_existing: Whether to replace existing format if it exists
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
-        from calibre_plugins.calibremcp.tools.book_management.conversion import ConversionTool
+        from calibre_mcp.storage.local import LocalStorage
+        from calibre_mcp.tools.book_management.conversion import ConversionTool
 
         storage = LocalStorage(library_path)
         conversion_tool = ConversionTool()

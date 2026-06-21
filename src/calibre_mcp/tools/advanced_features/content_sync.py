@@ -303,7 +303,7 @@ class ContentSyncTool(MCPTool):
             device = self._devices[device_id]
 
             # Get list of books to sync
-            from calibre_plugins.calibremcp.storage.local import LocalStorage
+            from calibre_mcp.storage.local import LocalStorage
 
             storage = LocalStorage(library_path)
             books = await storage.get_all_books()

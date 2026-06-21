@@ -145,6 +145,15 @@ async def update_book_helper(
         calibredb = _find_calibredb()
         use_calibredb = calibredb is not None
 
+        # Hard-fail early if calibredb is unavailable but writes were requested.
+        # Previously the code silently skipped the write and returned success: True.
+        if not use_calibredb and (metadata or cover_path):
+            raise MCPServerError(
+                "calibredb executable not found in PATH. "
+                "Cannot update book metadata without calibredb. "
+                "Install Calibre and ensure calibredb is on PATH."
+            )
+
         if use_calibredb and (metadata or cover_path):
             # Build calibredb set_metadata command
             cmd = [
@@ -212,6 +221,16 @@ async def update_book_helper(
                     cmd.extend(["--field", f"comments:{metadata['comments']}"])
                     updated_fields.append("comments")
 
+                if "pubdate" in metadata and metadata["pubdate"] is not None:
+                    # calibredb expects ISO 8601; accept datetime objects or strings
+                    pubdate_val = metadata["pubdate"]
+                    if hasattr(pubdate_val, "isoformat"):
+                        pubdate_str = pubdate_val.isoformat()
+                    else:
+                        pubdate_str = str(pubdate_val)
+                    cmd.extend(["--field", f"pubdate:{pubdate_str}"])
+                    updated_fields.append("pubdate")
+
             # Add cover update
             if cover_path:
                 cover_path_obj = Path(cover_path)
@@ -221,25 +240,42 @@ async def update_book_helper(
                 updated_fields.append("cover")
 
             # Execute calibredb command
-            if len(cmd) > 5:  # More than just base command + book_id + library_path
-                logger.debug(f"Executing calibredb command: {' '.join(cmd)}")
-
-                process = await asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
+            # len(cmd) > 5 means: calibredb + set_metadata + book_id + --library-path + path = 5 base args
+            if len(cmd) <= 5:
+                # Metadata dict was provided but contained no fields calibredb recognises.
+                # Hard-fail so callers get an honest error instead of a silent no-op.
+                provided = list(metadata.keys()) if metadata else []
+                raise MCPServerError(
+                    f"None of the requested metadata fields are supported by calibredb: {provided}. "
+                    "Supported fields: title, authors, tags, series, series_index, publisher, "
+                    "rating, isbn, languages, comments, pubdate."
                 )
 
-                stdout, stderr = await process.communicate()
+            logger.debug(f"Executing calibredb command: {' '.join(cmd)}")
 
-                if process.returncode != 0:
-                    error_msg = (
-                        stderr.decode("utf-8", errors="replace") if stderr else "Unknown error"
-                    )
-                    logger.error(f"calibredb set_metadata failed: {error_msg}")
-                    raise MCPServerError(f"Failed to update book metadata: {error_msg}")
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
 
-                logger.info(f"Successfully updated book {book_id} via calibredb")
+            stdout, stderr = await process.communicate()
+
+            if process.returncode != 0:
+                error_msg = (
+                    stderr.decode("utf-8", errors="replace") if stderr else "Unknown error"
+                )
+                logger.error(f"calibredb set_metadata failed: {error_msg}")
+                raise MCPServerError(f"Failed to update book metadata: {error_msg}")
+
+            logger.info(f"Successfully updated book {book_id} via calibredb")
+
+            # Invalidate the SQLAlchemy session's identity map so subsequent reads hit
+            # the DB rather than serving stale cached objects from before the calibredb write.
+            try:
+                book_service.db.session.expire_all()
+            except Exception:
+                pass  # best-effort; a fresh query will still pick up the new data
 
         # Use BookService for status and progress updates (custom fields)
         if book_id_int is not None and (status is not None or progress is not None):

@@ -6,9 +6,9 @@ Uses DatabaseService (same as books, authors, tags, publishers).
 
 from typing import Any
 
-from ...db.database import db as database_singleton
 from ...logging_config import get_logger
 from ...services.series_service import get_series_service
+from ..shared.db_init import ensure_db_initialized
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.series")
@@ -21,16 +21,9 @@ async def list_series_helper(
 ) -> dict[str, Any]:
     """List series with filtering and pagination. Uses DatabaseService (same as books/authors/tags)."""
     try:
-        if not database_singleton._engine or not database_singleton._current_db_path:
-            return {
-                "error": "No library loaded",
-                "message": "Database not initialized. Ensure a library is loaded at startup.",
-                "items": [],
-                "total": 0,
-                "page": 1,
-                "per_page": limit,
-                "total_pages": 0,
-            }
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err, "items": [], "total": 0, "page": 1, "per_page": limit, "total_pages": 0}
         svc = get_series_service()
         return svc.get_all(
             skip=offset,
@@ -52,6 +45,9 @@ async def list_series_helper(
 async def get_series_helper(series_id: int) -> dict[str, Any]:
     """Get series details by ID."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_series_service()
         return svc.get_by_id(series_id)
     except Exception as e:
@@ -75,6 +71,9 @@ async def get_series_books_helper(
 ) -> dict[str, Any]:
     """Get books in a series."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_series_service()
         return svc.get_books_by_series(
             series_id=series_id,
@@ -98,6 +97,9 @@ async def get_series_books_helper(
 async def get_series_stats_helper() -> dict[str, Any]:
     """Get series statistics."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_series_service()
         return svc.get_series_stats()
     except Exception as e:
@@ -113,6 +115,9 @@ async def get_series_stats_helper() -> dict[str, Any]:
 async def get_series_by_letter_helper(letter: str) -> dict[str, Any]:
     """Get series by first letter of name."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         if len(letter) != 1 or not letter.isalpha():
             return format_error_response(
                 error_msg=f"Invalid letter: '{letter}'. Must be a single alphabetic character.",

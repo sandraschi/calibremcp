@@ -68,7 +68,8 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         # Method 1: Scan explicitly given directory first (highest priority)
-        user_library_path = Path("L:/Multimedia Files/Written Word")
+        _base_path_str = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+        user_library_path = Path(_base_path_str) if _base_path_str else Path("L:/Multimedia Files/Written Word")
         if user_library_path.exists() and user_library_path.is_dir():
             scanned_libraries = self._scan_directory_for_libraries(user_library_path)
             libraries.update(scanned_libraries)
@@ -309,12 +310,12 @@ class CalibreConfigDiscovery:
         libraries = {}
 
         # Common base directories to scan
-        # PRIORITY: User's actual library location first
-        user_library_path = Path("L:/Multimedia Files/Written Word")
+        _bp = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+        user_library_path = Path(_bp) if _bp else None
         common_bases = []
 
-        # Add user's actual library location FIRST (highest priority)
-        if user_library_path.exists():
+        # Add user's configured library location FIRST (highest priority)
+        if user_library_path and user_library_path.exists():
             common_bases.append(user_library_path)
 
         # Then add other common locations (lower priority)

@@ -82,7 +82,7 @@ async def list_books(
         # We'll filter those after getting results, or extend BookService if needed
 
         # Query books using BookService
-        result = book_service.list(
+        result = book_service.get_all(
             skip=offset,
             limit=limit,
             search=search_term,

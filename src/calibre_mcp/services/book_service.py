@@ -546,7 +546,8 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                         "series_id": series_id,
                     },
                 )
-                query = query.filter(Book.series_id == series_id)
+                # Book has no series_id column — filter via the many-to-many relationship
+                query = query.filter(Book.series.any(Series.id == series_id))
 
             if series_name:
                 logger.debug(
@@ -766,6 +767,13 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     "Cover filter applied",
                     extra={"service": "book_service", "action": "cover_filter_applied"},
                 )
+
+            # Apply "no tags" filter
+            has_no_tags = filters.pop("has_no_tags", None)
+            if has_no_tags is True:
+                query = query.filter(~Book.tags.any())
+            elif has_no_tags is False:
+                query = query.filter(Book.tags.any())
 
             # Apply rating filters (handle before general filter loop since it needs join)
             rating_value = filters.pop("rating", None)
@@ -1136,20 +1144,36 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         """
         update_data = book_data if isinstance(book_data, dict) else book_data.dict(exclude_unset=True)
 
+        # Known fields: direct columns + relationship handles + legacy custom fields.
+        # Any key outside this set is rejected up-front so callers get an explicit error
+        # instead of a silent no-op (the old behaviour of the hasattr() guard).
+        _KNOWN_BOOK_UPDATE_FIELDS = frozenset({
+            # Direct Book columns
+            "title", "sort", "timestamp", "pubdate", "series_index", "author_sort",
+            "path", "uuid", "has_cover", "last_modified",
+            # Relationship handles (processed in blocks below)
+            "author_ids", "series_id", "tag_ids", "tag_names", "tags", "rating",
+            # Legacy custom fields (not persisted as real columns but tolerated here
+            # to avoid breaking the update_book.py status/progress path)
+            "status", "progress",
+        })
+        unknown_fields = [f for f in update_data if f not in _KNOWN_BOOK_UPDATE_FIELDS]
+        if unknown_fields:
+            raise ValidationError(
+                f"Unknown book field(s): {unknown_fields}. "
+                f"Supported fields: {sorted(_KNOWN_BOOK_UPDATE_FIELDS - {'status', 'progress'})}"
+            )
+
         with self._get_db_session() as session:
             # Get the existing book
             book = session.query(Book).get(book_id)
             if not book:
                 raise NotFoundError(f"Book with ID {book_id} not found")
 
-            # Update simple fields
+            # Update simple fields (columns that exist directly on the Book model)
+            _RELATIONSHIP_FIELDS = {"author_ids", "series_id", "tag_ids", "tag_names", "tags", "rating", "status", "progress"}
             for field, value in update_data.items():
-                if hasattr(book, field) and field not in [
-                    "author_ids",
-                    "series_id",
-                    "tag_ids",
-                    "rating",
-                ]:
+                if field not in _RELATIONSHIP_FIELDS and hasattr(book, field):
                     setattr(book, field, value)
 
             # Handle relationships if provided
@@ -1181,6 +1205,20 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     missing_ids = set(update_data["tag_ids"]) - found_ids
                     raise ValidationError(f"Tags not found: {', '.join(map(str, missing_ids))}")
                 book.tags = tags
+
+            if "tag_names" in update_data:
+                resolved: list[Tag] = []
+                for name in update_data["tag_names"]:
+                    name = name.strip()
+                    if not name:
+                        continue
+                    tag = session.query(Tag).filter(Tag.name == name).first()
+                    if tag is None:
+                        tag = Tag(name=name)
+                        session.add(tag)
+                        session.flush()  # assign id before linking
+                    resolved.append(tag)
+                book.tags = resolved
 
             if "rating" in update_data:
                 # Update or create rating
@@ -1241,15 +1279,19 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             if not book:
                 raise NotFoundError(f"Book with ID {book_id} not found")
 
-            return [
-                {
-                    "format": data.format.upper(),
-                    "size": data.uncompressed_size,
-                    "name": data.name,
-                    "mtime": data.mtime.isoformat() if data.mtime else None,
-                }
-                for data in book.data
-            ]
+            results = []
+            for data in book.data:
+                # The Calibre 'data' table has no mtime column; guard defensively.
+                mtime = getattr(data, "mtime", None)
+                results.append(
+                    {
+                        "format": data.format.upper(),
+                        "size": data.uncompressed_size,
+                        "name": data.name,
+                        "mtime": mtime.isoformat() if mtime else None,
+                    }
+                )
+            return results
 
     def get_book_cover(self, book_id: int) -> bytes | None:
         """
@@ -1434,6 +1476,25 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         # For debugging - return raw dict instead of validated model
         # return BookResponse.model_validate(book_dict).model_dump()
         return book_dict
+
+    # ------------------------------------------------------------------
+    # Convenience methods used by portmanteau tools
+    # ------------------------------------------------------------------
+
+    def get_recent_books(self, limit: int = 50) -> list[dict]:
+        """Return the most recently added books (sorted by timestamp desc)."""
+        result = self.get_all(skip=0, limit=limit, sort_by="timestamp", sort_order="desc")
+        return result.get("items", [])
+
+    def get_books_by_series(self, series_id: int) -> list[dict]:
+        """Return all books in a series (sorted by series_index).
+
+        Delegates to get_all(series_id=...) which uses the correct db.models
+        and eager-loads Book.data, avoiding the 'no such column: data.book_id'
+        crash that the old models.book.Book model produced.
+        """
+        result = self.get_all(skip=0, limit=1000, series_id=series_id)
+        return result.get("items", [])
 
 
 # Create a singleton instance of the service

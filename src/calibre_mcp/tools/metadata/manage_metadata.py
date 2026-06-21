@@ -99,7 +99,7 @@ async def manage_metadata(
 
         elif operation == "show":
             try:
-                from ...services import book_service
+                from ...services.book_service import book_service
                 from ...tools.book_tools import search_books_helper
 
                 # Validate query parameter
@@ -178,7 +178,12 @@ async def manage_metadata(
                 rating_str = f"{rating}/5" if rating else "Not rated"
 
                 pubdate = book_data.get("pubdate")
-                pubdate_str = pubdate[:10] if pubdate else "Unknown"
+                if pubdate is None:
+                    pubdate_str = "Unknown"
+                elif hasattr(pubdate, "strftime"):
+                    pubdate_str = pubdate.strftime("%Y-%m-%d")
+                else:
+                    pubdate_str = str(pubdate)[:10]
 
                 isbn = book_data.get("isbn", "None")
                 formats_list = book_data.get("formats", [])
@@ -193,17 +198,16 @@ async def manage_metadata(
                     else "None"
                 )
 
-                comments = book_data.get("comments", [])
-                comment_text = ""
-                if comments:
-                    if isinstance(comments, list) and comments:
-                        comment_text = (
-                            comments[0].get("text", "")
-                            if isinstance(comments[0], dict)
-                            else str(comments[0])
-                        )
-                    elif isinstance(comments, str):
-                        comment_text = comments
+                # _to_response always returns comments as a plain string (may be "")
+                comment_raw = book_data.get("comments", "")
+                if isinstance(comment_raw, str):
+                    comment_text = comment_raw
+                elif isinstance(comment_raw, list) and comment_raw:
+                    # defensive: handle legacy list-of-dicts shape
+                    first = comment_raw[0]
+                    comment_text = first.get("text", "") if isinstance(first, dict) else str(first)
+                else:
+                    comment_text = ""
 
                 formatted_text = f"""
 ═══════════════════════════════════════════════════════════════

@@ -58,6 +58,7 @@ async def query_books(
     format_table: bool = False,
     limit: int = 50,
     offset: int = 0,
+    has_no_tags: bool | None = None,
     # Auto-open functionality
     auto_open: bool = False,
     auto_open_format: str = "EPUB",
@@ -71,7 +72,8 @@ async def query_books(
 
     OPERATIONS:
     - search: Find books with flexible filters (author, tag, text, title, rating, dates, formats).
-    - list: List all books in library (pagination only).
+             Pass has_no_tags=True to find books with no tags at all.
+    - list: List all books in library (pagination only). Pass has_no_tags=True to list only untagged books.
     - recent: Get recently added books.
     - by_author: Get books by specific author_id.
     - by_series: Get books in a series by series_id.
@@ -189,6 +191,8 @@ async def query_books(
                 # Comments
                 comment=comment,
                 has_empty_comments=has_empty_comments,
+                # Tags
+                has_no_tags=has_no_tags,
                 # Display/pagination
                 format_table=format_table,
                 limit=limit,
@@ -272,20 +276,21 @@ async def query_books(
             return result
 
         if operation == "list":
-            # Use list_books helper (simplified parameters)
-            return await _list_books_helper(
-                query=author or tag or text or query,
+            # Delegate to search_books_helper with no filters (avoids HTTP API client dependency)
+            return await _search_books_helper(
                 limit=limit,
+                offset=offset,
+                has_no_tags=has_no_tags,
             )
 
         if operation == "recent":
-            # Get recently added books
+            # Get recently added books (returns list of plain dicts via get_all)
             from calibre_mcp.services.book_service import book_service
 
             books = book_service.get_recent_books(limit=limit)
             return {
                 "success": True,
-                "books": [book.dict() for book in books],
+                "books": books,
                 "total": len(books),
                 "limit": limit,
             }

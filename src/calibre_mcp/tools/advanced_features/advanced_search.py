@@ -144,7 +144,7 @@ class AdvancedSearchTool(MCPTool):
             sort_desc: Sort in descending order
             library_path: Path to the Calibre library
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         # Parse query
         search_query = self._parse_query(query)
@@ -222,7 +222,7 @@ class AdvancedSearchTool(MCPTool):
             limit: Maximum number of similar books to return
             library_path: Path to the Calibre library
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         # Get the target book
         if fields is None:

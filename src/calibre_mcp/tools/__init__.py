@@ -26,7 +26,10 @@ TOOL_REGISTRY: dict[str, dict[str, Any]] = {}
 
 __all__ = ["BaseTool", "mcp_tool"]
 
-CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
+# Base directory for Calibre libraries
+import os as _os
+_bp = _os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+CALIBRE_BASE_DIR = Path(_bp) if _bp else Path("L:/Multimedia Files/Written Word")
 
 IGNORE_DIRS = {"__pycache__", ".mypy_cache", ".pytest_cache"}
 

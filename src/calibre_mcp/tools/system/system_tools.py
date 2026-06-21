@@ -554,43 +554,116 @@ def _get_registered_tools() -> list[dict[str, Any]]:
     """
     Get all registered tools from the MCP server.
 
-    Returns:
-        List of tool metadata dictionaries
-    """
-    tools = []
-    try:
-        # FastMCP stores tools in _tools dict
-        if hasattr(mcp, "_tools"):
-            for tool_name, tool_obj in mcp._tools.items():
-                tool_info = {
-                    "name": tool_name,
-                    "description": getattr(tool_obj, "__doc__", "") or "",
-                    "signature": str(inspect.signature(tool_obj.func))
-                    if hasattr(tool_obj, "func")
-                    else "",
-                }
+    FastMCP 3.x exposes registered tools via the async ``mcp._list_tools()`` coroutine
+    which returns FunctionTool objects with .name and .description attributes.
+    This function runs it synchronously (inside an executor if an event loop is running).
 
-                # Try to get parameter info
-                if hasattr(tool_obj, "func"):
-                    sig = inspect.signature(tool_obj.func)
-                    params = []
-                    for param_name, param in sig.parameters.items():
-                        param_info = {
-                            "name": param_name,
-                            "type": str(param.annotation)
-                            if param.annotation != inspect.Parameter.empty
-                            else "Any",
-                            "default": param.default
-                            if param.default != inspect.Parameter.empty
-                            else None,
-                            "required": param.default == inspect.Parameter.empty,
-                        }
-                        params.append(param_info)
-                    tool_info["parameters"] = params
+    Returns:
+        List of tool metadata dictionaries with name, description, and parameters.
+    """
+    import asyncio
+
+    tools: list[dict[str, Any]] = []
+
+    # FastMCP 3.x: mcp._list_tools() is an async coroutine returning a list of FunctionTool.
+    if hasattr(mcp, "_list_tools"):
+        try:
+            # asyncio.get_running_loop() raises RuntimeError if no loop is active.
+            try:
+                running_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                running_loop = None
+
+            if running_loop is not None and running_loop.is_running():
+                # We're inside an active async context (normal MCP request path).
+                # Run in a thread pool so asyncio.run() can create a new loop.
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                    fut = pool.submit(asyncio.run, mcp._list_tools())
+                    raw_list = fut.result(timeout=5)
+            else:
+                # No active event loop — asyncio.run() creates one for us.
+                raw_list = asyncio.run(mcp._list_tools())
+        except Exception as e:
+            logger.warning(f"Could not enumerate FastMCP 3.x tool list: {e}")
+            raw_list = []
+
+        for tool_obj in raw_list:
+            try:
+                name = str(getattr(tool_obj, "name", "") or "")
+                if not name:
+                    continue
+                description = str(getattr(tool_obj, "description", "") or "").strip()
+
+                tool_info: dict[str, Any] = {"name": name, "description": description}
+
+                # Try to recover parameter info from the underlying function
+                fn = getattr(tool_obj, "fn", None) or getattr(tool_obj, "func", None)
+                if fn:
+                    try:
+                        sig = inspect.signature(fn)
+                        params = []
+                        for param_name, param in sig.parameters.items():
+                            if param_name in ("self", "ctx"):
+                                continue
+                            params.append(
+                                {
+                                    "name": param_name,
+                                    "type": str(param.annotation)
+                                    if param.annotation != inspect.Parameter.empty
+                                    else "Any",
+                                    "default": param.default
+                                    if param.default != inspect.Parameter.empty
+                                    else None,
+                                    "required": param.default == inspect.Parameter.empty,
+                                }
+                            )
+                        tool_info["parameters"] = params
+                    except (TypeError, ValueError):
+                        pass
 
                 tools.append(tool_info)
+            except Exception as e:
+                logger.debug(f"Skipping tool in registry scan: {e}")
+
+        return tools
+
+    # FastMCP 2.x fallback: tools stored in mcp._tools dict
+    raw_tools: dict = {}
+    try:
+        if hasattr(mcp, "_tools"):
+            raw_tools = dict(mcp._tools)
     except Exception as e:
-        logger.warning(f"Error getting registered tools: {e}")
+        logger.warning(f"Could not read FastMCP 2.x tool registry: {e}")
+        return []
+
+    for tool_name, tool_obj in raw_tools.items():
+        try:
+            fn = None
+            for attr in ("fn", "func", "_func", "__wrapped__"):
+                if hasattr(tool_obj, attr):
+                    fn = getattr(tool_obj, attr)
+                    break
+            description = str(getattr(tool_obj, "description", "") or getattr(tool_obj, "__doc__", "") or "").strip()
+            tool_info = {"name": tool_name, "description": description}
+            if fn:
+                try:
+                    sig = inspect.signature(fn)
+                    tool_info["parameters"] = [
+                        {
+                            "name": p,
+                            "type": str(v.annotation) if v.annotation != inspect.Parameter.empty else "Any",
+                            "default": v.default if v.default != inspect.Parameter.empty else None,
+                            "required": v.default == inspect.Parameter.empty,
+                        }
+                        for p, v in sig.parameters.items()
+                        if p not in ("self", "ctx")
+                    ]
+                except (TypeError, ValueError):
+                    pass
+            tools.append(tool_info)
+        except Exception as e:
+            logger.debug(f"Skipping tool '{tool_name}' in registry scan: {e}")
 
     return tools
 
@@ -983,11 +1056,17 @@ async def health_check() -> dict[str, Any]:
         # Check Calibre connection
         try:
             client = await get_api_client()
-            await client.test_connection()
-            health_status["checks"]["calibre_connection"] = {
-                "status": "healthy",
-                "message": "Calibre server accessible",
-            }
+            if client:
+                await client.test_connection()
+                health_status["checks"]["calibre_connection"] = {
+                    "status": "healthy",
+                    "message": "Calibre server accessible",
+                }
+            else:
+                health_status["checks"]["calibre_connection"] = {
+                    "status": "healthy",
+                    "message": "Local SQLite mode — no remote server required",
+                }
         except Exception as e:
             health_status["checks"]["calibre_connection"] = {
                 "status": "unhealthy",
@@ -1064,7 +1143,8 @@ async def ping() -> str:
     """
     try:
         client = await get_api_client()
-        await client.test_connection()
+        if client:
+            await client.test_connection()
         return "pong"
     except Exception as e:
         return f"Ping failed: {str(e)}"
@@ -1086,13 +1166,24 @@ async def maintenance(operation: str = "vacuum") -> str:
     Args:
         operation: The maintenance operation to perform (vacuum, integrity_check).
     """
+    from sqlalchemy import text
+
+    from ..shared.db_init import ensure_db_initialized
+
+    err = ensure_db_initialized()
+    if err:
+        return f"Maintenance failed: {err}"
+
     db = DatabaseService()
     try:
         if operation == "vacuum":
-            db.execute_raw("VACUUM")
+            with db.session_scope() as session:
+                session.execute(text("VACUUM"))
             return "Database vacuumed successfully."
         if operation == "integrity_check":
-            result = db.execute_raw("PRAGMA integrity_check")
+            with db.session_scope() as session:
+                rows = session.execute(text("PRAGMA integrity_check")).fetchall()
+            result = ", ".join(str(r[0]) for r in rows) if rows else "ok"
             return f"Integrity check result: {result}"
         return f"Unknown maintenance operation: {operation}"
     except Exception as e:

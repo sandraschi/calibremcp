@@ -9,7 +9,6 @@ import asyncio
 
 from ...logging_config import get_logger, log_error
 from ...server import (
-    BookDetailResponse,
     ConnectionTestResponse,
     LibrarySearchResponse,
     current_library,
@@ -70,70 +69,8 @@ async def list_books_helper(
         )
 
 
-# get_book_details removed - migrated to manage_books(operation="details")
-# Use manage_books(operation="details", book_id=...) instead
-async def get_book_details_helper(book_id: int) -> BookDetailResponse:
-    """
-    Get complete metadata and file information for a specific book.
-
-    Retrieves all available information including formats, cover URLs,
-    publication details, and file paths for a specific book by ID.
-
-    Args:
-        book_id: Unique identifier of the book
-
-    Returns:
-        BookDetailResponse: Complete book metadata and file information
-    """
-    try:
-        client = await get_api_client()
-        book_data = await client.get_book_details(book_id)
-
-        if not book_data:
-            return BookDetailResponse(
-                book_id=book_id,
-                title="Book not found",
-                authors=[],
-                formats=[],
-                tags=[],
-                languages=[],
-                identifiers={},
-                download_links={},
-                library_name=current_library,
-            )
-
-        return BookDetailResponse(
-            book_id=book_id,
-            title=book_data.get("title", "Unknown"),
-            authors=book_data.get("authors", []),
-            series=book_data.get("series"),
-            series_index=book_data.get("series_index"),
-            rating=book_data.get("rating"),
-            tags=book_data.get("tags", []),
-            comments=book_data.get("comments"),
-            published=book_data.get("published"),
-            languages=book_data.get("languages", ["en"]),
-            formats=book_data.get("formats", []),
-            identifiers=book_data.get("identifiers", {}),
-            last_modified=book_data.get("last_modified"),
-            cover_url=book_data.get("cover_url"),
-            download_links=book_data.get("download_links", {}),
-            library_name=current_library,
-        )
-
-    except Exception as e:
-        log_error(logger, "get_book_details", e)
-        return BookDetailResponse(
-            book_id=book_id,
-            title="Error retrieving book",
-            authors=[],
-            formats=[],
-            tags=[],
-            languages=[],
-            identifiers={},
-            download_links={},
-            library_name=current_library,
-        )
+# get_book_details_helper removed (dead remote-API code) -
+# use manage_books(operation="details", book_id=...) which reads from the local DB.
 
 
 async def test_calibre_connection_helper() -> ConnectionTestResponse:

@@ -526,8 +526,9 @@ async def discover_libraries() -> dict[str, str]:
         libraries["main"] = str(config.local_library_path)
 
     # Discover additional libraries
-    base_dir = Path("L:/Multimedia Files/Written Word")
-    if base_dir.exists():
+    _bp = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+    base_dir = Path(_bp) if _bp else None
+    if base_dir and base_dir.exists():
         for item in base_dir.iterdir():
             if item.is_dir() and (item / "metadata.db").exists():
                 libraries[item.name] = str(item)

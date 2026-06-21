@@ -45,7 +45,7 @@ class UpdateMetadataTool(MCPTool):
         update_cover: bool = True,
     ) -> dict:
         """Update metadata for the specified books."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         results = {"updated": [], "failed": []}

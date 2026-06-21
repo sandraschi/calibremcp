@@ -44,7 +44,7 @@ class ExportLibraryTool(MCPTool):
         progress_callback: str | None = None,
     ) -> dict:
         """Export the library to the specified location."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         export_path = Path(export_path).resolve()

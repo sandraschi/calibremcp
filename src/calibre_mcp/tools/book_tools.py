@@ -354,6 +354,7 @@ async def search_books_helper(
     min_size: int | None = None,
     max_size: int | None = None,
     formats: list[str] | None = None,
+    has_no_tags: bool | None = None,
     limit: int = 50,
     offset: int = 0,
     format_table: bool = False,
@@ -1178,6 +1179,8 @@ async def search_books_helper(
             get_all_filters["max_size"] = max_size
         if formats:
             get_all_filters["formats"] = formats
+        if has_no_tags is not None:
+            get_all_filters["has_no_tags"] = has_no_tags
 
         # Final verification: ensure database is ready before calling service
         try:
@@ -1421,8 +1424,8 @@ async def get_books_by_series_helper(series_id: int) -> list[dict[str, Any]]:
         if len(series_books) < 6:
             print("Series appears incomplete")
     """
-    books = book_service.get_books_by_series(series_id)
-    return [book.dict() for book in books]
+    # get_books_by_series now returns plain dicts (not Pydantic objects)
+    return book_service.get_books_by_series(series_id)
 
 
 # Helper function - called by query_books portmanteau tool

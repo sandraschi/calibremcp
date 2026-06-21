@@ -2,10 +2,13 @@
 Utility functions for discovering and managing Calibre libraries.
 """
 
+import os
 from pathlib import Path
 
-# Base directory containing Calibre libraries
-CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
+
+def _get_base_dir() -> Path:
+    base = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+    return Path(base) if base else Path("L:/Multimedia Files/Written Word")
 
 
 def discover_calibre_libraries() -> dict[str, Path]:
@@ -16,6 +19,7 @@ def discover_calibre_libraries() -> dict[str, Path]:
         Dict mapping library names to their paths
     """
     libraries = {}
+    CALIBRE_BASE_DIR = _get_base_dir()
 
     if not CALIBRE_BASE_DIR.exists() or not CALIBRE_BASE_DIR.is_dir():
         return {}

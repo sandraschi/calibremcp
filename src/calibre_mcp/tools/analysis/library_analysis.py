@@ -14,13 +14,12 @@ Use manage_analysis(operation="...") instead:
 - reading_statistics() → manage_analysis(operation="reading_stats")
 """
 
+import sqlite3
 from difflib import SequenceMatcher
+from pathlib import Path
 from typing import Any
 
-# Import services and models
-from ...db.database import DatabaseService
 from ...logging_config import get_logger
-from ...models.tag import Tag
 
 # Import the MCP server instance
 from ...server import (
@@ -36,6 +35,32 @@ from ...server import (
 logger = get_logger("calibremcp.tools.library_analysis")
 
 
+def _get_metadata_db() -> Path | None:
+    """Return path to the active library's metadata.db, or None if not found."""
+    from ...config import CalibreConfig
+    from ...utils.library_utils import discover_calibre_libraries
+
+    config = CalibreConfig()
+    lib_path = config.local_library_path
+    if not lib_path:
+        discovered = discover_calibre_libraries()
+        if discovered:
+            lib_path = next(iter(discovered.values()))
+    if lib_path and (lib_path / "metadata.db").exists():
+        return lib_path / "metadata.db"
+    return None
+
+
+def _open_db() -> sqlite3.Connection | None:
+    """Open the active metadata.db read-only. Returns None if not found."""
+    db_path = _get_metadata_db()
+    if not db_path:
+        return None
+    conn = sqlite3.connect(str(db_path), timeout=10)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 @mcp.tool()
 async def get_tag_statistics() -> TagStatsResponse:
     """
@@ -43,174 +68,114 @@ async def get_tag_statistics() -> TagStatsResponse:
 
     Identifies duplicate tags (similar names), unused tags,
     and provides suggestions for tag consolidation and organization.
-    Helps maintain a clean and organized tag structure.
-
-    Returns:
-        TagStatsResponse containing:
-        {
-            "total_tags": int - Total number of unique tags
-            "unique_tags": int - Number of distinct tags (same as total_tags)
-            "duplicate_tags": List[Dict] - Groups of potentially duplicate tags with similarity scores
-            "unused_tags": List[str] - Tags that are not assigned to any books
-            "suggestions": List[Dict] - Recommended tag consolidation actions
-        }
-
-    Example:
-        # Get tag statistics
-        stats = get_tag_statistics()
-        print(f"Total tags: {stats['total_tags']}")
-        print(f"Unused tags: {len(stats['unused_tags'])}")
-
-        # Review duplicate suggestions
-        for dup_group in stats['duplicate_tags']:
-            print(f"Similar tags: {dup_group['tags']}")
     """
-    db = DatabaseService()
-
     try:
-        with db.get_session() as session:
-            # Get all tags with book counts
-            tags = (
-                session.query(Tag)
-                .options(
-                    # Load books relationship to count
-                )
-                .all()
-            )
+        conn = _open_db()
+        if conn is None:
+            return TagStatsResponse(total_tags=0, unique_tags=0, duplicate_tags=[], unused_tags=[], suggestions=[])
+        try:
+            rows = conn.execute(
+                "SELECT t.id, t.name, COUNT(btl.book) AS book_count "
+                "FROM tags t LEFT JOIN books_tags_link btl ON btl.tag = t.id "
+                "GROUP BY t.id, t.name ORDER BY t.name"
+            ).fetchall()
+        finally:
+            conn.close()
 
-            total_tags = len(tags)
-            unused_tags: list[str] = []
-            tag_usage: dict[str, int] = {}
+        tag_usage: dict[str, int] = {r["name"]: r["book_count"] for r in rows}
+        unused_tags = [name for name, cnt in tag_usage.items() if cnt == 0]
+        tag_names = list(tag_usage.keys())
+        total_tags = len(tag_names)
 
-            # Count usage for each tag
-            for tag in tags:
-                book_count = len(tag.books) if hasattr(tag, "books") else 0
-                tag_usage[tag.name] = book_count
-                if book_count == 0:
-                    unused_tags.append(tag.name)
+        duplicate_groups: list[dict[str, Any]] = []
+        processed: set[str] = set()
+        similarity_threshold = 0.85
 
-            # Find duplicate/similar tags using similarity matching
-            duplicate_groups: list[dict[str, Any]] = []
-            processed = set()
-            similarity_threshold = 0.85  # 85% similarity
-
-            [tag.name for tag in tags]
-
-            for i, tag1 in enumerate(tags):
-                if tag1.name in processed:
+        for i, t1 in enumerate(tag_names):
+            if t1 in processed:
+                continue
+            similar = [t1]
+            for t2 in tag_names[i + 1:]:
+                if t2 in processed:
                     continue
+                if SequenceMatcher(None, t1.lower(), t2.lower()).ratio() >= similarity_threshold:
+                    similar.append(t2)
+                    processed.add(t2)
+            if len(similar) > 1:
+                similar.sort(key=lambda t: tag_usage.get(t, 0), reverse=True)
+                duplicate_groups.append({
+                    "tags": similar,
+                    "similarity_score": similarity_threshold,
+                    "recommended": similar[0],
+                    "total_usage": sum(tag_usage.get(t, 0) for t in similar),
+                })
+                processed.add(t1)
 
-                similar_tags = [tag1.name]
+        suggestions: list[dict[str, Any]] = []
+        for grp in duplicate_groups:
+            suggestions.append({
+                "type": "merge_tags",
+                "description": f"Merge {', '.join(grp['tags'][1:])} into '{grp['recommended']}'",
+                "tags_to_merge": grp["tags"][1:],
+                "target_tag": grp["recommended"],
+                "potential_books_affected": grp["total_usage"],
+            })
+        if unused_tags:
+            suggestions.append({
+                "type": "remove_unused",
+                "description": f"Remove {len(unused_tags)} unused tags",
+                "tags": unused_tags[:10],
+                "total_count": len(unused_tags),
+            })
 
-                for _j, tag2 in enumerate(tags[i + 1 :], start=i + 1):
-                    if tag2.name in processed:
-                        continue
-
-                    # Calculate similarity (case-insensitive)
-                    similarity = SequenceMatcher(None, tag1.name.lower(), tag2.name.lower()).ratio()
-
-                    if similarity >= similarity_threshold:
-                        similar_tags.append(tag2.name)
-                        processed.add(tag2.name)
-
-                if len(similar_tags) > 1:
-                    # Sort by usage (most used first)
-                    similar_tags.sort(key=lambda t: tag_usage.get(t, 0), reverse=True)
-                    duplicate_groups.append(
-                        {
-                            "tags": similar_tags,
-                            "similarity_score": similarity_threshold,
-                            "recommended": similar_tags[0],  # Use most popular
-                            "total_usage": sum(tag_usage.get(t, 0) for t in similar_tags),
-                        }
-                    )
-                    processed.add(tag1.name)
-
-            # Generate suggestions
-            suggestions: list[dict[str, Any]] = []
-
-            # Suggest merging duplicate tags
-            for dup_group in duplicate_groups:
-                if len(dup_group["tags"]) > 1:
-                    suggestions.append(
-                        {
-                            "type": "merge_tags",
-                            "description": f"Merge {', '.join(dup_group['tags'][1:])} into '{dup_group['recommended']}'",
-                            "tags_to_merge": dup_group["tags"][1:],
-                            "target_tag": dup_group["recommended"],
-                            "potential_books_affected": dup_group["total_usage"],
-                        }
-                    )
-
-            # Suggest removing unused tags
-            if unused_tags:
-                suggestions.append(
-                    {
-                        "type": "remove_unused",
-                        "description": f"Remove {len(unused_tags)} unused tags",
-                        "tags": unused_tags[:10],  # Show first 10
-                        "total_count": len(unused_tags),
-                    }
-                )
-
-            return TagStatsResponse(
-                total_tags=total_tags,
-                unique_tags=total_tags,
-                duplicate_tags=duplicate_groups,
-                unused_tags=unused_tags,
-                suggestions=suggestions,
-            )
-
+        return TagStatsResponse(
+            total_tags=total_tags,
+            unique_tags=total_tags,
+            duplicate_tags=duplicate_groups,
+            unused_tags=unused_tags,
+            suggestions=suggestions,
+        )
     except Exception as e:
         logger.error(f"Error getting tag statistics: {e}", exc_info=True)
-        # Return empty result on error
-        return TagStatsResponse(
-            total_tags=0,
-            unique_tags=0,
-            duplicate_tags=[],
-            unused_tags=[],
-            suggestions=[],
-        )
+        return TagStatsResponse(total_tags=0, unique_tags=0, duplicate_tags=[], unused_tags=[], suggestions=[])
 
 
 @mcp.tool()
 async def find_duplicate_books() -> DuplicatesResponse:
     """
-    Find potentially duplicate books using title/author fuzzy matching.
+    Find potentially duplicate books using title/author matching.
     """
-    from sqlalchemy import func
-
-    from ...models.book import Book
-
-    db = DatabaseService()
-    duplicate_groups = []
-
     try:
-        with db.get_session() as session:
-            # Find exact title/author duplicates first (most common)
-            dupes = (
-                session.query(Book.title, Book.author_sort, func.count("*").label("cnt"))
-                .group_by(Book.title, Book.author_sort)
-                .having(func.count("*") > 1)
-                .all()
-            )
+        conn = _open_db()
+        if conn is None:
+            return DuplicatesResponse(duplicate_groups=[], total_duplicates=0, confidence_scores={})
+        try:
+            # Exact title+author_sort duplicates
+            dupes = conn.execute(
+                "SELECT b.title, b.author_sort, COUNT(*) as cnt "
+                "FROM books b GROUP BY b.title, b.author_sort HAVING cnt > 1"
+            ).fetchall()
 
-            for title, author, _count in dupes:
-                books = (
-                    session.query(Book)
-                    .filter(Book.title == title, Book.author_sort == author)
-                    .all()
-                )
-                duplicate_groups.append(
-                    {
-                        "title": title,
-                        "author": author,
-                        "books": [
-                            {"id": b.id, "formats": [f.format for f in b.formats]} for b in books
-                        ],
-                        "confidence": 1.0,
-                    }
-                )
+            duplicate_groups: list[dict[str, Any]] = []
+            for row in dupes:
+                title, author, _ = row["title"], row["author_sort"], row["cnt"]
+                books = conn.execute(
+                    "SELECT b.id, b.title, GROUP_CONCAT(d.format) as formats "
+                    "FROM books b LEFT JOIN data d ON d.book = b.id "
+                    "WHERE b.title = ? AND b.author_sort = ? GROUP BY b.id",
+                    (title, author),
+                ).fetchall()
+                duplicate_groups.append({
+                    "title": title,
+                    "author": author,
+                    "books": [
+                        {"id": b["id"], "formats": (b["formats"] or "").split(",") if b["formats"] else []}
+                        for b in books
+                    ],
+                    "confidence": 1.0,
+                })
+        finally:
+            conn.close()
 
         return DuplicatesResponse(
             duplicate_groups=duplicate_groups,
@@ -226,182 +191,98 @@ async def find_duplicate_books() -> DuplicatesResponse:
 async def get_series_analysis() -> SeriesAnalysisResponse:
     """
     Analyze book series completion and provide reading order recommendations.
-
-    Identifies incomplete series (missing volumes), calculates series statistics,
-    and suggests optimal reading order based on series_index (volume numbers).
-    Helps track series progress and plan reading.
-
-    Returns:
-        SeriesAnalysisResponse containing:
-        {
-            "incomplete_series": List[Dict] - Series with missing volumes or gaps
-            "reading_order_suggestions": List[Dict] - Recommended reading order for series
-            "series_statistics": Dict - Overall statistics about all series
-        }
-
-    Example:
-        # Analyze series
-        analysis = get_series_analysis()
-
-        # Check incomplete series
-        for series in analysis['incomplete_series']:
-            print(f"{series['name']}: {series['missing_indices']} missing volumes")
-
-        # Get reading suggestions
-        for suggestion in analysis['reading_order_suggestions']:
-            print(f"{suggestion['series_name']}: Start with {suggestion['first_book']}")
     """
-    from sqlalchemy.orm import joinedload
-
-    from ...models.series import Series
-
-    db = DatabaseService()
-
     try:
-        with db.get_session() as session:
-            # Get all series with their books
-            series_list = session.query(Series).options(joinedload(Series.books)).all()
-
+        conn = _open_db()
+        if conn is None:
+            return SeriesAnalysisResponse(incomplete_series=[], reading_order_suggestions=[], series_statistics={})
+        try:
+            series_rows = conn.execute("SELECT id, name, sort FROM series ORDER BY name").fetchall()
             incomplete_series: list[dict[str, Any]] = []
             reading_order_suggestions: list[dict[str, Any]] = []
-
-            total_series = len(series_list)
             total_books_in_series = 0
             series_with_gaps = 0
 
-            for series in series_list:
-                if not hasattr(series, "books") or not series.books:
+            for s in series_rows:
+                books = conn.execute(
+                    "SELECT b.id, b.title, b.series_index "
+                    "FROM books b JOIN books_series_link bsl ON bsl.book = b.id "
+                    "WHERE bsl.series = ? ORDER BY b.series_index",
+                    (s["id"],),
+                ).fetchall()
+                if not books:
                     continue
-
-                books = series.books
                 total_books_in_series += len(books)
-
-                # Get series_index values
-                indices = sorted(
-                    [book.series_index for book in books if book.series_index is not None]
-                )
-
+                indices = sorted([b["series_index"] for b in books if b["series_index"] is not None])
                 if not indices:
                     continue
 
-                # Check for gaps in series
-                min_index = indices[0]
-                max_index = indices[-1]
-                expected_count = int(max_index) - int(min_index) + 1
-                actual_count = len(indices)
+                min_idx, max_idx = indices[0], indices[-1]
+                expected = int(max_idx) - int(min_idx) + 1
+                actual = len(indices)
+                missing_indices: list[int] = []
 
-                missing_indices = []
-                gap_ranges = []
-
-                # Check for gaps (missing volumes)
-                if actual_count < expected_count:
+                if actual < expected:
                     series_with_gaps += 1
-                    complete_range = set(range(int(min_index), int(max_index) + 1))
-                    present_indices = {int(idx) for idx in indices}
-                    missing_indices = sorted(complete_range - present_indices)
+                    present = {int(i) for i in indices}
+                    missing_indices = sorted(set(range(int(min_idx), int(max_idx) + 1)) - present)
 
-                    # Find gap ranges (consecutive missing indices)
+                    gap_ranges: list[str] = []
                     if missing_indices:
-                        gap_start = missing_indices[0]
-                        gap_end = gap_start
-
-                        for i in range(1, len(missing_indices)):
-                            if missing_indices[i] == gap_end + 1:
-                                gap_end = missing_indices[i]
+                        gs = ge = missing_indices[0]
+                        for mi in missing_indices[1:]:
+                            if mi == ge + 1:
+                                ge = mi
                             else:
-                                if gap_start == gap_end:
-                                    gap_ranges.append(f"#{gap_start}")
-                                else:
-                                    gap_ranges.append(f"#{gap_start}-#{gap_end}")
-                                gap_start = gap_end = missing_indices[i]
+                                gap_ranges.append(f"#{gs}" if gs == ge else f"#{gs}-#{ge}")
+                                gs = ge = mi
+                        gap_ranges.append(f"#{gs}" if gs == ge else f"#{gs}-#{ge}")
 
-                        # Add final gap
-                        if gap_start == gap_end:
-                            gap_ranges.append(f"#{gap_start}")
-                        else:
-                            gap_ranges.append(f"#{gap_start}-#{gap_end}")
+                    incomplete_series.append({
+                        "series_id": s["id"],
+                        "name": s["name"],
+                        "book_count": actual,
+                        "expected_count": expected,
+                        "missing_count": len(missing_indices),
+                        "missing_indices": missing_indices,
+                        "gap_description": ", ".join(gap_ranges) if gap_ranges else f"Missing {len(missing_indices)} volumes",
+                        "first_index": min_idx,
+                        "last_index": max_idx,
+                    })
 
-                # Add to incomplete if there are gaps
-                if missing_indices:
-                    incomplete_series.append(
-                        {
-                            "series_id": series.id,
-                            "name": series.name,
-                            "book_count": len(books),
-                            "expected_count": expected_count,
-                            "missing_count": len(missing_indices),
-                            "missing_indices": [int(idx) for idx in missing_indices],
-                            "gap_description": ", ".join(gap_ranges)
-                            if gap_ranges
-                            else f"Missing {len(missing_indices)} volumes",
-                            "first_index": min_index,
-                            "last_index": max_index,
-                        }
-                    )
+                first = books[0]
+                reading_order_suggestions.append({
+                    "series_id": s["id"],
+                    "series_name": s["name"],
+                    "first_book": {"id": first["id"], "title": first["title"], "series_index": first["series_index"]},
+                    "total_books": len(books),
+                    "reading_order": [{"index": b["series_index"], "title": b["title"], "book_id": b["id"]} for b in books],
+                    "is_complete": len(missing_indices) == 0,
+                    "completion_percentage": round(actual / expected * 100, 1) if expected > 0 else 0,
+                })
+        finally:
+            conn.close()
 
-                # Generate reading order suggestion
-                # Sort books by series_index
-                sorted_books = sorted(books, key=lambda b: b.series_index if b.series_index else 0)
-                first_book = sorted_books[0] if sorted_books else None
-
-                reading_order_suggestions.append(
-                    {
-                        "series_id": series.id,
-                        "series_name": series.name,
-                        "first_book": {
-                            "id": first_book.id if first_book else None,
-                            "title": first_book.title if first_book else "Unknown",
-                            "series_index": first_book.series_index if first_book else None,
-                        },
-                        "total_books": len(books),
-                        "reading_order": [
-                            {
-                                "index": book.series_index,
-                                "title": book.title,
-                                "book_id": book.id,
-                            }
-                            for book in sorted_books
-                        ],
-                        "is_complete": len(missing_indices) == 0,
-                        "completion_percentage": round(
-                            (actual_count / expected_count * 100) if expected_count > 0 else 0,
-                            1,
-                        ),
-                    }
-                )
-
-            # Calculate statistics
-            series_stats = {
+        total_series = len(series_rows)
+        return SeriesAnalysisResponse(
+            incomplete_series=incomplete_series,
+            reading_order_suggestions=reading_order_suggestions,
+            series_statistics={
                 "total_series": total_series,
                 "total_books_in_series": total_books_in_series,
                 "series_with_gaps": series_with_gaps,
-                "average_books_per_series": round(total_books_in_series / total_series, 2)
-                if total_series > 0
-                else 0,
+                "average_books_per_series": round(total_books_in_series / total_series, 2) if total_series else 0,
                 "complete_series_count": total_series - series_with_gaps,
                 "incomplete_series_count": series_with_gaps,
-            }
-
-            return SeriesAnalysisResponse(
-                incomplete_series=incomplete_series,
-                reading_order_suggestions=reading_order_suggestions,
-                series_statistics=series_stats,
-            )
-
+            },
+        )
     except Exception as e:
         logger.error(f"Error getting series analysis: {e}", exc_info=True)
-        # Return empty result on error
         return SeriesAnalysisResponse(
             incomplete_series=[],
             reading_order_suggestions=[],
-            series_statistics={
-                "total_series": 0,
-                "total_books_in_series": 0,
-                "series_with_gaps": 0,
-                "average_books_per_series": 0,
-                "complete_series_count": 0,
-                "incomplete_series_count": 0,
-            },
+            series_statistics={"total_series": 0, "total_books_in_series": 0, "series_with_gaps": 0,
+                               "average_books_per_series": 0, "complete_series_count": 0, "incomplete_series_count": 0},
         )
 
 
@@ -410,76 +291,88 @@ async def analyze_library_health() -> LibraryHealthResponse:
     """
     Analyze library health: check for missing files and DB integrity.
     """
-
     from ...config import CalibreConfig
-    from ...models.book import Book
+    from ...utils.library_utils import discover_calibre_libraries
 
     config = CalibreConfig()
     lib_path = config.local_library_path
-    db = DatabaseService()
-    issues = []
-    books_checked = 0
+    if not lib_path:
+        discovered = discover_calibre_libraries()
+        if discovered:
+            lib_path = next(iter(discovered.values()))
+
+    if not lib_path or not lib_path.exists():
+        return LibraryHealthResponse(
+            health_score=0.0,
+            issues_found=[{"issue": "No library path found — check CALIBRE_BASE_PATH or CALIBRE_LIBRARY_PATH"}],
+            recommendations=["Set CALIBRE_BASE_PATH or CALIBRE_LIBRARY_PATH to your Calibre library location."],
+            database_integrity=False,
+        )
+
+    metadata_db = lib_path / "metadata.db"
+    if not metadata_db.exists():
+        return LibraryHealthResponse(
+            health_score=0.0,
+            issues_found=[{"issue": f"metadata.db not found at {metadata_db}"}],
+            recommendations=["Verify the library path points to a valid Calibre library."],
+            database_integrity=False,
+        )
+
+    issues: list[dict[str, Any]] = []
     missing_files = 0
+    db_integrity_ok = False
 
     try:
-        with db.get_session() as session:
-            books = session.query(Book).all()
-            books_checked = len(books)
+        conn = sqlite3.connect(str(metadata_db), timeout=10)
+        conn.row_factory = sqlite3.Row
+        try:
+            integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
+            db_integrity_ok = (integrity == "ok")
+            if not db_integrity_ok:
+                issues.append({"issue": f"Database integrity check failed: {integrity}"})
 
-            for book in books:
-                for fmt in book.formats:
-                    if not lib_path:
-                        continue
-
-                    # Calibre file path: Author/Title/File.ext
-                    # Note: This is an approximation of the Calibre folder structure
-                    file_path = (
-                        lib_path
-                        / book.author_sort
-                        / book.title
-                        / f"{fmt.name}.{fmt.format.lower()}"
-                    )
-                    if not file_path.exists():
-                        # Try another common Calibre pattern
-                        file_path = (
-                            lib_path
-                            / book.authors[0].name
-                            / book.title
-                            / f"{fmt.name}.{fmt.format.lower()}"
-                        )
-                        if not file_path.exists():
-                            missing_files += 1
-                            issues.append(
-                                {
-                                    "book_id": book.id,
-                                    "title": book.title,
-                                    "format": fmt.format,
-                                    "issue": "Missing file",
-                                }
-                            )
+            rows = conn.execute(
+                "SELECT b.id, b.title, b.path, d.name, d.format "
+                "FROM books b JOIN data d ON d.book = b.id"
+            ).fetchall()
+            books_checked_ids: set[int] = set()
+            for row in rows:
+                book_id, title, book_path, fname, fmt = row["id"], row["title"], row["path"], row["name"], row["format"]
+                books_checked_ids.add(book_id)
+                file_path = lib_path / book_path / f"{fname}.{fmt.lower()}"
+                if not file_path.exists():
+                    missing_files += 1
+                    issues.append({"book_id": book_id, "title": title, "format": fmt, "issue": "Missing file"})
+            books_checked = len(books_checked_ids)
+        finally:
+            conn.close()
 
         health_score = 100.0
         if books_checked > 0:
-            health_score = max(0, 100.0 - (missing_files / books_checked * 100.0))
+            health_score = max(0.0, 100.0 - (missing_files / books_checked * 100.0))
+        if not db_integrity_ok:
+            health_score = min(health_score, 50.0)
 
-        recommendations = []
+        recommendations: list[str] = []
         if missing_files > 0:
-            recommendations.append(f"Restore {missing_files} missing files from backup.")
-        else:
-            recommendations.append("Library is physically healthy.")
+            recommendations.append(f"Restore {missing_files} missing book file(s) from backup.")
+        if not db_integrity_ok:
+            recommendations.append("Run 'calibredb check_library' to repair database integrity.")
+        if not issues:
+            recommendations.append("Library is healthy — all files present and database intact.")
 
         return LibraryHealthResponse(
             health_score=health_score,
-            issues_found=issues,
+            issues_found=issues[:50],
             recommendations=recommendations,
-            database_integrity=True,
+            database_integrity=db_integrity_ok,
         )
     except Exception as e:
         logger.exception(f"Health check failed: {e}")
         return LibraryHealthResponse(
             health_score=0.0,
-            issues_found=[],
-            recommendations=[],
+            issues_found=[{"issue": f"Health check error: {e}"}],
+            recommendations=["Check server logs for details."],
             database_integrity=False,
         )
 
@@ -487,26 +380,28 @@ async def analyze_library_health() -> LibraryHealthResponse:
 @mcp.tool()
 async def unread_priority_list() -> UnreadPriorityResponse:
     """
-    Austrian efficiency: Prioritize unread books.
+    Austrian efficiency: Prioritize unread books by rating.
     """
-    from ...models.book import Book
-
-    db = DatabaseService()
     try:
-        with db.get_session() as session:
-            # Simple priority: Highest rated unread books first
-            # Since we don't have a reliable 'unread' flag in base Calibre,
-            # we might use a tag or custom column if it becomes standard.
-            # For now, return all books sorted by rating.
-            books = session.query(Book).order_by(Book.rating.desc()).limit(20).all()
+        conn = _open_db()
+        if conn is None:
+            return UnreadPriorityResponse(prioritized_books=[], priority_reasons={}, total_unread=0)
+        try:
+            rows = conn.execute(
+                "SELECT b.id, b.title, r.rating "
+                "FROM books b LEFT JOIN ratings r ON r.id = ("
+                "  SELECT book_ratings_link.rating FROM books_ratings_link book_ratings_link "
+                "  WHERE book_ratings_link.book = b.id LIMIT 1"
+                ") ORDER BY r.rating DESC NULLS LAST LIMIT 20"
+            ).fetchall()
+        finally:
+            conn.close()
 
-            return UnreadPriorityResponse(
-                prioritized_books=[
-                    {"id": b.id, "title": b.title, "rating": b.rating} for b in books
-                ],
-                priority_reasons={"quality": "Sorted by highest rating"},
-                total_unread=len(books),
-            )
+        return UnreadPriorityResponse(
+            prioritized_books=[{"id": r["id"], "title": r["title"], "rating": r["rating"]} for r in rows],
+            priority_reasons={"quality": "Sorted by highest rating"},
+            total_unread=len(rows),
+        )
     except Exception:
         return UnreadPriorityResponse(prioritized_books=[], priority_reasons={}, total_unread=0)
 
@@ -516,29 +411,39 @@ async def reading_statistics() -> ReadingStats:
     """
     Generate reading analytics.
     """
-    from sqlalchemy import func
-
-    from ...models.book import Book
-
-    db = DatabaseService()
     try:
-        with db.get_session() as session:
-            total_books = session.query(func.count(Book.id)).scalar() or 0
-            avg_rating = session.query(func.avg(Book.rating)).scalar() or 0.0
+        conn = _open_db()
+        if conn is None:
+            return ReadingStats(total_books_read=0, average_rating=0.0, favorite_genres=[], reading_patterns={})
+        try:
+            total_books = conn.execute("SELECT COUNT(*) FROM books").fetchone()[0] or 0
+            rated_row = conn.execute(
+                "SELECT COUNT(*), AVG(r.rating) FROM ratings r "
+                "JOIN books_ratings_link brl ON brl.rating = r.id "
+                "WHERE r.rating > 0"
+            ).fetchone()
+            rated_count = int(rated_row[0] or 0)
+            # Calibre stores ratings as 0-10 (multiples of 2); divide by 2 for 0-5 star scale
+            avg_rating_raw = float(rated_row[1] or 0.0)
+            avg_rating_stars = round(avg_rating_raw / 2.0, 2) if rated_count > 0 else 0.0
+        finally:
+            conn.close()
 
-            # Since we don't have a "read" status in base Calibre,
-            # we consider all books in this simplified version.
-            return ReadingStats(
-                total_books_read=total_books,
-                average_rating=float(avg_rating),
-                favorite_genres=[],
-                reading_patterns={"total_collection_size": total_books},
-            )
+        return ReadingStats(
+            # Note: Calibre has no explicit 'read' tracking; total_books_read = library size
+            total_books_read=total_books,
+            # average_rating is on the 0–5 star scale (Calibre stores 0–10 internally)
+            average_rating=avg_rating_stars,
+            favorite_genres=[],
+            reading_patterns={
+                "total_collection_size": total_books,
+                "rated_books_count": rated_count,
+                "note": (
+                    "total_books_read = total library size (Calibre has no read/unread tracking). "
+                    "average_rating is on a 0-5 star scale, computed over rated books only."
+                ),
+            },
+        )
     except Exception as e:
         logger.exception(f"Reading stats failed: {e}")
-        return ReadingStats(
-            total_books_read=0,
-            average_rating=0.0,
-            favorite_genres=[],
-            reading_patterns={},
-        )
+        return ReadingStats(total_books_read=0, average_rating=0.0, favorite_genres=[], reading_patterns={})

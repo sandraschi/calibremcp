@@ -71,8 +71,13 @@ async def search_fulltext(
                 resolve_locations,
             )
 
-    @handle_tool_error(logger, "search_fulltext")
     def _run() -> dict[str, Any]:
+        try:
+            return _run_inner()
+        except Exception as e:
+            return handle_tool_error(e, tool_name="search_fulltext")
+
+    def _run_inner() -> dict[str, Any]:
         limit_val = max(1, min(200, limit))
         offset_val = max(0, offset)
 
@@ -80,13 +85,17 @@ async def search_fulltext(
             db = get_database()
         except RuntimeError:
             return format_error_response(
-                error_msg="No library loaded. Use manage_libraries(operation='list') then operation='switch')."
+                error_msg="No library loaded. Use manage_libraries(operation='list') then operation='switch').",
+                error_code="NO_LIBRARY",
+                error_type="RuntimeError",
             )
 
         meta_path = db.get_current_path()
         if not meta_path:
             return format_error_response(
-                error_msg="Current library path unknown. Switch library with manage_libraries(operation='switch')."
+                error_msg="Current library path unknown. Switch library with manage_libraries(operation='switch').",
+                error_code="NO_LIBRARY_PATH",
+                error_type="RuntimeError",
             )
 
         fts_path = find_fts_database(Path(meta_path))
@@ -96,7 +105,9 @@ async def search_fulltext(
                     "Full-text search database not found. Calibre creates full-text-search.db "
                     "in the library folder when FTS is enabled. Enable FTS in Calibre and run "
                     "indexing, or use query_books to search metadata only."
-                )
+                ),
+                error_code="FTS_NOT_FOUND",
+                error_type="FileNotFoundError",
             )
 
         used_fts5 = True

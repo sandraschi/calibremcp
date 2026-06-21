@@ -7,7 +7,7 @@ try:
     from fastmcp import MCPTool, Param
 except ImportError:
     from ..compat import MCPTool, Param
-from calibre_plugins.calibremcp.storage.local import LocalStorage
+from calibre_mcp.storage.local import LocalStorage
 
 
 class AddBooksTool(MCPTool):

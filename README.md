@@ -95,3 +95,20 @@ npx mcpb install calibre-mcp
 - **Windows-native** — Unicode-safe, runs reliably on Windows
 
 *Austrian efficiency for digital libraries. Built with realistic AI-assisted development timelines.*
+
+---
+
+## Known Limitations / Prerequisites
+
+Some tools depend on external setup steps and cannot work without them. These are environmental
+limits — not code bugs:
+
+| Tool | Prerequisite | How to enable |
+|------|-------------|---------------|
+| `search_fulltext` | Calibre full-text-search.db | Open Calibre → Preferences → Searching → Enable Full-text Searching, then index your library |
+| `calibre_metadata_search` | LanceDB vector index | Run `calibre_metadata_index_build` once (async, populates the index) |
+| `rag_retrieve` | Ollama + embedding model | Install [Ollama](https://ollama.ai), pull an embedding model (e.g. `ollama pull nomic-embed-text`), then run `rag_index_build` |
+| `media_research_book` / `media_synopsis` / `media_critical_reception` / `media_deep_research` | MCP sampling (ctx.sample) | Requires a sampling-capable client such as Claude Desktop or Cursor; not available in Claude Code |
+| `calibre_rag` (agentic flow) | MCP sampling | Same as above |
+
+All other tools work in local SQLite mode without any external services.

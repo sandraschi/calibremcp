@@ -87,7 +87,7 @@ class SeriesManager(MCPTool):
         Returns:
             Dictionary with series analysis results
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         books = await storage.get_all_books()
@@ -122,7 +122,7 @@ class SeriesManager(MCPTool):
         Returns:
             Dictionary with results of the operation
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         books = await storage.get_all_books()
@@ -226,7 +226,7 @@ class SeriesManager(MCPTool):
         Returns:
             Dictionary with results of the merge operation
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         if source_series == target_series:
             return {"success": False, "error": "Source and target series cannot be the same"}

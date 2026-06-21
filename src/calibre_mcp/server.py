@@ -212,6 +212,19 @@ async def server_lifespan(mcp_instance: FastMCP):
 
     await _probe_calibre_connectivity(lifespan_log)
 
+    # Initialize the database singleton at startup so the first tool call doesn't fail
+    # with "Database not initialized". ensure_db_initialized() is idempotent and safe.
+    try:
+        from .tools.shared.db_init import ensure_db_initialized
+
+        init_err = ensure_db_initialized()
+        if init_err:
+            lifespan_log.warning("SERVER LIFESPAN: DB not initialized at startup: %s", init_err)
+        else:
+            lifespan_log.info("SERVER LIFESPAN: database initialized")
+    except Exception as e:
+        lifespan_log.warning("SERVER LIFESPAN: DB init raised: %s", e)
+
     lifespan_log.info("SERVER LIFESPAN: connectivity probe passed, server ready")
     yield
     lifespan_log.info("SERVER LIFESPAN: shutdown complete")
@@ -578,7 +591,8 @@ async def discover_libraries() -> dict[str, str]:
         libraries["main"] = str(config.local_library_path)
 
     # Discover additional libraries — shallow scan, same logic as startup probe
-    base_dir = Path("L:/Multimedia Files/Written Word")
+    _base_str = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+    base_dir = Path(_base_str) if _base_str else Path("L:/Multimedia Files/Written Word")
     if base_dir.exists():
         for item in base_dir.iterdir():
             if item.is_dir() and (item / "metadata.db").exists():

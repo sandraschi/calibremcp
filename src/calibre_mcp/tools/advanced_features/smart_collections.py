@@ -176,7 +176,7 @@ class SmartCollectionsTool(MCPTool):
         collection = self._collections[collection_id]
 
         # Get all books from the library
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         all_books = await storage.get_all_books()

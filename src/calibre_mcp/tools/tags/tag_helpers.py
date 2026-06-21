@@ -7,14 +7,20 @@ by the manage_tags portmanteau tool.
 
 from typing import Any
 
-from ...config import CalibreConfig
-from ...db.database import db as database_singleton
 from ...logging_config import get_logger
 from ...models.tag import TagCreate, TagUpdate
 from ...services.base_service import NotFoundError, ValidationError
 from ...services.tag_service import tag_service
+from ..shared.db_init import ensure_db_initialized
 
 logger = get_logger("calibremcp.tools.tags.helpers")
+
+
+def _db_error(msg: str | None) -> dict[str, Any]:
+    return {
+        "error": "No library loaded",
+        "message": msg or "Database not initialized.",
+    }
 
 
 async def list_tags_helper(
@@ -27,13 +33,11 @@ async def list_tags_helper(
     min_book_count: int | None = None,
     max_book_count: int | None = None,
 ) -> dict[str, Any]:
-    """Helper function - NOT registered as MCP tool. Uses DatabaseService (same as books/authors)."""
+    """Helper function - NOT registered as MCP tool."""
     try:
-        if not database_singleton._engine or not database_singleton._current_db_path:
-            return {
-                "error": "No library loaded",
-                "message": "Database not initialized. Use manage_libraries(operation='switch') or ensure webapp backend has loaded a library at startup.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         return tag_service.get_all(
             skip=offset,
@@ -48,40 +52,24 @@ async def list_tags_helper(
 
     except Exception as e:
         logger.error(f"Error listing tags: {e}", exc_info=True)
-        return {
-            "error": str(e),
-            "items": [],
-            "total": 0,
-            "page": 1,
-            "per_page": limit,
-            "total_pages": 0,
-        }
+        return {"error": str(e), "items": [], "total": 0, "page": 1, "per_page": limit, "total_pages": 0}
 
 
 async def get_tag_helper(tag_id: int | None = None, tag_name: str | None = None) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         if tag_id:
             result = tag_service.get_by_id(tag_id)
         elif tag_name:
             result = tag_service.get_by_name(tag_name)
             if not result:
-                return {
-                    "error": "Tag not found",
-                    "message": f"Tag with name '{tag_name}' not found",
-                }
+                return {"error": "Tag not found", "message": f"Tag with name '{tag_name}' not found"}
         else:
-            return {
-                "error": "Missing parameter",
-                "message": "Either tag_id or tag_name must be provided",
-            }
+            return {"error": "Missing parameter", "message": "Either tag_id or tag_name must be provided"}
 
         return result
 
@@ -95,12 +83,9 @@ async def get_tag_helper(tag_id: int | None = None, tag_name: str | None = None)
 async def create_tag_helper(name: str) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         return tag_service.create(TagCreate(name=name))
 
@@ -114,12 +99,9 @@ async def create_tag_helper(name: str) -> dict[str, Any]:
 async def update_tag_helper(tag_id: int, name: str) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         return tag_service.update(tag_id, TagUpdate(name=name))
 
@@ -135,12 +117,9 @@ async def update_tag_helper(tag_id: int, name: str) -> dict[str, Any]:
 async def delete_tag_helper(tag_id: int, force: bool = False) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         result = tag_service.delete(tag_id, force=force)
         return {"success": result, "message": f"Tag {tag_id} deleted successfully"}
@@ -155,40 +134,24 @@ async def delete_tag_helper(tag_id: int, force: bool = False) -> dict[str, Any]:
 async def find_duplicate_tags_helper(similarity_threshold: float = 0.8) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         duplicates = tag_service.find_duplicates(similarity_threshold=similarity_threshold)
-
-        return {
-            "duplicate_groups": duplicates,
-            "total_duplicates": len(duplicates),
-            "similarity_threshold": similarity_threshold,
-        }
+        return {"duplicate_groups": duplicates, "total_duplicates": len(duplicates), "similarity_threshold": similarity_threshold}
 
     except Exception as e:
         logger.error(f"Error finding duplicate tags: {e}", exc_info=True)
-        return {
-            "error": str(e),
-            "duplicate_groups": [],
-            "total_duplicates": 0,
-            "similarity_threshold": similarity_threshold,
-        }
+        return {"error": str(e), "duplicate_groups": [], "total_duplicates": 0, "similarity_threshold": similarity_threshold}
 
 
 async def merge_tags_helper(source_tag_ids: list[int], target_tag_id: int) -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         return tag_service.merge_tags(source_tag_ids, target_tag_id)
 
@@ -204,12 +167,9 @@ async def merge_tags_helper(source_tag_ids: list[int], target_tag_id: int) -> di
 async def get_unused_tags_helper() -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         unused_tags = tag_service.get_unused_tags()
         return {"unused_tags": unused_tags, "count": len(unused_tags)}
@@ -222,12 +182,9 @@ async def get_unused_tags_helper() -> dict[str, Any]:
 async def delete_unused_tags_helper() -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         return tag_service.delete_unused_tags()
 
@@ -239,12 +196,9 @@ async def delete_unused_tags_helper() -> dict[str, Any]:
 async def get_tag_statistics_helper() -> dict[str, Any]:
     """Helper function - NOT registered as MCP tool."""
     try:
-        config = CalibreConfig()
-        if not config.local_library_path:
-            return {
-                "error": "No library configured",
-                "message": "Please use manage_libraries(operation='switch') to configure a library first.",
-            }
+        err = ensure_db_initialized()
+        if err:
+            return _db_error(err)
 
         return tag_service.get_tag_statistics()
 

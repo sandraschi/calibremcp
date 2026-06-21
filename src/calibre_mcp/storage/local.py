@@ -60,8 +60,11 @@ class LocalStorage(StorageBackend):
                         return db_path
 
         # Try default locations if not found in specified path
-        default_paths = [
-            Path("L:/Multimedia Files/Written Word/Main Library/metadata.db"),
+        import os as _os
+        _bp = _os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+        default_paths = (
+            [Path(_bp) / "metadata.db"] if _bp else []
+        ) + [
             Path.home() / "Calibre Library/metadata.db",
             Path("C:/Calibre Library/metadata.db"),
         ]

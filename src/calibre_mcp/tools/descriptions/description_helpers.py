@@ -8,6 +8,7 @@ from typing import Any
 
 from ...logging_config import get_logger
 from ...services.description_service import get_description_service
+from ..shared.db_init import ensure_db_initialized
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.descriptions")
@@ -21,6 +22,9 @@ async def list_descriptions_helper(
 ) -> dict[str, Any]:
     """List books with description info. Optional search in description text."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_description_service()
         return svc.get_all(
             skip=offset,
@@ -41,6 +45,9 @@ async def list_descriptions_helper(
 async def get_description_helper(book_id: int) -> dict[str, Any]:
     """Get description for a book."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_description_service()
         return svc.get_by_book_id(book_id)
     except Exception as e:
@@ -58,6 +65,9 @@ async def get_description_helper(book_id: int) -> dict[str, Any]:
 async def get_description_stats_helper() -> dict[str, Any]:
     """Get description coverage statistics."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_description_service()
         return svc.get_stats()
     except Exception as e:
@@ -73,6 +83,9 @@ async def get_description_stats_helper() -> dict[str, Any]:
 async def get_descriptions_by_letter_helper(letter: str) -> dict[str, Any]:
     """Get books with descriptions whose title starts with letter."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         if len(letter) != 1 or not letter.isalpha():
             return format_error_response(
                 error_msg=f"Invalid letter: '{letter}'. Must be a single alphabetic character.",

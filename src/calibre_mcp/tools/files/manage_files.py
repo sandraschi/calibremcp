@@ -27,7 +27,7 @@ async def manage_files(
     # Bulk operation parameters
     operation_type: str | None = None,
     target_format: str | None = None,
-    book_ids: list[int] | None = None,
+    book_ids: list[int] | str | None = None,  # list[int] or CSV string "1,2,3"
 ) -> dict[str, Any]:
     """
     Comprehensive book file management and format conversion.
@@ -111,14 +111,30 @@ async def manage_files(
                         "Provide operation_type parameter (e.g., operation_type='convert')",
                         "Valid values: 'convert', 'validate', 'cleanup'",
                         "For 'convert', also provide target_format parameter",
+                        "book_ids accepts a JSON list ([1,2,3]) or a comma-separated string ('1,2,3')",
                     ],
                     related_tools=["manage_files"],
                 )
+            # Normalise book_ids: accept both a JSON list and a CSV string for parity with
+            # other tools (e.g. rag_retrieve) that accept comma-separated IDs.
+            normalised_ids: list[int] | None = book_ids
+            if isinstance(book_ids, str):
+                try:
+                    normalised_ids = [int(x.strip()) for x in book_ids.split(",") if x.strip()]
+                except ValueError:
+                    return format_error_response(
+                        error_msg=f"book_ids could not be parsed as integers: '{book_ids}'",
+                        error_code="INVALID_BOOK_IDS",
+                        error_type="ValueError",
+                        operation=operation,
+                        suggestions=["Provide book_ids as a JSON list ([1,2,3]) or CSV string ('1,2,3')"],
+                        related_tools=["manage_files"],
+                    )
             try:
                 return await file_operations.bulk_format_operations_helper(
                     operation_type=operation_type,
                     target_format=target_format,
-                    book_ids=book_ids,
+                    book_ids=normalised_ids,
                 )
             except Exception as e:
                 return handle_tool_error(

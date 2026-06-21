@@ -107,7 +107,7 @@ class EnhancedMetadataTools(MCPTool):
         options: dict | None = None,
     ) -> dict:
         """Enhance metadata for one or more books."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         opts = MetadataEnhancementOptions(**(options or {}))
@@ -188,7 +188,7 @@ class EnhancedMetadataTools(MCPTool):
         options: dict | None = None,
     ) -> dict:
         """Standardize metadata across books according to specified rules."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         opts = MetadataStandardizationOptions(**(options or {}))

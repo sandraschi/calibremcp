@@ -2,32 +2,17 @@
 Specialized tools for CalibreMCP.
 
 NOTE: Only portmanteau tools are registered with @mcp.tool() and visible to Claude.
-Helper functions are imported but NOT registered (they have no @mcp.tool() decorator).
+The individual specialized helpers were never implemented (empty stubs) and have been
+removed; reintroduce them alongside a real manage_specialized portmanteau when needed.
 """
-
-# Helper functions (no @mcp.tool(); kept for reference / future manage_specialized)
-from .specialized_tools import (
-    it_book_curator_helper,
-    japanese_book_organizer_helper,
-    reading_recommendations_helper,
-)
 
 # Portmanteau tool: optional until manage_specialized.py exists
 try:
     from .manage_specialized import manage_specialized
 
     tools = [manage_specialized]
-    __all__ = [
-        "manage_specialized",
-        "it_book_curator_helper",
-        "japanese_book_organizer_helper",
-        "reading_recommendations_helper",
-    ]
+    __all__ = ["manage_specialized"]
 except ModuleNotFoundError:
     manage_specialized = None  # type: ignore[misc, assignment]
     tools = []
-    __all__ = [
-        "it_book_curator_helper",
-        "japanese_book_organizer_helper",
-        "reading_recommendations_helper",
-    ]
+    __all__ = []

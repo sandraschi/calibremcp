@@ -6,9 +6,9 @@ Uses DatabaseService (same as books, authors, tags) for library context.
 
 from typing import Any
 
-from ...db.database import db as database_singleton
 from ...logging_config import get_logger
 from ...services.publisher_service import get_publisher_service
+from ..shared.db_init import ensure_db_initialized
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.publishers")
@@ -21,16 +21,9 @@ async def list_publishers_helper(
 ) -> dict[str, Any]:
     """List publishers with filtering and pagination. Uses DatabaseService (same as books/authors/tags)."""
     try:
-        if not database_singleton._engine or not database_singleton._current_db_path:
-            return {
-                "error": "No library loaded",
-                "message": "Database not initialized. Ensure a library is loaded at startup.",
-                "items": [],
-                "total": 0,
-                "page": 1,
-                "per_page": limit,
-                "total_pages": 0,
-            }
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err, "items": [], "total": 0, "page": 1, "per_page": limit, "total_pages": 0}
         svc = get_publisher_service()
         return svc.get_all(
             skip=offset,
@@ -55,6 +48,9 @@ async def get_publisher_helper(
 ) -> dict[str, Any]:
     """Get publisher details by ID or name."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_publisher_service()
         if publisher_id is not None:
             return svc.get_by_id(publisher_id)
@@ -90,6 +86,9 @@ async def get_publisher_books_helper(
 ) -> dict[str, Any]:
     """Get books by publisher."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_publisher_service()
         if publisher_id is None and not publisher_name:
             return format_error_response(
@@ -121,6 +120,9 @@ async def get_publisher_books_helper(
 async def get_publisher_stats_helper() -> dict[str, Any]:
     """Get publisher statistics."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         svc = get_publisher_service()
         return svc.get_stats()
     except Exception as e:
@@ -136,6 +138,9 @@ async def get_publisher_stats_helper() -> dict[str, Any]:
 async def get_publishers_by_letter_helper(letter: str) -> dict[str, Any]:
     """Get publishers by first letter of name."""
     try:
+        err = ensure_db_initialized()
+        if err:
+            return {"error": "No library loaded", "message": err}
         if len(letter) != 1 or not letter.isalpha():
             return format_error_response(
                 error_msg=f"Invalid letter: '{letter}'. Must be a single alphabetic character.",

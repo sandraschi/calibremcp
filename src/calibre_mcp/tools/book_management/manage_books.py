@@ -146,12 +146,17 @@ async def manage_books(
                     related_tools=["query_books", "manage_books"],
                 )
             try:
-                from ...server import BookDetailResponse, current_library, get_api_client
+                from ...services.base_service import NotFoundError
+                from ...services.book_service import book_service
+                from ..shared.db_init import ensure_db_initialized
 
-                client = await get_api_client()
-                book_data = await client.get_book_details(int(book_id))
+                err = ensure_db_initialized()
+                if err:
+                    return {"success": False, "error": err, "book_id": book_id}
 
-                if not book_data:
+                try:
+                    book_data = book_service.get_by_id(int(book_id))
+                except NotFoundError:
                     return {
                         "success": False,
                         "error": f"Book with id {book_id} not found",
@@ -160,24 +165,7 @@ async def manage_books(
 
                 return {
                     "success": True,
-                    "book": BookDetailResponse(
-                        book_id=int(book_id),
-                        title=book_data.get("title", "Unknown"),
-                        authors=book_data.get("authors", []),
-                        series=book_data.get("series"),
-                        series_index=book_data.get("series_index"),
-                        rating=book_data.get("rating"),
-                        tags=book_data.get("tags", []),
-                        comments=book_data.get("comments"),
-                        published=book_data.get("published"),
-                        languages=book_data.get("languages", ["en"]),
-                        formats=book_data.get("formats", []),
-                        identifiers=book_data.get("identifiers", {}),
-                        last_modified=book_data.get("last_modified"),
-                        cover_url=book_data.get("cover_url"),
-                        download_links=book_data.get("download_links", {}),
-                        library_name=current_library,
-                    ).dict(),
+                    "book": book_data,
                 }
             except Exception as e:
                 return handle_tool_error(

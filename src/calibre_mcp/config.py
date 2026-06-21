@@ -350,7 +350,6 @@ class CalibreConfig(BaseModel):
                     user_library_path = Path("L:/Multimedia Files/Written Word")
                     preferred_library = None
                     for _, lib_info in libraries.items():
-                        # Check if library is in the user's preferred location
                         try:
                             if lib_info.path.is_relative_to(user_library_path) or str(
                                 lib_info.path
@@ -358,12 +357,10 @@ class CalibreConfig(BaseModel):
                                 preferred_library = lib_info
                                 break
                         except (ValueError, AttributeError):
-                            # Path comparison failed, try string comparison
                             if str(lib_info.path).startswith(str(user_library_path)):
                                 preferred_library = lib_info
                                 break
 
-                    # Use preferred library if found, otherwise use first library
                     if preferred_library:
                         self.local_library_path = preferred_library.path
                     else:

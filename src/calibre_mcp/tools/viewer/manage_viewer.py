@@ -251,8 +251,10 @@ async def manage_viewer(
                 related_tools=["query_books", "manage_viewer"],
             )
 
-        # For open_file: resolve file_path from book_id if not provided (webapp sends only book_id)
-        if operation == "open_file" and not file_path:
+        # Resolve file_path from book_id when not explicitly provided.
+        # Previously only open_file did this; now all viewer operations that need a file path
+        # benefit from automatic resolution so callers can pass just book_id.
+        if not file_path and book_id:
             try:
                 import re
 

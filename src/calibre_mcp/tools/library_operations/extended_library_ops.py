@@ -73,7 +73,7 @@ class ExtendedLibraryOperations(MCPTool):
     # Library Analysis
     async def analyze_library(self, library_path: str) -> dict:
         """Generate detailed statistics about the library."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         books = await storage.get_all_books()
@@ -151,7 +151,7 @@ class ExtendedLibraryOperations(MCPTool):
         min_similarity: float = 0.9,
     ) -> dict:
         """Find duplicate books in the library."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         if check_fields is None:
             check_fields = ["title", "authors"]
@@ -584,7 +584,7 @@ class ExtendedLibraryOperations(MCPTool):
 
     async def _find_orphaned_files(self, library_path: str) -> dict:
         """Find files in the library that are not referenced in the database."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         books = await storage.get_all_books()

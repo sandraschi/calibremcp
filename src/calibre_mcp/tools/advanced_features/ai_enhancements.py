@@ -82,8 +82,8 @@ class AIEnhancementsTool(MCPTool):
             fields: List of fields to generate (if None, all missing fields)
             library_path: Path to the Calibre library
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
-        from calibre_plugins.calibremcp.tools.metadata.update_metadata import UpdateMetadataTool
+        from calibre_mcp.storage.local import LocalStorage
+        from calibre_mcp.tools.metadata.update_metadata import UpdateMetadataTool
 
         storage = LocalStorage(library_path)
         metadata = await storage.get_metadata(book_id)
@@ -124,7 +124,7 @@ class AIEnhancementsTool(MCPTool):
             limit: Maximum number of recommendations to return
             library_path: Path to the Calibre library
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         metadata = await storage.get_metadata(book_id)
@@ -183,7 +183,7 @@ class AIEnhancementsTool(MCPTool):
             book_id: ID of the book to summarize
             library_path: Path to the Calibre library
         """
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
         book_path = storage.get_book_path(book_id)

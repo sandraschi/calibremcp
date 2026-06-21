@@ -18,6 +18,7 @@ from typing import Any
 from ...logging_config import get_logger
 from ...services.book_service import book_service
 from ...utils.subprocess_utils import _cmd, _open_file
+from ..shared.db_init import ensure_db_initialized
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -97,6 +98,9 @@ def _get_books_for_export(
     limit: int = 1000,
 ) -> list[dict[str, Any]]:
     """Helper to get books for export (shared logic)."""
+    err = ensure_db_initialized()
+    if err:
+        raise RuntimeError(err)
     if book_ids:
         books = []
         for book_id in book_ids:
@@ -164,16 +168,21 @@ def _get_library_stats_for_export(
 
     for book in books:
         for a in book.get("authors") or []:
-            authors_count[a] += 1
+            aname = a.get("name", str(a)) if isinstance(a, dict) else str(a)
+            if aname:
+                authors_count[aname] += 1
         s = book.get("series")
         if s:
             name = s.get("name", str(s)) if isinstance(s, dict) else str(s)
             if name:
                 series_count[name] += 1
         for t in book.get("tags") or []:
-            tags_count[t] += 1
+            tname = t.get("name", str(t)) if isinstance(t, dict) else str(t)
+            if tname:
+                tags_count[tname] += 1
         for fmt in book.get("formats") or []:
-            format_dist[fmt.lower() if isinstance(fmt, str) else str(fmt).lower()] += 1
+            fmt_name = fmt.get("format", str(fmt)) if isinstance(fmt, dict) else str(fmt)
+            format_dist[fmt_name.lower()] += 1
 
     def top_n(d: dict[str, int], n: int = 10) -> list[dict[str, Any]]:
         sorted_items = sorted(d.items(), key=lambda x: (-x[1], x[0]))[:n]

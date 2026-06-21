@@ -21,7 +21,7 @@ class LibraryStatsTool(MCPTool):
 
     async def _run(self, library_path: str | None = None, include_breakdown: bool = False) -> dict:
         """Generate library statistics."""
-        from calibre_plugins.calibremcp.storage.local import LocalStorage
+        from calibre_mcp.storage.local import LocalStorage
 
         storage = LocalStorage(library_path)
 

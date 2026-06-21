@@ -9,9 +9,23 @@ from typing import Any
 
 from ...logging_config import get_logger
 from ...services.author_service import author_service
+from ..shared.db_init import ensure_db_initialized
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.authors")
+
+
+def _no_library_error(msg: str, operation: str) -> dict[str, Any]:
+    return format_error_response(
+        error_msg=msg,
+        error_code="NO_LIBRARY",
+        error_type="RuntimeError",
+        operation=operation,
+        suggestions=[
+            "Set CALIBRE_BASE_PATH or CALIBRE_LIBRARY_PATH",
+            "Use manage_libraries(operation='list') to see available libraries",
+        ],
+    )
 
 
 async def list_authors_helper(
@@ -31,6 +45,9 @@ async def list_authors_helper(
         Dictionary with paginated author results
     """
     try:
+        err = ensure_db_initialized()
+        if err:
+            return _no_library_error(err, "list")
         # Use search_authors method which handles async wrapper
         # The service method is sync, but we're calling it from async context
         return author_service.get_all(
@@ -61,6 +78,9 @@ async def get_author_helper(author_id: int) -> dict[str, Any]:
         Dictionary with author details
     """
     try:
+        err = ensure_db_initialized()
+        if err:
+            return _no_library_error(err, "get")
         return author_service.get_by_id(author_id)
     except Exception as e:
         logger.error(f"Error getting author {author_id}: {e}", exc_info=True)
@@ -93,6 +113,9 @@ async def get_author_books_helper(
         Dictionary with author info and paginated books
     """
     try:
+        err = ensure_db_initialized()
+        if err:
+            return _no_library_error(err, "get_books")
         # Get author info first
         author = author_service.get_by_id(author_id)
 
@@ -129,6 +152,9 @@ async def get_author_stats_helper() -> dict[str, Any]:
         Dictionary with author statistics
     """
     try:
+        err = ensure_db_initialized()
+        if err:
+            return _no_library_error(err, "stats")
         return author_service.get_author_stats()
     except Exception as e:
         logger.error(f"Error getting author statistics: {e}", exc_info=True)
@@ -151,6 +177,9 @@ async def get_authors_by_letter_helper(letter: str) -> dict[str, Any]:
         Dictionary with authors list or error response
     """
     try:
+        err = ensure_db_initialized()
+        if err:
+            return _no_library_error(err, "by_letter")
         if len(letter) != 1 or not letter.isalpha():
             return format_error_response(
                 error_msg=f"Invalid letter: '{letter}'. Must be a single alphabetic character.",

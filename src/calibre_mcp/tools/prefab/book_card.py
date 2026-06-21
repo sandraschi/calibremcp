@@ -21,7 +21,7 @@ from calibre_mcp.services.book_service import book_service
 
 logger = get_logger("calibremcp.tools.prefab.book_card")
 
-_MAX_COVER_BYTES = 512_000
+_MAX_COVER_BYTES = 30_000  # 30 KB raw → ~40 KB base64; larger covers are omitted to stay within token limits
 
 
 def _cover_data_uri(book_id: int) -> str | None:
@@ -29,7 +29,7 @@ def _cover_data_uri(book_id: int) -> str | None:
     if not raw:
         return None
     if len(raw) > _MAX_COVER_BYTES:
-        raw = raw[:_MAX_COVER_BYTES]
+        return None  # Cover too large — omit rather than embed a corrupt partial image
     if raw[:8] == b"\x89PNG\r\n\x1a\n":
         mime = "image/png"
     elif raw[:2] == b"\xff\xd8":

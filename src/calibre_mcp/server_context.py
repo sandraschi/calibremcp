@@ -4,6 +4,7 @@ Server context - holds get_api_client, current_library, etc.
 Extracted to break circular import: tools import from here instead of server.
 """
 
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -45,8 +46,9 @@ async def discover_libraries() -> dict[str, Any]:
     if config.local_library_path and config.local_library_path.exists():
         libraries["main"] = str(config.local_library_path)
 
-    base_dir = Path("L:/Multimedia Files/Written Word")
-    if base_dir.exists():
+    _bp = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+    base_dir = Path(_bp) if _bp else None
+    if base_dir and base_dir.exists():
         for item in base_dir.iterdir():
             if item.is_dir() and (item / "metadata.db").exists():
                 libraries[item.name] = str(item)
