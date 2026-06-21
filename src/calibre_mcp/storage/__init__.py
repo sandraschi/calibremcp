@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
-from .local import LocalStorage
-from .remote import RemoteStorage
 
 
 class StorageBackend(ABC):
@@ -16,17 +14,21 @@ class StorageBackend(ABC):
     @abstractmethod
     async def list_books(self, **filters) -> list[Book]:
         """List books with optional filtering"""
-        pass
 
     @abstractmethod
     async def get_book(self, book_id: int | str) -> Book | None:
         """Get a book by ID"""
-        pass
 
     @abstractmethod
     async def get_library_info(self) -> LibraryInfo:
         """Get library metadata"""
-        pass
+
+
+# Concrete implementations imported AFTER the ABC so that local.py / remote.py
+# can do ``from . import StorageBackend`` without hitting a partially-initialized
+# module (circular-import guard).
+from .local import LocalStorage  # noqa: E402
+from .remote import RemoteStorage  # noqa: E402
 
 
 def get_storage_backend(server_name: str | None = None, **kwargs) -> StorageBackend:

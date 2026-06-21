@@ -10,6 +10,7 @@ import contextlib
 import importlib
 import inspect
 import logging
+import os as _os
 import pkgutil
 from collections.abc import Callable
 from functools import wraps
@@ -26,8 +27,7 @@ TOOL_REGISTRY: dict[str, dict[str, Any]] = {}
 
 __all__ = ["BaseTool", "mcp_tool"]
 
-# Base directory for Calibre libraries
-import os as _os
+# Base directory for Calibre libraries (override via CALIBRE_BASE_PATH env var)
 _bp = _os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
 CALIBRE_BASE_DIR = Path(_bp) if _bp else Path("L:/Multimedia Files/Written Word")
 
@@ -241,7 +241,6 @@ def register_tools(mcp: Any) -> None:
             importlib.import_module("calibre_mcp.tools.extended_metadata")
             importlib.import_module("calibre_mcp.tools.import_export.manage_import")
             importlib.import_module("calibre_mcp.tools.organization")
-            importlib.import_module("calibre_mcp.tools.specialized")
             importlib.import_module("calibre_mcp.tools.times")
             importlib.import_module("calibre_mcp.tools.user_comments")
             importlib.import_module("calibre_mcp.tools.user_management")

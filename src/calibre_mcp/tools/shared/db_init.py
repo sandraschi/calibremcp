@@ -16,7 +16,8 @@ def ensure_db_initialized() -> str | None:
 
     Returns None on success, or an error string if no library can be found.
     """
-    from ...db.database import db as database_singleton, init_database
+    from ...db.database import db as database_singleton
+    from ...db.database import init_database
 
     if database_singleton._engine is not None:
         return None  # already initialized

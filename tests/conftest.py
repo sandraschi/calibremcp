@@ -21,6 +21,26 @@ logging.basicConfig(
 )
 
 
+@pytest.fixture(scope="session", autouse=True)
+def ensure_test_db():
+    """Auto-generate the test Calibre database if it is missing.
+
+    Imports create_test_database from scripts/create_test_db.py and runs it
+    so the test library fixture has a real metadata.db with sample books
+    (Arthur Conan Doyle, Jane Austen, Mark Twain) before any test starts.
+    """
+    db_path = Path(__file__).parent / "fixtures" / "test_library" / "metadata.db"
+    if not db_path.exists():
+        scripts_dir = Path(__file__).parent.parent / "scripts"
+        sys.path.insert(0, str(scripts_dir))
+        try:
+            from create_test_db import create_test_database  # type: ignore[import]
+
+            create_test_database()
+        finally:
+            sys.path.pop(0)
+
+
 @pytest.fixture(scope="session")
 def test_library_path():
     """Path to the test library directory."""
@@ -28,15 +48,9 @@ def test_library_path():
 
 
 @pytest.fixture(scope="session")
-def test_db_path(test_library_path):
-    """Path to the test database."""
-    db_path = test_library_path / "metadata.db"
-    if not db_path.exists():
-        pytest.fail(
-            f"Test database not found at {db_path}. "
-            f"Run 'python scripts/create_test_db.py' to create it."
-        )
-    return db_path
+def test_db_path(test_library_path, ensure_test_db):  # noqa: ARG001
+    """Path to the test database (auto-generated if absent)."""
+    return test_library_path / "metadata.db"
 
 
 @pytest.fixture(scope="function")

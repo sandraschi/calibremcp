@@ -84,11 +84,11 @@ style = "pep440"
 calibre_mcp = ["skills/**/*.md"]
 
 [tool.black]
-line-length = 100
-target-version = ["py311"]
+line-length = 120
+target-version = ["py312"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -100,10 +100,40 @@ dev = [
     "pytest-cov>=7.0.0",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = ["-v", "--strict-markers", "--tb=short", "--disable-warnings"]
+markers = [
+    "asyncio: marks tests as async (using pytest-asyncio)",
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests requiring a live Calibre library",
+    "slow: marks tests as slow running",
+    "performance: marks tests as performance tests",
+]
+
+[tool.coverage.run]
+source = ["src/calibre_mcp"]
+omit = ["*/tests/*", "*/test_*.py", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-exclude = ["mcpb", "webapp/frontend", "node_modules", "dist", ".venv"]
+exclude = ["mcpb", "calibre-plugins", "calibre_plugin", "scripts", "scratch", "webapp", "node_modules", "dist", ".venv", "setup.py", "repro_arxiv.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "T20", "RET", "SIM", "ARG", "PTH", "TRY"]
@@ -118,6 +148,11 @@ ignore = [
     "ARG002", # Unused method argument
     "S101",   # Use of assert (allow in this project)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S106"]          # Hardcoded passwords in test fixtures are expected
+"tests/portmanteau/**" = ["S603", "B007"]  # subprocess in test runner; unused loop vars
+"tools/**" = ["S607"]          # Root-level maintenance scripts use partial exe paths
 
 [tool.ruff.format]
 quote-style = "double"

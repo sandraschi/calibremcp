@@ -14,7 +14,6 @@ from ..book_tools import get_books_by_series_helper as _get_books_by_series_help
 
 # Import helper functions (NOT registered as MCP tools)
 from ..book_tools import search_books_helper as _search_books_helper
-from ..core.library_operations import list_books_helper as _list_books_helper
 from ..shared.error_handling import handle_tool_error
 from ..shared.query_parsing import parse_intelligent_query, strip_inventory_question_phrases
 

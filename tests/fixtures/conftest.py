@@ -1,6 +1,13 @@
 """Shared pytest fixtures for Calibre MCP tests."""
 
+from pathlib import Path
+
 import pytest
+
+
+def get_test_db_path() -> Path:
+    """Return the path to the shared test library metadata.db."""
+    return Path(__file__).parent / "test_library" / "metadata.db"
 
 
 @pytest.fixture

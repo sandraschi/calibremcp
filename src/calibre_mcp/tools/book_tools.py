@@ -760,7 +760,7 @@ async def search_books_helper(
                 except Exception:
                     logger.debug("Failed to resolve persisted library info")
         except (ImportError, AttributeError):
-            pass
+            pass  # storage module not available in test env or minimal startup — expected
 
         # 2. Try config.local_library_path
         if not target_library_path and config.local_library_path:

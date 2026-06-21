@@ -157,7 +157,7 @@ async def update_book_metadata_helper(
                 session = book_service.db.session
                 db_authors = session.query(Author).filter(Author.id.in_(value)).all()
                 found_ids = {a.id for a in db_authors}
-                missing = set(int(v) for v in value) - found_ids
+                missing = {int(v) for v in value} - found_ids
                 if missing:
                     failed_updates.append({
                         "book_id": book_id,
@@ -202,7 +202,7 @@ async def update_book_metadata_helper(
                 session = book_service.db.session
                 db_tags = session.query(Tag).filter(Tag.id.in_(value)).all()
                 found_ids = {t.id for t in db_tags}
-                missing = set(int(v) for v in value) - found_ids
+                missing = {int(v) for v in value} - found_ids
                 if missing:
                     failed_updates.append({
                         "book_id": book_id,

@@ -19,12 +19,12 @@ def discover_calibre_libraries() -> dict[str, Path]:
         Dict mapping library names to their paths
     """
     libraries = {}
-    CALIBRE_BASE_DIR = _get_base_dir()
+    calibre_base_dir = _get_base_dir()
 
-    if not CALIBRE_BASE_DIR.exists() or not CALIBRE_BASE_DIR.is_dir():
+    if not calibre_base_dir.exists() or not calibre_base_dir.is_dir():
         return {}
 
-    for item in CALIBRE_BASE_DIR.iterdir():
+    for item in calibre_base_dir.iterdir():
         if item.is_dir():
             metadata_db = item / "metadata.db"
             if metadata_db.exists():

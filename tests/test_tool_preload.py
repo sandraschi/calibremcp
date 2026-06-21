@@ -21,7 +21,6 @@ TOOL_MODULES = {
     "manage_comments": "calibre_mcp.tools.comments.manage_comments",
     "manage_files": "calibre_mcp.tools.files.manage_files",
     "manage_analysis": "calibre_mcp.tools.analysis.manage_analysis",
-    "manage_specialized": "calibre_mcp.tools.specialized.manage_specialized",
     "manage_system": "calibre_mcp.tools.system.manage_system",
     "manage_bulk_operations": "calibre_mcp.tools.advanced_features.manage_bulk_operations",
     "manage_content_sync": "calibre_mcp.tools.advanced_features.manage_content_sync",

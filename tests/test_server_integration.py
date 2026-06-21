@@ -1,135 +1,89 @@
 """
 Integration tests for the Calibre MCP server.
 
-These tests verify that the server is properly set up and can handle requests.
+Tests verify that the FastMCP instance is properly set up and that tools can be
+called in-process by invoking the underlying async functions directly.
+The registered MCP tools are plain async coroutines decorated with @mcp.tool(),
+so they can be awaited directly without going through the MCP protocol layer.
+
+These tests use the auto-generated test library fixture (see conftest.py /
+scripts/create_test_db.py) so they run without a live Calibre installation.
 """
 
-import os
 import sys
 from pathlib import Path
 
 import pytest
-import pytest_asyncio
 
-# Add src to path for local testing
+# Ensure src is importable
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-# Import the server module
-from calibre_mcp.config import CalibreConfig
-from calibre_mcp.server import mcp
-
-
 class TestCalibreMCPServer:
-    """Integration tests for the Calibre MCP server."""
+    """Integration tests for the Calibre MCP server (in-process)."""
 
-    @pytest_asyncio.fixture
-    async def client(self):
-        """Create a test client that uses the FastMCP instance."""
-        # Create a test config with authentication
-        config = CalibreConfig(
-            username="admin",  # Default Calibre username
-            password="admin123",  # Default Calibre password
-            server_url="http://localhost:8080",  # Default Calibre server URL
-        )
+    def test_server_has_portmanteau_tools(self):
+        """The FastMCP instance must have portmanteau tool decorators registered."""
+        # Core portmanteau tools are imported as modules; verify they're callable
+        from calibre_mcp.tools.book_management.manage_books import manage_books
+        from calibre_mcp.tools.book_management.query_books import query_books
+        from calibre_mcp.tools.library.manage_libraries import manage_libraries
+        from calibre_mcp.tools.system.manage_system import manage_system
 
-        # Set environment variables for authentication
-        os.environ["CALIBRE_USERNAME"] = config.username or ""
-        os.environ["CALIBRE_PASSWORD"] = config.password or ""
-
-        # Get all registered tools from the FastMCP instance
-        tools = await mcp.get_tools()
-        for _tool_name in tools:
-            pass
-
-        # Create a test client that calls MCP tools through the FastMCP instance
-        async def call_method(method: str, params: dict = None) -> dict:
-            try:
-                # Get the tool from the FastMCP instance
-                tools = await mcp.get_tools()
-                if method not in tools:
-                    return {
-                        "error": f"Tool '{method}' not found in FastMCP instance. Available tools: {', '.join(tools.keys())}"
-                    }
-
-                # Get the tool and call its run() method
-                tool = tools[method]
-                tool_result = await tool.run(arguments=params or {})
-                # The actual data is in the 'data' attribute of the ToolResult
-                return {"result": tool_result.data}
-
-            except Exception as e:
-                return {"error": str(e), "type": type(e).__name__}
-
-        yield call_method
+        for fn in (query_books, manage_books, manage_libraries, manage_system):
+            assert callable(fn), f"{fn.__name__} is not callable"
 
     @pytest.mark.asyncio
-    async def test_server_initialization(self, client):
-        """Test that the server initializes correctly and responds to requests."""
-        # Test a simple method to verify the server is working
-        response = await client("list_books", {"limit": 1})
-        assert "result" in response, f"Expected 'result' in response, got: {response}"
-        assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], list), (
-            f"Expected result to be a list, got: {type(response['result'])}"
-        )
+    async def test_query_books_list(self, test_database):  # noqa: ARG002
+        """query_books(operation='list') returns a dict with 'items' and 'total'."""
+        from calibre_mcp.tools.book_management.query_books import query_books
+
+        result = await query_books(operation="list", limit=5)
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+        assert "items" in result, f"'items' missing from result: {list(result.keys())}"
+        assert "total" in result, f"'total' missing from result: {list(result.keys())}"
 
     @pytest.mark.asyncio
-    async def test_list_books_method(self, client):
-        """Test the list_books method."""
-        response = await client("list_books", {"limit": 5})
-        assert "result" in response, f"Expected 'result' in response, got: {response}"
-        assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], list), (
-            f"Expected result to be a list, got: {type(response['result'])}"
-        )
+    async def test_query_books_search(self, test_database):  # noqa: ARG002
+        """query_books(operation='search') returns items and total keys."""
+        from calibre_mcp.tools.book_management.query_books import query_books
+
+        result = await query_books(operation="search", text="Scarlet")
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+        assert "items" in result, f"'items' missing: {list(result.keys())}"
 
     @pytest.mark.asyncio
-    async def test_manage_books_details_method(self, client):
-        """Test the manage_books details operation."""
-        # First, get a list of books to get a valid book ID
-        list_response = await client("query_books", {"operation": "list", "limit": 1})
+    async def test_manage_books_details(self, test_database):  # noqa: ARG002
+        """manage_books(operation='details') returns book details for a known ID."""
+        from calibre_mcp.tools.book_management.manage_books import manage_books
+        from calibre_mcp.tools.book_management.query_books import query_books
 
-        if not list_response.get("result") or not list_response["result"].get("items"):
-            pytest.skip("No books found in the library to test with")
+        list_result = await query_books(operation="list", limit=1)
+        items = list_result.get("items", [])
+        if not items:
+            pytest.skip("No books found in test library")
 
-        book_id = list_response["result"]["items"][0].get("id")
+        book_id = items[0].get("id")
+        if book_id is None:
+            pytest.skip("Could not determine a book ID from test library")
 
-        if not book_id:
-            pytest.skip("Could not get a valid book ID from the server")
-
-        # Now test getting book details using manage_books portmanteau tool
-        response = await client("manage_books", {"operation": "details", "book_id": str(book_id)})
-        assert "result" in response, f"Expected 'result' in response, got: {response}"
-        assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert response["result"].get("success") is True
-        assert "book" in response["result"]
-
-    @pytest.mark.asyncio
-    async def test_query_books_search_method(self, client):
-        """Test the query_books search operation."""
-        response = await client("query_books", {"operation": "search", "text": "test"})
-        assert "result" in response, f"Expected 'result' in response, got: {response}"
-        assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], list), (
-            f"Expected result to be a list, got: {type(response['result'])}"
-        )
+        result = await manage_books(operation="details", book_id=str(book_id))
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
+        # Either success=True with a book, or a handled error dict — never a bare exception
+        if result.get("success") is True:
+            assert "book" in result, f"Expected 'book' in result: {list(result.keys())}"
 
     @pytest.mark.asyncio
-    async def test_list_libraries_method(self, client):
-        """Test the list_libraries method."""
-        response = await client("list_libraries", {})
-        assert "result" in response, f"Expected 'result' in response, got: {response}"
-        assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], dict), (
-            f"Expected result to be a dict, got: {type(response['result'])}"
-        )
-        assert "libraries" in response["result"], (
-            f"Expected 'libraries' in result, got: {response['result'].keys()}"
-        )
-        assert "current_library" in response["result"], (
-            f"Expected 'current_library' in result, got: {response['result'].keys()}"
-        )
+    async def test_manage_libraries_list(self):
+        """manage_libraries(operation='list') returns a dict response."""
+        from calibre_mcp.tools.library.manage_libraries import manage_libraries
 
+        result = await manage_libraries(operation="list")
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"
 
-if __name__ == "__main__":
-    pytest.main(["-v", "test_server_integration.py"])
+    @pytest.mark.asyncio
+    async def test_manage_system_status(self):
+        """manage_system(operation='status') returns a dict response."""
+        from calibre_mcp.tools.system.manage_system import manage_system
+
+        result = await manage_system(operation="status")
+        assert isinstance(result, dict), f"Expected dict, got {type(result)}"

@@ -20,7 +20,7 @@ except OSError:
     import subprocess
     import sys
 
-    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
+    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])  # noqa: S603 — trusted: sys.executable is the current interpreter
     nlp = spacy.load("en_core_web_sm")
 
 

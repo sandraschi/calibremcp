@@ -39,16 +39,10 @@ __all__ = [
     "SocialFeaturesTool",
 ]
 
-# Expose tools list for automatic registration
-tools = [
-    manage_smart_collections,  # Portmanteau tool (recommended)
-    manage_bulk_operations,  # Portmanteau tool
-    manage_content_sync,  # Portmanteau tool
-    AIEnhancementsTool(),  # TODO: Migrate to portmanteau
-    AdvancedSearchTool(),  # TODO: Migrate to portmanteau
-    BulkOperationsTool(),  # TODO: Migrate to portmanteau
-    ContentSyncTool(),  # TODO: Migrate to portmanteau
-    ReadingAnalyticsTool(),  # TODO: Migrate to portmanteau
-    SmartCollectionsTool(),  # Legacy (deprecated)
-    SocialFeaturesTool(),  # TODO: Migrate to portmanteau
-]
+# NOTE: discover_tools() in tools/__init__.py is defined but never called —
+# the `tools` list that was here is not consumed by register_tools().
+# Portmanteau tools (manage_smart_collections, manage_bulk_operations,
+# manage_content_sync) are registered automatically via @mcp.tool() decorators
+# when this package is imported. The legacy class-based tools are kept as imports
+# for external callers but are not registered with the MCP server.
+# Migration path: implement portmanteau wrappers when these features are needed.

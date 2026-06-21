@@ -6,6 +6,7 @@ in the Calibre library. Uses calibredb CLI or BookService for proper integration
 """
 
 import asyncio
+import contextlib
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -224,10 +225,7 @@ async def update_book_helper(
                 if "pubdate" in metadata and metadata["pubdate"] is not None:
                     # calibredb expects ISO 8601; accept datetime objects or strings
                     pubdate_val = metadata["pubdate"]
-                    if hasattr(pubdate_val, "isoformat"):
-                        pubdate_str = pubdate_val.isoformat()
-                    else:
-                        pubdate_str = str(pubdate_val)
+                    pubdate_str = pubdate_val.isoformat() if hasattr(pubdate_val, "isoformat") else str(pubdate_val)
                     cmd.extend(["--field", f"pubdate:{pubdate_str}"])
                     updated_fields.append("pubdate")
 
@@ -272,10 +270,8 @@ async def update_book_helper(
 
             # Invalidate the SQLAlchemy session's identity map so subsequent reads hit
             # the DB rather than serving stale cached objects from before the calibredb write.
-            try:
+            with contextlib.suppress(Exception):  # best-effort; fresh query still picks up new data
                 book_service.db.session.expire_all()
-            except Exception:
-                pass  # best-effort; a fresh query will still pick up the new data
 
         # Use BookService for status and progress updates (custom fields)
         if book_id_int is not None and (status is not None or progress is not None):

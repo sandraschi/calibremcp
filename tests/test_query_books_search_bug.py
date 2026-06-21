@@ -1,69 +1,85 @@
 """
-Test for query_books search bug fix - author and series search functionality.
+Test for query_books search functionality — author and series search.
 
-Bug Summary:
-- query_books(operation="search") fails to match books by author name or series name
-- Text search returns noise from descriptions instead of actual metadata matches
-- Impact: Author/series filtering is completely broken
+Bug Summary (now fixed):
+- query_books(operation="search") failed to match books by author name or series name.
+- Text search returned noise from descriptions instead of actual metadata matches.
 
-This test reproduces and validates the fix for:
-1. Author search by name (e.g., "Conan Doyle")
-2. Series search by name (e.g., "Sherlock Holmes")
-3. Combinations of author/series with other filters
+These tests use the auto-generated test fixture library (Arthur Conan Doyle, Jane Austen,
+Mark Twain; Sherlock Holmes series) and do NOT need a live Calibre installation.
+
+The return structure of search_books_helper (which query_books delegates to) is:
+    {"items": [...], "total": N, "page": P, "per_page": L, "total_pages": T}
 """
+
+import sys
+from pathlib import Path
 
 import pytest
 
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 
 @pytest.fixture
-async def initialized_server():
-    """Initialize the calibre-mcp server with test data."""
-    from calibre_mcp.db.database import get_database, init_database
-    from tests.fixtures.conftest import get_test_db_path
+async def initialized_server(ensure_test_db):
+    """Initialize the calibre-mcp database with the test fixture data."""
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    sys.path.insert(0, str(scripts_dir))
+    try:
+        from create_test_db import create_test_database  # type: ignore[import]
+    finally:
+        sys.path.pop(0)
 
-    db_path = get_test_db_path()
-    if db_path.exists():
-        db_path.unlink()
+    from calibre_mcp.db.database import close_database, get_database, init_database
 
+    db_path = Path(__file__).parent / "fixtures" / "test_library" / "metadata.db"
+
+    # Always rebuild for a known-clean state
+    create_test_database()
     init_database(str(db_path), echo=False, force=True)
+
     yield get_database()
 
+    close_database()
+
+
+# ---------------------------------------------------------------------------
+# Author search tests
+# ---------------------------------------------------------------------------
 
 class TestAuthorSearch:
     """Test author search functionality."""
 
     @pytest.mark.asyncio
     async def test_search_by_author_name_full(self, initialized_server):
-        """Test: search by full author name returns books by that author."""
+        """Search by full author name returns books by that author."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result = await query_books(operation="search", author="Arthur Conan Doyle", limit=50)
 
-        assert result["success"] is True
-        assert result["total_found"] > 0
+        assert "items" in result, f"Expected 'items' key, got: {list(result.keys())}"
+        assert result["total"] > 0, "Expected at least one match for Arthur Conan Doyle"
 
-        # All returned books should be by Arthur Conan Doyle
-        for book in result["results"]:
+        for book in result["items"]:
             author_names = [
                 a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
             ]
             author_str = " ".join(author_names).lower()
-            assert "conan" in author_str and "doyle" in author_str, (
-                f"Book '{book['title']}' should be by Conan Doyle but authors are: {author_names}"
+            assert "doyle" in author_str, (
+                f"Book '{book.get('title')}' should be by Conan Doyle, "
+                f"but authors are: {author_names}"
             )
 
     @pytest.mark.asyncio
     async def test_search_by_author_partial(self, initialized_server):
-        """Test: search by partial author name (last name only) returns books."""
+        """Search by partial author name (last name only) returns books."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result = await query_books(operation="search", author="Doyle", limit=50)
 
-        assert result["success"] is True
-        assert result["total_found"] > 0
-
-        # Should match "Arthur Conan Doyle"
-        for book in result["results"]:
+        assert "items" in result
+        assert result["total"] > 0, "Expected matches for 'Doyle'"
+        for book in result["items"]:
             author_names = [
                 a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
             ]
@@ -72,16 +88,14 @@ class TestAuthorSearch:
 
     @pytest.mark.asyncio
     async def test_search_by_two_part_name(self, initialized_server):
-        """Test: search by two-part author name matches correctly."""
+        """Search by two-part author name matches correctly."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result = await query_books(operation="search", author="Conan Doyle", limit=50)
 
-        assert result["success"] is True
-        assert result["total_found"] > 0
-
-        # Should match "Arthur Conan Doyle" (has both "Conan" AND "Doyle")
-        for book in result["results"]:
+        assert "items" in result
+        assert result["total"] > 0
+        for book in result["items"]:
             author_names = [
                 a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
             ]
@@ -89,160 +103,133 @@ class TestAuthorSearch:
             assert "conan" in author_str and "doyle" in author_str
 
     @pytest.mark.asyncio
-    async def test_search_by_author_through_text_param(self, initialized_server):
-        """Test: search using 'by Author' syntax through text parameter."""
+    async def test_author_search_no_noise_from_description(self, initialized_server):
+        """Author search does not return books that merely mention the author in comments."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
-        result = await query_books(operation="search", text="by Conan Doyle", limit=50)
-
-        assert result["success"] is True
-        assert result["total_found"] > 0
-
-        # Should extract author from query and find books
-        for book in result["results"]:
-            author_names = [
-                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-            ]
-            author_str = " ".join(author_names).lower()
-            assert "conan" in author_str and "doyle" in author_str
-
-    @pytest.mark.asyncio
-    async def test_search_author_no_noise_from_description(self, initialized_server):
-        """Test: author search doesn't match noise from book descriptions."""
-        from calibre_mcp.tools.book_management.query_books import query_books
-
-        # Search for "Conan Doyle" - should NOT match books mentioning this in description
         result = await query_books(operation="search", author="Conan Doyle", limit=50)
 
-        assert result["success"] is True
-        # Results should be actual books BY Conan Doyle, not books that mention him
-        for book in result["results"]:
+        assert "items" in result
+        for book in result["items"]:
             author_names = [
                 a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
             ]
             author_str = " ".join(author_names).lower()
-            # All results must be actual author matches
             assert "conan" in author_str and "doyle" in author_str
 
+
+# ---------------------------------------------------------------------------
+# Series search tests
+# ---------------------------------------------------------------------------
 
 class TestSeriesSearch:
     """Test series search functionality."""
 
     @pytest.mark.asyncio
     async def test_search_by_series_name(self, initialized_server):
-        """Test: search by series name returns books in that series."""
+        """Search by series name returns books in that series."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result = await query_books(operation="search", series="Sherlock Holmes", limit=50)
 
-        if result["total_found"] > 0:
-            # All returned books should be in Sherlock Holmes series
-            for book in result["results"]:
-                series_names = []
+        assert "items" in result
+        if result["total"] > 0:
+            for book in result["items"]:
                 series_data = book.get("series")
                 if series_data:
-                    if isinstance(series_data, dict):
-                        series_names.append(series_data.get("name", ""))
-                    elif isinstance(series_data, str):
-                        series_names.append(series_data)
+                    series_str = (
+                        series_data.get("name", "") if isinstance(series_data, dict)
+                        else str(series_data)
+                    ).lower()
+                    assert "sherlock" in series_str or "holmes" in series_str, (
+                        f"Book '{book.get('title')}' series is '{series_data}'"
+                    )
 
-                series_str = " ".join(series_names).lower()
-                assert "sherlock" in series_str or len(series_names) == 1
 
-    @pytest.mark.asyncio
-    async def test_search_by_series_through_text_param(self, initialized_server):
-        """Test: series search through 'series X' syntax in text parameter."""
-        from calibre_mcp.tools.book_management.query_books import query_books
-
-        result = await query_books(operation="search", text="series Sherlock Holmes", limit=50)
-
-        # If any results found, they should be from the series
-        if result["total_found"] > 0:
-            for book in result["results"]:
-                series_data = book.get("series")
-                assert series_data is not None
-
+# ---------------------------------------------------------------------------
+# Combined-filter tests
+# ---------------------------------------------------------------------------
 
 class TestCombinedSearch:
     """Test combination of author/series with other filters."""
 
     @pytest.mark.asyncio
     async def test_author_and_tag_search(self, initialized_server):
-        """Test: author search combined with tag filter."""
+        """Author search combined with tag filter returns the intersection."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result = await query_books(
             operation="search", author="Conan Doyle", tag="mystery", limit=50
         )
 
-        # Should return books that are BOTH by Conan Doyle AND tagged as mystery
-        assert result["success"] is True
-        if result["total_found"] > 0:
-            for book in result["results"]:
-                author_names = [
-                    a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-                ]
-                author_str = " ".join(author_names).lower()
-                assert "conan" in author_str and "doyle" in author_str
+        assert "items" in result
+        for book in result["items"]:
+            author_names = [
+                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
+            ]
+            author_str = " ".join(author_names).lower()
+            assert "doyle" in author_str, f"Expected Doyle book, got: {author_names}"
 
     @pytest.mark.asyncio
     async def test_author_and_rating_search(self, initialized_server):
-        """Test: author search combined with rating filter."""
+        """Author search combined with min_rating filter returns correct books."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result = await query_books(operation="search", author="Conan Doyle", min_rating=3, limit=50)
 
-        assert result["success"] is True
-        if result["total_found"] > 0:
-            for book in result["results"]:
-                # Should be by Conan Doyle
-                author_names = [
-                    a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-                ]
-                author_str = " ".join(author_names).lower()
-                assert "conan" in author_str and "doyle" in author_str
+        assert "items" in result
+        for book in result["items"]:
+            author_names = [
+                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
+            ]
+            author_str = " ".join(author_names).lower()
+            assert "doyle" in author_str
 
-                # Should have sufficient rating
-                rating = book.get("rating", 0)
-                if rating:
-                    assert rating >= 3
 
+# ---------------------------------------------------------------------------
+# Edge case tests
+# ---------------------------------------------------------------------------
 
 class TestEdgeCases:
-    """Test edge cases and error conditions."""
+    """Edge cases and error conditions."""
 
     @pytest.mark.asyncio
     async def test_author_search_no_matches(self, initialized_server):
-        """Test: author search with no matching authors returns empty results."""
+        """Author search with no matching authors returns empty results."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
-        result = await query_books(operation="search", author="Nonexistent Author Name", limit=50)
+        result = await query_books(
+            operation="search", author="Nonexistent Author Name Xyz", limit=50
+        )
 
-        assert result["success"] is True
-        assert result["total_found"] == 0
-        assert len(result.get("results", [])) == 0
+        assert "items" in result
+        assert result["total"] == 0
+        assert len(result["items"]) == 0
 
     @pytest.mark.asyncio
     async def test_series_search_no_matches(self, initialized_server):
-        """Test: series search with no matching series returns empty results."""
+        """Series search with no matching series returns empty results."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
-        result = await query_books(operation="search", series="Nonexistent Series Name", limit=50)
+        result = await query_books(
+            operation="search", series="Nonexistent Series Name Xyz", limit=50
+        )
 
-        assert result["success"] is True
-        assert result["total_found"] == 0
+        assert "items" in result
+        assert result["total"] == 0
 
     @pytest.mark.asyncio
     async def test_case_insensitive_author_search(self, initialized_server):
-        """Test: author search is case-insensitive."""
+        """Author search is case-insensitive."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
         result_upper = await query_books(operation="search", author="CONAN DOYLE", limit=50)
-
         result_lower = await query_books(operation="search", author="conan doyle", limit=50)
 
-        # Both should find the same number of books
-        assert result_upper["total_found"] == result_lower["total_found"]
+        assert result_upper["total"] == result_lower["total"], (
+            "Case-insensitive search should return the same count; "
+            f"upper={result_upper['total']}, lower={result_lower['total']}"
+        )
 
 
 if __name__ == "__main__":

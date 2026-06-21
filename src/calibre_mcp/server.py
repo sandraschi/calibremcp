@@ -73,12 +73,6 @@ current_library: str = "main"
 available_libraries: dict[str, str] = {}
 storage = None  # CalibreMCPStorage
 
-# Global API client and database connections (initialized on startup)
-api_client = None  # CalibreAPIClient
-current_library: str = "main"
-available_libraries: dict[str, str] = {}
-storage = None  # CalibreMCPStorage
-
 
 def create_app(path: str = "/mcp"):
     """Return the FastMCP ASGI app for mounting (e.g. FastAPI ``/mcp``).
@@ -517,37 +511,6 @@ class ConversionResponse(BaseModel):
     success: bool
     output_path: str | None = None
     error_message: str | None = None
-
-
-class JapaneseBookOrganization(BaseModel):
-    """Response model for Japanese book organization"""
-
-    model_config = {"from_attributes": True}
-
-    manga_series: list[dict[str, Any]]
-    light_novels: list[dict[str, Any]]
-    language_learning: list[dict[str, Any]]
-    reading_recommendations: list[str]
-
-
-class ITBookCuration(BaseModel):
-    """Response model for IT book curation"""
-
-    model_config = {"from_attributes": True}
-
-    programming_languages: dict[str, list[dict[str, Any]]]
-    outdated_books: list[dict[str, Any]]
-    learning_paths: list[dict[str, Any]]
-
-
-class ReadingRecommendations(BaseModel):
-    """Response model for reading recommendations"""
-
-    model_config = {"from_attributes": True}
-
-    recommendations: list[dict[str, Any]]
-    reasoning: dict[str, str]
-    confidence_scores: dict[str, float]
 
 
 # ==================== HELPER FUNCTIONS ====================

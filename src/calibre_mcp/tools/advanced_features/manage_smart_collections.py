@@ -636,8 +636,9 @@ async def _handle_query(
                 related_tools=["manage_smart_collections"],
             )
 
-        # Use legacy tool's query logic for now
-        # TODO: Migrate to use book_service directly
+        # Delegate to SmartCollectionsTool which reads via LocalStorage directly.
+        # A future refactor could route through book_service for consistency, but
+        # the current implementation is correct and avoids HTTP-layer overhead.
         legacy_tool = SmartCollectionsTool()
         return await legacy_tool.collection_query(
             collection_id=collection_id, library_path=library_path, limit=limit, offset=offset

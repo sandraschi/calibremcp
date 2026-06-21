@@ -1147,7 +1147,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         # Known fields: direct columns + relationship handles + legacy custom fields.
         # Any key outside this set is rejected up-front so callers get an explicit error
         # instead of a silent no-op (the old behaviour of the hasattr() guard).
-        _KNOWN_BOOK_UPDATE_FIELDS = frozenset({
+        known_book_update_fields = frozenset({
             # Direct Book columns
             "title", "sort", "timestamp", "pubdate", "series_index", "author_sort",
             "path", "uuid", "has_cover", "last_modified",
@@ -1157,11 +1157,11 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             # to avoid breaking the update_book.py status/progress path)
             "status", "progress",
         })
-        unknown_fields = [f for f in update_data if f not in _KNOWN_BOOK_UPDATE_FIELDS]
+        unknown_fields = [f for f in update_data if f not in known_book_update_fields]
         if unknown_fields:
             raise ValidationError(
                 f"Unknown book field(s): {unknown_fields}. "
-                f"Supported fields: {sorted(_KNOWN_BOOK_UPDATE_FIELDS - {'status', 'progress'})}"
+                f"Supported fields: {sorted(known_book_update_fields - {'status', 'progress'})}"
             )
 
         with self._get_db_session() as session:
@@ -1171,9 +1171,9 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 raise NotFoundError(f"Book with ID {book_id} not found")
 
             # Update simple fields (columns that exist directly on the Book model)
-            _RELATIONSHIP_FIELDS = {"author_ids", "series_id", "tag_ids", "tag_names", "tags", "rating", "status", "progress"}
+            relationship_fields = {"author_ids", "series_id", "tag_ids", "tag_names", "tags", "rating", "status", "progress"}
             for field, value in update_data.items():
-                if field not in _RELATIONSHIP_FIELDS and hasattr(book, field):
+                if field not in relationship_fields and hasattr(book, field):
                     setattr(book, field, value)
 
             # Handle relationships if provided
