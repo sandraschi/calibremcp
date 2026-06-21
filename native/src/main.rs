@@ -13,7 +13,7 @@ async fn start_backend(
     app: tauri::AppHandle,
     state: tauri::State<'_, BackendProcess>,
 ) -> Result<String, String> {
-    spawn_backend(app, &state)
+    spawn_backend(app, &*state)
 }
 
 fn main() {
@@ -60,12 +60,11 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error building tauri application")
         .run(|app, event| {
-if matches!(event, tauri::RunEvent::Exit | tauri::RunEvent::ExitRequested { .. }) {
-                if let Some(ref mut child) = *state.0.lock().unwrap() {
+            if matches!(event, tauri::RunEvent::Exit | tauri::RunEvent::ExitRequested { .. }) {
+                if let Some(ref mut child) = app.state::<BackendProcess>().0.lock().unwrap().take() {
                     let _ = child.kill();
                     let _ = child.wait();
                 }
-            }
             }
         });
 }

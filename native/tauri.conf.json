@@ -39,12 +39,7 @@
       "resources/install-mcp-clients.ps1"
     ],
     "windows": {
-      "nsis": {
-        "installMode": "currentUser",
-        "createDesktopShortcut": true,
-        "createStartMenuShortcut": true,
-        "installerHooks": "./windows/hooks.nsh"
-      },
+      "nsis": {},
       "webviewInstallMode": {
         "type": "skip"
       }
