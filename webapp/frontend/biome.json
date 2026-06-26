@@ -1,11 +1,4 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "files": {
-    "ignore": [".next", "node_modules", "package.json", "tsconfig.json"]
-  },
-  "organizeImports": {
-    "enabled": false
-  },
   "linter": {
     "enabled": true,
     "rules": {

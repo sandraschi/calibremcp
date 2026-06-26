@@ -6,7 +6,7 @@ from pathlib import Path
 project_root = Path(r"D:\Dev\repos\calibre-mcp")
 sys.path.insert(0, str(project_root / "src"))
 
-from calibre_mcp.tools.import_export.arxiv_client import search_arxiv
+from calibre_mcp.tools.import_export.arxiv_client import search_arxiv  # noqa: E402
 
 
 async def main():

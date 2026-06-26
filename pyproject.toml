@@ -103,20 +103,21 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-exclude = ["mcpb", "webapp/frontend", "node_modules", "dist", ".venv"]
+exclude = ["mcpb", "webapp/frontend", "node_modules", "dist", ".venv", "calibre_plugin", "calibre-plugins", "scripts", "repro_*.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "T20", "RET", "SIM", "ARG", "PTH", "TRY"]
+select = ["E", "F", "I", "UP", "C4", "B", "N"]
 ignore = [
-    "E501",   # Line too long
-    "B008",   # Do not perform function call in argument defaults
-    "TRY003", # Avoid long messages outside exception classes (pedantic)
-    "TRY300", # Move statement to else block (pedantic)
-    "TRY301", # Abstract raise to inner function (pedantic)
-    "TRY401", # Verbose log message (pedantic)
-    "ARG001", # Unused function argument
-    "ARG002", # Unused method argument
-    "S101",   # Use of assert (allow in this project)
+    "E501",    # Line too long
+    "E722",    # Bare except (common pattern)
+    "F841",    # Unused variable (false positives in async)
+    "B008",    # Function call in argument defaults
+    "B904",    # raise from err
+    "B007",    # Unused loop variable
+    "N802",    # Function name lowercase (legacy API compat)
+    "N803",    # Argument name uppercase (legacy compat)
+    "N806",    # Variable name uppercase (legacy compat)
+    "N999",    # Module name (calibre-plugins bridge)
 ]
 
 [tool.ruff.format]

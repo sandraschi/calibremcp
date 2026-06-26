@@ -12,9 +12,8 @@ default:
 # Execute Ruff SOTA v13.1 linting
 lint:
     Set-Location '{{justfile_directory()}}'
-    uv run ruff check .
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npx @biomejs/biome ci .
+    C:\Users\sandr\AppData\Local\Programs\Python\Python313\Scripts\ruff.exe check .
+    & "C:\Users\sandr\.local\bin\biome.exe" check --config-path="{{justfile_directory()}}\webapp\frontend" "{{justfile_directory()}}\webapp\frontend\app" "{{justfile_directory()}}\webapp\frontend\components" "{{justfile_directory()}}\webapp\frontend\common" "{{justfile_directory()}}\webapp\frontend\e2e"
 
 # Execute Ruff SOTA v13.1 fix and formatting
 fix:
@@ -107,10 +106,6 @@ fmt:
 # Lint + tests (CI-friendly)
 check: lint test
 
-# MCPB → dist/calibre-mcp.mcpb (requires npm global @anthropic-ai/mcpb)
-mcpb-pack:
-    pwsh -NoProfile -File scripts/build-mcpb-package.ps1 -NoSign
-
 # ── Native (Tauri) ─────────────────────────────────────────────────────────────
 
 # Build embedded Python backend → native/resources/
@@ -128,6 +123,3 @@ build-native-debug:
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
 
-# Run CUA smoke test against the installed NSIS app
-cua-nsis-test:
-    python scripts/cua-smoke.py

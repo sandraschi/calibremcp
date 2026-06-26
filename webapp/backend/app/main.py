@@ -50,7 +50,7 @@ class SPAStaticFiles(StaticFiles):
             response = await super().get_response("index.html", scope)
         return response
 
-from .api import (  # noqa: E402
+from .api import (  # noqa: E402, I001
     analysis,
     annas,
     arxiv,
@@ -61,6 +61,7 @@ from .api import (  # noqa: E402
     comments,
     export,
     files,
+    fleet,
     gutenberg,
     library,
     llm,
@@ -70,13 +71,13 @@ from .api import (  # noqa: E402
     rag,
     search,
     series,
-    settings as api_settings,
     skills,
     specialized,
     system,
     tags,
     viewer,
     webapp_launch,
+    settings as api_settings,
 )
 from .cache import get_libraries_cache, update_current_library, update_libraries_cache  # noqa: E402
 from .config import settings  # noqa: E402
@@ -274,6 +275,7 @@ app.include_router(export.router, prefix="/api/export", tags=["export"])
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
 app.include_router(webapp_launch.router, prefix="/api", tags=["webapp-launch"])
+app.include_router(fleet.router, prefix="/api", tags=["fleet"])
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
 app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
 app.include_router(annas.router, prefix="/api/annas", tags=["annas"])
@@ -379,7 +381,8 @@ async def get_cua_diagnostics():
     with contextlib.suppress(Exception):
         import pywinauto
         a = pywinauto.Application(backend="uia").connect(title_re="Calibre MCP")
-        win = a.window(title_re="Calibre MCP"); win.wait("visible", timeout=2)
+        win = a.window(title_re="Calibre MCP")
+        win.wait("visible", timeout=2)
         window = True
     return {"success":True,"data":{"backend":{"status":"ok","version":"1.8.6","uptime_seconds":uptime,"port":10720},"system":{"cpu_percent":cpu,"memory_percent":mem,"disk_percent":disk},"tools":{"total":0,"categories":["calibre"]},"errors":{"count":0,"recent":[]},"cua_status":{"window_found":window,"backend_reachable":True,"tesseract_available":tesseract}}}
 

@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
-from .local import LocalStorage
-from .remote import RemoteStorage
+from .local import LocalStorage  # noqa: E402
+from .remote import RemoteStorage  # noqa: E402
 
 
 class StorageBackend(ABC):

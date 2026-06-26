@@ -17,6 +17,10 @@ if (-not (Test-Path -LiteralPath $FleetStartPath)) {
 $FleetStart = Initialize-FleetStartMode @PSBoundParameters
 Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
 
+$WebPort = 10721
+$BackendPort = 10720
+$FrontendDir = "$PSScriptRoot\frontend"
+
 $portResolve = @{
     Ports      = @($WebPort, $BackendPort)
     Label      = "calibre-mcp"
@@ -31,9 +35,6 @@ if ($ReuseIfRunning) {
 $portState = Resolve-FleetPortConflict @portResolve
 if ($portState.Action -eq 'Blocked') { exit 1 }
 if ($portState.Reuse) { return }
-$WebPort = 10721
-$BackendPort = 10720
-$FrontendDir = "$PSScriptRoot\frontend"
 
 
 # 2. Start backend (immediately, so it's visible while build runs)
@@ -55,8 +56,18 @@ while ($attempt -lt 30) {
     }
 }
 
-# 3. Install frontend deps if missing
+# 3. Guard: clean stale Tauri export .next cache (basePath:/app breaks dev mode)
 Set-Location $FrontendDir
+$manifestPath = ".next\routes-manifest.json"
+if ($Dev -and (Test-Path $manifestPath)) {
+    $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+    if ($manifest.basePath) {
+        Write-Host "Cleaning stale .next cache (Tauri basePath detected)... " -ForegroundColor Yellow -NoNewline
+        Remove-Item ".next" -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "done" -ForegroundColor Green
+    }
+}
+
 if (-not (Test-Path "node_modules")) {
     Write-Host "Installing npm dependencies..." -ForegroundColor Cyan
     npm install
