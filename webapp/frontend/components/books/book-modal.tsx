@@ -25,7 +25,7 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface BookModalProps {
   book: Book;
@@ -352,6 +352,76 @@ export function BookModal({ book, onClose }: BookModalProps) {
                           >
                             {displayBook.publisher}
                           </Link>
+                        </dd>
+                      </div>
+                    )}
+                    {displayBook.identifiers && (
+                      <div className="flex flex-col border-b border-slate-700/50 pb-1">
+                        <dt className="text-slate-400 text-xs">Identifiers</dt>
+                        <dd className="text-slate-200 mt-1">
+                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                            {displayBook.identifiers.goodreads && (
+                              <a
+                                href={`https://www.goodreads.com/book/show/${displayBook.identifiers.goodreads.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-amber-400 hover:text-amber-300 hover:underline"
+                              >
+                                Goodreads
+                              </a>
+                            )}
+                            {displayBook.identifiers.amazon &&
+                              (() => {
+                                const asin = String(displayBook.identifiers.amazon)
+                                  .replace(/^asin:/i, '')
+                                  .trim();
+                                return /^[A-Z0-9]{10}$/i.test(asin) ? (
+                                  <a
+                                    href={`https://www.amazon.com/dp/${encodeURIComponent(asin)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-amber-400 hover:text-amber-300 hover:underline"
+                                  >
+                                    Amazon
+                                  </a>
+                                ) : null;
+                              })()}
+                            {displayBook.identifiers.isbn && (
+                              <a
+                                href={`https://openlibrary.org/isbn/${encodeURIComponent(displayBook.identifiers.isbn.replace(/[-\s]/g, ''))}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-amber-400 hover:text-amber-300 hover:underline"
+                              >
+                                ISBN
+                              </a>
+                            )}
+                            {displayBook.identifiers.doi && (
+                              <a
+                                href={`https://doi.org/${encodeURIComponent(displayBook.identifiers.doi.trim())}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-amber-400 hover:text-amber-300 hover:underline"
+                              >
+                                DOI
+                              </a>
+                            )}
+                            {displayBook.identifiers.openlibrary && (
+                              <a
+                                href={`https://openlibrary.org/search?q=${encodeURIComponent(displayBook.identifiers.openlibrary)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-amber-400 hover:text-amber-300 hover:underline"
+                              >
+                                Open Library
+                              </a>
+                            )}
+                          </div>
                         </dd>
                       </div>
                     )}
