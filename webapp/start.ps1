@@ -21,6 +21,18 @@ $WebPort = 10721
 $BackendPort = 10720
 $FrontendDir = "$PSScriptRoot\frontend"
 
+# -- Direct zombie kill (before fleet helper) --
+foreach ($port in @($WebPort, $BackendPort)) {
+    Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $owner = $_.OwningProcess
+            Write-Host "Killing zombie on port $port (PID $owner)..." -ForegroundColor Yellow
+            Stop-Process -Id $owner -Force -ErrorAction SilentlyContinue
+            taskkill /F /PID $owner /T 2>$null
+        }
+}
+Start-Sleep -Milliseconds 500
+
 $portResolve = @{
     Ports      = @($WebPort, $BackendPort)
     Label      = "calibre-mcp"

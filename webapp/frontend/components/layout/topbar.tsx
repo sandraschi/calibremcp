@@ -1,28 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useConnection } from '@/app/store/connection';
+import { API_BASE, type FleetApp, fetchFleetStatus, getHelp, getSystemStatus } from '@/common/api';
+import {
+  ChevronDown,
+  Container,
+  ExternalLink,
+  FileText,
+  HelpCircle,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Library, HelpCircle, FileText, ExternalLink, ChevronDown, Container } from 'lucide-react';
-import { listLibraries, switchLibrary, getHelp, getSystemStatus, API_BASE } from '@/common/api';
+import { useEffect, useRef, useState } from 'react';
 import { HelpModal } from './help-modal';
 import { LoggerModal } from './logger-modal';
-import { APPS_CATALOG } from '@/common/apps-catalog';
-
-/** Naive list of Docker (or similar) containers with a web UI port. Later: standardize frontend vs infra. */
-const CONTAINER_LINKS: { label: string; url: string; port: number }[] = [
-  { label: "Portainer", url: "http://127.0.0.1:9001", port: 9001 },
-  { label: "Traefik", url: "http://127.0.0.1:8080", port: 8080 },
-  { label: "Grafana", url: "http://127.0.0.1:3100", port: 3100 },
-  { label: "MyAI Dashboard", url: "http://127.0.0.1:3060", port: 3060 },
-  { label: "MyAI Calibre Plus", url: "http://127.0.0.1:10734", port: 10734 },
-  { label: "MyAI Plex Plus", url: "http://127.0.0.1:10760", port: 10760 },
-  { label: "MyAI Document Viewer", url: "http://127.0.0.1:10744", port: 10744 },
-  { label: "MyAI Future You", url: "http://127.0.0.1:10746", port: 10746 },
-  { label: "MyAI Immich", url: "http://127.0.0.1:10756", port: 10756 },
-  { label: "MyAI Voice AI", url: "http://127.0.0.1:10778", port: 10778 },
-  { label: "MyAI Traefik", url: "http://127.0.0.1:10790", port: 10790 },
-];
 
 async function checkUrlUp(url: string, timeoutMs = 2500): Promise<boolean> {
   try {
@@ -44,37 +36,38 @@ interface LaunchModalState {
 }
 
 export function Topbar() {
-  const router = useRouter();
-  const [libraries, setLibraries] = useState<{ name: string; path: string }[]>([]);
-  const [currentLibrary, setCurrentLibrary] = useState<string | null>(null);
-  const [showLibDropdown, setShowLibDropdown] = useState(false);
   const [showZoo, setShowZoo] = useState(false);
   const [showContainers, setShowContainers] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showLogger, setShowLogger] = useState(false);
-  const [switching, setSwitching] = useState(false);
   const [launchModal, setLaunchModal] = useState<LaunchModalState | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [fleetApps, setFleetApps] = useState<FleetApp[]>([]);
+  const [fleetContainers, setFleetContainers] = useState<FleetApp[]>([]);
+  const [fleetLoading, setFleetLoading] = useState(true);
   const zooRef = useRef<HTMLDivElement>(null);
   const containersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    listLibraries().then((data) => {
-      setLibraries(data.libraries);
-      setCurrentLibrary(data.current_library ?? null);
-    }).catch(() => { });
-  }, []);
-
-  useEffect(() => {
-    if (!showLibDropdown) return;
-    const close = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowLibDropdown(false);
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const data = await fetchFleetStatus();
+        if (!cancelled) {
+          setFleetApps(data.webapps.filter((a) => a.up));
+          setFleetContainers(data.containers.filter((c) => c.up));
+          setFleetLoading(false);
+        }
+      } catch {
+        if (!cancelled) setFleetLoading(false);
       }
     };
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [showLibDropdown]);
+    refresh();
+    const interval = setInterval(refresh, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!showZoo) return;
@@ -88,29 +81,12 @@ export function Topbar() {
   useEffect(() => {
     if (!showContainers) return;
     const close = (e: MouseEvent) => {
-      if (containersRef.current && !containersRef.current.contains(e.target as Node)) setShowContainers(false);
+      if (containersRef.current && !containersRef.current.contains(e.target as Node))
+        setShowContainers(false);
     };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [showContainers]);
-
-  const handleSwitchLibrary = async (name: string) => {
-    if (name === currentLibrary) {
-      setShowLibDropdown(false);
-      return;
-    }
-    setSwitching(true);
-    try {
-      await switchLibrary(name);
-      setCurrentLibrary(name);
-      setShowLibDropdown(false);
-      router.refresh();
-    } catch {
-      // ignore
-    } finally {
-      setSwitching(false);
-    }
-  };
 
   const handleContainerClick = (item: { label: string; url: string }) => {
     setShowContainers(false);
@@ -138,18 +114,26 @@ export function Topbar() {
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setLaunchModal((m) => m ? { ...m, status: 'error', error: data.detail ?? data.error ?? `HTTP ${r.status}` } : null);
+        setLaunchModal((m) =>
+          m
+            ? { ...m, status: 'error', error: data.detail ?? data.error ?? `HTTP ${r.status}` }
+            : null,
+        );
         return;
       }
       if (data.error) {
-        setLaunchModal((m) => m ? { ...m, status: 'error', error: data.error } : null);
+        setLaunchModal((m) => (m ? { ...m, status: 'error', error: data.error } : null));
         return;
       }
-      setLaunchModal((m) => m ? { ...m, status: 'done' } : null);
+      setLaunchModal((m) => (m ? { ...m, status: 'done' } : null));
       window.open(url, '_blank', 'noopener,noreferrer');
       setTimeout(() => setLaunchModal(null), 1500);
     } catch (e) {
-      setLaunchModal((m) => m ? { ...m, status: 'error', error: e instanceof Error ? e.message : 'Request failed' } : null);
+      setLaunchModal((m) =>
+        m
+          ? { ...m, status: 'error', error: e instanceof Error ? e.message : 'Request failed' }
+          : null,
+      );
     }
   };
 
@@ -167,33 +151,8 @@ export function Topbar() {
           <div className="flex-1" />
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setShowLibDropdown(!showLibDropdown)}
-                disabled={switching || libraries.length === 0}
-                className="flex items-center gap-2 px-3 py-2 rounded-md bg-slate-800 text-slate-200 hover:bg-slate-700 text-sm max-w-[180px] truncate"
-                title={currentLibrary ?? 'Select library'}
-              >
-                <Library className="w-4 h-4 shrink-0" />
-                <span className="truncate">{currentLibrary || 'Select library'}</span>
-              </button>
-              {showLibDropdown && (
-                <div className="absolute right-0 mt-1 py-1 w-64 max-h-64 overflow-auto rounded-md border border-slate-600 shadow-xl z-50 overflow-y-auto" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
-                  {libraries.map((lib) => (
-                    <button
-                      key={lib.name}
-                      type="button"
-                      onClick={() => handleSwitchLibrary(lib.name)}
-                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-700 ${lib.name === currentLibrary ? 'text-amber' : 'text-slate-200'
-                        }`}
-                    >
-                      {lib.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Connection Status */}
+            <ConnectionBadge />
             <div className="relative" ref={zooRef}>
               <button
                 type="button"
@@ -203,19 +162,33 @@ export function Topbar() {
               >
                 <ExternalLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Webapps</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showZoo ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform ${showZoo ? 'rotate-180' : ''}`}
+                />
               </button>
               {showZoo && (
-                <div className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
-                  {APPS_CATALOG.map((app) => (
+                <div
+                  className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50"
+                  style={{ backgroundColor: 'rgb(30, 41, 59)' }}
+                >
+                  {fleetLoading && (
+                    <div className="px-4 py-2 text-xs text-slate-500">Scanning fleet ports...</div>
+                  )}
+                  {!fleetLoading && fleetApps.length === 0 && (
+                    <div className="px-4 py-2 text-xs text-slate-500">
+                      No fleet webapps detected
+                    </div>
+                  )}
+                  {fleetApps.map((app) => (
                     <button
                       key={app.url}
                       type="button"
                       onClick={() => handleWebappClick(app)}
                       className="block w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/80 hover:text-amber"
                     >
+                      <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2 align-middle" />
                       {app.label}
-                      {app.port != null && <span className="text-slate-500 text-xs ml-1">:{app.port}</span>}
+                      <span className="text-slate-500 text-xs ml-1">:{app.port}</span>
                     </button>
                   ))}
                   <Link
@@ -237,17 +210,29 @@ export function Topbar() {
               >
                 <Container className="w-4 h-4" />
                 <span className="hidden sm:inline">Containers</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showContainers ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform ${showContainers ? 'rotate-180' : ''}`}
+                />
               </button>
               {showContainers && (
-                <div className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50" style={{ backgroundColor: 'rgb(30, 41, 59)' }}>
-                  {CONTAINER_LINKS.map((item) => (
+                <div
+                  className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50"
+                  style={{ backgroundColor: 'rgb(30, 41, 59)' }}
+                >
+                  {fleetLoading && (
+                    <div className="px-4 py-2 text-xs text-slate-500">Scanning...</div>
+                  )}
+                  {!fleetLoading && fleetContainers.length === 0 && (
+                    <div className="px-4 py-2 text-xs text-slate-500">No containers detected</div>
+                  )}
+                  {fleetContainers.map((item) => (
                     <button
                       key={item.url}
                       type="button"
                       onClick={() => handleContainerClick(item)}
                       className="block w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/80 hover:text-amber"
                     >
+                      <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2 align-middle" />
                       {item.label}
                       <span className="text-slate-500 text-xs ml-1">:{item.port}</span>
                     </button>
@@ -278,7 +263,11 @@ export function Topbar() {
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
       {showLogger && <LoggerModal onClose={() => setShowLogger(false)} />}
       {launchModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="rounded-lg bg-slate-800 border border-slate-600 shadow-xl px-6 py-4 max-w-sm text-center">
             {launchModal.status === 'starting' && (
               <>
@@ -293,7 +282,9 @@ export function Topbar() {
               <>
                 <p className="text-red-400 font-medium">Could not start {launchModal.label}</p>
                 <p className="text-slate-400 text-sm mt-1">{launchModal.error}</p>
-                <p className="text-slate-500 text-xs mt-2">Run the start script in the repo manually.</p>
+                <p className="text-slate-500 text-xs mt-2">
+                  Run the start script in the repo manually.
+                </p>
                 <button
                   type="button"
                   onClick={() => setLaunchModal(null)}
@@ -307,5 +298,38 @@ export function Topbar() {
         </div>
       )}
     </>
+  );
+}
+
+function ConnectionBadge() {
+  const { state, lastError } = useConnection();
+
+  const colorMap: Record<string, string> = {
+    connected: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    connecting: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    offline: 'bg-red-500/10 text-red-500 border-red-500/20',
+    error: 'bg-red-500/10 text-red-500 border-red-500/20',
+  };
+
+  const labelMap: Record<string, string> = {
+    connected: 'System Online',
+    connecting: 'Connecting...',
+    offline: `Offline${lastError ? ` (${lastError.slice(0, 60)})` : ''}`,
+    error: `Error${lastError ? ` (${lastError.slice(0, 60)})` : ''}`,
+  };
+
+  return (
+    <div
+      data-testid="connection-status"
+      className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs border ${colorMap[state] || colorMap.connecting}`}
+    >
+      <span className="relative flex h-2 w-2">
+        {state !== 'offline' && state !== 'error' && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75" />
+        )}
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
+      </span>
+      <span data-testid="connection-label">{labelMap[state] || 'Connecting...'}</span>
+    </div>
   );
 }

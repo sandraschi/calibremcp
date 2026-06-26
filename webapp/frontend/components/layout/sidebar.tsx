@@ -1,35 +1,37 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { listLibraries, switchLibrary } from '@/common/api';
 import {
-  LayoutDashboard,
-  Library,
-  BookOpen,
-  Search,
-  Users,
   BookMarked,
-  Tags,
+  BookOpen,
   Building2,
-  Download,
-  Upload,
-  FileText,
-  Settings,
-  HelpCircle,
-  MessageSquare,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  LayoutGrid,
-  Sparkles,
-  ListChecks,
-  GitBranch,
   Code2,
+  Download,
+  FileText,
+  GitBranch,
+  HelpCircle,
+  LayoutDashboard,
+  LayoutGrid,
+  Library,
+  ListChecks,
+  MessageSquare,
+  Search,
+  Settings,
+  Sparkles,
+  Tags,
+  Upload,
+  Users,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/apps', label: 'Our Apps', icon: LayoutGrid },
-  { href: '/libraries', label: 'Libraries', icon: Library },
   { href: '/books', label: 'Books', icon: BookOpen },
   { href: '/search', label: 'Search', icon: Search },
   { href: '/rag', label: 'Semantic Search', icon: Sparkles },
@@ -56,14 +58,119 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [libraries, setLibraries] = useState<{ name: string; path: string; book_count?: number }[]>(
+    [],
+  );
+  const [currentLibrary, setCurrentLibrary] = useState<string | null>(null);
+  const [showLibDropdown, setShowLibDropdown] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const libRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    listLibraries()
+      .then((data) => {
+        setLibraries(data.libraries);
+        setCurrentLibrary(data.current_library ?? null);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!showLibDropdown) return;
+    const close = (e: MouseEvent) => {
+      if (libRef.current && !libRef.current.contains(e.target as Node)) {
+        setShowLibDropdown(false);
+      }
+    };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [showLibDropdown]);
+
+  const handleSwitch = async (name: string) => {
+    if (name === currentLibrary) {
+      setShowLibDropdown(false);
+      return;
+    }
+    setSwitching(true);
+    try {
+      await switchLibrary(name);
+      setCurrentLibrary(name);
+      setShowLibDropdown(false);
+      router.refresh();
+    } catch {
+      /* ignore */
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  const currentLib = libraries.find((l) => l.name === currentLibrary);
 
   return (
     <aside
       className={`shrink-0 flex flex-col border-r border-slate-600 bg-slate-900 transition-[width] duration-200 ${
-        collapsed ? 'w-16 min-w-[4rem]' : 'w-56 min-w-[14rem]'
+        collapsed ? 'w-16 min-w-[4rem]' : 'w-64 min-w-[16rem]'
       }`}
     >
-      <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
+      {/* Current library indicator */}
+      <div className="px-3 pt-4 pb-2 border-b border-slate-700" ref={libRef}>
+        {collapsed ? (
+          <div className="flex justify-center">
+            <Library className="w-5 h-5 text-amber" />
+          </div>
+        ) : (
+          <>
+            <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+              Current Library
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowLibDropdown(!showLibDropdown)}
+              disabled={switching || libraries.length === 0}
+              className="flex items-center justify-between w-full rounded-md px-2 py-2 bg-slate-800 hover:bg-slate-700 text-left transition-colors group"
+            >
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-amber truncate">
+                  {currentLibrary || 'No library'}
+                </div>
+                {currentLib && (
+                  <div className="text-xs text-slate-400">
+                    {currentLib.book_count
+                      ? `${currentLib.book_count.toLocaleString()} books`
+                      : '—'}
+                  </div>
+                )}
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 shrink-0 text-slate-400 transition-transform ${showLibDropdown ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {showLibDropdown && (
+              <div className="mt-1 py-1 max-h-64 overflow-auto rounded-md border border-slate-600 shadow-xl bg-slate-800">
+                {libraries.map((lib) => (
+                  <button
+                    key={lib.name}
+                    type="button"
+                    onClick={() => handleSwitch(lib.name)}
+                    className={`block w-full text-left px-3 py-2 text-sm hover:bg-slate-700 ${
+                      lib.name === currentLibrary ? 'text-amber font-medium' : 'text-slate-300'
+                    }`}
+                  >
+                    <div className="truncate">{lib.name}</div>
+                    {lib.book_count && (
+                      <div className="text-xs text-slate-500">
+                        {lib.book_count.toLocaleString()} books
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
           return (
