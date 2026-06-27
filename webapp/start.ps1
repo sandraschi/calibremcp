@@ -27,21 +27,18 @@ foreach ($port in @($WebPort, $BackendPort)) {
     Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue |
         ForEach-Object { [void]$zombiePids.Add($_.OwningProcess) }
 }
-foreach ($pid in $zombiePids) {
-    Write-Host "Killing zombie on port (PID $pid)..." -ForegroundColor Yellow
-    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-    taskkill /F /PID $pid /T 2>$null
+foreach ($zpid in $zombiePids) {
+    Write-Host "Killing zombie (PID $zpid)..." -ForegroundColor Yellow
+    Stop-Process -Id $zpid -Force -ErrorAction SilentlyContinue
+    taskkill /F /PID $zpid /T 2>$null
 }
-# Elevation fallback: if any PIDs survived, try UAC
-$remaining = @($zombiePids | Where-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue })
-if ($remaining.Count -gt 0) {
-    Write-Host "Zombies survived — requesting elevation..." -ForegroundColor Yellow
-    $script = '$p=@(' + (($remaining | ForEach-Object { "$_" }) -join ',') + ');' +
-        '$p|%{taskkill /F /T /PID $_ 2>$null; Start-Sleep -Milliseconds 200};' +
-        'if($p|?{Get-Process -Id $_ -ErrorAction SilentlyContinue}){exit 1}'
-    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($script))
+# Elevation fallback: kill any zombie that survived
+$survivorPids = @($zombiePids | Where-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue })
+if ($survivorPids.Count -gt 0) {
+    Write-Host "Zombies survived -- requesting elevation..." -ForegroundColor Yellow
+    $elevatedCmd = "taskkill /F /PID $($survivorPids -join ' /PID ') /T 2>$null"
     Start-Process powershell.exe -Verb RunAs -ArgumentList @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", $encoded
+        "-NoProfile", "-Command", $elevatedCmd
     ) -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
 }
 Start-Sleep -Milliseconds 500
