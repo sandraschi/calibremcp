@@ -18,6 +18,9 @@ const sourceSans = Source_Sans_3({
 export const metadata: Metadata = {
   title: 'Calibre Webapp',
   description: 'Modern web interface for Calibre library management',
+  other: {
+    'darkreader-lock': '',
+  },
 };
 
 export default function RootLayout({
