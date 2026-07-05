@@ -1,28 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { getBaseUrl, getSettings, updateSettings } from '@/common/api';
+import { useEffect, useRef, useState } from 'react';
+
+const DEFAULT_LLM_MODEL_KEY = 'calibre-webapp-default-llm-model';
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState('ollama');
   const [annasMirrors, setAnnasMirrorsState] = useState('');
   const [gutenbergMirror, setGutenbergMirror] = useState('');
   const [savingMirrors, setSavingMirrors] = useState(false);
-  const [mirrorResult, setMirrorResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [mirrorResult, setMirrorResult] = useState<{ success: boolean; message: string } | null>(
+    null,
+  );
 
   const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434');
   const [apiKey, setApiKey] = useState('');
   const [models, setModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [modelError, setModelError] = useState<string | null>(null);
+  const [defaultModel, setDefaultModel] = useState('');
 
-  const fetchModels = async () => {
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DEFAULT_LLM_MODEL_KEY);
+      if (saved) setDefaultModel(saved);
+    } catch {}
+  }, []);
+
+  const fetchModels = async (p?: string, u?: string) => {
     setLoadingModels(true);
     setModelError(null);
     try {
       const params = new URLSearchParams();
-      if (provider) params.set('provider', provider);
-      if (baseUrl) params.set('base_url', baseUrl);
+      params.set('provider', p || provider);
+      params.set('base_url', u || baseUrl);
       const res = await fetch(`${getBaseUrl()}/api/llm/models?${params}`);
       const data = await res.json();
       if (data.models) {
@@ -38,6 +50,16 @@ export default function SettingsPage() {
       setLoadingModels(false);
     }
   };
+
+  // Auto-fetch on provider or URL change (500ms debounce)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchModels(provider, baseUrl), 500);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [provider, baseUrl]);
 
   useEffect(() => {
     async function loadSettings() {
@@ -56,7 +78,10 @@ export default function SettingsPage() {
     setSavingMirrors(true);
     setMirrorResult(null);
     try {
-      const annas = annasMirrors.split(',').map((m) => m.trim()).filter(Boolean);
+      const annas = annasMirrors
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean);
       const res = await updateSettings({
         annas_mirrors: annas,
         gutenberg_mirror: gutenbergMirror,
@@ -85,7 +110,7 @@ export default function SettingsPage() {
           <span className="w-2 h-6 bg-amber rounded-full"></span>
           External Mirrors
         </h2>
-        
+
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -123,7 +148,13 @@ export default function SettingsPage() {
               {savingMirrors ? 'Saving...' : 'Save Mirror Settings'}
             </button>
             {mirrorResult && (
-              <span className={mirrorResult.success ? 'text-emerald-400 text-sm animate-pulse' : 'text-red-400 text-sm'}>
+              <span
+                className={
+                  mirrorResult.success
+                    ? 'text-emerald-400 text-sm animate-pulse'
+                    : 'text-red-400 text-sm'
+                }
+              >
                 {mirrorResult.message}
               </span>
             )}
@@ -136,10 +167,12 @@ export default function SettingsPage() {
           <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
           AI / LLM Provider
         </h2>
-        
+
         <div className="space-y-4">
           <div>
-            <label htmlFor="llm-provider" className="block text-sm font-medium text-slate-300 mb-2">Provider</label>
+            <label htmlFor="llm-provider" className="block text-sm font-medium text-slate-300 mb-2">
+              Provider
+            </label>
             <select
               id="llm-provider"
               value={provider}
@@ -152,7 +185,9 @@ export default function SettingsPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="llm-base-url" className="block text-sm font-medium text-slate-300 mb-2">Base URL</label>
+            <label htmlFor="llm-base-url" className="block text-sm font-medium text-slate-300 mb-2">
+              Base URL
+            </label>
             <input
               id="llm-base-url"
               type="url"
@@ -163,7 +198,12 @@ export default function SettingsPage() {
           </div>
           {provider === 'openai' && (
             <div>
-              <label htmlFor="llm-api-key" className="block text-sm font-medium text-slate-300 mb-2">API Key</label>
+              <label
+                htmlFor="llm-api-key"
+                className="block text-sm font-medium text-slate-300 mb-2"
+              >
+                API Key
+              </label>
               <input
                 id="llm-api-key"
                 type="password"
@@ -176,21 +216,45 @@ export default function SettingsPage() {
           )}
           <button
             type="button"
-            onClick={fetchModels}
+            onClick={() => fetchModels(provider, baseUrl)}
             disabled={loadingModels}
             className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-500 disabled:opacity-50"
           >
-            {loadingModels ? 'Loading...' : 'Test Connection & List Models'}
+            {loadingModels ? 'Loading...' : 'Test Connection'}
           </button>
           {modelError && <p className="text-red-400 text-sm mt-2">{modelError}</p>}
           {models.length > 0 && (
             <div className="mt-4 p-4 bg-slate-900 rounded-lg border border-slate-700">
-              <p className="text-sm font-semibold text-slate-100 mb-2">Available models</p>
-              <ul className="text-sm text-slate-400 grid grid-cols-2 gap-2 max-h-40 overflow-auto scrollbar-thin">
+              <label className="block text-sm font-semibold text-slate-100 mb-2">
+                Default model (for Chat, saved in browser)
+              </label>
+              <select
+                value={defaultModel}
+                onChange={(e) => {
+                  setDefaultModel(e.target.value);
+                  try {
+                    localStorage.setItem(DEFAULT_LLM_MODEL_KEY, e.target.value);
+                  } catch {}
+                }}
+                className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm mb-3"
+              >
+                <option value="">Select a model...</option>
                 {models.map((m) => (
-                  <li key={m} className="truncate px-2 py-1 bg-slate-800 rounded">{m}</li>
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
                 ))}
-              </ul>
+              </select>
+              <p className="text-xs text-slate-500">
+                {models.length} model(s) available.{' '}
+                <button
+                  type="button"
+                  onClick={() => fetchModels(provider, baseUrl)}
+                  className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                >
+                  Refresh
+                </button>
+              </p>
             </div>
           )}
         </div>

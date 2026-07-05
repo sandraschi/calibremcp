@@ -103,13 +103,16 @@ export default function ChatPage() {
   const [skillName, setSkillName] = useState('');
   const [contextInfo, setContextInfo] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
-  const [editingCustom, setEditingCustom] = useState(false);
 
-  // Load custom prompt from localStorage
+  // Load custom prompt and saved model from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('calibre-mcp-chat-custom-prompt');
       if (saved) setCustomPrompt(saved);
+    } catch {}
+    try {
+      const saved = localStorage.getItem('calibre-webapp-default-llm-model');
+      if (saved) setModel(saved);
     } catch {}
   }, []);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -146,8 +149,11 @@ export default function ChatPage() {
         const r = await fetch(`${API_BASE}/api/llm/models`);
         if (r.ok) {
           const data = await r.json();
-          const models: string[] = data.models ?? [];
-          if (models.length > 0) setModel(models[0]);
+          const apiModels: string[] = data.models ?? [];
+          if (apiModels.length > 0) {
+            const saved = localStorage.getItem('calibre-webapp-default-llm-model');
+            if (!saved || !apiModels.includes(saved)) setModel(apiModels[0]);
+          }
         }
       } catch {}
 
