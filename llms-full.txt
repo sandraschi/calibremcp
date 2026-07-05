@@ -73,4 +73,4 @@ See root `README.md` and `docs/AGENTIC_AND_RAG.md` for RAG/FTS env and LanceDB p
 
 ---
 
-*Last updated: 2026-03-28 — MCP Apps Prefab **`show_book_prefab_card`**, **`show_libraries_prefab_card`**, **`CALIBRE_PREFAB_APPS`**, **`docs/mcp-technical/MCP_APPS_PREFAB.md`**; metadata RAG env defaults, `justfile` + curated `llms.txt` + `llms-full.txt` (fleet packaging).*
+*Last updated: 2026-07-05 — SOTA compliance sweep: health diagnostics, webapp backend merge, CORS, NSIS, chat rewrite. Added `/api/v1/diagnostics`, `/api/health` endpoints.*

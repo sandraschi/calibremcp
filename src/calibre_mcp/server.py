@@ -6,6 +6,7 @@ import contextlib
 import logging
 import os
 import sys
+import time as _time_module
 import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -296,18 +297,82 @@ register_prompts(mcp)
 # ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
 
 app = FastAPI(title="CalibreMCP", version="1.0.0")
+_tauri = os.environ.get("CALIBRE_TAURI", "").lower() in ("1", "true", "yes")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://127.0.0.1:10721",
+        "http://localhost:10721",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+        "tauri://localhost",
+        "http://127.0.0.1:10720",
+        "http://localhost:10720",
+    ],
+    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+_start_time = _time_module.time()
+
+
+def _get_calibre_status() -> dict:
+    try:
+        base_path = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+        server_url = os.environ.get("CALIBRE_SERVER_URL", "").strip()
+        if base_path and Path(base_path).exists():
+            return {"mode": "local", "base_path": base_path, "reachable": True}
+        if server_url:
+            return {"mode": "remote", "server_url": server_url, "reachable": True}
+        return {"mode": "unconfigured", "reachable": False}
+    except Exception:
+        return {"mode": "unknown", "reachable": False}
+
+
+def _count_tools() -> int:
+    try:
+        if hasattr(mcp, "_tools"):
+            return len(mcp._tools)
+    except Exception:
+        pass
+    return 0
+
+
 @app.get("/health")
+@app.get("/api/health")
 async def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "server": "calibre-mcp",
+        "version": "1.8.6",
+        "uptime_seconds": int(_time_module.time() - _start_time),
+        "tool_count": _count_tools(),
+        "providers": {"calibre": _get_calibre_status()},
+    }
+
+
+@app.get("/api/v1/diagnostics")
+async def diagnostics():
+    tool_list = []
+    try:
+        if hasattr(mcp, "_tools"):
+            tool_list = [{"name": name} for name in mcp._tools.keys()]
+    except Exception:
+        pass
+
+    return {
+        "status": "ok",
+        "server": "calibre-mcp",
+        "version": "1.8.6",
+        "uptime_seconds": int(_time_module.time() - _start_time),
+        "tool_count": len(tool_list),
+        "tools": tool_list,
+        "system": {"windows": os.name == "nt"},
+        "errors": [],
+    }
 
 
 @app.get("/metrics")
@@ -598,6 +663,29 @@ def get_mcp_instance() -> FastMCP:
 
 async def main():
     """Main server entry point with comprehensive error handling and logging"""
+    import logging
+    import os
+
+    # Probe for existing HTTP daemon -- proxy instead of full init
+    _probe_url = os.environ.get("CALIBREOPS_API_URL", "http://127.0.0.1:10720/mcp")
+    try:
+        import httpx
+
+        _resp = httpx.post(
+            _probe_url,
+            json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "probe", "version": "1"}}},
+            headers={"Accept": "application/json, text/event-stream"},
+            timeout=0.5,
+        )
+        if _resp.status_code == 200:
+            _log = logging.getLogger("calibremcp.server")
+            _log.info("HTTP daemon found at %s -- proxying tool calls", _probe_url)
+            _proxy = create_proxy(_probe_url, name="CalibreMCP")
+            await _proxy.run_stdio_async()
+            return
+    except Exception:
+        pass
+
     logger = None
 
     try:

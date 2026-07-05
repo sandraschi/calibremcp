@@ -1,4 +1,55 @@
 
+## [Unreleased] — 2026-07-05 (continued)
+
+### Added
+- **Agentic chat:** `/api/llm/agentic` endpoint with proper OpenAI-compatible tool calling (ReAct loop, 6 MCP tools, up to 5 tool calls per turn)
+- **Custom personality:** Editable textarea when "Custom" personality is selected, persisted to localStorage
+- **Book description preview:** List view shows first 2 lines of rendered HTML description
+
+### Changed
+- **Chat rewrite:** Uses `/api/llm/agentic` with native `tool_calls` instead of fragile keyword matching + JSON parsing
+- **AppLayout:** `h-screen` instead of `min-h-screen` for fixed viewport height + `main` is `flex-col` for proper child sizing
+- **Logger modal:** Level filter dropdown (Error/Warning/Info/Debug), auto-scroll toggle, refresh button, color-coded log levels
+- **Sidebar:** Collapse toggle moved into header bar (right edge, per fleet standard)
+- **Zoom hook:** Keyboard shortcuts (Ctrl+Plus/Minus/0) added, dev browser fallback uses CSS `zoom`
+- **Containers dropdown:** Removed from topbar (was fleet infra noise in e-book app)
+
+### Fixed
+- **LLM timeout:** Increased from 30s to 120s; agentic endpoint wrapped in try/except for friendly error messages
+- **Hydration error:** `suppressHydrationWarning` on `<body>` for Dark Reader + ZoomControls uses `useState(1.0)` with post-mount localStorage read
+- **API routes:** Restored missing `/api/llm/models` and `/api/llm/chat` endpoints (accidentally dropped in rewrite)
+- **CORS:** Explicit Tauri origins with `CALIBRE_TAURI` env var gating
+
+---
+
+## [Unreleased] — 2026-07-05
+
+### Added
+- **API endpoints:** `/api/v1/diagnostics` for CUA smoke testing, `/api/health` as alias for `/health`
+- **Zoom UI:** `-` `100%` `+` controls in topbar + Ctrl+Plus/Minus/0 keyboard shortcuts
+- **Logger modal:** Now shows live backend logs instead of raw system status JSON
+
+### Changed
+- **Webapp backend merge:** Single FastAPI process on 10720 serves REST API, MCP at `/mcp`, health, diagnostics — no port conflict
+- **Health endpoint:** Returns full shape (server, version, uptime, tool_count, providers)
+- **CORS:** Explicit Tauri origins with `CALIBRE_TAURI` env var gating
+- **NSIS hooks:** Fleet-standard (Stop-Process layer, UninstallPrevious, Sleep 3000, ExecWait)
+- **Tauri backend spawn:** Fleet-standard MCP_PORT/MCP_HOST env vars, 240s kill poll with UAC escalation, TCP health check
+- **Chat page:** Full SOTA rewrite — localStorage persistence, export/clear, provider status, example prompts, data-testids
+- **Sidebar:** Collapse toggle moved to top (fleet standard)
+- **Zoom:** Dev browser fallback uses CSS `zoom` instead of `transform: scale()` (fleet standard)
+- **Containers dropdown:** Removed from topbar (was fleet infrastructure noise in an e-book app)
+- **API routes:** Fixed arXiv double-prefix bug, health/help/status route mismatches
+- **Version gaslights:** All version strings unified to `1.8.6` (was split across `1.0.0`, `1.4.0`, `1.8.6`)
+
+### Fixed
+- **Diagnostics tool_count:** Returns real tool count instead of hardcoded `0`
+- **`plex_media` filter bug:** Genre, year, actor, director, min_rating, unwatched params now actually passed through to search
+- **Hydration error:** `suppressHydrationWarning` on `<body>` for Dark Reader browser extension
+- **Console spam:** Removed `CALIBRE_DEBUG` print statements from webapp backend
+
+---
+
 ## [Unreleased] — 2026-06-17
 
 ### Added

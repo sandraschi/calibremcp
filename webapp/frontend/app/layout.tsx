@@ -34,7 +34,7 @@ export default function RootLayout({
       className={`${crimson.variable} ${sourceSans.variable}`}
       suppressHydrationWarning
     >
-      <body className="font-sans antialiased bg-slate-900 text-slate-100 min-h-screen">
+      <body className="font-sans antialiased bg-slate-900 text-slate-100 min-h-screen" suppressHydrationWarning>
         <AppLayout>{children}</AppLayout>
       </body>
     </html>

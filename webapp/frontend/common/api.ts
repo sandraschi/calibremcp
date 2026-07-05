@@ -8,25 +8,24 @@ export async function getAnnasMirrors(): Promise<string[]> {
 
 /** Store Anna's Archive mirror URL(s) in backend. */
 export async function setAnnasMirrors(mirrors: string | string[]): Promise<void> {
-  const annas_mirrors = typeof mirrors === 'string' 
-    ? mirrors.split(',').map(m => m.trim()).filter(Boolean)
-    : mirrors;
+  const annas_mirrors =
+    typeof mirrors === 'string'
+      ? mirrors
+          .split(',')
+          .map((m) => m.trim())
+          .filter(Boolean)
+      : mirrors;
   await updateSettings({ annas_mirrors });
 }
 
-export const API_BASE =
-  process.env.NODE_ENV === 'development' ? '' : 'http://127.0.0.1:10720';
+export const API_BASE = process.env.NODE_ENV === 'development' ? '' : 'http://127.0.0.1:10720';
 
 /** Base URL for fetch. Server needs absolute URL; client uses relative in dev. */
 export function getBaseUrl(): string {
   return API_BASE;
 }
 
-async function fetchWithRetry(
-  url: string,
-  attempts = 15,
-  delayMs = 400,
-): Promise<Response> {
+async function fetchWithRetry(url: string, attempts = 15, delayMs = 400): Promise<Response> {
   let lastError: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
@@ -65,9 +64,7 @@ export interface Book {
 }
 
 /** Calibre stores `rating` on a 0–10 scale; five-star UI uses half steps (same as book modal). */
-export function ratingToFiveStarCount(
-  rating: number | undefined | null
-): number {
+export function ratingToFiveStarCount(rating: number | undefined | null): number {
   if (rating == null || rating <= 0) return 0;
   return Math.min(5, Math.max(0, Math.round(rating / 2)));
 }
@@ -166,7 +163,11 @@ export async function openBookViewer(bookId: number): Promise<void> {
     let detail = '';
     try {
       const err = await response.json();
-      detail = (err as { detail?: string }).detail ?? (err as { error?: string }).error ?? (err as { message?: string }).message ?? '';
+      detail =
+        (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        (err as { message?: string }).message ??
+        '';
     } catch {
       detail = response.statusText;
     }
@@ -229,14 +230,22 @@ export async function listLibraries(): Promise<LibraryListResponse> {
     let detail = '';
     try {
       const err = await response.json();
-      detail = (err as { hint?: string }).hint ?? (err as { detail?: string }).detail ?? (err as { error?: string }).error ?? '';
+      detail =
+        (err as { hint?: string }).hint ??
+        (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        '';
     } catch {
       detail = 'Run webapp\\start.ps1 from repo root.';
     }
     throw new Error(detail || `Failed to fetch libraries (${response.status})`);
   }
   const data = await response.json();
-  return { libraries: data.libraries, current_library: data.current_library, total_libraries: data.total_libraries };
+  return {
+    libraries: data.libraries,
+    current_library: data.current_library,
+    total_libraries: data.total_libraries,
+  };
 }
 
 export async function getLibraryStats(libraryName?: string): Promise<LibraryStats> {
@@ -270,7 +279,9 @@ function normalizeLibraryStats(data: Record<string, unknown>): LibraryStats {
   };
 }
 
-export async function switchLibrary(libraryName: string): Promise<{ success: boolean; library_name: string; library_path: string; message: string }> {
+export async function switchLibrary(
+  libraryName: string,
+): Promise<{ success: boolean; library_name: string; library_path: string; message: string }> {
   const response = await fetch(`${getBaseUrl()}/api/libraries/switch`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -292,14 +303,14 @@ export async function switchLibrary(libraryName: string): Promise<{ success: boo
 export async function getHelp(level = 'basic', topic?: string): Promise<Record<string, unknown>> {
   const params = new URLSearchParams({ level });
   if (topic) params.set('topic', topic);
-  const response = await fetch(`${getBaseUrl()}/api/help?${params}`);
+  const response = await fetch(`${getBaseUrl()}/api/system/help?${params}`);
   if (!response.ok) throw new Error('Failed to fetch help');
   return response.json();
 }
 
 export async function getSystemStatus(level = 'diagnostic'): Promise<Record<string, unknown>> {
   const base = getBaseUrl();
-  const response = await fetch(`${base}/api/status?status_level=${level}`);
+  const response = await fetch(`${base}/api/system/status?status_level=${level}`);
   if (!response.ok) throw new Error('Failed to fetch status');
   return response.json();
 }
@@ -338,7 +349,11 @@ export interface TagItem {
   book_count?: number;
 }
 
-export async function listAuthors(params?: { query?: string; limit?: number; offset?: number }): Promise<{ items: AuthorItem[]; total: number }> {
+export async function listAuthors(params?: {
+  query?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{ items: AuthorItem[]; total: number }> {
   const searchParams = new URLSearchParams();
   if (params?.query) searchParams.set('query', params.query);
   if (params?.limit) searchParams.set('limit', params.limit.toString());
@@ -427,7 +442,10 @@ export async function listSeries(params?: {
   };
 }
 
-export async function getSeriesBooks(seriesId: number, params?: { limit?: number; offset?: number }): Promise<{ items: Book[]; series?: { name?: string }; total?: number }> {
+export async function getSeriesBooks(
+  seriesId: number,
+  params?: { limit?: number; offset?: number },
+): Promise<{ items: Book[]; series?: { name?: string }; total?: number }> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set('limit', params.limit.toString());
   if (params?.offset) searchParams.set('offset', params.offset.toString());
@@ -471,7 +489,11 @@ export async function searchAnnas(params: {
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -484,23 +506,37 @@ export interface AnnasDownloadResponse {
   detail_url?: string;
 }
 
-export async function downloadAnnas(md5: string, options?: { format?: string, title?: string, authors?: string[], tags?: string[], series?: string, library_path?: string }): Promise<AnnasDownloadResponse> {
+export async function downloadAnnas(
+  md5: string,
+  options?: {
+    format?: string;
+    title?: string;
+    authors?: string[];
+    tags?: string[];
+    series?: string;
+    library_path?: string;
+  },
+): Promise<AnnasDownloadResponse> {
   const response = await fetch(`${getBaseUrl()}/api/annas/download`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      md5, 
+    body: JSON.stringify({
+      md5,
       target_format: options?.format,
       title: options?.title,
       authors: options?.authors,
       tags: options?.tags,
       series: options?.series,
-      library_path: options?.library_path
+      library_path: options?.library_path,
     }),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -522,7 +558,10 @@ export interface ArxivSearchResponse {
   error?: string;
 }
 
-export async function searchArxiv(query: string, maxResults?: number): Promise<ArxivSearchResponse> {
+export async function searchArxiv(
+  query: string,
+  maxResults?: number,
+): Promise<ArxivSearchResponse> {
   const response = await fetch(`${getBaseUrl()}/api/arxiv/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -532,22 +571,35 @@ export async function searchArxiv(query: string, maxResults?: number): Promise<A
   return response.json();
 }
 
-export async function importArxiv(arxivId: string, options?: { title?: string, authors?: string[], tags?: string[], series?: string, library_path?: string }): Promise<{ success: boolean; title?: string }> {
+export async function importArxiv(
+  arxivId: string,
+  options?: {
+    title?: string;
+    authors?: string[];
+    tags?: string[];
+    series?: string;
+    library_path?: string;
+  },
+): Promise<{ success: boolean; title?: string }> {
   const response = await fetch(`${getBaseUrl()}/api/arxiv/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
       arxiv_id: arxivId,
       title: options?.title,
       authors: options?.authors,
       tags: options?.tags,
       series: options?.series,
-      library_path: options?.library_path
+      library_path: options?.library_path,
     }),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -577,23 +629,37 @@ export async function searchGutenberg(query: string): Promise<GutenbergSearchRes
   return response.json();
 }
 
-export async function importGutenberg(bookId: number, options?: { format?: string, title?: string, authors?: string[], tags?: string[], series?: string, library_path?: string }): Promise<{ success: boolean; title?: string }> {
+export async function importGutenberg(
+  bookId: number,
+  options?: {
+    format?: string;
+    title?: string;
+    authors?: string[];
+    tags?: string[];
+    series?: string;
+    library_path?: string;
+  },
+): Promise<{ success: boolean; title?: string }> {
   const response = await fetch(`${getBaseUrl()}/api/gutenberg/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      book_id: bookId, 
+    body: JSON.stringify({
+      book_id: bookId,
       format: options?.format,
       title: options?.title,
       authors: options?.authors,
       tags: options?.tags,
       series: options?.series,
-      library_path: options?.library_path
+      library_path: options?.library_path,
     }),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -609,7 +675,9 @@ export async function getSettings(): Promise<AppSettings> {
   return response.json();
 }
 
-export async function updateSettings(settings: Partial<AppSettings>): Promise<{ success: boolean; message: string }> {
+export async function updateSettings(
+  settings: Partial<AppSettings>,
+): Promise<{ success: boolean; message: string }> {
   const response = await fetch(`${getBaseUrl()}/api/settings/`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -691,21 +759,32 @@ export interface RagMetadataSearchResult {
 export async function ragMetadataBuild(forceRebuild = false): Promise<RagMetadataBuildResult> {
   const response = await fetch(
     `${getBaseUrl()}/api/rag/metadata/build?force_rebuild=${forceRebuild ? 'true' : 'false'}`,
-    { method: 'POST' }
+    { method: 'POST' },
   );
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
 
-export async function ragMetadataSearch(query: string, topK = 10): Promise<RagMetadataSearchResult> {
+export async function ragMetadataSearch(
+  query: string,
+  topK = 10,
+): Promise<RagMetadataSearchResult> {
   const params = new URLSearchParams({ q: query, top_k: topK.toString() });
   const response = await fetch(`${getBaseUrl()}/api/rag/metadata/search?${params}`);
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -744,7 +823,11 @@ export async function ragRetrieve(
   const response = await fetch(`${getBaseUrl()}/api/rag/retrieve?${params}`);
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -754,11 +837,15 @@ export async function ragRetrieve(
 export async function ragContentBuild(forceRebuild = false): Promise<RagMetadataBuildResult> {
   const response = await fetch(
     `${getBaseUrl()}/api/rag/content/build?force_rebuild=${forceRebuild ? 'true' : 'false'}`,
-    { method: 'POST' }
+    { method: 'POST' },
   );
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -774,13 +861,16 @@ export interface RagSynopsisResult {
 }
 
 export async function ragSynopsis(bookId: number, spoilers = false): Promise<RagSynopsisResult> {
-  const response = await fetch(
-    `${getBaseUrl()}/api/rag/synopsis/${bookId}?spoilers=${spoilers}`,
-    { method: 'POST' }
-  );
+  const response = await fetch(`${getBaseUrl()}/api/rag/synopsis/${bookId}?spoilers=${spoilers}`, {
+    method: 'POST',
+  });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -806,15 +896,19 @@ export interface RagResearchResult {
 
 export async function ragResearchBook(
   bookId: number,
-  includeSpoilers = false
+  includeSpoilers = false,
 ): Promise<RagResearchResult> {
   const response = await fetch(
     `${getBaseUrl()}/api/rag/research/${bookId}?include_spoilers=${includeSpoilers}`,
-    { method: 'POST' }
+    { method: 'POST' },
   );
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -845,7 +939,11 @@ export async function getSeriesAnalysis(seriesName: string): Promise<SeriesAnaly
   const response = await fetch(`${getBaseUrl()}/api/series/analysis?${params}`);
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail ?? (err as { error?: string }).error ?? response.statusText);
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        response.statusText,
+    );
   }
   return response.json();
 }
@@ -861,5 +959,28 @@ export interface Skill {
 export async function listSkills(): Promise<{ skills: Skill[] }> {
   const response = await fetch(`${getBaseUrl()}/api/skills/`);
   if (!response.ok) throw new Error('Failed to fetch skills');
+  return response.json();
+}
+
+// ── Fleet discovery ──────────────────────────────────────────────────────────
+
+export interface FleetApp {
+  label: string;
+  port: number;
+  url: string;
+  description: string;
+  up: boolean;
+}
+
+export interface FleetStatus {
+  webapps: FleetApp[];
+  containers: FleetApp[];
+  total: number;
+  total_up: number;
+}
+
+export async function fetchFleetStatus(): Promise<FleetStatus> {
+  const response = await fetch(`${getBaseUrl()}/api/fleet/webapps`);
+  if (!response.ok) throw new Error('Failed to fetch fleet status');
   return response.json();
 }

@@ -19,7 +19,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:10720 ipc: http://ipc.localhost; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {
@@ -36,12 +36,16 @@
     ],
     "resources": [
       "resources/calibre-mcp-backend.exe",
+      "resources/.env.example",
       "resources/install-mcp-clients.ps1"
     ],
     "windows": {
-      "nsis": {},
       "webviewInstallMode": {
         "type": "skip"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerHooks": "./windows/hooks.nsh"
       }
     }
   },
@@ -57,3 +61,4 @@
     }
   }
 }
+

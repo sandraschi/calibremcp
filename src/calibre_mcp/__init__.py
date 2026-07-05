@@ -6,6 +6,8 @@ import contextlib
 import os
 import sys
 import warnings
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _metadata_version
 
 from pydantic import PydanticDeprecatedSince20
 
@@ -26,7 +28,10 @@ from .models import (
 )
 from .storage import LocalStorage, StorageBackend
 
-__version__ = "1.4.0"
+try:
+    __version__ = _metadata_version("calibremcp")
+except PackageNotFoundError:
+    __version__ = "1.8.6"
 __author__ = "Sandra"
 __description__ = "FastMCP 2.14.1+ server for Calibre e-book library management"
 

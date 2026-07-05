@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # API Configuration
     API_TITLE: str = "Calibre Webapp API"
-    API_VERSION: str = "1.0.0"
+    API_VERSION: str = "1.8.6"
     API_DESCRIPTION: str = "HTTP API wrapper for CalibreMCP server"
 
     # Server Configuration

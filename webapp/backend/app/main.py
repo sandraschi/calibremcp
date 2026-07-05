@@ -171,6 +171,16 @@ async def startup_event():
 
     # Initialize database and load library
     try:
+        # Register MCP tools on the shared mcp instance for tool_count to be accurate
+        try:
+            from calibre_mcp.server import mcp as _calibre_mcp
+            from calibre_mcp.tools import register_tools
+
+            register_tools(_calibre_mcp)
+            logger.info("MCP tools registered for webapp backend")
+        except Exception as e:
+            logger.warning(f"Could not register MCP tools: {e}")
+
         from .mcp.client import mcp_client
 
         # Step 1: List available libraries
@@ -298,17 +308,14 @@ for _p in _try_paths:
     if _p and os.path.isdir(_p):
         _frontend_dist = _p
         break
-print(f"CALIBRE_DEBUG: frontend paths tried: {_try_paths}", flush=True)
 if _frontend_dist and os.path.isdir(_frontend_dist):
     _frontend_dist = os.path.realpath(_frontend_dist)
-    print(f"CALIBRE_DEBUG: mounting frontend from {_frontend_dist}", flush=True)
     try:
         app.mount("/app", SPAStaticFiles(directory=_frontend_dist, html=True, follow_symlink=True), name="frontend")
     except TypeError:
         app.mount("/app", SPAStaticFiles(directory=_frontend_dist, html=True), name="frontend")
     logger.info("Frontend SPA mounted at /app from %s", _frontend_dist)
 else:
-    print(f"CALIBRE_DEBUG: no frontend dist found, _frontend_dist={_frontend_dist}", flush=True)
     logger.warning("Frontend dist not found (tried: %s) — API only", "; ".join(str(p) for p in _try_paths))
 
 
@@ -322,10 +329,45 @@ async def root():
     }
 
 
+def _count_tools() -> int:
+    try:
+        from calibre_mcp.server import mcp as _mcp
+
+        if hasattr(_mcp, "_tools"):
+            return len(_mcp._tools)
+    except Exception:
+        pass
+    return 0
+
+
+def _get_calibre_status() -> dict:
+    try:
+        base_path = os.environ.get("CALIBRE_BASE_PATH", "").strip().strip('"')
+        server_url = os.environ.get("CALIBRE_SERVER_URL", "").strip()
+        if base_path and Path(base_path).exists():
+            return {"mode": "local", "base_path": base_path, "reachable": True}
+        if server_url:
+            return {"mode": "remote", "server_url": server_url, "reachable": True}
+        return {"mode": "unconfigured", "reachable": False}
+    except Exception:
+        return {"mode": "unknown", "reachable": False}
+
+
+_SERVER_START = time.time()
+
+
 @app.get("/health")
+@app.get("/api/health")
 async def health():
     """Health check endpoint."""
-    return {"status": "healthy"}
+    return {
+        "status": "ok",
+        "server": "calibre-mcp",
+        "version": settings.API_VERSION,
+        "uptime_seconds": int(time.time() - _SERVER_START),
+        "tool_count": _count_tools(),
+        "providers": {"calibre": _get_calibre_status()},
+    }
 
 
 @app.get("/metrics", response_class=PlainTextResponse)
@@ -384,7 +426,7 @@ async def get_cua_diagnostics():
         win = a.window(title_re="Calibre MCP")
         win.wait("visible", timeout=2)
         window = True
-    return {"success":True,"data":{"backend":{"status":"ok","version":"1.8.6","uptime_seconds":uptime,"port":10720},"system":{"cpu_percent":cpu,"memory_percent":mem,"disk_percent":disk},"tools":{"total":0,"categories":["calibre"]},"errors":{"count":0,"recent":[]},"cua_status":{"window_found":window,"backend_reachable":True,"tesseract_available":tesseract}}}
+    return {"success":True,"data":{"backend":{"status":"ok","version":"1.8.6","uptime_seconds":uptime,"port":10720},"system":{"cpu_percent":cpu,"memory_percent":mem,"disk_percent":disk},"tools":{"total":_count_tools(),"categories":["calibre"]},"errors":{"count":0,"recent":[]},"cua_status":{"window_found":window,"backend_reachable":True,"tesseract_available":tesseract}}}
 
 
 @app.get("/api/libraries/list")

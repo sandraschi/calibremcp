@@ -4,10 +4,11 @@ import { useConnection } from '@/app/store/connection';
 import { API_BASE, type FleetApp, fetchFleetStatus, getHelp, getSystemStatus } from '@/common/api';
 import {
   ChevronDown,
-  Container,
   ExternalLink,
   FileText,
   HelpCircle,
+  Minus,
+  Plus,
   Wifi,
   WifiOff,
 } from 'lucide-react';
@@ -37,15 +38,12 @@ interface LaunchModalState {
 
 export function Topbar() {
   const [showZoo, setShowZoo] = useState(false);
-  const [showContainers, setShowContainers] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showLogger, setShowLogger] = useState(false);
   const [launchModal, setLaunchModal] = useState<LaunchModalState | null>(null);
   const [fleetApps, setFleetApps] = useState<FleetApp[]>([]);
-  const [fleetContainers, setFleetContainers] = useState<FleetApp[]>([]);
   const [fleetLoading, setFleetLoading] = useState(true);
   const zooRef = useRef<HTMLDivElement>(null);
-  const containersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +52,6 @@ export function Topbar() {
         const data = await fetchFleetStatus();
         if (!cancelled) {
           setFleetApps(data.webapps.filter((a) => a.up));
-          setFleetContainers(data.containers.filter((c) => c.up));
           setFleetLoading(false);
         }
       } catch {
@@ -77,21 +74,6 @@ export function Topbar() {
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [showZoo]);
-
-  useEffect(() => {
-    if (!showContainers) return;
-    const close = (e: MouseEvent) => {
-      if (containersRef.current && !containersRef.current.contains(e.target as Node))
-        setShowContainers(false);
-    };
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [showContainers]);
-
-  const handleContainerClick = (item: { label: string; url: string }) => {
-    setShowContainers(false);
-    window.open(item.url, '_blank', 'noopener,noreferrer');
-  };
 
   const handleWebappClick = async (app: { label: string; url: string; port?: number }) => {
     setShowZoo(false);
@@ -201,45 +183,7 @@ export function Topbar() {
                 </div>
               )}
             </div>
-            <div className="relative" ref={containersRef}>
-              <button
-                type="button"
-                onClick={() => setShowContainers(!showContainers)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-md text-slate-300 hover:bg-slate-700/50 hover:text-amber text-sm"
-                title="Jump to container UIs (Docker, etc.)"
-              >
-                <Container className="w-4 h-4" />
-                <span className="hidden sm:inline">Containers</span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform ${showContainers ? 'rotate-180' : ''}`}
-                />
-              </button>
-              {showContainers && (
-                <div
-                  className="absolute right-0 mt-1 py-1 w-56 max-h-80 overflow-auto rounded-lg border border-slate-600 shadow-xl z-50"
-                  style={{ backgroundColor: 'rgb(30, 41, 59)' }}
-                >
-                  {fleetLoading && (
-                    <div className="px-4 py-2 text-xs text-slate-500">Scanning...</div>
-                  )}
-                  {!fleetLoading && fleetContainers.length === 0 && (
-                    <div className="px-4 py-2 text-xs text-slate-500">No containers detected</div>
-                  )}
-                  {fleetContainers.map((item) => (
-                    <button
-                      key={item.url}
-                      type="button"
-                      onClick={() => handleContainerClick(item)}
-                      className="block w-full text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-700/80 hover:text-amber"
-                    >
-                      <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2 align-middle" />
-                      {item.label}
-                      <span className="text-slate-500 text-xs ml-1">:{item.port}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ZoomControls />
             <button
               type="button"
               onClick={() => setShowHelp(true)}
@@ -252,7 +196,7 @@ export function Topbar() {
               type="button"
               onClick={() => setShowLogger(true)}
               className="p-2 rounded-md text-slate-400 hover:bg-slate-700 hover:text-amber"
-              title="System status"
+              title="Logs"
             >
               <FileText className="w-5 h-5" />
             </button>
@@ -330,6 +274,88 @@ function ConnectionBadge() {
         <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
       </span>
       <span data-testid="connection-label">{labelMap[state] || 'Connecting...'}</span>
+    </div>
+  );
+}
+
+const ZOOM_LEVELS = [0.8, 1.0, 1.25, 1.5, 2.0, 3.0];
+
+function applyZoomCSS(level: number) {
+  document.documentElement.style.zoom = String(level);
+}
+
+function ZoomControls() {
+  const [level, setLevel] = useState(1.0);
+
+  // Read saved zoom from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    const saved = (() => {
+      try {
+        const raw = localStorage.getItem('tauri-zoom');
+        return raw ? parseFloat(raw) : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (saved && ZOOM_LEVELS.includes(saved)) setLevel(saved);
+  }, []);
+
+  // Sync with external zoom changes (cross-tab)
+  useEffect(() => {
+    const sync = () => {
+      try {
+        const raw = localStorage.getItem('tauri-zoom');
+        if (raw) {
+          const parsed = parseFloat(raw);
+          if (ZOOM_LEVELS.includes(parsed)) setLevel(parsed);
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, []);
+
+  const change = (direction: 1 | -1 | 'reset') => {
+    let next: number;
+    if (direction === 'reset') {
+      next = 1.0;
+    } else {
+      const i = ZOOM_LEVELS.indexOf(level) + direction;
+      if (i < 0 || i >= ZOOM_LEVELS.length) return;
+      next = ZOOM_LEVELS[i];
+    }
+    localStorage.setItem('tauri-zoom', String(next));
+    applyZoomCSS(next);
+    setLevel(next);
+  };
+
+  const atMin = level <= ZOOM_LEVELS[0];
+  const atMax = level >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1];
+
+  return (
+    <div
+      className="flex items-center gap-0.5 text-slate-400"
+      title={`Zoom: ${Math.round(level * 100)}%`}
+    >
+      <button
+        type="button"
+        onClick={() => change(-1)}
+        disabled={atMin}
+        className="p-1 rounded hover:bg-slate-700 hover:text-amber disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <Minus size={14} />
+      </button>
+      <span className="text-xs w-8 text-center select-none tabular-nums">
+        {Math.round(level * 100)}%
+      </span>
+      <button
+        type="button"
+        onClick={() => change(1)}
+        disabled={atMax}
+        className="p-1 rounded hover:bg-slate-700 hover:text-amber disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <Plus size={14} />
+      </button>
     </div>
   );
 }

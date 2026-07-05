@@ -1,15 +1,15 @@
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
 
-from calibre_mcp.tools.import_export.arxiv_client import search_arxiv, download_arxiv_paper
 from calibre_mcp.tools.book_management.add_book import add_book_helper
+from calibre_mcp.tools.import_export.arxiv_client import download_arxiv_paper, search_arxiv
 
-router = APIRouter(prefix="/api/arxiv", tags=["arxiv"])
+router = APIRouter(tags=["arxiv"])
 
 class ArxivSearchRequest(BaseModel):
     query: str
-    max_results: Optional[int] = 20
+    max_results: int | None = 20
 
 class ArxivImportRequest(BaseModel):
     arxiv_id: str
