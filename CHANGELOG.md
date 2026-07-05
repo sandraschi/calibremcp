@@ -4,6 +4,7 @@
 ### Added
 - **Agentic chat:** `/api/llm/agentic` endpoint with proper OpenAI-compatible tool calling (ReAct loop, 6 MCP tools, up to 5 tool calls per turn)
 - **Custom personality:** Editable textarea when "Custom" personality is selected, persisted to localStorage
+- **Model settings:** Auto-fetch models on provider/URL change, default model selector saved to localStorage, chat reads saved preference
 - **Book description preview:** List view shows first 2 lines of rendered HTML description
 
 ### Changed
