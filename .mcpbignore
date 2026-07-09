@@ -1,9 +1,11 @@
 # Logic/Dev Bloat
+venv/
 .venv/
 node_modules/
 __pycache__/
 .ruff_cache/
 .pytest_cache/
+*.egg-info/
 tests/
 
 # Discovery & Fleet Metadata
@@ -19,7 +21,21 @@ dist/
 build/
 *.mcpb
 
-# Non-MCP components (webapp, native, scripts)
+# Build artifacts & large caches
+target/
+.next/
+logs/
+htmlcov/
+cua-reports/
+scratch/
+lancedb_test_calibre/
+*.log
+*.html
+calibremcp - Trust Report _ ToolBench*
+
+# Non-MCP components (webapp, native, scripts, plugins)
 native/
 web_sota/
 scripts/
+calibre_plugin/
+calibre-plugins/

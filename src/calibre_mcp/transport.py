@@ -269,9 +269,11 @@ async def run_server_async(
                 allow_headers=["*"],
             )
 
-            @app.get("/health")
-            async def health():
-                return {"status": "ok", "server": server_name}
+            from starlette.responses import JSONResponse
+            async def health(request):
+                return JSONResponse({"status": "ok", "server": server_name})
+            from starlette.routing import Route
+            app.routes.append(Route("/health", endpoint=health, methods=["GET"]))
 
             await mcp_app.run_http_async(host=host, port=port, path=path)
 

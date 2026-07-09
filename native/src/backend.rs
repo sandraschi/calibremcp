@@ -108,11 +108,10 @@ fn free_port(port: u16) -> bool {
     #[cfg(windows)]
     {
         // Kill by image name (catches zombies NOT holding the port)
+        // IMPORTANT: do NOT kill calibre-mcp-native (would self-kill the current process)
         let img_kill = format!(
             "Stop-Process -Name 'calibre-mcp-backend' -Force -ErrorAction SilentlyContinue; \
-             Stop-Process -Name 'calibre-mcp-native' -Force -ErrorAction SilentlyContinue; \
-             taskkill /F /IM calibre-mcp-backend.exe /T 2>$null; \
-             taskkill /F /IM calibre-mcp-native.exe /T 2>$null"
+             taskkill /F /IM calibre-mcp-backend.exe /T 2>$null"
         );
         let _ = Command::new("powershell.exe")
             .args(["-NoProfile", "-Command", &img_kill])
@@ -214,6 +213,7 @@ pub fn spawn_backend(app: AppHandle, state: &BackendProcess) -> Result<String, S
     command
         .env(ENV_PORT, BACKEND_PORT.to_string())
         .env(ENV_HOST, "127.0.0.1")
+        .env("MCP_TRANSPORT", "http")
         .env(ENV_TAURI, "1")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

@@ -1,4 +1,20 @@
 
+## [Unreleased] — 2026-07-09
+
+### Fixed
+- **Tauri build no longer breaks webapp:** `native/build.ps1` now restores standalone `.next/` cache after building with `TAURI_BUILD=1` (was leaving `basePath:/app` in routes manifest, breaking `next start`)
+- **Frontend standalone server now works:** `webapp/start.ps1` uses `node .next/standalone/server.js` with `PORT=10721` instead of `npm run start` (incompatible with `output: 'standalone'`); auto-copies `.next/static` into standalone output
+- **`backend.rs` self-kill removed:** `free_port()` no longer kills `calibre-mcp-native.exe` by name (was killing the current process)
+- **`backend.rs` missing `MCP_TRANSPORT=http`:** Added env var so backend opens HTTP port 10720 instead of stdio
+- **`transport.py` Starlette `@app.get` crash:** Replaced FastAPI-style decorator with Starlette `Route` for health endpoint
+- **PyInstaller metadata fixes:** Added `annotated_doc-` and `annotated-doc-` to `_keep_dist`; added `hooks/runtime-opentelemetry.py` for `StopIteration` crash
+- **`build.ps1` bundles `.env.example` instead of `.env`:** Prevents personal API key leakage into installer
+
+### Added
+- **Session context injection:** `.claude-plugin/plugin.json`, `hooks/hooks.json`, updated `.cursorrules` and `.windsurfrules` with tool-awareness prompt — agents now know calibre-mcp's capabilities on session start
+- **`just cua-nsis-test` recipe:** Runs CUA-NSIS smoke test (install → launch → verify → uninstall)
+- **Playwright tests expanded:** From 2 to 9 tests covering backend health, API endpoints, page loads, console error detection
+
 ## [Unreleased] — 2026-07-05 (continued)
 
 ### Added

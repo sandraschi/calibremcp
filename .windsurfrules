@@ -26,43 +26,6 @@
 
 ---
 
-## Documentation Branches (from Central README)
-
-### Core Standards
-- `STANDARDS.md` - Documentation quality standards
-- `STRUCTURE.md` - Directory layout guide
-- `CONTRIBUTING.md` - How to contribute
-
-### Anthropic Ecosystem (`docs/anthropic-ecosystem/`)
-- MCP Protocol, FastMCP, MCPB, Claude Desktop, Glama
-
-### Google Ecosystem (`docs/google-ecosystem/`)
-- Gemini 3, Antigravity IDE, Nano Banana Pro, DeepMind, TPU infrastructure
-
-### Patterns (`docs/patterns/`)
-- Design patterns for MCP servers and development
-
-### Projects (`docs/projects/`)
-- myai, veogen, mywienerlinien, autohotkey
-
-### Monitoring (`monitoring/`)
-- Prometheus/Grafana/Loki stack
-
-### Templates (`templates/`)
-- Reusable templates and scripts
-
----
-
-## Quick Reference
-
-**Central Docs Location:** `D:\Dev\repos\mcp-central-docs\`
-
-**Start Here:** `D:\Dev\repos\mcp-central-docs\README.md`
-
-**When in doubt:** Read the central README and navigate from there.
-
----
-
 ## Session Context (Calibre MCP)
 
 You have access to a Calibre e-book library with 21 portmanteau tools for search, management, export, and RAG.
@@ -74,4 +37,3 @@ You have access to a Calibre e-book library with 21 portmanteau tools for search
 **At end of work, save findings:**
 - Use `calibre_export` to save results and `calibre_manage` to update metadata
 - Any books discussed or found should be tagged for future reference
-

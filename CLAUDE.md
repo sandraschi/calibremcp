@@ -16,3 +16,8 @@ SOTA April 2026 industrialized FastMCP 3.2.0 server for conversational Calibre e
 - `README.md` — full documentation
 - `pyproject.toml` — build config and entry points
 - `AGENTS.md` — OpenAI Codex agent context (if present)
+
+## Session Context
+You have access to a Calibre e-book library with 21 portmanteau tools for search, management, export, and RAG.
+- Search library: `calibre_search(operation="search_books", query="...")`
+- Library health: `calibre_manage(operation="library_health")`

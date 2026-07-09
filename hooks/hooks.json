@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "text",
+        "text": "## Session Context (Calibre MCP)\n\nYou have access to a Calibre e-book library with 21 portmanteau tools for search, management, export, and RAG.\n\n**Before starting work:**\n1. Search your library: calibre_search(operation=\"search_books\", query=\"<query>\")\n2. Check library health: calibre_manage(operation=\"library_health\")\n\n**At end of work, save findings:**\n- Use calibre_export to save results and calibre_manage to update metadata\n- Any books you discussed or found should be tagged for future reference"
+      }]
+    }]
+  }
+}

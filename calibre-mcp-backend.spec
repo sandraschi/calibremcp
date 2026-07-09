@@ -265,7 +265,7 @@ a = Analysis(
     
     hooksconfig={},
 
-    runtime_hooks=[],
+    runtime_hooks=['hooks/runtime-opentelemetry.py'],
     excludes=[
 
         "torch",
@@ -283,6 +283,13 @@ a = Analysis(
     optimize=0,
 
 )
+
+# Strip .dist-info but preserve metadata for packages that need it at runtime
+_keep_dist = ['fastmcp-', 'mcp-', 'prefab_ui-', 'opentelemetry-', 'email_validator-', 'annotated_doc-', 'annotated-doc-']
+_saved = [e for e in a.datas if isinstance(e, tuple) and any(k in str(e[0]) for k in _keep_dist) and '.dist-info' in str(e[0])]
+for _list in [a.datas, a.binaries, a.zipfiles, a.scripts]:
+    _list[:] = [e for e in _list if not (isinstance(e, tuple) and '.dist-info' in str(e[0]))]
+a.datas.extend(_saved)
 
 pyz = PYZ(a.pure)
 

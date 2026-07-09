@@ -128,7 +128,19 @@ $pollAndOpen = "for (`$i = 0; `$i -lt 60; `$i++) { try { `$null = Invoke-WebRequ
 Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-Command", $pollAndOpen
 
 Set-Location $FrontendDir
-if ($Dev) { npm run dev } else { npm run start }
+if ($Dev) { npm run dev } else {
+    if (Test-Path ".next/standalone/server.js") {
+        # Ensure static files are in standalone output (Next.js doesn't copy them automatically)
+        if ((Test-Path ".next/static") -and -not (Test-Path ".next/standalone/.next/static")) {
+            Write-Host "  Copying static files to standalone output..." -ForegroundColor Gray
+            Copy-Item ".next/static" ".next/standalone/.next/static" -Recurse -Force
+        }
+        $env:PORT = "$WebPort"
+        node .next/standalone/server.js
+    } else {
+        npm run start
+    }
+}
 
 
 

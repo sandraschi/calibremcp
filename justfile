@@ -123,3 +123,7 @@ build-native-debug:
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
 
+# Run CUA-NSIS smoke test (install -> launch -> verify -> uninstall)
+cua-nsis-test:
+    uv run python scripts/cua-smoke.py
+

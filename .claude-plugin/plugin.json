@@ -1,0 +1,6 @@
+{
+  "name": "calibre-mcp",
+  "version": "1.8.6",
+  "description": "Calibre e-book library MCP server with 21 portmanteau tools for search, management, export, and RAG",
+  "hooks": "../hooks/hooks.json"
+}
