@@ -9,6 +9,10 @@
 - **`transport.py` Starlette `@app.get` crash:** Replaced FastAPI-style decorator with Starlette `Route` for health endpoint
 - **PyInstaller metadata fixes:** Added `annotated_doc-` and `annotated-doc-` to `_keep_dist`; added `hooks/runtime-opentelemetry.py` for `StopIteration` crash
 - **`build.ps1` bundles `.env.example` instead of `.env`:** Prevents personal API key leakage into installer
+- **Tauri app frontend fixed:** `main.rs` navigates to backend URL immediately (with window retry); `loading.html` removed (was set as `frontendDist` but broke Tauri — needs a directory)
+- **OpenTelemetry crash in frozen exe fixed:** `build.ps1` patches `opentelemetry.context` StopIteration fallback; runtime hook sets `OTEL_PROPAGATORS=none`
+- **CUA smoke test improved:** pywinauto window detection (filters classic Calibre by class_name); `_release_mouse()` in finally; traceback logging for phase failures
+- **Nav links now UIA-accessible:** `aria-label` on every sidebar `<Link>`; `core:window:allow-set-focus` permission added to capabilities
 
 ### Added
 - **Session context injection:** `.claude-plugin/plugin.json`, `hooks/hooks.json`, updated `.cursorrules` and `.windsurfrules` with tool-awareness prompt — agents now know calibre-mcp's capabilities on session start
