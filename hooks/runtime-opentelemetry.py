@@ -1,4 +1,10 @@
-"""PyInstaller runtime hook: patch opentelemetry context to handle missing entry points."""
+"""PyInstaller runtime hook: patch opentelemetry for missing entry points in frozen exe."""
+import os
+
+# Skip propagator loading (entry_points not available in frozen exe)
+os.environ.setdefault("OTEL_PROPAGATORS", "none")
+os.environ.setdefault("OTEL_PYTHON_CONTEXT", "contextvars_context")
+
 import opentelemetry.context
 
 _orig = opentelemetry.context._load_runtime_context
@@ -11,7 +17,6 @@ def _patched():
         return contextvars_context.ContextVarsRuntimeContext()
 
 opentelemetry.context._load_runtime_context = _patched
-# Also patch the module-level context instance
 try:
     opentelemetry.context._RUNTIME_CONTEXT = _patched()
 except Exception:

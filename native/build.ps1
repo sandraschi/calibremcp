@@ -68,6 +68,22 @@ if (Test-Path $specFile) {
             Write-Host "  Patched fastmcp metadata fallback" -ForegroundColor Yellow
         }
     }
+    # Patch opentelemetry context to handle missing entry points in frozen exe
+    $otCtx = "$Root\.venv\Lib\site-packages\opentelemetry\context\__init__.py"
+    if (Test-Path $otCtx) {
+        $c = Get-Content $otCtx -Raw
+        if ($c -match 'except Exception.*\n.*logger\.exception.*\n.*return next.*') {
+            $c = $c -replace '(except Exception:.*?logger\.exception.*?)return next\(', '$1try: return next('
+            $c = $c -replace '(\s+\)).load\(\)\(\)\s*\n\s*_RUNTIME_CONTEXT', ').load()()
+        except StopIteration:
+            from opentelemetry.context.contextvars_context import ContextVarsRuntimeContext
+            return ContextVarsRuntimeContext()
+
+_RUNTIME_CONTEXT'
+            Set-Content $otCtx -Value $c -Encoding utf8
+            Write-Host "  Patched opentelemetry context StopIteration fallback" -ForegroundColor Yellow
+        }
+    }
     uv run pyinstaller "$specFile" --clean --noconfirm
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
     Pop-Location

@@ -30,6 +30,19 @@ fn main() {
                 eprintln!("Backend error: {e}");
                 let _ = handle.emit("backend-status", format!("error: {e}"));
             }
+            // Navigate to backend as soon as window exists — retry up to 10s
+            let handle_nav = app.handle().clone();
+            std::thread::spawn(move || {
+                for _ in 0..20 {
+                    if let Some(window) = handle_nav.get_webview_window("main") {
+                        let _ = window.navigate(
+                            tauri::Url::parse("http://127.0.0.1:10720/app/").unwrap(),
+                        );
+                        return;
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(500));
+                }
+            });
             let handle2 = app.handle().clone();
             std::thread::spawn(move || {
                 for _ in 0..90 {

@@ -19,6 +19,7 @@ import os
 import subprocess
 import sys
 import time
+import traceback
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -83,32 +84,55 @@ def launch_app():
         time.sleep(RETRY_DELAY)
     fatal(f"Backend not reachable after {MAX_RETRY * RETRY_DELAY}s")
 
+def _find_tauri_window():
+    """Find Tauri webview window handle — excludes classic Calibre (QMainWindow)."""
+    import pywinauto.findwindows
+    all_wins = pywinauto.findwindows.find_elements(title_re=WINDOW_TITLE_RE)
+    tauri = [w for w in all_wins if w.class_name != "QMainWindow"]
+    if not tauri:
+        classes = set(w.class_name for w in all_wins)
+        raise RuntimeError(f"No Tauri window found (classes: {classes})")
+    return tauri[0].handle
+
 # Phase 4
 def verify_window():
-    try:
-        import pywinauto
-        app = pywinauto.Application(backend="uia").connect(title_re=WINDOW_TITLE_RE)
-        win = app.window(title_re=WINDOW_TITLE_RE)
-        win.wait("visible", timeout=5)
-        r = win.rectangle(); w = r.width(); h = r.height()
-        log(f"Window found: {w}x{h}")
-        if w < 100 or h < 100: log("Window too small"); return
-    except Exception as e:
-        log(f"Window check skipped: {e}")
+    import pywinauto
+    handle = _find_tauri_window()
+    app = pywinauto.Application(backend="uia").connect(handle=handle)
+    win = app.window(handle=handle)
+    win.wait("visible", timeout=10)
+    r = win.rectangle(); w = r.width(); h = r.height()
+    log(f"Window found: {w}x{h} class={win.class_name} title=\"{win.window_text}\"")
+    if w < 200 or h < 200:
+        raise RuntimeError(f"Window too small: {w}x{h}")
 
 # Phase 5
-def screenshot(out):
-    os.makedirs(out, exist_ok=True)
-    path = os.path.join(out, f"cua-{int(time.time())}.png")
+def screenshot_and_ocr(output_dir):
+    import pywinauto
+    handle = _find_tauri_window()
+    app = pywinauto.Application(backend="uia").connect(handle=handle)
+    win = app.window(handle=handle)
+    win.set_focus(); time.sleep(2)
+    os.makedirs(output_dir, exist_ok=True)
+    path = os.path.join(output_dir, f"cua-{int(time.time())}.png")
+    win.capture_as_image().save(path)
+    log(f"Screenshot: {path} ({os.path.getsize(path)} bytes)")
+
+    # OCR the window to verify it's showing the actual app, not a blank/error page
     try:
-        import pywinauto
-        app = pywinauto.Application(backend="uia").connect(title_re=WINDOW_TITLE_RE)
-        win = app.window(title_re=WINDOW_TITLE_RE)
-        win.set_focus(); time.sleep(1)
-        win.capture_as_image().save(path)
-        log(f"Screenshot: {path} ({os.path.getsize(path)} bytes)")
+        import pytesseract
+        text = pytesseract.image_to_string(path)
+        ocr_sample = text.strip()[:200]
+        log(f"OCR text: {ocr_sample}")
+        # Check for error indicators
+        err_keywords = ["could not connect", "cannot reach", "this page", "404", "500"]
+        for kw in err_keywords:
+            if kw in text.lower():
+                log(f"WARNING: OCR found '{kw}' — WebView may show an error page")
+    except ImportError:
+        log("pytesseract not available — OCR skipped")
     except Exception as e:
-        log(f"Screenshot skipped: {e}")
+        log(f"OCR failed: {e}")
 
 # Phase 6
 def check_diagnostics():
@@ -139,7 +163,7 @@ def main():
         (True, "Install", lambda: silent_install(args.installer or find_installer())),
         (True, "Launch", launch_app),
         (False, "Window", verify_window),
-        (False, "Screenshot", lambda: screenshot(args.output_dir)),
+        (False, "Screenshot/OCR", lambda: screenshot_and_ocr(args.output_dir)),
         (False, "Diagnostics", check_diagnostics),
         (False, "Uninstall", uninstall),
     ]
@@ -148,7 +172,11 @@ def main():
         try:
             fn(); passed += 1; log(f"V {name}")
         except Exception as e:
-            failed += 1; log(f"X {name}: {e}")
+            failed += 1
+            tb = traceback.format_exc()
+            log(f"X {name}: {e}")
+            for line in tb.splitlines()[-5:]:
+                log(f"  {line}")
             if fatal_phase: halted = True
     log(f"Result: {passed}/{passed+failed}")
     if halted: sys.exit(1)

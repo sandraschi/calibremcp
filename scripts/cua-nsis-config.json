@@ -7,7 +7,7 @@
     "health_path": "/api/health",
     "diagnostics_path": "/api/v1/diagnostics",
     "feature_smoke_path": "/api/v1/diagnostics",
-    "window_title_re": "Calibre MCP",
+    "window_title_re": "Calibre",
     "nsis_glob": "native/target/release/bundle/nsis/Calibre MCP_*_x64-setup.exe",
     "uninstall_registry_filter": "*Calibre MCP*"
 }
