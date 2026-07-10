@@ -17,7 +17,7 @@ import os
 import platform
 import sys
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import psutil
@@ -32,7 +32,7 @@ from ...server import current_library, get_api_client, mcp
 logger = get_logger("calibremcp.tools.system")
 
 
-class HelpLevel(str, Enum):
+class HelpLevel(StrEnum):
     """Help detail levels"""
 
     BASIC = "basic"  # Quick overview and essential commands
@@ -41,7 +41,7 @@ class HelpLevel(str, Enum):
     EXPERT = "expert"  # Development and troubleshooting
 
 
-class StatusLevel(str, Enum):
+class StatusLevel(StrEnum):
     """Status detail levels"""
 
     BASIC = "basic"  # Core system status

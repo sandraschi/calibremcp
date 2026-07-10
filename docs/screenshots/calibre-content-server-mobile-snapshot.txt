@@ -1,0 +1,366 @@
+- generic [active] [ref=e1]:
+  - img "calibre" [ref=e3]
+  - generic [ref=e5]:
+    - text: Show
+    - combobox [ref=e6]:
+      - option "5"
+      - option "10"
+      - option "25" [selected]
+      - option "100"
+    - text: books matching
+    - textbox [ref=e7]
+    - text: sorted by
+    - combobox [ref=e8]:
+      - option "date" [selected]
+      - option "author"
+      - option "title"
+      - option "rating"
+      - option "size"
+      - option "tags"
+      - option "series"
+    - combobox [ref=e9]:
+      - option "ascending"
+      - option "descending" [selected]
+    - button "Search" [ref=e10]
+  - generic [ref=e11]:
+    - generic [ref=e12]: Books 1 to 25 of 10326
+    - table [ref=e13]:
+      - rowgroup [ref=e14]:
+        - row "NextLast" [ref=e15]:
+          - cell [ref=e16]
+          - cell "NextLast" [ref=e17]:
+            - link "Next" [ref=e18] [cursor=pointer]:
+              - /url: /mobile?search=&order=descending&sort=timestamp&num=25&library_id=Calibre-Bibliothek&start=26
+            - link "Last" [ref=e19] [cursor=pointer]:
+              - /url: /mobile?search=&order=descending&sort=timestamp&num=25&library_id=Calibre-Bibliothek&start=10302
+  - separator [ref=e20]
+  - table [ref=e21]:
+    - rowgroup [ref=e22]:
+      - row "epub The Double Alibi by Noel Vindry 10 May, 2026 Tags=[Mystery]" [ref=e23]:
+        - cell [ref=e24]:
+          - link [ref=e25] [cursor=pointer]:
+            - /url: /legacy/book/14338/Calibre-Bibliothek
+            - img [ref=e26]
+        - cell "epub The Double Alibi by Noel Vindry 10 May, 2026 Tags=[Mystery]" [ref=e27]:
+          - link "epub" [ref=e29] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14338/Calibre-Bibliothek/The%20Double%20Alibi%20-%20Noel%20Vindry_14338.epub
+          - generic [ref=e30]:
+            - link "The Double Alibi by Noel Vindry" [ref=e32] [cursor=pointer]:
+              - /url: /legacy/book/14338/Calibre-Bibliothek
+            - generic [ref=e33]: 10 May, 2026 Tags=[Mystery]
+      - row "epub The Ginza Ghost by Keikichi Ōsaka 10 May, 2026 Tags=[Fiction, Mystery - Locked Room, Mystery & Detective, International Crime & Mystery]" [ref=e34]:
+        - cell [ref=e35]:
+          - link [ref=e36] [cursor=pointer]:
+            - /url: /legacy/book/14339/Calibre-Bibliothek
+            - img [ref=e37]
+        - cell "epub The Ginza Ghost by Keikichi Ōsaka 10 May, 2026 Tags=[Fiction, Mystery - Locked Room, Mystery & Detective, International Crime & Mystery]" [ref=e38]:
+          - link "epub" [ref=e40] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14339/Calibre-Bibliothek/The%20Ginza%20Ghost%20-%20Keikichi%20Osaka_14339.epub
+          - generic [ref=e41]:
+            - link "The Ginza Ghost by Keikichi Ōsaka" [ref=e43] [cursor=pointer]:
+              - /url: /legacy/book/14339/Calibre-Bibliothek
+            - generic [ref=e44]: 10 May, 2026 Tags=[Fiction, Mystery - Locked Room, Mystery & Detective, International Crime & Mystery]
+      - 'row "epub Passport to Crime, Locked-Room Style: The Complete Stories of Locked Room International in Ellery Queen''s Mystery Magazine by Various 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e45]':
+        - cell [ref=e46]:
+          - link [ref=e47] [cursor=pointer]:
+            - /url: /legacy/book/14340/Calibre-Bibliothek
+            - img [ref=e48]
+        - 'cell "epub Passport to Crime, Locked-Room Style: The Complete Stories of Locked Room International in Ellery Queen''s Mystery Magazine by Various 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e49]':
+          - link "epub" [ref=e51] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14340/Calibre-Bibliothek/Passport%20to%20Crime%2C%20Locked-Room%20-%20Various_14340.epub
+          - generic [ref=e52]:
+            - 'link "Passport to Crime, Locked-Room Style: The Complete Stories of Locked Room International in Ellery Queen''s Mystery Magazine by Various" [ref=e54] [cursor=pointer]':
+              - /url: /legacy/book/14340/Calibre-Bibliothek
+            - generic [ref=e55]: 10 May, 2026 Tags=[Mystery - Locked Room]
+      - row "epub The Seventh Guest by Gaston Boca 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e56]:
+        - cell [ref=e57]:
+          - link [ref=e58] [cursor=pointer]:
+            - /url: /legacy/book/14334/Calibre-Bibliothek
+            - img [ref=e59]
+        - cell "epub The Seventh Guest by Gaston Boca 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e60]:
+          - link "epub" [ref=e62] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14334/Calibre-Bibliothek/The%20Seventh%20Guest%20-%20Gaston%20Boca_14334.epub
+          - generic [ref=e63]:
+            - link "The Seventh Guest by Gaston Boca" [ref=e65] [cursor=pointer]:
+              - /url: /legacy/book/14334/Calibre-Bibliothek
+            - generic [ref=e66]: 10 May, 2026 Tags=[Mystery - Locked Room]
+      - row "epub The Howling Beast by Noël Vindry 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e67]:
+        - cell [ref=e68]:
+          - link [ref=e69] [cursor=pointer]:
+            - /url: /legacy/book/14335/Calibre-Bibliothek
+            - img [ref=e70]
+        - cell "epub The Howling Beast by Noël Vindry 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e71]:
+          - link "epub" [ref=e73] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14335/Calibre-Bibliothek/The%20Howling%20Beast%20-%20Noel%20Vindry_14335.epub
+          - generic [ref=e74]:
+            - link "The Howling Beast by Noël Vindry" [ref=e76] [cursor=pointer]:
+              - /url: /legacy/book/14335/Calibre-Bibliothek
+            - generic [ref=e77]: 10 May, 2026 Tags=[Mystery - Locked Room]
+      - row "epub The House That Kills by Noël Vindry 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e78]:
+        - cell [ref=e79]:
+          - link [ref=e80] [cursor=pointer]:
+            - /url: /legacy/book/14336/Calibre-Bibliothek
+            - img [ref=e81]
+        - cell "epub The House That Kills by Noël Vindry 10 May, 2026 Tags=[Mystery - Locked Room]" [ref=e82]:
+          - link "epub" [ref=e84] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14336/Calibre-Bibliothek/The%20House%20That%20Kills%20-%20Noel%20Vindry_14336.epub
+          - generic [ref=e85]:
+            - link "The House That Kills by Noël Vindry" [ref=e87] [cursor=pointer]:
+              - /url: /legacy/book/14336/Calibre-Bibliothek
+            - generic [ref=e88]: 10 May, 2026 Tags=[Mystery - Locked Room]
+      - row "epub The Peace War [Across Realtime 1 - 1.0] by Vernor Vinge 26 Apr, 2026" [ref=e89]:
+        - cell [ref=e90]:
+          - link [ref=e91] [cursor=pointer]:
+            - /url: /legacy/book/14331/Calibre-Bibliothek
+            - img [ref=e92]
+        - cell "epub The Peace War [Across Realtime 1 - 1.0] by Vernor Vinge 26 Apr, 2026" [ref=e93]:
+          - link "epub" [ref=e95] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14331/Calibre-Bibliothek/The%20Peace%20War%20-%20Vernor%20Vinge_14331.epub
+          - generic [ref=e96]:
+            - link "The Peace War [Across Realtime 1 - 1.0] by Vernor Vinge" [ref=e98] [cursor=pointer]:
+              - /url: /legacy/book/14331/Calibre-Bibliothek
+            - generic [ref=e99]: 26 Apr, 2026
+      - row "epub Hayek's Bastards by Quinn Slobodian 26 Apr, 2026" [ref=e100]:
+        - cell [ref=e101]:
+          - link [ref=e102] [cursor=pointer]:
+            - /url: /legacy/book/14333/Calibre-Bibliothek
+            - img [ref=e103]
+        - cell "epub Hayek's Bastards by Quinn Slobodian 26 Apr, 2026" [ref=e104]:
+          - link "epub" [ref=e106] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14333/Calibre-Bibliothek/Hayek%27s%20Bastards%20-%20Quinn%20Slobodian_14333.epub
+          - generic [ref=e107]:
+            - link "Hayek's Bastards by Quinn Slobodian" [ref=e109] [cursor=pointer]:
+              - /url: /legacy/book/14333/Calibre-Bibliothek
+            - generic [ref=e110]: 26 Apr, 2026
+      - row "azw3 The Siren's Call [Dr. Twist - 12.0] by Paul Halter 25 Apr, 2026 Tags=[Mystery - Locked Room]" [ref=e111]:
+        - cell [ref=e112]:
+          - link [ref=e113] [cursor=pointer]:
+            - /url: /legacy/book/14328/Calibre-Bibliothek
+            - img [ref=e114]
+        - cell "azw3 The Siren's Call [Dr. Twist - 12.0] by Paul Halter 25 Apr, 2026 Tags=[Mystery - Locked Room]" [ref=e115]:
+          - link "azw3" [ref=e117] [cursor=pointer]:
+            - /url: /legacy/get/AZW3/14328/Calibre-Bibliothek/The%20Siren%27s%20Call%20-%20Paul%20Halter_14328.azw3
+          - generic [ref=e118]:
+            - link "The Siren's Call [Dr. Twist - 12.0] by Paul Halter" [ref=e120] [cursor=pointer]:
+              - /url: /legacy/book/14328/Calibre-Bibliothek
+            - generic [ref=e121]: 25 Apr, 2026 Tags=[Mystery - Locked Room]
+      - row "epub Marooned in Realtime by Vernor Vinge 11 Apr, 2026" [ref=e122]:
+        - cell [ref=e123]:
+          - link [ref=e124] [cursor=pointer]:
+            - /url: /legacy/book/14319/Calibre-Bibliothek
+            - img [ref=e125]
+        - cell "epub Marooned in Realtime by Vernor Vinge 11 Apr, 2026" [ref=e126]:
+          - link "epub" [ref=e128] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14319/Calibre-Bibliothek/Marooned%20in%20Realtime%20-%20Vernor%20Vinge_14319.epub
+          - generic [ref=e129]:
+            - link "Marooned in Realtime by Vernor Vinge" [ref=e131] [cursor=pointer]:
+              - /url: /legacy/book/14319/Calibre-Bibliothek
+            - generic [ref=e132]: 11 Apr, 2026
+      - row "epub A Deepness in the Sky [Zones of Thought - 2.0] by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction:General]" [ref=e133]:
+        - cell [ref=e134]:
+          - link [ref=e135] [cursor=pointer]:
+            - /url: /legacy/book/14323/Calibre-Bibliothek
+            - img [ref=e136]
+        - cell "epub A Deepness in the Sky [Zones of Thought - 2.0] by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction:General]" [ref=e137]:
+          - link "epub" [ref=e139] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14323/Calibre-Bibliothek/A%20Deepness%20in%20the%20Sky%20-%20Vernor%20Vinge_14323.epub
+          - generic [ref=e140]:
+            - link "A Deepness in the Sky [Zones of Thought - 2.0] by Vernor Vinge" [ref=e142] [cursor=pointer]:
+              - /url: /legacy/book/14323/Calibre-Bibliothek
+            - generic [ref=e143]: 11 Apr, 2026 Tags=[Science Fiction:General]
+      - row "epub The Collected Stories of Vernor Vinge by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Anthologies, Fantasy]" [ref=e144]:
+        - cell [ref=e145]:
+          - link [ref=e146] [cursor=pointer]:
+            - /url: /legacy/book/14325/Calibre-Bibliothek
+            - img [ref=e147]
+        - cell "epub The Collected Stories of Vernor Vinge by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Anthologies, Fantasy]" [ref=e148]:
+          - link "epub" [ref=e150] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14325/Calibre-Bibliothek/The%20Collected%20Stories%20of%20Verno%20-%20Vernor%20Vinge_14325.epub
+          - generic [ref=e151]:
+            - link "The Collected Stories of Vernor Vinge by Vernor Vinge" [ref=e153] [cursor=pointer]:
+              - /url: /legacy/book/14325/Calibre-Bibliothek
+            - generic [ref=e154]: 11 Apr, 2026 Tags=[Science Fiction, Anthologies, Fantasy]
+      - row "epub The Children of the Sky [Zones of Thought - 3.0] by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Fantasy]" [ref=e155]:
+        - cell [ref=e156]:
+          - link [ref=e157] [cursor=pointer]:
+            - /url: /legacy/book/14326/Calibre-Bibliothek
+            - img [ref=e158]
+        - cell "epub The Children of the Sky [Zones of Thought - 3.0] by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Fantasy]" [ref=e159]:
+          - link "epub" [ref=e161] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14326/Calibre-Bibliothek/The%20Children%20of%20the%20Sky%20-%20Vernor%20Vinge_14326.epub
+          - generic [ref=e162]:
+            - link "The Children of the Sky [Zones of Thought - 3.0] by Vernor Vinge" [ref=e164] [cursor=pointer]:
+              - /url: /legacy/book/14326/Calibre-Bibliothek
+            - generic [ref=e165]: 11 Apr, 2026 Tags=[Science Fiction, Fantasy]
+      - row "epub Across Realtime by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Fantasy, SF]" [ref=e166]:
+        - cell [ref=e167]:
+          - link [ref=e168] [cursor=pointer]:
+            - /url: /legacy/book/14312/Calibre-Bibliothek
+            - img [ref=e169]
+        - cell "epub Across Realtime by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Fantasy, SF]" [ref=e170]:
+          - link "epub" [ref=e172] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14312/Calibre-Bibliothek/Across%20Realtime%20-%20Vernor%20Vinge_14312.epub
+          - generic [ref=e173]:
+            - link "Across Realtime by Vernor Vinge" [ref=e175] [cursor=pointer]:
+              - /url: /legacy/book/14312/Calibre-Bibliothek
+            - generic [ref=e176]: 11 Apr, 2026 Tags=[Science Fiction, Fantasy, SF]
+      - row "epub The Witling by Vernor Vinge 11 Apr, 2026 Tags=[Fantasy, Science Fiction]" [ref=e177]:
+        - cell [ref=e178]:
+          - link [ref=e179] [cursor=pointer]:
+            - /url: /legacy/book/14313/Calibre-Bibliothek
+            - img [ref=e180]
+        - cell "epub The Witling by Vernor Vinge 11 Apr, 2026 Tags=[Fantasy, Science Fiction]" [ref=e181]:
+          - link "epub" [ref=e183] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14313/Calibre-Bibliothek/The%20Witling%20-%20Vernor%20Vinge_14313.epub
+          - generic [ref=e184]:
+            - link "The Witling by Vernor Vinge" [ref=e186] [cursor=pointer]:
+              - /url: /legacy/book/14313/Calibre-Bibliothek
+            - generic [ref=e187]: 11 Apr, 2026 Tags=[Fantasy, Science Fiction]
+      - 'row "epub The Coming Technological Singularity: How to Survive in the Post-Human Era by Vernor Vinge 11 Apr, 2026 Tags=[Science, Philosophy]" [ref=e188]':
+        - cell [ref=e189]:
+          - link [ref=e190] [cursor=pointer]:
+            - /url: /legacy/book/14315/Calibre-Bibliothek
+            - img [ref=e191]
+        - 'cell "epub The Coming Technological Singularity: How to Survive in the Post-Human Era by Vernor Vinge 11 Apr, 2026 Tags=[Science, Philosophy]" [ref=e192]':
+          - link "epub" [ref=e194] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14315/Calibre-Bibliothek/The%20Coming%20Technological%20Singu%20-%20Vernor%20Vinge_14315.epub
+          - generic [ref=e195]:
+            - 'link "The Coming Technological Singularity: How to Survive in the Post-Human Era by Vernor Vinge" [ref=e197] [cursor=pointer]':
+              - /url: /legacy/book/14315/Calibre-Bibliothek
+            - generic [ref=e198]: 11 Apr, 2026 Tags=[Science, Philosophy]
+      - row "epub Rainbows End by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Fantasy, SF]" [ref=e199]:
+        - cell [ref=e200]:
+          - link [ref=e201] [cursor=pointer]:
+            - /url: /legacy/book/14316/Calibre-Bibliothek
+            - img [ref=e202]
+        - cell "epub Rainbows End by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction, Fantasy, SF]" [ref=e203]:
+          - link "epub" [ref=e205] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14316/Calibre-Bibliothek/Rainbows%20End%20-%20Vernor%20Vinge_14316.epub
+          - generic [ref=e206]:
+            - link "Rainbows End by Vernor Vinge" [ref=e208] [cursor=pointer]:
+              - /url: /legacy/book/14316/Calibre-Bibliothek
+            - generic [ref=e209]: 11 Apr, 2026 Tags=[Science Fiction, Fantasy, SF]
+      - row "epub Tatja Grimm's World by Vernor Vinge 11 Apr, 2026" [ref=e210]:
+        - cell [ref=e211]:
+          - link [ref=e212] [cursor=pointer]:
+            - /url: /legacy/book/14317/Calibre-Bibliothek
+            - img [ref=e213]
+        - cell "epub Tatja Grimm's World by Vernor Vinge 11 Apr, 2026" [ref=e214]:
+          - link "epub" [ref=e216] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14317/Calibre-Bibliothek/Tatja%20Grimm%27s%20World%20-%20Vernor%20Vinge_14317.epub
+          - generic [ref=e217]:
+            - link "Tatja Grimm's World by Vernor Vinge" [ref=e219] [cursor=pointer]:
+              - /url: /legacy/book/14317/Calibre-Bibliothek
+            - generic [ref=e220]: 11 Apr, 2026
+      - row "epub The Peace War by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction]" [ref=e221]:
+        - cell [ref=e222]:
+          - link [ref=e223] [cursor=pointer]:
+            - /url: /legacy/book/14318/Calibre-Bibliothek
+            - img [ref=e224]
+        - cell "epub The Peace War by Vernor Vinge 11 Apr, 2026 Tags=[Science Fiction]" [ref=e225]:
+          - link "epub" [ref=e227] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14318/Calibre-Bibliothek/The%20Peace%20War%20-%20Vernor%20Vinge_14318.epub
+          - generic [ref=e228]:
+            - link "The Peace War by Vernor Vinge" [ref=e230] [cursor=pointer]:
+              - /url: /legacy/book/14318/Calibre-Bibliothek
+            - generic [ref=e231]: 11 Apr, 2026 Tags=[Science Fiction]
+      - row "epub The Invisible Circle by Paul Halter 13 Mar, 2026 Tags=[Mystery, Crime]" [ref=e232]:
+        - cell [ref=e233]:
+          - link [ref=e234] [cursor=pointer]:
+            - /url: /legacy/book/14307/Calibre-Bibliothek
+            - img [ref=e235]
+        - cell "epub The Invisible Circle by Paul Halter 13 Mar, 2026 Tags=[Mystery, Crime]" [ref=e236]:
+          - link "epub" [ref=e238] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14307/Calibre-Bibliothek/The%20Invisible%20Circle%20-%20Paul%20Halter_14307.epub
+          - generic [ref=e239]:
+            - link "The Invisible Circle by Paul Halter" [ref=e241] [cursor=pointer]:
+              - /url: /legacy/book/14307/Calibre-Bibliothek
+            - generic [ref=e242]: 13 Mar, 2026 Tags=[Mystery, Crime]
+      - 'row "epub The Night of the Wolf: Collection by Paul Halter 13 Mar, 2026 Tags=[Fiction, Mystery & Detective, General, Traditional, Collections & Anthologies]" [ref=e243]':
+        - cell [ref=e244]:
+          - link [ref=e245] [cursor=pointer]:
+            - /url: /legacy/book/14308/Calibre-Bibliothek
+            - img [ref=e246]
+        - 'cell "epub The Night of the Wolf: Collection by Paul Halter 13 Mar, 2026 Tags=[Fiction, Mystery & Detective, General, Traditional, Collections & Anthologies]" [ref=e247]':
+          - link "epub" [ref=e249] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14308/Calibre-Bibliothek/The%20Night%20of%20the%20Wolf_%20Collect%20-%20Paul%20Halter_14308.epub
+          - generic [ref=e250]:
+            - 'link "The Night of the Wolf: Collection by Paul Halter" [ref=e252] [cursor=pointer]':
+              - /url: /legacy/book/14308/Calibre-Bibliothek
+            - generic [ref=e253]: 13 Mar, 2026 Tags=[Fiction, Mystery & Detective, General, Traditional, Collections & Anthologies]
+      - row "mobi The Seven Wonders of Crime [Owen Burns - 2.0] by Paul Halter 13 Mar, 2026 Tags=[Mystery]" [ref=e254]:
+        - cell [ref=e255]:
+          - link [ref=e256] [cursor=pointer]:
+            - /url: /legacy/book/14309/Calibre-Bibliothek
+            - img [ref=e257]
+        - cell "mobi The Seven Wonders of Crime [Owen Burns - 2.0] by Paul Halter 13 Mar, 2026 Tags=[Mystery]" [ref=e258]:
+          - link "mobi" [ref=e260] [cursor=pointer]:
+            - /url: /legacy/get/MOBI/14309/Calibre-Bibliothek/The%20Seven%20Wonders%20of%20Crime%20-%20Paul%20Halter_14309.mobi
+          - generic [ref=e261]:
+            - link "The Seven Wonders of Crime [Owen Burns - 2.0] by Paul Halter" [ref=e263] [cursor=pointer]:
+              - /url: /legacy/book/14309/Calibre-Bibliothek
+            - generic [ref=e264]: 13 Mar, 2026 Tags=[Mystery]
+      - row "epub The Demon of Dartmoor by Paul Halter 13 Mar, 2026 Tags=[Crime, Fiction, Mystery & Detective, Suspense, Thriller]" [ref=e265]:
+        - cell [ref=e266]:
+          - link [ref=e267] [cursor=pointer]:
+            - /url: /legacy/book/14304/Calibre-Bibliothek
+            - img [ref=e268]
+        - cell "epub The Demon of Dartmoor by Paul Halter 13 Mar, 2026 Tags=[Crime, Fiction, Mystery & Detective, Suspense, Thriller]" [ref=e269]:
+          - link "epub" [ref=e271] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14304/Calibre-Bibliothek/The%20Demon%20of%20Dartmoor%20-%20Paul%20Halter_14304.epub
+          - generic [ref=e272]:
+            - link "The Demon of Dartmoor by Paul Halter" [ref=e274] [cursor=pointer]:
+              - /url: /legacy/book/14304/Calibre-Bibliothek
+            - generic [ref=e275]: 13 Mar, 2026 Tags=[Crime, Fiction, Mystery & Detective, Suspense, Thriller]
+      - row "epub The Helm of Hades by Paul Halter 13 Mar, 2026 Tags=[Mystery]" [ref=e276]:
+        - cell [ref=e277]:
+          - link [ref=e278] [cursor=pointer]:
+            - /url: /legacy/book/14305/Calibre-Bibliothek
+            - img [ref=e279]
+        - cell "epub The Helm of Hades by Paul Halter 13 Mar, 2026 Tags=[Mystery]" [ref=e280]:
+          - link "epub" [ref=e282] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14305/Calibre-Bibliothek/The%20Helm%20of%20Hades%20-%20Paul%20Halter_14305.epub
+          - generic [ref=e283]:
+            - link "The Helm of Hades by Paul Halter" [ref=e285] [cursor=pointer]:
+              - /url: /legacy/book/14305/Calibre-Bibliothek
+            - generic [ref=e286]: 13 Mar, 2026 Tags=[Mystery]
+      - row "epub The Vampire Tree [Dr. Twist - 11.0] by Paul Halter 13 Mar, 2026 Tags=[Mystery]" [ref=e287]:
+        - cell [ref=e288]:
+          - link [ref=e289] [cursor=pointer]:
+            - /url: /legacy/book/14306/Calibre-Bibliothek
+            - img [ref=e290]
+        - cell "epub The Vampire Tree [Dr. Twist - 11.0] by Paul Halter 13 Mar, 2026 Tags=[Mystery]" [ref=e291]:
+          - link "epub" [ref=e293] [cursor=pointer]:
+            - /url: /legacy/get/EPUB/14306/Calibre-Bibliothek/The%20Vampire%20Tree%20-%20Paul%20Halter_14306.epub
+          - generic [ref=e294]:
+            - link "The Vampire Tree [Dr. Twist - 11.0] by Paul Halter" [ref=e296] [cursor=pointer]:
+              - /url: /legacy/book/14306/Calibre-Bibliothek
+            - generic [ref=e297]: 13 Mar, 2026 Tags=[Mystery]
+  - separator [ref=e298]
+  - generic [ref=e299]:
+    - generic [ref=e300]: Books 1 to 25 of 10326
+    - table [ref=e301]:
+      - rowgroup [ref=e302]:
+        - row "NextLast" [ref=e303]:
+          - cell [ref=e304]
+          - cell "NextLast" [ref=e305]:
+            - link "Next" [ref=e306] [cursor=pointer]:
+              - /url: /mobile?search=&order=descending&sort=timestamp&num=25&library_id=Calibre-Bibliothek&start=26
+            - link "Last" [ref=e307] [cursor=pointer]:
+              - /url: /mobile?search=&order=descending&sort=timestamp&num=25&library_id=Calibre-Bibliothek&start=10302
+  - generic [ref=e309]:
+    - text: "Change library to:"
+    - combobox [ref=e310]:
+      - option "Calibre-Bibliothek IT" [selected]
+      - option "Calibre-Bibliothek Manga"
+      - option "Calibre-Bibliothek Japanisch"
+      - option "Calibre-Bibliothek Bullshit"
+      - option "Calibre-Bibliothek Magazines"
+      - option "Calibre-Bibliothek Comics"
+      - option "Calibre-Bibliothek Test"
+      - option "Calibre-Bibliothek-Private-2"
+      - option "Calibre-Bibliothek Deutsch"
+      - option "Calibre-Bibliothek Private"
+    - button "Change library" [ref=e311]
+  - link "Switch to the full interface (non-mobile interface)" [ref=e313] [cursor=pointer]:
+    - /url: /

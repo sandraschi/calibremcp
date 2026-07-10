@@ -1,9 +1,9 @@
 /** Structured help content for Calibre, Calibre MCP, and Webapp. */
 
 export const HELP_SECTIONS = {
-  calibre: {
-    title: 'About Calibre',
-    content: `
+	calibre: {
+		title: "About Calibre",
+		content: `
 ## What is Calibre?
 
 Calibre is a free, open-source e-book library management application by Kovid Goyal. It organizes, converts, syncs, and manages e-books across devices and formats. Used by millions for personal and institutional libraries.
@@ -38,10 +38,10 @@ Calibre is a free, open-source e-book library management application by Kovid Go
 - **Custom columns** - Extend metadata (dates, text, yes/no, etc.)
 - **Virtual libraries** - Saved searches as filtered views
 `,
-  },
-  calibreMcp: {
-    title: 'Calibre MCP Server',
-    content: `
+	},
+	calibreMcp: {
+		title: "Calibre MCP Server",
+		content: `
 ## Overview
 
 CalibreMCP is a Model Context Protocol (MCP) server that connects AI assistants (Claude, Cursor, etc.) to your Calibre library. Built on FastMCP 3.2.
@@ -103,10 +103,10 @@ Install: \`calibre-customize -b calibre_plugin\` or use the pre-built ZIP.
 - **MCPB**: drag calibre-mcp.mcpb into Claude Desktop
 - **Editable**: \`uv sync && uv run python -m calibre_mcp --stdio\`
 `,
-  },
-  webapp: {
-    title: 'Webapp',
-    content: `
+	},
+	webapp: {
+		title: "Webapp",
+		content: `
 ## Overview
 
 Browser UI for CalibreMCP. Backend (FastAPI, port 10720) + Frontend (Next.js, port 10721).
@@ -170,5 +170,5 @@ Click any book card: cover, full metadata, tags, description.
 Backend (\`webapp/backend/.env\`): CALIBRE_LIBRARY_PATH, LLM_PROVIDER, LLM_BASE_URL
 Frontend (\`webapp/frontend/.env.local\`): NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL
 `,
-  },
+	},
 } as const;

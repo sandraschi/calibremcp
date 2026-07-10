@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import shutil
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +22,7 @@ class OCRProcessingError(Exception):
     pass
 
 
-class OCRLanguage(str, Enum):
+class OCRLanguage(StrEnum):
     """Supported OCR languages."""
 
     ENGLISH = "english"
@@ -48,7 +48,7 @@ class OCRLanguage(str, Enum):
     AUTO_DETECT = "AutoDetect"
 
 
-class OCRFormat(str, Enum):
+class OCRFormat(StrEnum):
     """Supported OCR output formats."""
 
     PDF = "pdf"

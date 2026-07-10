@@ -16,8 +16,8 @@ Two candidate approaches:
 This client is written for Option B (plain REST). Adjust if we go with A.
 """
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Any
 
 

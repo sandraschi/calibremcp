@@ -6,8 +6,8 @@ The actual UI lives in ui/search_dialog.py.
 
 Phase 0 stub: loads cleanly, shows a placeholder dialog on click.
 """
-from calibre.gui2.actions import InterfaceAction
 from calibre.gui2 import info_dialog
+from calibre.gui2.actions import InterfaceAction
 
 
 class CalibreOpsBridgeAction(InterfaceAction):

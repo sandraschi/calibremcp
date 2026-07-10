@@ -25,9 +25,7 @@ def embed_use_gpu(repo_root: Path | None = None) -> bool:
     if _env_flag("RAG_GPU") or _env_flag("MCD_RAG_GPU"):
         return True
     root = repo_root or repo_root_from_here()
-    if (root / ".venv" / "rag-gpu-mode").is_file():
-        return True
-    return False
+    return bool((root / ".venv" / "rag-gpu-mode").is_file())
 
 
 def create_text_embedding(

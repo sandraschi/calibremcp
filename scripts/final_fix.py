@@ -9,7 +9,7 @@ def add_noqa_eol(path, line_pattern, noqa_text):
     content = path.read_text(encoding="utf-8")
     def _replacer(m):
         line = m.group(0).rstrip()
-        if f"# noqa" in line:
+        if "# noqa" in line:
             return line
         return line + "  " + noqa_text
     new_content = re.sub(line_pattern, _replacer, content, flags=re.MULTILINE)

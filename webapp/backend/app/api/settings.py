@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from calibre_mcp.config import CalibreConfig
+
 from ..config import settings
 
 router = APIRouter()
@@ -39,6 +40,5 @@ async def update_settings(body: SettingsUpdate):
     # Try to persist using common config path
     if config.save_config(settings.CALIBRE_CONFIG_PATH):
         return {"success": True, "message": "Settings updated and saved."}
-    else:
-        # Fallback: updated in memory only if save fails
-        return {"success": True, "message": "Settings updated in memory (save failed)."}
+    # Fallback: updated in memory only if save fails
+    return {"success": True, "message": "Settings updated in memory (save failed)."}

@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
-from .local import LocalStorage  # noqa: E402
-from .remote import RemoteStorage  # noqa: E402
 
 
 class StorageBackend(ABC):
@@ -27,6 +25,10 @@ class StorageBackend(ABC):
     async def get_library_info(self) -> LibraryInfo:
         """Get library metadata"""
         pass
+
+
+from .local import LocalStorage  # noqa: E402
+from .remote import RemoteStorage  # noqa: E402
 
 
 def get_storage_backend(server_name: str | None = None, **kwargs) -> StorageBackend:

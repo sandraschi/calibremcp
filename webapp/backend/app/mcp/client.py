@@ -48,7 +48,7 @@ try:
 except ImportError as e:
     import logging
 
-    logging.error(
+    logging.exception(
         f"Failed to import calibre_mcp.tools: {e}\n"
         f"Python path (first 5): {sys.path[:5]}\n"
         f"Source path: {src_path}\n"

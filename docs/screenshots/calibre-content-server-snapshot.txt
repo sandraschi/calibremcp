@@ -1,0 +1,7 @@
+- generic [ref=e2]:
+  - progressbar [ref=e3]
+  - generic [ref=e4]: Loading, please wait…
+  - generic [ref=e5]:
+    - text: "You can also use a simple, non-JavaScript version of this site:"
+    - link "here" [ref=e6] [cursor=pointer]:
+      - /url: mobile

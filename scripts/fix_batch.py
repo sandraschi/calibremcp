@@ -1,5 +1,4 @@
 """Batch fix remaining lint issues."""
-import os
 import re
 from pathlib import Path
 
@@ -105,7 +104,7 @@ content = re.sub(r'^(\s+)publisher = Publisher\(\)', r'\1publisher = publisher()
 # Fix E741 l -> ln
 content = re.sub(r'^(\s{8})l(\s*=)', r'\1ln\2', content, flags=re.MULTILINE)
 p.write_text(content, encoding="utf-8")
-print(f"  Fixed N806/E741: publisher_service.py")
+print("  Fixed N806/E741: publisher_service.py")
 
 # === Security noqa markers ===
 def add_noqa_to_line(path, pattern, noqa_text):

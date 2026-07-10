@@ -67,10 +67,10 @@ from contextlib import asynccontextmanager  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
+from dotenv import load_dotenv  # noqa: E402
 from fastmcp import FastMCP  # noqa: E402
 from fastmcp.server import create_proxy  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
-from dotenv import load_dotenv  # noqa: E402
 
 # Load environment variables
 load_dotenv()

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { ExternalLink, Code2, BookOpen, RefreshCw } from 'lucide-react';
+import { BookOpen, Code2, ExternalLink, RefreshCw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-type DocsView = 'swagger' | 'redoc';
+type DocsView = "swagger" | "redoc";
 
 // Dark theme CSS injected into the Swagger iframe via postMessage / srcdoc trick.
 // We load /docs proxied through Next.js, then override the default white Swagger theme.
@@ -58,138 +58,158 @@ const SWAGGER_DARK_CSS = `
 `;
 
 export default function ApiDocsPage() {
-  const [view, setView] = useState<DocsView>('swagger');
-  const [loading, setLoading] = useState(true);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+	const [view, setView] = useState<DocsView>("swagger");
+	const [loading, setLoading] = useState(true);
+	const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Inject dark CSS into the iframe once it loads
-  const handleIframeLoad = () => {
-    setLoading(false);
-    try {
-      const iframe = iframeRef.current;
-      if (!iframe?.contentDocument) return;
-      const doc = iframe.contentDocument;
-      // Remove existing style overrides if any
-      const existing = doc.getElementById('fleet-dark-override');
-      if (existing) existing.remove();
-      const style = doc.createElement('style');
-      style.id = 'fleet-dark-override';
-      style.textContent = SWAGGER_DARK_CSS;
-      doc.head.appendChild(style);
-    } catch {
-      // Cross-origin fallback — if proxy isn't working, the iframe loads direct
-      // and we can't inject CSS. The direct link still works.
-    }
-  };
+	// Inject dark CSS into the iframe once it loads
+	const handleIframeLoad = () => {
+		setLoading(false);
+		try {
+			const iframe = iframeRef.current;
+			if (!iframe?.contentDocument) return;
+			const doc = iframe.contentDocument;
+			// Remove existing style overrides if any
+			const existing = doc.getElementById("fleet-dark-override");
+			if (existing) existing.remove();
+			const style = doc.createElement("style");
+			style.id = "fleet-dark-override";
+			style.textContent = SWAGGER_DARK_CSS;
+			doc.head.appendChild(style);
+		} catch {
+			// Cross-origin fallback — if proxy isn't working, the iframe loads direct
+			// and we can't inject CSS. The direct link still works.
+		}
+	};
 
-  const src = view === 'swagger' ? '/docs' : '/redoc';
-  const directSrc = view === 'swagger'
-    ? 'http://localhost:10720/docs'
-    : 'http://localhost:10720/redoc';
+	const src = view === "swagger" ? "/docs" : "/redoc";
+	const directSrc =
+		view === "swagger"
+			? "http://localhost:10720/docs"
+			: "http://localhost:10720/redoc";
 
-  return (
-    <div className="flex flex-col h-full bg-zinc-950">
-      {/* Header bar */}
-      <div className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 shrink-0">
-        <Code2 size={18} className="text-amber-400" />
-        <h1 className="text-sm font-semibold text-zinc-100">API Docs</h1>
+	return (
+		<div className="flex flex-col h-full bg-zinc-950">
+			{/* Header bar */}
+			<div className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 shrink-0">
+				<Code2 size={18} className="text-amber-400" />
+				<h1 className="text-sm font-semibold text-zinc-100">API Docs</h1>
 
-        {/* View toggle */}
-        <div className="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg p-0.5 ml-2">
-          <button
-            onClick={() => { setView('swagger'); setLoading(true); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              view === 'swagger'
-                ? 'bg-amber-500 text-zinc-950'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <Code2 size={12} />
-            Swagger UI
-          </button>
-          <button
-            onClick={() => { setView('redoc'); setLoading(true); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              view === 'redoc'
-                ? 'bg-amber-500 text-zinc-950'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <BookOpen size={12} />
-            ReDoc
-          </button>
-        </div>
+				{/* View toggle */}
+				<div className="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg p-0.5 ml-2">
+					<button
+						onClick={() => {
+							setView("swagger");
+							setLoading(true);
+						}}
+						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+							view === "swagger"
+								? "bg-amber-500 text-zinc-950"
+								: "text-zinc-400 hover:text-zinc-200"
+						}`}
+					>
+						<Code2 size={12} />
+						Swagger UI
+					</button>
+					<button
+						onClick={() => {
+							setView("redoc");
+							setLoading(true);
+						}}
+						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+							view === "redoc"
+								? "bg-amber-500 text-zinc-950"
+								: "text-zinc-400 hover:text-zinc-200"
+						}`}
+					>
+						<BookOpen size={12} />
+						ReDoc
+					</button>
+				</div>
 
-        <div className="flex items-center gap-2 ml-auto">
-          {/* Reload */}
-          <button
-            onClick={() => { setLoading(true); if (iframeRef.current) { iframeRef.current.src = src; } }}
-            className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1.5 rounded-md hover:bg-zinc-800"
-          >
-            <RefreshCw size={13} />
-            Reload
-          </button>
-          {/* Open in new tab — direct to backend, no proxy needed */}
-          <a
-            href={directSrc}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors px-2 py-1.5 rounded-md hover:bg-zinc-800"
-          >
-            <ExternalLink size={13} />
-            Open in browser
-          </a>
-        </div>
-      </div>
+				<div className="flex items-center gap-2 ml-auto">
+					{/* Reload */}
+					<button
+						onClick={() => {
+							setLoading(true);
+							if (iframeRef.current) {
+								iframeRef.current.src = src;
+							}
+						}}
+						className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1.5 rounded-md hover:bg-zinc-800"
+					>
+						<RefreshCw size={13} />
+						Reload
+					</button>
+					{/* Open in new tab — direct to backend, no proxy needed */}
+					<a
+						href={directSrc}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors px-2 py-1.5 rounded-md hover:bg-zinc-800"
+					>
+						<ExternalLink size={13} />
+						Open in browser
+					</a>
+				</div>
+			</div>
 
-      {/* Endpoint quick-ref strip */}
-      <div className="flex items-center gap-2 px-5 py-2 border-b border-zinc-800 shrink-0 overflow-x-auto">
-        <span className="text-xs text-zinc-600 shrink-0">Backend:</span>
-        <code className="text-xs text-amber-400 font-mono shrink-0">http://localhost:10720</code>
-        <span className="text-zinc-700 mx-1">·</span>
-        {[
-          ['GET', '/api/books', 'blue'],
-          ['GET', '/api/search', 'blue'],
-          ['POST', '/api/rag', 'green'],
-          ['GET', '/api/libraries', 'blue'],
-          ['GET', '/api/authors', 'blue'],
-          ['GET', '/api/series', 'blue'],
-        ].map(([method, path, color]) => (
-          <a
-            key={path}
-            href={directSrc}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 shrink-0 hover:opacity-80 transition-opacity"
-          >
-            <span className={`text-xs font-mono font-bold ${color === 'green' ? 'text-green-400' : 'text-blue-400'}`}>
-              {method}
-            </span>
-            <span className="text-xs font-mono text-zinc-500">{path}</span>
-          </a>
-        ))}
-        <span className="text-zinc-700 mx-1">·</span>
-        <span className="text-xs text-zinc-600 shrink-0 italic">+{20 - 6} more — see Swagger</span>
-      </div>
+			{/* Endpoint quick-ref strip */}
+			<div className="flex items-center gap-2 px-5 py-2 border-b border-zinc-800 shrink-0 overflow-x-auto">
+				<span className="text-xs text-zinc-600 shrink-0">Backend:</span>
+				<code className="text-xs text-amber-400 font-mono shrink-0">
+					http://localhost:10720
+				</code>
+				<span className="text-zinc-700 mx-1">·</span>
+				{[
+					["GET", "/api/books", "blue"],
+					["GET", "/api/search", "blue"],
+					["POST", "/api/rag", "green"],
+					["GET", "/api/libraries", "blue"],
+					["GET", "/api/authors", "blue"],
+					["GET", "/api/series", "blue"],
+				].map(([method, path, color]) => (
+					<a
+						key={path}
+						href={directSrc}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center gap-1 shrink-0 hover:opacity-80 transition-opacity"
+					>
+						<span
+							className={`text-xs font-mono font-bold ${color === "green" ? "text-green-400" : "text-blue-400"}`}
+						>
+							{method}
+						</span>
+						<span className="text-xs font-mono text-zinc-500">{path}</span>
+					</a>
+				))}
+				<span className="text-zinc-700 mx-1">·</span>
+				<span className="text-xs text-zinc-600 shrink-0 italic">
+					+{20 - 6} more — see Swagger
+				</span>
+			</div>
 
-      {/* Iframe */}
-      <div className="flex-1 relative min-h-0">
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 z-10">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs text-zinc-500">Loading {view === 'swagger' ? 'Swagger UI' : 'ReDoc'}…</span>
-            </div>
-          </div>
-        )}
-        <iframe
-          ref={iframeRef}
-          src={src}
-          onLoad={handleIframeLoad}
-          className="w-full h-full border-0"
-          title={view === 'swagger' ? 'Swagger UI' : 'ReDoc'}
-        />
-      </div>
-    </div>
-  );
+			{/* Iframe */}
+			<div className="flex-1 relative min-h-0">
+				{loading && (
+					<div className="absolute inset-0 flex items-center justify-center bg-zinc-950 z-10">
+						<div className="flex flex-col items-center gap-3">
+							<div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+							<span className="text-xs text-zinc-500">
+								Loading {view === "swagger" ? "Swagger UI" : "ReDoc"}…
+							</span>
+						</div>
+					</div>
+				)}
+				<iframe
+					ref={iframeRef}
+					src={src}
+					onLoad={handleIframeLoad}
+					className="w-full h-full border-0"
+					title={view === "swagger" ? "Swagger UI" : "ReDoc"}
+				/>
+			</div>
+		</div>
+	);
 }

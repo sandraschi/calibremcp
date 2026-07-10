@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "← Back" [ref=e3] [cursor=pointer]:
+      - /url: javascript:history.back()
+    - generic [ref=e4]: The Double Alibi
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - img "The Double Alibi" [ref=e8]
+      - generic [ref=e9]:
+        - heading "The Double Alibi" [level=1] [ref=e10]
+        - link "Download EPUB" [ref=e12] [cursor=pointer]:
+          - /url: /legacy/get/EPUB/14338/Calibre-Bibliothek
+        - table [ref=e13]:
+          - rowgroup [ref=e14]:
+            - row "Authors Noel Vindry" [ref=e15]:
+              - cell "Authors" [ref=e16]
+              - cell "Noel Vindry" [ref=e17]:
+                - link "Noel Vindry" [ref=e18] [cursor=pointer]:
+                  - /url: /mobile?library_id=Calibre-Bibliothek&search=authors:%22%3DNoel Vindry%22
+            - row "Tags Mystery" [ref=e19]:
+              - cell "Tags" [ref=e20]
+              - cell "Mystery" [ref=e21]:
+                - link "Mystery" [ref=e22] [cursor=pointer]:
+                  - /url: /mobile?library_id=Calibre-Bibliothek&search=tags:%22%3DMystery%22
+            - row "Published 01 Jan 1934" [ref=e23]:
+              - cell "Published" [ref=e24]
+              - cell "01 Jan 1934" [ref=e25]:
+                - link "01 Jan 1934" [ref=e26] [cursor=pointer]:
+                  - /url: /mobile?library_id=Calibre-Bibliothek&search=pubdate:%22%3D1933-12-31T23:00:00+00:00%22
+            - row "Date 10 May 2026" [ref=e27]:
+              - cell "Date" [ref=e28]
+              - cell "10 May 2026" [ref=e29]:
+                - link "10 May 2026" [ref=e30] [cursor=pointer]:
+                  - /url: /mobile?library_id=Calibre-Bibliothek&search=timestamp:%22%3D2026-05-10T02:06:11+00:00%22
+            - row "Rating ★★★★" [ref=e31]:
+              - cell "Rating" [ref=e32]
+              - cell "★★★★" [ref=e33]:
+                - link "★★★★" [ref=e34] [cursor=pointer]:
+                  - /url: /mobile?library_id=Calibre-Bibliothek&search=rating:%22%3D4%22
+            - row "Languages eng" [ref=e35]:
+              - cell "Languages" [ref=e36]
+              - cell "eng" [ref=e37]:
+                - link "eng" [ref=e38] [cursor=pointer]:
+                  - /url: /mobile?library_id=Calibre-Bibliothek&search=languages:%22%3Deng%22
+            - row "Identifiers Goodreads, Amazon.com" [ref=e39]:
+              - cell "Identifiers" [ref=e40]
+              - cell "Goodreads, Amazon.com" [ref=e41]:
+                - link "Goodreads" [ref=e42] [cursor=pointer]:
+                  - /url: https://www.goodreads.com/book/show/39704673
+                - text: ","
+                - link "Amazon.com" [ref=e43] [cursor=pointer]:
+                  - /url: https://www.amazon.com/dp/B07C9W1X9M
+            - row "Formats EPUB" [ref=e44]:
+              - cell "Formats" [ref=e45]
+              - cell "EPUB" [ref=e46]:
+                - link "EPUB" [ref=e47] [cursor=pointer]:
+                  - /url: javascript:void(0)
+    - generic [ref=e48]:
+      - heading "Description" [level=2] [ref=e49]
+      - paragraph [ref=e50]: Gustave Allevaire is on the run, guilty of a number of petty crimes. He is spotted in Lyon, and that night he steals his aunt’s silverware and leaves a fingerprint.
+      - paragraph [ref=e51]: On the very same night, five hundred kilometres away in Bordeaux, he is identified during a break-in.
+      - paragraph [ref=e52]: Meanwhile he is murdered in Marseille, seven hundred kilometres away.
+      - paragraph [ref=e53]: All in the same night, and all at exactly the same time, in three cities hundreds of kilometers apart.
+      - paragraph [ref=e54]: How is this possible? Monsieur Allou, the examining magistrate in Lyon, is so intrigued he decides to take a vacation and work under cover.
+      - paragraph [ref=e55]: During the course of the investigation, which includes a disappearance of the elusive Allevaire from a locked and guarded building, his theories keep changing like a kaleidoscope until the final totally unexpected solution.
+      - paragraph [ref=e56]: One of the most complex and intricate puzzles in detective fiction, The Double Alibi ranks with The Howling Beast as a stellar example of Noel Vindry’s work.

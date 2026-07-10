@@ -9,12 +9,7 @@
     "tailwind.config.ts"
   ],
   "ext": "ts,tsx,js,jsx,json,css",
-  "ignore": [
-    "node_modules",
-    ".next",
-    ".git",
-    "*.log"
-  ],
+  "ignore": ["node_modules", ".next", ".git", "*.log"],
   "exec": "next dev --turbo",
   "restartable": "rs",
   "delay": 2500,

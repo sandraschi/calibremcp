@@ -1,14 +1,14 @@
-import { SeriesDetailClient } from './series-detail-client';
+import { SeriesDetailClient } from "./series-detail-client";
 
 export function generateStaticParams() {
-  return [{ id: '0' }];
+	return [{ id: "0" }];
 }
 
 export default async function SeriesDetailPage({
-  params,
+	params,
 }: {
-  params: Promise<{ id: string }>;
+	params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  return <SeriesDetailClient id={id} />;
+	const { id } = await params;
+	return <SeriesDetailClient id={id} />;
 }

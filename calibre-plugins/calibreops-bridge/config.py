@@ -4,9 +4,8 @@ config.py — CalibreOps Bridge preferences
 JSONConfig-backed preferences with a Calibre ConfigWidget for the
 Preferences → Plugins → CalibreOps Bridge → Customize dialog.
 """
+from calibre.gui2.preferences import ConfigWidgetBase
 from calibre.utils.config import JSONConfig
-from calibre.gui2 import QApplication
-from calibre.gui2.preferences import ConfigWidgetBase, setting
 
 # Module-level prefs object — import this everywhere you need settings
 prefs = JSONConfig('plugins/calibreops_bridge')
@@ -23,7 +22,7 @@ class ConfigWidget(ConfigWidgetBase):
 
     def setupUi(self, *args):
         # Lazy import Qt to avoid import errors outside Calibre's interpreter
-        from calibre.gui2 import QLabel, QLineEdit, QSpinBox, QFormLayout, QWidget
+        from calibre.gui2 import QFormLayout, QLabel, QLineEdit, QSpinBox
 
         layout = QFormLayout(self)
         self.setLayout(layout)

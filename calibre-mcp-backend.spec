@@ -276,6 +276,8 @@ a = Analysis(
 
         "tensorboard",
 
+        
+
     ],
 
     noarchive=True,
@@ -334,6 +336,7 @@ exe = EXE(
     entitlements_file=None,
 
 )
+
 
 
 

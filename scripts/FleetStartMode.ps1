@@ -271,6 +271,14 @@ function Stop-FleetPortListeners {
 
     Stop-FleetPortSquatters -Ports $Ports -Label $Label -ElevatedFallback
     $still = Get-FleetPortsStillListening -Ports $Ports
+    if ($still.Count -gt 0) {
+        Write-Host "[$Label] Running elevated zombie killer (Rust free_port pattern)..." -ForegroundColor Yellow
+        foreach ($port in $still.Keys) {
+            $null = Invoke-FleetFreePort -Port $port -ImageNames @('python', 'calibre-mcp-backend')
+        }
+        $still = Get-FleetPortsStillListening -Ports $Ports
+    }
+
     if ($still.Count -eq 0) {
         Write-Host "[$Label] Ports clear: $($Ports -join ', ')" -ForegroundColor Green
         return $true
@@ -304,6 +312,14 @@ function Resolve-FleetPortConflict {
     Stop-FleetPortSquatters -Ports $Ports -Label $Label -ElevatedFallback:$hardRestart
 
     $still = Get-FleetPortsStillListening -Ports $Ports
+    if ($hardRestart -and $still.Count -gt 0) {
+        Write-Host "[$Label] Running elevated zombie killer (Rust free_port pattern)..." -ForegroundColor Yellow
+        foreach ($port in $still.Keys) {
+            $null = Invoke-FleetFreePort -Port $port -ImageNames @('python', 'calibre-mcp-backend')
+        }
+        $still = Get-FleetPortsStillListening -Ports $Ports
+    }
+
     if ($still.Count -eq 0) {
         return [pscustomobject]@{ Action = 'Cleared'; Reuse = $false }
     }
@@ -400,6 +416,82 @@ function Assert-FleetPortsAvailable {
     }
 
     return $true
+}
+
+function Invoke-FleetFreePort {
+    <#
+      Full Rust free_port() pattern translated to PowerShell:
+      1. Kill by image name (Stop-Process + taskkill — catches zombies NOT holding the port)
+      2. Kill by port (Get-NetTCPConnection | taskkill — precise port-holder)
+      3. Poll up to 240s. Re-kill at 5s. Escalate to elevated kill (UAC) at 15s.
+    #>
+    param(
+        [Parameter(Mandatory)][int]$Port,
+        [string[]]$ImageNames = @(),
+        [int]$PollSec = 240
+    )
+
+    $imgKill = ''
+    if ($ImageNames.Count -gt 0) {
+        $stopLines = @()
+        $taskkillLines = @()
+        foreach ($name in $ImageNames) {
+            $stopLines += "Stop-Process -Name '$name' -Force -ErrorAction SilentlyContinue"
+            $taskkillLines += "taskkill /F /IM ${name}.exe /T 2>`$null"
+        }
+        $imgKill = ($stopLines + $taskkillLines) -join '; '
+    }
+
+    $portKill = @"
+Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue |
+    ForEach-Object { taskkill /F /PID `$_.OwningProcess /T 2>`$null }
+"@
+
+    $pollScript = @"
+if (Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue) { 1 } else { 0 }
+"@
+
+    # Pass 1: kill by image name + port
+    $killParts = @()
+    if ($imgKill) { $killParts += $imgKill }
+    if ($portKill) { $killParts += $portKill }
+    $killCmd = $killParts -join '; '
+    if ($killCmd) {
+        $null = Start-Process -FilePath "powershell.exe" -ArgumentList @(
+            '-NoProfile', '-Command', $killCmd
+        ) -Wait -PassThru -WindowStyle Hidden -ErrorAction SilentlyContinue
+    }
+
+    for ($i = 0; $i -lt $PollSec; $i++) {
+        $output = & powershell.exe -NoProfile -Command $pollScript 2>$null
+        $occupied = try { [int]($output -join '').Trim() } catch { 1 }
+        if ($occupied -eq 0) { return $true }
+
+        if ($i -eq 5) {
+            # Re-kill (first attempt may have failed for some processes)
+            if ($killCmd) {
+                $null = Start-Process -FilePath "powershell.exe" -ArgumentList @(
+                    '-NoProfile', '-Command', $killCmd
+                ) -Wait -PassThru -WindowStyle Hidden -ErrorAction SilentlyContinue
+            }
+        }
+        if ($i -eq 15) {
+            # Still occupied — elevated kill via UAC
+            $elevatedLines = @('$ErrorActionPreference = "SilentlyContinue"')
+            foreach ($name in $ImageNames) {
+                $elevatedLines += "Stop-Process -Name '$name' -Force -ErrorAction SilentlyContinue"
+                $elevatedLines += "taskkill /F /IM ${name}.exe /T 2>`$null | Out-Null"
+            }
+            $elevatedLines += "Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | ForEach-Object { taskkill /F /PID `$_.OwningProcess /T 2>`$null }"
+            $elevatedScript = ($elevatedLines -join '; ')
+            $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($elevatedScript))
+            $null = Start-Process -FilePath "powershell.exe" -Verb RunAs -ArgumentList @(
+                '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded
+            ) -Wait -PassThru -WindowStyle Hidden -ErrorAction SilentlyContinue
+        }
+        Start-Sleep -Seconds 1
+    }
+    return $false
 }
 
 function Start-FleetDetachedShell {
