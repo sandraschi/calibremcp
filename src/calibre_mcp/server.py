@@ -88,9 +88,9 @@ def create_app(path: str = "/mcp"):
         path: Reserved for API compatibility; mount path is defined by the host app.
 
     Returns:
-        ASGI application from ``mcp.http_app()`` (FastMCP 3.1+).
+        ASGI application from ``mcp.http_app(path="/")`` (FastMCP 3.1+).
     """
-    return mcp.http_app()
+    return mcp.http_app(path="/")
 
 
 async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
@@ -309,7 +309,7 @@ app.add_middleware(
         "http://127.0.0.1:10720",
         "http://localhost:10720",
     ],
-    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri else None,
+    allow_origin_regex=r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

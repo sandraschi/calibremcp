@@ -120,7 +120,7 @@ logger = logging.getLogger(__name__)
 try:
     from calibre_mcp.server import create_app as create_mcp_app
 
-    # create_app() returns mcp.http_app() which doesn't take a path argument
+    # create_app() returns mcp.http_app(path="/") which doesn't take a path argument
     # The path is handled by FastAPI's app.mount()
     mcp_app = create_mcp_app()
     if mcp_app:

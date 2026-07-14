@@ -79,7 +79,7 @@ def create_app(path: str = "/mcp"):
     """
     # FastMCP http_app() returns ASGI app - path is handled by FastAPI mount
     # The path parameter is kept for API compatibility but not used
-    return mcp.http_app()
+    return mcp.http_app(path="/")
 
 
 @asynccontextmanager

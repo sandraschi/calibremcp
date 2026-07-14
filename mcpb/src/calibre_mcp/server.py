@@ -98,9 +98,9 @@ def create_app(path: str = "/mcp"):
         path: Reserved for API compatibility; mount path is defined by the host app.
 
     Returns:
-        ASGI application from ``mcp.http_app()`` (FastMCP 3.1+).
+        ASGI application from ``mcp.http_app(path="/")`` (FastMCP 3.1+).
     """
-    return mcp.http_app()
+    return mcp.http_app(path="/")
 
 
 async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:

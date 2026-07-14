@@ -263,7 +263,16 @@ async def run_server_async(
             from fastapi.middleware.cors import CORSMiddleware
             app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["*"],
+                allow_origins=[
+                    "http://127.0.0.1:10721",
+                    "http://localhost:10721",
+                    "http://tauri.localhost",
+                    "https://tauri.localhost",
+                    "tauri://localhost",
+                    "http://127.0.0.1:10720",
+                    "http://localhost:10720",
+                ],
+                allow_origin_regex=r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$",
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"],

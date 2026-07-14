@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-07-14T01:50:00Z",
+  "repo": "calibre-mcp",
+  "version": "1.8.6",
+  "assessments": {
+    "required_files": {
+      "pyproject.toml": "present",
+      "justfile": "present",
+      "llms.txt": "present",
+      "llms-full.txt": "present",
+      "glama.json": "present",
+      "start.ps1": "present",
+      "start.bat": "present",
+      ".gitignore": "present",
+      ".env.example": "present",
+      "CHANGELOG.md": "present",
+      ".cursorrules": "present",
+      "AGENTS.md": "present",
+      "CLAUDE.md": "present",
+      ".opencode/skills/": "created"
+    },
+    "fastmcp_version": ">=3.4.2 (OK)",
+    "cors_fixes": [
+      {
+        "file": "src/calibre_mcp/transport.py:266",
+        "issue": "allow_origins=['*']",
+        "fix": "fleet standard explicit origins + allow_origin_regex"
+      },
+      {
+        "file": "src/calibre_mcp/server/config.py:27",
+        "issue": "CORS_ORIGINS default=['*']",
+        "fix": "fleet standard explicit origins"
+      },
+      {
+        "file": "src/calibre_mcp/server.py:312",
+        "issue": "allow_origin_regex gated on CALIBRE_TAURI env var",
+        "fix": "unconditional fleet allow_origin_regex"
+      }
+    ],
+    "ruff_check": "clean (0 errors)",
+    "mcpb_build": "dist/calibre-mcp-v1.8.6.mcpb (3.3 MB)"
+  }
+}
