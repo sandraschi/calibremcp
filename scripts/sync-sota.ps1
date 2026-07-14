@@ -13,22 +13,22 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "`n╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║        🔄 SOTA Script Synchronization (Spoke) 🔄        ║" -ForegroundColor Cyan
-Write-Host "╚═══════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
+Write-Host "`nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•-" -ForegroundColor Cyan
+Write-Host "â•‘        ðŸ”„ SOTA Script Synchronization (Spoke) ðŸ”„        â•‘" -ForegroundColor Cyan
+Write-Host "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`n" -ForegroundColor Cyan
 
 # 1. Locate the Hub (mcp-central-docs)
 $currentRepoRoot = Join-Path $PSScriptRoot ".."
 $siblingHubPath = Join-Path $currentRepoRoot "..\mcp-central-docs"
 
 if (-not (Test-Path $siblingHubPath)) {
-    Write-Host "❌ Error: Could not find mcp-central-docs sibling directory at:" -ForegroundColor Red
+    Write-Host "âŒ Error: Could not find mcp-central-docs sibling directory at:" -ForegroundColor Red
     Write-Host "   $siblingHubPath" -ForegroundColor Gray
     Write-Host "`n   Please ensure mcp-central-docs is cloned in the same parent folder." -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "📍 Found Hub: $siblingHubPath" -ForegroundColor Gray
+Write-Host "ðŸ“ Found Hub: $siblingHubPath" -ForegroundColor Gray
 
 # 2. Define standard SOTA scripts mapping [Source in Hub -> Target in Spoke]
 $sotaMapping = @(
@@ -48,7 +48,7 @@ $skipped = 0
 # 3. Perform Sync
 foreach ($mapping in $sotaMapping) {
     if (-not (Test-Path $mapping.Source)) {
-        Write-Host "⚠️  Warning: SOTA source not found: $($mapping.Source)" -ForegroundColor Yellow
+        Write-Host "âš ï¸  Warning: SOTA source not found: $($mapping.Source)" -ForegroundColor Yellow
         continue
     }
 
@@ -58,20 +58,20 @@ foreach ($mapping in $sotaMapping) {
         $targetHash = (Get-FileHash $mapping.Target -Algorithm SHA256).Hash
         
         if ($sourceHash -eq $targetHash) {
-            Write-Host "  ⏭️  $(Split-Path $mapping.Target -Leaf) is already up-to-date." -ForegroundColor Gray
+            Write-Host "  â­ï¸  $(Split-Path $mapping.Target -Leaf) is already up-to-date." -ForegroundColor Gray
             $skipped++
         }
         else {
             Copy-Item $mapping.Source $mapping.Target -Force
-            Write-Host "  ✅ Updated $(Split-Path $mapping.Target -Leaf) to latest SOTA." -ForegroundColor Green
+            Write-Host "  âœ… Updated $(Split-Path $mapping.Target -Leaf) to latest SOTA." -ForegroundColor Green
             $updated++
         }
     }
     else {
         Copy-Item $mapping.Source $mapping.Target -Force
-        Write-Host "  ✨ Installed $(Split-Path $mapping.Target -Leaf) from SOTA." -ForegroundColor Cyan
+        Write-Host "  âœ¨ Installed $(Split-Path $mapping.Target -Leaf) from SOTA." -ForegroundColor Cyan
         $updated++
     }
 }
 
-Write-Host "`n📊 Sync Summary: $updated updated, $skipped skipped.`n" -ForegroundColor White
+Write-Host "`nðŸ“Š Sync Summary: $updated updated, $skipped skipped.`n" -ForegroundColor White
