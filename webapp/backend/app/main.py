@@ -102,33 +102,30 @@ logging.getLogger("uvicorn.error").addHandler(_handler)
 logging.getLogger("uvicorn.access").addHandler(_handler)
 logging.getLogger("app").addHandler(_handler)
 
+logger = logging.getLogger(__name__)
+
 # MCP clients poll POST /mcp often (e.g. prompts/list); avoid filling webapp.log
 configure_quiet_mcp_http_logging()
 
 # Create FastAPI app
+_mcp_app = None
+try:
+    from calibre_mcp.server import create_app as create_mcp_app
+    _mcp_app = create_mcp_app()
+except Exception as e:
+    logger.warning(f"Could not create FastMCP HTTP app: {e}")
+
 app = FastAPI(
     title=settings.API_TITLE,
     description=settings.API_DESCRIPTION,
     version=settings.API_VERSION,
+    lifespan=_mcp_app.lifespan if _mcp_app else None,
 )
 
 # Mount FastMCP HTTP endpoints BEFORE other routers
-# FastMCP HTTP endpoints run on the same port as the API (10720 reservoir; 13000 in Docker container).
-# Dual interface: stdio for MCP clients, HTTP for webapp backend
-logger = logging.getLogger(__name__)
-
-try:
-    from calibre_mcp.server import create_app as create_mcp_app
-
-    # create_app() returns mcp.http_app(path="/") which doesn't take a path argument
-    # The path is handled by FastAPI's app.mount()
-    mcp_app = create_mcp_app()
-    if mcp_app:
-        app.mount("/mcp", mcp_app)
-        logger.info("FastMCP HTTP endpoints mounted at /mcp (dual interface: stdio + HTTP)")
-except Exception as e:
-    logger.warning(f"Could not mount FastMCP HTTP app: {e}")
-    logger.warning("Falling back to direct import mode")
+if _mcp_app:
+    app.mount("/mcp", _mcp_app)
+    logger.info("FastMCP HTTP endpoints mounted at /mcp (dual interface: stdio + HTTP)")
 
 
 @app.on_event("startup")

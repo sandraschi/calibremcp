@@ -22,6 +22,37 @@ class FetchOnlineMetadataBody(BaseModel):
     )
 
 
+@router.get("/{book_id}/file")
+async def get_book_file_path(
+    book_id: int,
+    format_preference: str = Query("EPUB", pattern="^(EPUB|PDF|MOBI|AZW3|TXT)$"),
+):
+    """Return local filesystem path for a book format (for external apps / deck handoff)."""
+    try:
+        from calibre_mcp.tools.files.file_operations import download_book_helper
+
+        result = await download_book_helper(book_id, format_preference)
+        file_path = result.get("file_path")
+        if not file_path:
+            raise HTTPException(status_code=404, detail="No local file path for this book")
+        return {
+            "success": True,
+            "book_id": book_id,
+            "id": f"calibre:{book_id}",
+            "format": result.get("format"),
+            "file": file_path,
+            "title": result.get("title") or "",
+            "available_formats": result.get("available_formats") or [],
+            "format_found": result.get("format_found", False),
+        }
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as e:
+        raise handle_mcp_error(e) from e
+
+
 @router.get("/{book_id}/cover")
 async def get_book_cover(book_id: int):
     """Serve cover image for a book."""

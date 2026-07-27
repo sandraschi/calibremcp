@@ -82,17 +82,54 @@ Delete a book from the library.
 ## Search API (`/api/search`)
 
 ### GET `/api/search`
-Advanced book search.
+Keyword or full-text book search.
 
 **Query Parameters:**
 - `query` (string, optional): Search query text
 - `author` (string, optional): Filter by author
 - `tag` (string, optional): Filter by tag
 - `min_rating` (int, optional): Minimum rating (1-5)
-- `limit` (int, default: 50): Maximum results (1-1000)
+- `fulltext` (bool, default: false): Search inside book content (Calibre FTS)
+- `limit` (int, default: 50): Maximum results (1-200)
 - `offset` (int, default: 0): Results offset
 
-**Response:** BookListResponse with search results
+**Response:** Normalized list with `items`, `data`, `total`, `count`, `engine`
+
+### POST `/api/search/advanced`
+Multi-filter Calibre search (author, tags, series, publisher, pub dates, ratings, formats).
+
+**Body:** JSON with optional `query`, `author`, `tags`, `series`, `publisher`, `min_rating`, `min_year`, `max_year`, `formats`, `limit`, `offset`, etc.
+
+**Response:** Same normalized shape; `engine` = `calibre_advanced`
+
+### POST `/api/search/smart`
+Intelligent search — auto-selects keyword, advanced filters, semantic metadata (LanceDB), or full-text.
+
+**Body:** Same filters as advanced plus `mode` (`auto` | `keyword` | `advanced` | `semantic` | `fulltext`) and optional `include_snippets`.
+
+**Response:** Normalized hits with `engine` (`calibre_keyword`, `calibre_semantic`, …) and `calibre:{book_id}` ids for resolve/load.
+
+## Books API — file path
+
+### GET `/api/books/{book_id}/file`
+Return local filesystem path for a book format (external app handoff, similar to plex-mcp media file resolve).
+
+**Query Parameters:**
+- `format_preference` (string, default: EPUB): EPUB | PDF | MOBI | AZW3 | TXT
+
+**Response:**
+```json
+{
+  "success": true,
+  "book_id": 123,
+  "id": "calibre:123",
+  "format": "EPUB",
+  "file": "D:\\library\\Author\\Title (123)\\Title - Author.epub",
+  "title": "Title",
+  "available_formats": ["EPUB", "PDF"],
+  "format_found": true
+}
+```
 
 ## Libraries API (`/api/libraries`)
 
