@@ -68,7 +68,8 @@ class LibraryDiscoveryTool:
         try:
             # Try to get library list from Calibre CLI
             result = _cmd(
-                [calibre_exe, "--with-library"], timeout=10,
+                [calibre_exe, "--with-library"],
+                timeout=10,
             )
 
             if result.returncode == 0:
@@ -177,9 +178,7 @@ class LibraryDiscoveryTool:
                     for item in Path(base_path).iterdir():
                         if item.is_dir():
                             metadata_path = item / "metadata.db"
-                            if metadata_path.exists() and self._is_valid_calibre_db(
-                                str(metadata_path)
-                            ):
+                            if metadata_path.exists() and self._is_valid_calibre_db(str(metadata_path)):
                                 library_id = f"common_sub_{hash(item) % 10000}"
                                 library_info = {
                                     "id": library_id,
@@ -190,9 +189,7 @@ class LibraryDiscoveryTool:
                                     "is_valid": True,
                                 }
                                 libraries.append(library_info)
-                                self.logger.info(
-                                    f"Found library in common subdirectory: {item}"
-                                )
+                                self.logger.info(f"Found library in common subdirectory: {item}")
                 except (OSError, PermissionError) as e:
                     self.logger.warning(f"Could not scan subdirectories of {base_path}: {e}")
 
@@ -309,6 +306,4 @@ async def library_discovery(
 
     except Exception as e:
         logger.error(f"Library discovery failed: {e}", exc_info=True)
-        return format_error_response(
-            f"Library discovery failed: {str(e)}", error_code="DISCOVERY_FAILED"
-        )
+        return format_error_response(f"Library discovery failed: {str(e)}", error_code="DISCOVERY_FAILED")

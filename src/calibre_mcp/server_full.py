@@ -42,6 +42,7 @@ class DevNullStdout:
     def restore(self):
         sys.stdout = self.original_stdout
 
+
 # Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
@@ -154,11 +155,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AbstractAsyncContextManager[
         # Try active library from Calibre's own config
         else:
             active_lib = get_active_calibre_library()
-            if (
-                active_lib
-                and active_lib.path.exists()
-                and (active_lib.path / "metadata.db").exists()
-            ):
+            if active_lib and active_lib.path.exists() and (active_lib.path / "metadata.db").exists():
                 library_to_load = active_lib.path
                 library_name_loaded = active_lib.name
                 logger.info(f"Using active Calibre library: {active_lib.name} at {active_lib.path}")
@@ -167,9 +164,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AbstractAsyncContextManager[
             first_lib_path = list(libraries.values())[0]
             library_to_load = Path(first_lib_path)
             library_name_loaded = list(libraries.keys())[0]
-            logger.info(
-                f"Auto-loading first discovered library: {library_name_loaded} at {library_to_load}"
-            )
+            logger.info(f"Auto-loading first discovered library: {library_name_loaded} at {library_to_load}")
 
         # Initialize database with the selected library
         # NOTE: Allow server to start even if database init fails - tools will handle errors gracefully
@@ -187,9 +182,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AbstractAsyncContextManager[
                         await storage.set_current_library(current_library)
                     except Exception as storage_e:
                         logger.warning(f"Could not persist library to storage: {storage_e}")
-                    logger.info(
-                        f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
-                    )
+                    logger.info(f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}")
                     db_initialized = True
                 except Exception as e:
                     logger.error(f"Failed to initialize database: {e}", exc_info=True)
@@ -200,9 +193,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AbstractAsyncContextManager[
             else:
                 logger.warning(f"metadata.db not found at {metadata_db.absolute()}")
         else:
-            logger.warning(
-                "No libraries discovered. Server will start without database initialization."
-            )
+            logger.warning("No libraries discovered. Server will start without database initialization.")
 
         if not db_initialized:
             logger.warning(

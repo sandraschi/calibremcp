@@ -58,9 +58,7 @@ class DescriptionService:
                 )
             elif has_description is False:
                 query = query.filter(
-                    (Comment.id.is_(None))
-                    | (Comment.text.is_(None))
-                    | (func.length(Comment.text) == 0)
+                    (Comment.id.is_(None)) | (Comment.text.is_(None)) | (func.length(Comment.text) == 0)
                 )
 
             if search:
@@ -84,9 +82,7 @@ class DescriptionService:
                 if comm is None:
                     comm = session.query(Comment).filter(Comment.book == b.id).first()
                 desc_text = (comm.text or "") if comm else ""
-                d["description_preview"] = (
-                    desc_text[:200] + "..." if len(desc_text) > 200 else desc_text
-                )
+                d["description_preview"] = desc_text[:200] + "..." if len(desc_text) > 200 else desc_text
                 d["has_description"] = bool(desc_text.strip())
                 items.append(d)
 
@@ -111,10 +107,7 @@ class DescriptionService:
                 return {"success": False, "error": "Book not found", "book_id": book_id}
 
             # Comment is 1:1 with book (relationship or direct query)
-            comm = (
-                getattr(book, "comments", None)
-                or session.query(Comment).filter(Comment.book == book_id).first()
-            )
+            comm = getattr(book, "comments", None) or session.query(Comment).filter(Comment.book == book_id).first()
             desc_text = (comm.text or "") if comm else ""
 
             book_service = BookService(self.db)

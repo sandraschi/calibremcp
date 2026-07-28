@@ -144,9 +144,7 @@ async def search_fulltext(
                     try:
                         resolved = resolve_location_for_file(fpath, fmt, query)
                         loc_bundle.update(resolved)
-                        pdf = (
-                            loc_bundle.get("pdf") if isinstance(loc_bundle.get("pdf"), dict) else {}
-                        )
+                        pdf = loc_bundle.get("pdf") if isinstance(loc_bundle.get("pdf"), dict) else {}
                         if pdf.get("resolved"):
                             loc_bundle["manage_viewer_get_page"] = {
                                 "operation": "get_page",

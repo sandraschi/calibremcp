@@ -234,9 +234,7 @@ async def manage_content_sync(
                     related_tools=["manage_content_sync"],
                 )
             try:
-                return await start_sync_helper(
-                    device_id=device_id, sync_type=sync_type, library_path=library_path
-                )
+                return await start_sync_helper(device_id=device_id, sync_type=sync_type, library_path=library_path)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

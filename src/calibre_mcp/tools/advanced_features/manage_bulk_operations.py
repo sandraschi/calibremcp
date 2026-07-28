@@ -202,9 +202,7 @@ async def manage_bulk_operations(
 
         elif operation == "delete":
             try:
-                return await delete_helper(
-                    book_ids=book_ids, library_path=library_path, delete_files=delete_files
-                )
+                return await delete_helper(book_ids=book_ids, library_path=library_path, delete_files=delete_files)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

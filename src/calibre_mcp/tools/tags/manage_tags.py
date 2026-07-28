@@ -124,10 +124,7 @@ async def manage_tags(
         elif operation == "create":
             if not name:
                 return format_error_response(
-                    error_msg=(
-                        "name is required for operation='create'. "
-                        "Provide the name of the tag to create."
-                    ),
+                    error_msg=("name is required for operation='create'. Provide the name of the tag to create."),
                     error_code="MISSING_NAME",
                     error_type="ValueError",
                     operation=operation,
@@ -151,10 +148,7 @@ async def manage_tags(
         elif operation == "update":
             if not tag_id:
                 return format_error_response(
-                    error_msg=(
-                        "tag_id is required for operation='update'. "
-                        "Use operation='list' to find tag IDs."
-                    ),
+                    error_msg=("tag_id is required for operation='update'. Use operation='list' to find tag IDs."),
                     error_code="MISSING_TAG_ID",
                     error_type="ValueError",
                     operation=operation,
@@ -166,10 +160,7 @@ async def manage_tags(
                 )
             if not new_name:
                 return format_error_response(
-                    error_msg=(
-                        "new_name is required for operation='update'. "
-                        "Provide the new name for the tag."
-                    ),
+                    error_msg=("new_name is required for operation='update'. Provide the new name for the tag."),
                     error_code="MISSING_NEW_NAME",
                     error_type="ValueError",
                     operation=operation,
@@ -193,10 +184,7 @@ async def manage_tags(
         elif operation == "delete":
             if not tag_id:
                 return format_error_response(
-                    error_msg=(
-                        "tag_id is required for operation='delete'. "
-                        "Use operation='list' to find tag IDs."
-                    ),
+                    error_msg=("tag_id is required for operation='delete'. Use operation='list' to find tag IDs."),
                     error_code="MISSING_TAG_ID",
                     error_type="ValueError",
                     operation=operation,
@@ -234,8 +222,7 @@ async def manage_tags(
             if not source_tag_ids:
                 return format_error_response(
                     error_msg=(
-                        "source_tag_ids is required for operation='merge'. "
-                        "Provide a list of tag IDs to merge from."
+                        "source_tag_ids is required for operation='merge'. Provide a list of tag IDs to merge from."
                     ),
                     error_code="MISSING_SOURCE_TAG_IDS",
                     error_type="ValueError",
@@ -248,10 +235,7 @@ async def manage_tags(
                 )
             if not target_tag_id:
                 return format_error_response(
-                    error_msg=(
-                        "target_tag_id is required for operation='merge'. "
-                        "Provide the tag ID to merge into."
-                    ),
+                    error_msg=("target_tag_id is required for operation='merge'. Provide the tag ID to merge into."),
                     error_code="MISSING_TARGET_TAG_ID",
                     error_type="ValueError",
                     operation=operation,
@@ -262,9 +246,7 @@ async def manage_tags(
                     related_tools=["manage_tags"],
                 )
             try:
-                return await merge_tags_helper(
-                    source_tag_ids=source_tag_ids, target_tag_id=target_tag_id
-                )
+                return await merge_tags_helper(source_tag_ids=source_tag_ids, target_tag_id=target_tag_id)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

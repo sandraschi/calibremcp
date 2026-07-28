@@ -29,23 +29,13 @@ class AuthorRepository(BaseRepository[Author]):
         """Search for authors by name."""
         with self._db.session_scope() as session:
             return (
-                session.query(Author)
-                .filter(Author.name.ilike(f"%{query}%"))
-                .order_by(Author.sort)
-                .limit(limit)
-                .all()
+                session.query(Author).filter(Author.name.ilike(f"%{query}%")).order_by(Author.sort).limit(limit).all()
             )
 
     def get_books_count(self, author_id: int) -> int:
         """Get the number of books by an author."""
         with self._db.session_scope() as session:
-            return (
-                session.query(func.count(Book.id))
-                .join(Book.authors)
-                .filter(Author.id == author_id)
-                .scalar()
-                or 0
-            )
+            return session.query(func.count(Book.id)).join(Book.authors).filter(Author.id == author_id).scalar() or 0
 
     def get_books(self, author_id: int, limit: int = 10, offset: int = 0) -> list[dict]:
         """Get books by an author with pagination."""
@@ -119,9 +109,7 @@ class AuthorRepository(BaseRepository[Author]):
                 .subquery()
             )
 
-            single_book_count = (
-                session.query(func.count()).select_from(single_book_authors).scalar() or 0
-            )
+            single_book_count = session.query(func.count()).select_from(single_book_authors).scalar() or 0
 
             # Top 10 most prolific authors
             top_authors = (
@@ -186,9 +174,7 @@ class AuthorRepository(BaseRepository[Author]):
         sort_fields = {"name": Author.name, "sort": Author.sort, "book_count": func.count(Book.id)}
         return sort_fields.get(sort_by.lower(), Author.name)
 
-    def get_books_by_author(
-        self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> tuple[list[dict[str, Any]], int]:
+    def get_books_by_author(self, author_id: int, limit: int = 50, offset: int = 0) -> tuple[list[dict[str, Any]], int]:
         """
         Get books by a specific author with pagination.
 
@@ -202,12 +188,7 @@ class AuthorRepository(BaseRepository[Author]):
         """
         with self._db.session_scope() as session:
             # Get total count
-            total = (
-                session.query(func.count(Book.id))
-                .join(Book.authors)
-                .filter(Author.id == author_id)
-                .scalar()
-            )
+            total = session.query(func.count(Book.id)).join(Book.authors).filter(Author.id == author_id).scalar()
 
             # Get paginated results
             books = (

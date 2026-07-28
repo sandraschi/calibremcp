@@ -294,8 +294,7 @@ class MangaViewer:
         )
 
         self._state.bookmarks = [
-            {"id": row[0], "page_number": row[1], "name": row[2], "created_at": row[3]}
-            for row in cursor.fetchall()
+            {"id": row[0], "page_number": row[1], "name": row[2], "created_at": row[3]} for row in cursor.fetchall()
         ]
 
     def _load_reading_progress(self, file_hash: str) -> None:
@@ -316,9 +315,7 @@ class MangaViewer:
 
         row = cursor.fetchone()
         if row:
-            self._state.current_page = (
-                max(0, min(row[0], len(self._pages) - 1)) if self._pages else 0
-            )
+            self._state.current_page = max(0, min(row[0], len(self._pages) - 1)) if self._pages else 0
             self._state.reading_progress = row[1] or 0.0
             self._state.last_read = row[2]
 
@@ -435,9 +432,7 @@ class MangaViewer:
 
         return self._pages[page_number]
 
-    def get_page_image(
-        self, page_number: int, max_size: tuple[int, int] | None = None
-    ) -> bytes | None:
+    def get_page_image(self, page_number: int, max_size: tuple[int, int] | None = None) -> bytes | None:
         """Get a page image, optionally resized."""
         page = self.get_page(page_number)
         if not page:

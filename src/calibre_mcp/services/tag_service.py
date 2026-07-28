@@ -123,9 +123,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
                 query = query.filter(Tag.name.ilike(search_term))
 
             if unused_only:
-                query = query.filter(
-                    or_(book_count.c.book_count.is_(None), book_count.c.book_count == 0)
-                )
+                query = query.filter(or_(book_count.c.book_count.is_(None), book_count.c.book_count == 0))
 
             if min_book_count is not None:
                 query = query.filter(func.coalesce(book_count.c.book_count, 0) >= min_book_count)
@@ -188,9 +186,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
             normalized_name = self._normalize_tag_name(tag_data.name)
 
             # Check if tag with same name already exists
-            existing = (
-                session.query(Tag).filter(func.lower(Tag.name) == normalized_name.lower()).first()
-            )
+            existing = session.query(Tag).filter(func.lower(Tag.name) == normalized_name.lower()).first()
 
             if existing:
                 raise ValidationError(f"Tag with name '{normalized_name}' already exists")
@@ -408,11 +404,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
         with self._get_db_session() as session:
             # Get tags with book counts
             unused_tags = (
-                session.query(Tag)
-                .outerjoin(Tag.books)
-                .group_by(Tag.id)
-                .having(func.count(Book.id) == 0)
-                .all()
+                session.query(Tag).outerjoin(Tag.books).group_by(Tag.id).having(func.count(Book.id) == 0).all()
             )
 
             return [self._to_response(tag) for tag in unused_tags]
@@ -484,10 +476,7 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
 
             # Tags with book counts
             tag_counts = (
-                session.query(Tag, func.count(Book.id).label("book_count"))
-                .outerjoin(Tag.books)
-                .group_by(Tag.id)
-                .all()
+                session.query(Tag, func.count(Book.id).label("book_count")).outerjoin(Tag.books).group_by(Tag.id).all()
             )
 
             unused_count = sum(1 for _, count in tag_counts if count == 0)
@@ -507,12 +496,9 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagResponse]):
                 "unused_tags_count": unused_count,
                 "used_tags_count": total_tags - unused_count,
                 "top_tags": [
-                    {"id": tag.id, "name": tag.name, "book_count": book_count}
-                    for tag, book_count in top_tags
+                    {"id": tag.id, "name": tag.name, "book_count": book_count} for tag, book_count in top_tags
                 ],
-                "average_books_per_tag": (
-                    sum(count for _, count in tag_counts) / total_tags if total_tags > 0 else 0
-                ),
+                "average_books_per_tag": (sum(count for _, count in tag_counts) / total_tags if total_tags > 0 else 0),
             }
 
 

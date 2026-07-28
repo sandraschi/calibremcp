@@ -191,9 +191,7 @@ class GOTOCRProcessor:
             logger.exception(f"GOT-OCR2.0 inference error: {e}")
             return None
 
-    def _save_output(
-        self, result: OCRResult, input_path: Path, mode: str, render_html: bool
-    ) -> Path | None:
+    def _save_output(self, result: OCRResult, input_path: Path, mode: str, render_html: bool) -> Path | None:
         """Save OCR output to file."""
         try:
             output_dir = input_path.parent

@@ -50,9 +50,7 @@ async def view_book(book_id: str, page: int = 0, library_id: str | None = None):
 
 
 @router.get("/api/viewer/page")
-async def get_page(
-    book_id: str, page: int = Query(0, ge=0), library_id: str | None = None
-) -> dict[str, Any]:
+async def get_page(book_id: str, page: int = Query(0, ge=0), library_id: str | None = None) -> dict[str, Any]:
     """
     Get a specific page from a book.
     """

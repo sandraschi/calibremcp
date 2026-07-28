@@ -44,12 +44,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
             NotFoundError: If the author is not found
         """
         with self._get_db_session() as session:
-            author = (
-                session.query(Author)
-                .options(joinedload(Author.books))
-                .filter(Author.id == author_id)
-                .first()
-            )
+            author = session.query(Author).options(joinedload(Author.books)).filter(Author.id == author_id).first()
 
             if not author:
                 raise NotFoundError(f"Author with ID {author_id} not found")
@@ -142,11 +137,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
         """
         with self._get_db_session() as session:
             # Check if author with same name already exists
-            existing = (
-                session.query(Author)
-                .filter(func.lower(Author.name) == author_data.name.lower())
-                .first()
-            )
+            existing = session.query(Author).filter(func.lower(Author.name) == author_data.name.lower()).first()
 
             if existing:
                 raise ValidationError(f"Author with name '{author_data.name}' already exists")
@@ -198,9 +189,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
                     .first()
                 )
                 if existing:
-                    raise ValidationError(
-                        f"Author with name '{update_data['name']}' already exists"
-                    )
+                    raise ValidationError(f"Author with name '{update_data['name']}' already exists")
 
             # Update fields
             for field, value in update_data.items():
@@ -232,12 +221,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
             ValidationError: If the author has associated books
         """
         with self._get_db_session() as session:
-            author = (
-                session.query(Author)
-                .options(joinedload(Author.books))
-                .filter(Author.id == author_id)
-                .first()
-            )
+            author = session.query(Author).options(joinedload(Author.books)).filter(Author.id == author_id).first()
 
             if not author:
                 raise NotFoundError(f"Author with ID {author_id} not found")
@@ -254,9 +238,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
             session.commit()
             return True
 
-    def get_books_by_author(
-        self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> dict[str, Any]:
+    def get_books_by_author(self, author_id: int, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         """
         Get books by a specific author with pagination.
 
@@ -279,10 +261,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
 
             # Get books with pagination
             books_query = (
-                session.query(Book)
-                .join(Book.authors)
-                .filter(Author.id == author_id)
-                .options(joinedload(Book.authors))
+                session.query(Book).join(Book.authors).filter(Author.id == author_id).options(joinedload(Book.authors))
             )
 
             total = books_query.count()
@@ -316,12 +295,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
             return []
 
         with self._get_db_session() as session:
-            authors = (
-                session.query(Author)
-                .filter(Author.name.ilike(f"{letter.lower()}%"))
-                .order_by(Author.name)
-                .all()
-            )
+            authors = session.query(Author).filter(Author.name.ilike(f"{letter.lower()}%")).order_by(Author.name).all()
 
             return [self._to_response(author) for author in authors]
 
@@ -359,9 +333,7 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorRespon
 
             return {
                 "total_authors": total_authors,
-                "authors_by_letter": [
-                    {"letter": letter, "count": count} for letter, count in letter_counts
-                ],
+                "authors_by_letter": [{"letter": letter, "count": count} for letter, count in letter_counts],
                 "top_authors": [
                     {"id": author.id, "name": author.name, "book_count": book_count}
                     for author, book_count in top_authors

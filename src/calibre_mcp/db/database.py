@@ -104,9 +104,7 @@ class DatabaseService:
         )
 
         # Create session factory
-        self._session_factory = scoped_session(
-            sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
-        )
+        self._session_factory = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self._engine))
 
         # Initialize repositories
         self._repositories = {
@@ -120,6 +118,7 @@ class DatabaseService:
         # instead of raising OperationalError immediately.
         # Listener is scoped to THIS engine instance, not the Engine class globally.
         if "sqlite" in db_url:
+
             @event.listens_for(self._engine, "connect")
             def set_sqlite_pragma(dbapi_connection, connection_record):
                 cursor = dbapi_connection.cursor()

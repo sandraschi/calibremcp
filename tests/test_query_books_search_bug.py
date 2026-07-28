@@ -44,9 +44,7 @@ class TestAuthorSearch:
 
         # All returned books should be by Arthur Conan Doyle
         for book in result["results"]:
-            author_names = [
-                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-            ]
+            author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
             author_str = " ".join(author_names).lower()
             assert "conan" in author_str and "doyle" in author_str, (
                 f"Book '{book['title']}' should be by Conan Doyle but authors are: {author_names}"
@@ -64,9 +62,7 @@ class TestAuthorSearch:
 
         # Should match "Arthur Conan Doyle"
         for book in result["results"]:
-            author_names = [
-                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-            ]
+            author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
             author_str = " ".join(author_names).lower()
             assert "doyle" in author_str
 
@@ -82,9 +78,7 @@ class TestAuthorSearch:
 
         # Should match "Arthur Conan Doyle" (has both "Conan" AND "Doyle")
         for book in result["results"]:
-            author_names = [
-                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-            ]
+            author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
             author_str = " ".join(author_names).lower()
             assert "conan" in author_str and "doyle" in author_str
 
@@ -100,9 +94,7 @@ class TestAuthorSearch:
 
         # Should extract author from query and find books
         for book in result["results"]:
-            author_names = [
-                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-            ]
+            author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
             author_str = " ".join(author_names).lower()
             assert "conan" in author_str and "doyle" in author_str
 
@@ -117,9 +109,7 @@ class TestAuthorSearch:
         assert result["success"] is True
         # Results should be actual books BY Conan Doyle, not books that mention him
         for book in result["results"]:
-            author_names = [
-                a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-            ]
+            author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
             author_str = " ".join(author_names).lower()
             # All results must be actual author matches
             assert "conan" in author_str and "doyle" in author_str
@@ -171,17 +161,13 @@ class TestCombinedSearch:
         """Test: author search combined with tag filter."""
         from calibre_mcp.tools.book_management.query_books import query_books
 
-        result = await query_books(
-            operation="search", author="Conan Doyle", tag="mystery", limit=50
-        )
+        result = await query_books(operation="search", author="Conan Doyle", tag="mystery", limit=50)
 
         # Should return books that are BOTH by Conan Doyle AND tagged as mystery
         assert result["success"] is True
         if result["total_found"] > 0:
             for book in result["results"]:
-                author_names = [
-                    a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-                ]
+                author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
                 author_str = " ".join(author_names).lower()
                 assert "conan" in author_str and "doyle" in author_str
 
@@ -196,9 +182,7 @@ class TestCombinedSearch:
         if result["total_found"] > 0:
             for book in result["results"]:
                 # Should be by Conan Doyle
-                author_names = [
-                    a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])
-                ]
+                author_names = [a["name"] if isinstance(a, dict) else a for a in book.get("authors", [])]
                 author_str = " ".join(author_names).lower()
                 assert "conan" in author_str and "doyle" in author_str
 

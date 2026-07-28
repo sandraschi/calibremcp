@@ -273,9 +273,7 @@ def parse_intelligent_query(query: str) -> dict[str, Any]:
         if match:
             result["content_type"] = content_type
             # Remove content type word from remaining query
-            remaining = re.sub(
-                rf"\b({content_type}s?)\b", "", remaining, flags=re.IGNORECASE
-            ).strip()
+            remaining = re.sub(rf"\b({content_type}s?)\b", "", remaining, flags=re.IGNORECASE).strip()
             query_lower = remaining.lower()
             break
 

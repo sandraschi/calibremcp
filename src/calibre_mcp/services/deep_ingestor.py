@@ -69,9 +69,7 @@ class DeepIngestor:
                 extracted.append({"location": f"Page {page_num + 1}", "text": text})
         return extracted
 
-    async def ingest_book_fulltext(
-        self, book_id: str, title: str, file_path: str
-    ) -> dict[str, Any]:
+    async def ingest_book_fulltext(self, book_id: str, title: str, file_path: str) -> dict[str, Any]:
         """
         Extract and index the full text of a given book.
 
@@ -128,9 +126,7 @@ class DeepIngestor:
 
         try:
             self.vector_store.add_documents(documents, overwrite=False)
-            logger.info(
-                f"Successfully deep-ingested {len(documents)} chunks for '{title}' into {self.table_name}"
-            )
+            logger.info(f"Successfully deep-ingested {len(documents)} chunks for '{title}' into {self.table_name}")
             return {
                 "status": "success",
                 "count": len(documents),

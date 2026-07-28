@@ -157,9 +157,7 @@ class AdvancedSearchTool(MCPTool):
         books = [book.dict() for book in all_books]
 
         # Apply filters
-        filtered_books = self._apply_filters(
-            books, search_query.filters, search_query.must_match_all
-        )
+        filtered_books = self._apply_filters(books, search_query.filters, search_query.must_match_all)
 
         # Apply full-text search if query is provided
         if search_query.query:
@@ -288,9 +286,7 @@ class AdvancedSearchTool(MCPTool):
 
         raise ValueError("Invalid query format. Must be a string or dictionary.")
 
-    def _apply_filters(
-        self, books: list[dict], filters: list[SearchFilter], must_match_all: bool = True
-    ) -> list[dict]:
+    def _apply_filters(self, books: list[dict], filters: list[SearchFilter], must_match_all: bool = True) -> list[dict]:
         """Apply filters to a list of books."""
         if not filters:
             return books
@@ -417,9 +413,7 @@ class AdvancedSearchTool(MCPTool):
                             if "authors" not in highlights:
                                 highlights["authors"] = []
 
-                            highlighted = author.replace(
-                                term, f"<{self._highlight_tag}>{term}</{self._highlight_tag}>"
-                            )
+                            highlighted = author.replace(term, f"<{self._highlight_tag}>{term}</{self._highlight_tag}>")
                             if highlighted not in highlights["authors"]:
                                 highlights["authors"].append(highlighted)
 
@@ -435,9 +429,7 @@ class AdvancedSearchTool(MCPTool):
                             if "tags" not in highlights:
                                 highlights["tags"] = []
 
-                            highlighted = tag.replace(
-                                term, f"<{self._highlight_tag}>{term}</{self._highlight_tag}>"
-                            )
+                            highlighted = tag.replace(term, f"<{self._highlight_tag}>{term}</{self._highlight_tag}>")
                             if highlighted not in highlights["tags"]:
                                 highlights["tags"].append(highlighted)
 
@@ -459,18 +451,12 @@ class AdvancedSearchTool(MCPTool):
 
                         # Add ellipsis if not at start/end
                         if start > 0:
-                            snippet = (
-                                "..." + snippet[3:]
-                            )  # Remove first 3 chars to make room for ellipsis
+                            snippet = "..." + snippet[3:]  # Remove first 3 chars to make room for ellipsis
                         if end < len(comments):
-                            snippet = (
-                                snippet[:-3] + "..."
-                            )  # Remove last 3 chars to make room for ellipsis
+                            snippet = snippet[:-3] + "..."  # Remove last 3 chars to make room for ellipsis
 
                         # Highlight term
-                        snippet = snippet.replace(
-                            term, f"<{self._highlight_tag}>{term}</{self._highlight_tag}>"
-                        )
+                        snippet = snippet.replace(term, f"<{self._highlight_tag}>{term}</{self._highlight_tag}>")
                         highlights["comments"].append(snippet)
 
             # Store score and highlights

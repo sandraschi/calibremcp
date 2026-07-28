@@ -32,9 +32,7 @@ def _metadata_db_paths_match(stored: str | None, metadata_db: Path) -> bool:
     try:
         return Path(stored).resolve() == metadata_db.resolve()
     except OSError:
-        return os.path.normcase(os.path.normpath(stored)) == os.path.normcase(
-            os.path.normpath(str(metadata_db))
-        )
+        return os.path.normcase(os.path.normpath(stored)) == os.path.normcase(os.path.normpath(str(metadata_db)))
 
 
 def _collect_library_stats_from_session(session: Any, total_books_fallback: int) -> dict[str, Any]:
@@ -51,12 +49,7 @@ def _collect_library_stats_from_session(session: Any, total_books_fallback: int)
     total_tags = session.query(func.count(Tag.id)).scalar() or 0
     formats = session.query(Data.format, func.count(Data.id)).group_by(Data.format).all()
     format_distribution = {fmt.lower(): count for fmt, count in formats}
-    ratings = (
-        session.query(Rating.rating, func.count(Book.id))
-        .join(Book.ratings)
-        .group_by(Rating.rating)
-        .all()
-    )
+    ratings = session.query(Rating.rating, func.count(Book.id)).join(Book.ratings).group_by(Rating.rating).all()
     rating_distribution = {str(r): count for r, count in ratings if r is not None}
     last_mod_book = session.query(func.max(Book.last_modified)).scalar()
     last_modified = last_mod_book.isoformat() if last_mod_book else None
@@ -319,9 +312,7 @@ async def switch_library_helper(library_name: str) -> dict[str, Any]:
             init_database(str(metadata_db.absolute()), echo=False)
             logger.info(f"Database re-initialized with library: {library_name} at {library_path}")
         except Exception as e:
-            logger.error(
-                f"Failed to re-initialize database for library '{library_name}': {e}", exc_info=True
-            )
+            logger.error(f"Failed to re-initialize database for library '{library_name}': {e}", exc_info=True)
             raise ValueError(
                 f"Failed to initialize database for library '{library_name}': {str(e)}. "
                 "Please verify the library is valid and accessible."
@@ -421,9 +412,7 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
                     library_name = next(iter(discovered))
                     library_path = discovered[library_name]
                 else:
-                    raise ValueError(
-                        "No active library set. Please specify library_name or switch to a library first."
-                    )
+                    raise ValueError("No active library set. Please specify library_name or switch to a library first.")
             else:
                 # Find library name from path
                 library_name = library_path.name
@@ -515,9 +504,7 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
 
 # Helper function - called by manage_libraries portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def cross_library_search_helper(
-    query: str, libraries: list[str] | None = None
-) -> LibrarySearchResponse:
+async def cross_library_search_helper(query: str, libraries: list[str] | None = None) -> LibrarySearchResponse:
     """
     Search for books across multiple Calibre libraries simultaneously.
 
@@ -594,19 +581,13 @@ async def cross_library_search_helper(
             if len(libraries) == 1 and libraries[0].upper() == "ALL":
                 # Explicit request to search all libraries
                 libraries_to_search = list(discovered_libs.keys())
-                logger.info(
-                    f"Explicit 'ALL' libraries requested, searching {len(libraries_to_search)} libraries"
-                )
+                logger.info(f"Explicit 'ALL' libraries requested, searching {len(libraries_to_search)} libraries")
             else:
                 # Use provided library list (with content_type filtering if applicable)
                 if parsed.get("content_type"):
                     content_type = parsed["content_type"].lower()
                     # Match libraries by name containing the content type
-                    matching_libs = [
-                        lib_name
-                        for lib_name in discovered_libs
-                        if content_type in lib_name.lower()
-                    ]
+                    matching_libs = [lib_name for lib_name in discovered_libs if content_type in lib_name.lower()]
                     if matching_libs:
                         libraries_to_search = matching_libs
                         logger.info(
@@ -625,9 +606,7 @@ async def cross_library_search_helper(
                 if invalid:
                     raise ValueError(f"Libraries not found: {', '.join(invalid)}")
         else:
-            raise ValueError(
-                f"Invalid libraries parameter: {libraries}. Must be None or a list of library names."
-            )
+            raise ValueError(f"Invalid libraries parameter: {libraries}. Must be None or a list of library names.")
 
         if not libraries_to_search:
             return LibrarySearchResponse(
@@ -659,9 +638,7 @@ async def cross_library_search_helper(
 
                 metadata_db = Path(library_path) / "metadata.db"
                 if not metadata_db.exists():
-                    logger.warning(
-                        f"metadata.db not found for library '{lib_name}' at {metadata_db}"
-                    )
+                    logger.warning(f"metadata.db not found for library '{lib_name}' at {metadata_db}")
                     continue
 
                 # Check if we're already connected to this library
@@ -762,6 +739,4 @@ async def cross_library_search_helper(
         raise
     except Exception as e:
         logger.error(f"Error in cross-library search: {e}", exc_info=True)
-        return LibrarySearchResponse(
-            results=[], total_found=0, query_used=query, search_time_ms=0, library_searched=""
-        )
+        return LibrarySearchResponse(results=[], total_found=0, query_used=query, search_time_ms=0, library_searched="")

@@ -111,8 +111,7 @@ async def manage_system(
             if not tool_name:
                 return format_error_response(
                     error_msg=(
-                        "tool_name is required for operation='tool_help'. "
-                        "Provide the name of the tool to get help for."
+                        "tool_name is required for operation='tool_help'. Provide the name of the tool to get help for."
                     ),
                     error_code="MISSING_TOOL_NAME",
                     error_type="ValueError",
@@ -127,9 +126,7 @@ async def manage_system(
 
             try:
                 tool_hlp_lvl = HelpLevel(tool_help_level) if tool_help_level else HelpLevel.BASIC
-                result = await system_tools.tool_help_helper(
-                    tool_name=tool_name, level=tool_hlp_lvl
-                )
+                result = await system_tools.tool_help_helper(tool_name=tool_name, level=tool_hlp_lvl)
                 return {
                     "content": result,
                     "tool_name": tool_name,
@@ -176,9 +173,7 @@ async def manage_system(
         elif operation == "health_check":
             try:
                 result = await system_tools.health_check_helper()
-                return (
-                    result if isinstance(result, dict) else {"status": "unknown", "result": result}
-                )
+                return result if isinstance(result, dict) else {"status": "unknown", "result": result}
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

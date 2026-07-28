@@ -35,18 +35,14 @@ def _get_embedder(model_name: str, cache_dir: str) -> Any:
     if key not in _EMBEDDERS:
         from calibre_mcp.rag.fastembed_gpu import create_text_embedding, repo_root_from_here
 
-        model, device, batch = create_text_embedding(
-            model_name, cache_dir, repo_root=repo_root_from_here()
-        )
+        model, device, batch = create_text_embedding(model_name, cache_dir, repo_root=repo_root_from_here())
         _EMBEDDERS[key] = model
         _EMBED_BATCH = batch
         logger.info("[rag] Embed device: %s (batch %s)", device, batch)
     return _EMBEDDERS[key]
 
 
-def _write_progress(
-    lancedb_dir: Path, status: str, current: int, total: int, message: str = ""
-) -> None:
+def _write_progress(lancedb_dir: Path, status: str, current: int, total: int, message: str = "") -> None:
     path = lancedb_dir / PROGRESS_FILENAME
     try:
         data = {"status": status, "current": current, "total": total, "message": message}
@@ -140,6 +136,7 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
             db_path = Path(appdata) / "calibre-mcp" / "calibre_mcp_data.db"
         else:
             import platform
+
             home = Path("~").expanduser()
             if platform.system() == "Darwin":
                 db_path = home / "Library" / "Application Support" / "calibre-mcp" / "calibre_mcp_data.db"
@@ -167,8 +164,7 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
 
             # Also get personal notes from user_comments
             note_row = conn.execute(
-                "SELECT comment_text FROM user_comments "
-                "WHERE book_id=? AND library_path=?",
+                "SELECT comment_text FROM user_comments WHERE book_id=? AND library_path=?",
                 (book_id, library_path),
             ).fetchone()
         finally:
@@ -231,9 +227,7 @@ def build_metadata_index(
     db_svc = get_database()
     current = db_svc.get_current_path()
     if not current:
-        raise RuntimeError(
-            "Database not initialized. Use manage_libraries(operation='switch') first."
-        )
+        raise RuntimeError("Database not initialized. Use manage_libraries(operation='switch') first.")
     metadata_db_path = metadata_db_path or current
 
     lancedb_dir = get_metadata_rag_path(metadata_db_path)
@@ -279,8 +273,7 @@ def build_metadata_index(
         progress_interval = 50
         try:
             for i, book in enumerate(books):
-                text = _book_to_searchable_text(session, book,
-                                                library_path=library_path_str)
+                text = _book_to_searchable_text(session, book, library_path=library_path_str)
                 if not text:
                     continue
                 documents.append(text)
@@ -292,9 +285,7 @@ def build_metadata_index(
                     }
                 )
                 if (i + 1) % progress_interval == 0:
-                    _write_progress(
-                        lancedb_dir, "building", i + 1, total_books, "Gathering metadata"
-                    )
+                    _write_progress(lancedb_dir, "building", i + 1, total_books, "Gathering metadata")
         finally:
             session.close()
 
@@ -322,9 +313,7 @@ def build_metadata_index(
             for j, row in enumerate(rows[start:end]):
                 if j < len(batch_embeddings):
                     row["vector"] = batch_embeddings[j]
-            _write_progress(
-                lancedb_dir, "embedding", end, num_docs, f"Embedding ({end}/{num_docs})"
-            )
+            _write_progress(lancedb_dir, "embedding", end, num_docs, f"Embedding ({end}/{num_docs})")
 
         if table_name in db.table_names():
             tbl = db.open_table(table_name)

@@ -15,11 +15,9 @@ sys.path.insert(0, str(src_path))
 def test_minimal():
     """Test minimal Calibre MCP functionality."""
 
-
     try:
         # Test 1: Import server module
         from calibre_mcp import server
-
 
         # Test 2: Check MCP instance
         mcp = server.mcp
@@ -54,7 +52,6 @@ def test_minimal():
             else:
                 tool_count = "unknown"
 
-
             if tool_count == 0 or tool_count == "unknown":
                 pass
             else:
@@ -62,7 +59,6 @@ def test_minimal():
 
         except Exception:
             return False
-
 
         return True
 

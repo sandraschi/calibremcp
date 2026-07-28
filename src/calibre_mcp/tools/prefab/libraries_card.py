@@ -92,8 +92,7 @@ def register_libraries_card_tool() -> None:
                 CardTitle("Our Calibre")
             with CardContent():
                 Text(
-                    f"{total} librar{'y' if total == 1 else 'ies'}"
-                    + (f" · active: {current}" if current else ""),
+                    f"{total} librar{'y' if total == 1 else 'ies'}" + (f" · active: {current}" if current else ""),
                     css_class="text-sm opacity-90 mb-2",
                 )
                 for i, lib in enumerate(libraries):

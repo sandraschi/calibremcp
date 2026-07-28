@@ -133,7 +133,4 @@ class BaseRepository[T]:
             if not conditions:
                 return []
 
-            return (
-                session.query(self.model).filter(or_(*conditions)).offset(offset).limit(limit).all()
-            )
-
+            return session.query(self.model).filter(or_(*conditions)).offset(offset).limit(limit).all()

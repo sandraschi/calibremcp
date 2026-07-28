@@ -120,11 +120,7 @@ class CalibreConfigDiscovery:
 
             # Get library database from Calibre's preferences
             library_path = prefs["library_path"]
-            if (
-                library_path
-                and Path(library_path).exists()
-                and (Path(library_path) / "metadata.db").exists()
-            ):
+            if library_path and Path(library_path).exists() and (Path(library_path) / "metadata.db").exists():
                 libraries["main"] = CalibreLibrary(
                     name="main",
                     path=Path(library_path),
@@ -389,9 +385,7 @@ class CalibreConfigDiscovery:
 
         return libraries
 
-    def _scan_parent_directories(
-        self, existing_libraries: dict[str, CalibreLibrary]
-    ) -> dict[str, CalibreLibrary]:
+    def _scan_parent_directories(self, existing_libraries: dict[str, CalibreLibrary]) -> dict[str, CalibreLibrary]:
         """Scan parent directories of existing libraries for additional libraries"""
         libraries = {}
 
@@ -401,10 +395,15 @@ class CalibreConfigDiscovery:
             # Scan parent directory for other libraries
             if parent_dir.exists() and parent_dir.is_dir():
                 for item in parent_dir.iterdir():
-                    if item.is_dir() and item != library.path and (item / "metadata.db").exists() and item.name not in existing_libraries:
-                            libraries[item.name] = CalibreLibrary(
-                                name=item.name, path=item, metadata_db=item / "metadata.db"
-                            )
+                    if (
+                        item.is_dir()
+                        and item != library.path
+                        and (item / "metadata.db").exists()
+                        and item.name not in existing_libraries
+                    ):
+                        libraries[item.name] = CalibreLibrary(
+                            name=item.name, path=item, metadata_db=item / "metadata.db"
+                        )
 
         return libraries
 

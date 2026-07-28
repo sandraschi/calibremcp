@@ -627,9 +627,7 @@ async def _handle_login(username: str, password: str) -> dict[str, Any]:
                 "id": user_data["id"],
                 "username": user_data["username"],
                 "role": user_data["role"],
-                "token_expires": (
-                    datetime.utcnow() + timedelta(minutes=_jwt_expire_minutes)
-                ).isoformat(),
+                "token_expires": (datetime.utcnow() + timedelta(minutes=_jwt_expire_minutes)).isoformat(),
             },
         }
     except Exception as e:

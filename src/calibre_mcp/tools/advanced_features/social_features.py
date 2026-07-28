@@ -173,9 +173,7 @@ class SocialFeaturesTool(MCPTool):
             return {"error": str(e), "success": False}
 
     # User Profiles
-    async def social_create_profile(
-        self, user_id: str, username: str, display_name: str, **kwargs
-    ) -> dict:
+    async def social_create_profile(self, user_id: str, username: str, display_name: str, **kwargs) -> dict:
         """Create a new user profile."""
         if user_id in self._profiles:
             return {"error": f"Profile for user {user_id} already exists", "success": False}
@@ -184,9 +182,7 @@ class SocialFeaturesTool(MCPTool):
         if any(p.username.lower() == username.lower() for p in self._profiles.values()):
             return {"error": f"Username '{username}' is already taken", "success": False}
 
-        profile = UserProfile(
-            user_id=user_id, username=username, display_name=display_name, **kwargs
-        )
+        profile = UserProfile(user_id=user_id, username=username, display_name=display_name, **kwargs)
 
         self._profiles[user_id] = profile
 
@@ -222,9 +218,7 @@ class SocialFeaturesTool(MCPTool):
         return {"success": True, "profile": profile.dict()}
 
     # Reviews
-    async def social_create_review(
-        self, book_id: str, user_id: str, rating: float, title: str, content: str
-    ) -> dict:
+    async def social_create_review(self, book_id: str, user_id: str, rating: float, title: str, content: str) -> dict:
         """Create a new book review."""
         # Check if user has already reviewed this book
         existing_review = next(
@@ -457,9 +451,7 @@ class SocialFeaturesTool(MCPTool):
         }
 
     # Notifications
-    async def social_get_notifications(
-        self, user_id: str, unread_only: bool = True, limit: int = 20
-    ) -> dict:
+    async def social_get_notifications(self, user_id: str, unread_only: bool = True, limit: int = 20) -> dict:
         """Get notifications for a user."""
         if user_id not in self._notifications:
             return {"success": True, "notifications": [], "unread_count": 0}
@@ -512,9 +504,7 @@ class SocialFeaturesTool(MCPTool):
         return notification
 
     # Activity Feed
-    async def social_get_activity_feed(
-        self, user_id: str, limit: int = 20, offset: int = 0
-    ) -> dict:
+    async def social_get_activity_feed(self, user_id: str, limit: int = 20, offset: int = 0) -> dict:
         """Get a user's activity feed."""
         if user_id not in self._profiles:
             return {"error": "User not found", "success": False}

@@ -162,11 +162,7 @@ async def add_book_helper(
                 )
                 cmd.extend(["--authors", authors_str])
             if "tags" in metadata and metadata["tags"]:
-                tags_str = (
-                    ", ".join(metadata["tags"])
-                    if isinstance(metadata["tags"], list)
-                    else str(metadata["tags"])
-                )
+                tags_str = ", ".join(metadata["tags"]) if isinstance(metadata["tags"], list) else str(metadata["tags"])
                 cmd.extend(["--tags", tags_str])
             if "series" in metadata and metadata["series"]:
                 cmd.extend(["--series", str(metadata["series"])])
@@ -232,9 +228,7 @@ async def add_book_helper(
             logger.warning(f"Could not extract book ID from calibredb output: {output}")
             # Try to get the book by searching for the filename
             # This is a fallback - ideally calibredb should return the ID
-            raise MCPServerError(
-                f"Book was added but could not determine book ID. calibredb output: {output}"
-            )
+            raise MCPServerError(f"Book was added but could not determine book ID. calibredb output: {output}")
 
         logger.info(f"Successfully added book with ID: {book_id}")
 
@@ -265,9 +259,7 @@ async def add_book_helper(
             # Return minimal response with book ID
             return {
                 "id": str(book_id),
-                "title": metadata.get("title", file_path_obj.stem)
-                if metadata
-                else file_path_obj.stem,
+                "title": metadata.get("title", file_path_obj.stem) if metadata else file_path_obj.stem,
                 "authors": metadata.get("authors", ["Unknown"]) if metadata else ["Unknown"],
                 "formats": [file_path_obj.suffix[1:].upper()] if file_path_obj.suffix else [],
                 "cover_url": None,

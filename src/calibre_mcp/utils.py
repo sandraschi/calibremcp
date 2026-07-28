@@ -19,6 +19,7 @@ try:
     from contextlib import suppress
 
     import aiofiles
+
     with suppress(AttributeError):
         import aiofiles.os
 except ImportError:
@@ -241,9 +242,7 @@ async def extract_metadata(file_path: str | Path) -> BookMetadata:
             metadata.series_index = float(calibre_metadata.series_index)
 
         if calibre_metadata.rating is not None:
-            metadata.rating = (
-                float(calibre_metadata.rating) / 2.0
-            )  # Convert from 10-point to 5-point scale
+            metadata.rating = float(calibre_metadata.rating) / 2.0  # Convert from 10-point to 5-point scale
 
         if calibre_metadata.tags:
             metadata.tags = list(calibre_metadata.tags)
@@ -400,9 +399,7 @@ async def convert_book(
             if metadata.series_index is not None:
                 args.extend(["--series-index", str(metadata.series_index)])
             if metadata.rating is not None:
-                args.extend(
-                    ["--rating", str(int(metadata.rating * 2))]
-                )  # Convert from 5-point to 10-point scale
+                args.extend(["--rating", str(int(metadata.rating * 2))])  # Convert from 5-point to 10-point scale
 
         # Run the conversion
         convert_cli(args)

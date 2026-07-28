@@ -232,9 +232,7 @@ class ExtendedLibraryOperations(MCPTool):
                         added_date = None
                         if "timestamp" in book and book["timestamp"]:
                             with contextlib.suppress(ValueError, AttributeError):
-                                added_date = datetime.fromisoformat(
-                                    book["timestamp"].replace("Z", "+00:00")
-                                )
+                                added_date = datetime.fromisoformat(book["timestamp"].replace("Z", "+00:00"))
 
                         similar_books.append(
                             {
@@ -260,9 +258,7 @@ class ExtendedLibraryOperations(MCPTool):
             "duplicate_groups": group_id,
         }
 
-    def _calculate_book_similarity(
-        self, book1: dict, book2: dict, check_fields: list[str]
-    ) -> float:
+    def _calculate_book_similarity(self, book1: dict, book2: dict, check_fields: list[str]) -> float:
         """Calculate similarity between two books (0.0 to 1.0)."""
         from difflib import SequenceMatcher
 
@@ -296,13 +292,9 @@ class ExtendedLibraryOperations(MCPTool):
                 isbn2 = re.sub(r"[^0-9Xx]", "", isbn2.upper())
 
                 if len(isbn1) == 10 and len(isbn2) == 13:
-                    isbn1 = (
-                        "978" + isbn1[:-1] + self._calculate_isbn13_check_digit("978" + isbn1[:-1])
-                    )
+                    isbn1 = "978" + isbn1[:-1] + self._calculate_isbn13_check_digit("978" + isbn1[:-1])
                 elif len(isbn1) == 13 and len(isbn2) == 10:
-                    isbn2 = (
-                        "978" + isbn2[:-1] + self._calculate_isbn13_check_digit("978" + isbn2[:-1])
-                    )
+                    isbn2 = "978" + isbn2[:-1] + self._calculate_isbn13_check_digit("978" + isbn2[:-1])
 
                 isbn_sim = 1.0 if isbn1 == isbn2 else 0.0
                 scores.append(("isbn", isbn_sim))
@@ -363,7 +355,9 @@ class ExtendedLibraryOperations(MCPTool):
                         for root, _, files in os.walk(books_dir):
                             for file in files:
                                 file_path = pathlib.Path(root) / file
-                                arcname = str(pathlib.Path(backup_name) / "books" / os.path.relpath(file_path, books_dir))
+                                arcname = str(
+                                    pathlib.Path(backup_name) / "books" / os.path.relpath(file_path, books_dir)
+                                )
                                 zipf.write(file_path, arcname)
 
                     # Add covers
@@ -372,7 +366,9 @@ class ExtendedLibraryOperations(MCPTool):
                         for root, _, files in os.walk(covers_dir):
                             for file in files:
                                 file_path = pathlib.Path(root) / file
-                                arcname = str(pathlib.Path(backup_name) / "covers" / os.path.relpath(file_path, covers_dir))
+                                arcname = str(
+                                    pathlib.Path(backup_name) / "covers" / os.path.relpath(file_path, covers_dir)
+                                )
                                 zipf.write(file_path, arcname)
             else:
                 backup_path = str(pathlib.Path(backup_path) / pathlib.Path(library_path).name)
@@ -463,20 +459,14 @@ class ExtendedLibraryOperations(MCPTool):
             # Check for orphaned files
             try:
                 result = await self._find_orphaned_files(library_path)
-                results["operations"].append(
-                    {"operation": "check_orphaned_files", "result": result}
-                )
+                results["operations"].append({"operation": "check_orphaned_files", "result": result})
 
                 if result.get("orphaned_files", []):
-                    results["warnings"].append(
-                        f"Found {len(result['orphaned_files'])} orphaned files"
-                    )
+                    results["warnings"].append(f"Found {len(result['orphaned_files'])} orphaned files")
             except Exception as e:
                 error_msg = f"Error checking for orphaned files: {str(e)}"
                 results["errors"].append(error_msg)
-                results["operations"].append(
-                    {"operation": "check_orphaned_files", "error": error_msg}
-                )
+                results["operations"].append({"operation": "check_orphaned_files", "error": error_msg})
                 results["success"] = False
 
             return results
@@ -569,9 +559,7 @@ class ExtendedLibraryOperations(MCPTool):
             return {
                 "repaired": integrity_result != "ok",
                 "integrity_check": integrity_result,
-                "message": "Database integrity verified"
-                if integrity_result == "ok"
-                else "Database may have issues",
+                "message": "Database integrity verified" if integrity_result == "ok" else "Database may have issues",
             }
 
         except Exception as e:

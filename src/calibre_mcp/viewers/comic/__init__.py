@@ -73,9 +73,7 @@ class ComicViewer:
                 ]
             elif ext == "cbr":
                 if rarfile is None:
-                    raise ImportError(
-                        "rarfile is required for CBR viewing. Install it with: pip install rarfile"
-                    )
+                    raise ImportError("rarfile is required for CBR viewing. Install it with: pip install rarfile")
                 self._archive = rarfile.RarFile(file_path, "r")
                 self._file_list = [
                     f
@@ -84,9 +82,7 @@ class ComicViewer:
                 ]
 
             # Sort files naturally (e.g., "page1.jpg", "page2.jpg")
-            self._file_list.sort(
-                key=lambda x: [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", x)]
-            )
+            self._file_list.sort(key=lambda x: [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", x)])
 
             # Extract basic metadata
             self._metadata = {

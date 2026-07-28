@@ -43,7 +43,6 @@ def run_test_file(test_file: Path) -> tuple[str, bool, str]:
 def main():
     """Run all portmanteau test batteries."""
 
-
     # Find all test files
     test_dir = Path(__file__).parent
     test_files = sorted(test_dir.glob("test_*.py"))
@@ -75,7 +74,6 @@ def main():
             failed += 1
             if output:
                 pass
-
 
     return failed == 0
 

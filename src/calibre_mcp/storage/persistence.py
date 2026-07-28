@@ -113,9 +113,7 @@ class CalibreMCPStorage:
                 storage_getter = self.mcp.get_storage
                 if callable(storage_getter):
                     self._storage = (
-                        await storage_getter()
-                        if asyncio.iscoroutinefunction(storage_getter)
-                        else storage_getter()
+                        await storage_getter() if asyncio.iscoroutinefunction(storage_getter) else storage_getter()
                     )
                     if self._storage:
                         self._initialized = True
@@ -213,9 +211,7 @@ class CalibreMCPStorage:
             key = f"{SESSION_STATE_KEY}:{session_id}"
             await self._storage.delete(key)
 
-    async def cache_library_stats(
-        self, library_name: str, stats: dict[str, Any], ttl: int = 3600
-    ) -> None:
+    async def cache_library_stats(self, library_name: str, stats: dict[str, Any], ttl: int = 3600) -> None:
         """Cache library statistics with TTL (default 1 hour)."""
         await self.initialize()
         if not self._storage:
@@ -273,9 +269,7 @@ class CalibreMCPStorage:
 
     # ==================== SEARCH HISTORY ====================
 
-    async def add_search_to_history(
-        self, query: str, filters: dict[str, Any], max_history: int = 50
-    ) -> None:
+    async def add_search_to_history(self, query: str, filters: dict[str, Any], max_history: int = 50) -> None:
         """Add a search query to history (FIFO, limited to max_history)."""
         await self.initialize()
         if not self._storage:
@@ -346,6 +340,7 @@ class CalibreMCPStorage:
             key = f"{READING_PROGRESS_KEY}:{book_id}"
             if "last_updated" not in progress:
                 import time
+
                 progress["last_updated"] = time.time()
             await self._storage.set(key, progress)
 

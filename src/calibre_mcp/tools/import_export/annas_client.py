@@ -27,21 +27,25 @@ DEFAULT_MIRRORS = [
 
 class AnnasError(Exception):
     """Base exception for Anna's Archive operations."""
+
     pass
 
 
 class AnnasNoLinksError(AnnasError):
     """No download links found for the MD5."""
+
     pass
 
 
 class AnnasLinkRestrictionError(AnnasError):
     """Mirrors found, but they require manual interaction (landing pages)."""
+
     pass
 
 
 class AnnasDownloadTimeoutError(AnnasError):
     """Download attempt timed out."""
+
     pass
 
 
@@ -184,7 +188,7 @@ def _parse_search_results(html: str, base_url: str, max_results: int) -> list[di
                 # Info string usually contains author and formats
                 info_node = link.find_next("div", class_=lambda x: x and "italic" in x)
                 info_text = info_node.get_text(strip=True) if info_node else ""
-                
+
                 # Naive split for author/format if in grid view
                 author = info_text.split("[")[0] if "[" in info_text else info_text
                 formats = info_text.split("[")[-1].replace("]", "").upper() if "[" in info_text else ""
@@ -295,34 +299,37 @@ async def download_annas_book(
         url = link_info["url"]
         logger.info(f"Attempting download from: {url} ({link_info['label']})")
         try:
-            async with httpx.AsyncClient(
-                timeout=300.0,  # Long timeout for slow downloads
-                follow_redirects=True,
-                headers={"User-Agent": "CalibreMCP/1.0 (ebook library manager)"},
-            ) as client, client.stream("GET", url) as response:
+            async with (
+                httpx.AsyncClient(
+                    timeout=300.0,  # Long timeout for slow downloads
+                    follow_redirects=True,
+                    headers={"User-Agent": "CalibreMCP/1.0 (ebook library manager)"},
+                ) as client,
+                client.stream("GET", url) as response,
+            ):
                 # Some links might trigger a redirect to a real file
-                    if response.status_code != 200:
-                        continue
+                if response.status_code != 200:
+                    continue
 
-                    content_type = response.headers.get("Content-Type", "").lower()
-                    # If we got HTML, it's probably a landing page, not a file
-                    if "text/html" in content_type:
-                        logger.debug(f"Link {url} is a landing page, skipping")
-                        skipped_landing_pages += 1
-                        continue
+                content_type = response.headers.get("Content-Type", "").lower()
+                # If we got HTML, it's probably a landing page, not a file
+                if "text/html" in content_type:
+                    logger.debug(f"Link {url} is a landing page, skipping")
+                    skipped_landing_pages += 1
+                    continue
 
-                    # Create temp file with appropriate suffix if possible
+                # Create temp file with appropriate suffix if possible
+                suffix = ".epub"
+                if "application/pdf" in content_type:
+                    suffix = ".pdf"
+                elif "application/epub+zip" in content_type:
                     suffix = ".epub"
-                    if "application/pdf" in content_type:
-                        suffix = ".pdf"
-                    elif "application/epub+zip" in content_type:
-                        suffix = ".epub"
 
-                    fd, path = tempfile.mkstemp(suffix=suffix)
-                    with os.fdopen(fd, "wb") as f:
-                        async for chunk in response.aiter_bytes():
-                            f.write(chunk)
-                    return path
+                fd, path = tempfile.mkstemp(suffix=suffix)
+                with os.fdopen(fd, "wb") as f:
+                    async for chunk in response.aiter_bytes():
+                        f.write(chunk)
+                return path
         except TimeoutError:
             logger.warning(f"Download timed out from {url}")
             continue

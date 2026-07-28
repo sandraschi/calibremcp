@@ -15,13 +15,11 @@ sys.path.insert(0, str(src_path))
 def test_direct():
     """Test Calibre MCP functionality directly."""
 
-
     try:
         # Test 1: Basic imports
         from calibre_mcp.config import CalibreConfig
         from calibre_mcp.db.database import get_database, init_database
         from calibre_mcp.services.book_service import BookService
-
 
         # Test 2: Config
         config = CalibreConfig()

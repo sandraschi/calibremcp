@@ -134,9 +134,7 @@ async def manage_ai_operations(
 
         if operation == "get_recommendations":
             if book_id:
-                return await recommendation_engine.get_recommendations(
-                    book_id=book_id, options=recommendation_options
-                )
+                return await recommendation_engine.get_recommendations(book_id=book_id, options=recommendation_options)
             if user_preferences:
                 return await recommendation_engine.get_personalized_recommendations(
                     user_preferences=user_preferences, options=recommendation_options

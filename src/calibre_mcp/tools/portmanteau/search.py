@@ -22,8 +22,7 @@ def _get_vector_store(
         path = db.get_current_path()
         if not path:
             raise RuntimeError(
-                "No Calibre library loaded. Use manage_libraries(operation='switch') first, "
-                "or pass db_path for ingest."
+                "No Calibre library loaded. Use manage_libraries(operation='switch') first, or pass db_path for ingest."
             )
         base = portmanteau_lancedb_dir(path)
     return LanceVectorStore(db_path=str(base), table_name=table_name)
@@ -85,9 +84,7 @@ async def calibre_rag(
                             "location": meta.get("location", ""),
                             "book_id": meta.get("book_id"),
                             "score": res.get("_distance", 0),
-                            "content_preview": res.get("content", "")[:300] + "..."
-                            if res.get("content")
-                            else "",
+                            "content_preview": res.get("content", "")[:300] + "..." if res.get("content") else "",
                         }
                     )
                 else:
@@ -138,9 +135,7 @@ async def calibre_rag(
             from calibre_mcp.services.deep_ingestor import DeepIngestor
 
             ingestor = DeepIngestor(vector_store=store)
-            result = await ingestor.ingest_book_fulltext(
-                book_id=str(book_id), title=title, file_path=file_path
-            )
+            result = await ingestor.ingest_book_fulltext(book_id=str(book_id), title=title, file_path=file_path)
             return {
                 "success": result.get("status") == "success",
                 "operation": "ingest_fulltext",

@@ -110,9 +110,7 @@ class EpubViewer:
             # Make relative paths absolute
             for tag in soup.find_all(["img", "link", "script", "a"]):
                 for attr in ["src", "href"]:
-                    if tag.has_attr(attr) and not tag[attr].startswith(
-                        ("http:", "https:", "data:")
-                    ):
+                    if tag.has_attr(attr) and not tag[attr].startswith(("http:", "https:", "data:")):
                         # Handle relative paths
                         base_dir = str(Path(item_path).parent) + "/"
                         tag[attr] = base_dir + tag[attr]

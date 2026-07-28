@@ -16,9 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from calibre_mcp.db.database import close_database, init_database
 
 # Configure logging for tests
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 @pytest.fixture(scope="session")
@@ -32,10 +30,7 @@ def test_db_path(test_library_path):
     """Path to the test database."""
     db_path = test_library_path / "metadata.db"
     if not db_path.exists():
-        pytest.fail(
-            f"Test database not found at {db_path}. "
-            f"Run 'python scripts/create_test_db.py' to create it."
-        )
+        pytest.fail(f"Test database not found at {db_path}. Run 'python scripts/create_test_db.py' to create it.")
     return db_path
 
 

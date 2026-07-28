@@ -44,7 +44,6 @@ def run_tests(
 
     pytest_args.append(test_path)
 
-
     result = subprocess.run(pytest_args)
     return result.returncode
 
@@ -56,13 +55,9 @@ if __name__ == "__main__":
     parser.add_argument("--path", default="tests/", help="Test path to run (default: tests/)")
     parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
-    parser.add_argument(
-        "--marker", default="", help="Run tests with specific marker (e.g., 'unit', 'integration')"
-    )
+    parser.add_argument("--marker", default="", help="Run tests with specific marker (e.g., 'unit', 'integration')")
     parser.add_argument("--test", default="", help="Run specific test by name pattern")
-    parser.add_argument(
-        "--parallel", action="store_true", help="Run tests in parallel (requires pytest-xdist)"
-    )
+    parser.add_argument("--parallel", action="store_true", help="Run tests in parallel (requires pytest-xdist)")
 
     args = parser.parse_args()
 

@@ -46,9 +46,7 @@ class PublisherService:
             from ..db.models import Publisher as PublisherModel
             from ..db.models import books_publishers_link
 
-            result = session.execute(
-                text("SELECT name FROM sqlite_master WHERE type='table' AND name='publishers'")
-            )
+            result = session.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='publishers'"))
             if result.fetchone():
                 return PublisherModel, books_publishers_link
         except Exception:
@@ -113,9 +111,7 @@ class PublisherService:
             "total_pages": (total + limit - 1) // limit if total > 0 else 1,
         }
 
-    def _get_all_from_identifiers(
-        self, session, skip, limit, search, sort_by, sort_order
-    ) -> dict[str, Any]:
+    def _get_all_from_identifiers(self, session, skip, limit, search, sort_by, sort_order) -> dict[str, Any]:
         subq = (
             session.query(Identifier.val.label("name"), func.count(Identifier.book).label("bc"))
             .filter(Identifier.type == "publisher")
@@ -284,23 +280,17 @@ class PublisherService:
                         .filter(books_publishers_link.c.publisher == p.id)
                         .scalar()
                     ) or 0
-                    result.append(
-                        {"id": p.id, "name": p.name, "sort": p.sort, "book_count": book_count}
-                    )
+                    result.append({"id": p.id, "name": p.name, "sort": p.sort, "book_count": book_count})
                 return result
             rows = (
-                session.query(
-                    Identifier.val.label("name"), func.count(Identifier.book).label("book_count")
-                )
+                session.query(Identifier.val.label("name"), func.count(Identifier.book).label("book_count"))
                 .filter(Identifier.type == "publisher")
                 .filter(Identifier.val.ilike(f"{letter.lower()}%"))
                 .group_by(Identifier.val)
                 .order_by(Identifier.val)
                 .all()
             )
-            return [
-                {"id": None, "name": r.name, "sort": None, "book_count": r.book_count} for r in rows
-            ]
+            return [{"id": None, "name": r.name, "sort": None, "book_count": r.book_count} for r in rows]
 
     def get_stats(self) -> dict[str, Any]:
         """Get publisher statistics."""
@@ -336,9 +326,7 @@ class PublisherService:
                 return {
                     "total_publishers": total,
                     "publishers_by_letter": [{"letter": ln, "count": c} for ln, c in letter_counts],
-                    "top_publishers": [
-                        {"id": p.id, "name": p.name, "book_count": bc} for p, bc in top
-                    ],
+                    "top_publishers": [{"id": p.id, "name": p.name, "book_count": bc} for p, bc in top],
                 }
             total = (
                 session.query(func.count(func.distinct(Identifier.val)))
@@ -360,9 +348,7 @@ class PublisherService:
                 .all()
             )
             top = (
-                session.query(
-                    Identifier.val.label("name"), func.count(Identifier.book).label("book_count")
-                )
+                session.query(Identifier.val.label("name"), func.count(Identifier.book).label("book_count"))
                 .filter(Identifier.type == "publisher")
                 .filter(Identifier.val.isnot(None))
                 .filter(Identifier.val != "")

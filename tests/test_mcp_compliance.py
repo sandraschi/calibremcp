@@ -68,9 +68,7 @@ class TestFastMCP212Compliance:
 
         # Check MCP configuration
         assert "mcp_config" in manifest["server"], "Missing mcp_config in manifest.json"
-        assert "command" in manifest["server"]["mcp_config"], (
-            "Missing server command in manifest.json"
-        )
+        assert "command" in manifest["server"]["mcp_config"], "Missing server command in manifest.json"
 
         # Check user configuration
         assert "user_config" in manifest, "Missing user_config in manifest.json"

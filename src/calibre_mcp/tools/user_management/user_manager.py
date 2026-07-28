@@ -204,9 +204,7 @@ class UserManagerTool(MCPTool):
                 "id": user_data["id"],
                 "username": user_data["username"],
                 "role": user_data["role"],
-                "token_expires": (
-                    datetime.utcnow() + timedelta(minutes=self._jwt_expire_minutes)
-                ).isoformat(),
+                "token_expires": (datetime.utcnow() + timedelta(minutes=self._jwt_expire_minutes)).isoformat(),
             },
         }
 

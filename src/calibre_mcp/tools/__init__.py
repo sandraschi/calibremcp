@@ -31,9 +31,7 @@ CALIBRE_BASE_DIR = Path("L:/Multimedia Files/Written Word")
 IGNORE_DIRS = {"__pycache__", ".mypy_cache", ".pytest_cache"}
 
 
-def tool(
-    name: str, description: str, parameters: dict[str, Any] | None = None, **kwargs
-) -> Callable[[T], T]:
+def tool(name: str, description: str, parameters: dict[str, Any] | None = None, **kwargs) -> Callable[[T], T]:
     """
     Decorator to register a function as an MCP tool.
 
@@ -232,6 +230,7 @@ def register_tools(mcp: Any) -> None:
             import_start = time.time()
             importlib.import_module("calibre_mcp.tools.advanced_features")
             from .agentic import register_agentic_tools
+
             importlib.import_module("calibre_mcp.tools.agentic_workflow")
             importlib.import_module("calibre_mcp.tools.ai")
             importlib.import_module("calibre_mcp.tools.descriptions")

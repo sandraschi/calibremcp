@@ -69,9 +69,7 @@ class TestCalibreMCPServer:
         response = await client("list_books", {"limit": 1})
         assert "result" in response, f"Expected 'result' in response, got: {response}"
         assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], list), (
-            f"Expected result to be a list, got: {type(response['result'])}"
-        )
+        assert isinstance(response["result"], list), f"Expected result to be a list, got: {type(response['result'])}"
 
     @pytest.mark.asyncio
     async def test_list_books_method(self, client):
@@ -79,9 +77,7 @@ class TestCalibreMCPServer:
         response = await client("list_books", {"limit": 5})
         assert "result" in response, f"Expected 'result' in response, got: {response}"
         assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], list), (
-            f"Expected result to be a list, got: {type(response['result'])}"
-        )
+        assert isinstance(response["result"], list), f"Expected result to be a list, got: {type(response['result'])}"
 
     @pytest.mark.asyncio
     async def test_manage_books_details_method(self, client):
@@ -110,9 +106,7 @@ class TestCalibreMCPServer:
         response = await client("query_books", {"operation": "search", "text": "test"})
         assert "result" in response, f"Expected 'result' in response, got: {response}"
         assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], list), (
-            f"Expected result to be a list, got: {type(response['result'])}"
-        )
+        assert isinstance(response["result"], list), f"Expected result to be a list, got: {type(response['result'])}"
 
     @pytest.mark.asyncio
     async def test_list_libraries_method(self, client):
@@ -120,12 +114,8 @@ class TestCalibreMCPServer:
         response = await client("list_libraries", {})
         assert "result" in response, f"Expected 'result' in response, got: {response}"
         assert "error" not in response, f"Server returned an error: {response.get('error')}"
-        assert isinstance(response["result"], dict), (
-            f"Expected result to be a dict, got: {type(response['result'])}"
-        )
-        assert "libraries" in response["result"], (
-            f"Expected 'libraries' in result, got: {response['result'].keys()}"
-        )
+        assert isinstance(response["result"], dict), f"Expected result to be a dict, got: {type(response['result'])}"
+        assert "libraries" in response["result"], f"Expected 'libraries' in result, got: {response['result'].keys()}"
         assert "current_library" in response["result"], (
             f"Expected 'current_library' in result, got: {response['result'].keys()}"
         )

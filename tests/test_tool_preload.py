@@ -43,9 +43,7 @@ def test_tool_module_loads(tool_name, module_path):
     tool_fn = getattr(module, func_name, None)
     assert tool_fn is not None, f"{tool_name}: no attribute '{func_name}' in {module_path}"
     # FastMCP tools may be FunctionTool wrappers; check .fn or callable
-    invokable = callable(tool_fn) or (
-        hasattr(tool_fn, "fn") and callable(getattr(tool_fn, "fn", None))
-    )
+    invokable = callable(tool_fn) or (hasattr(tool_fn, "fn") and callable(getattr(tool_fn, "fn", None)))
     assert invokable, f"{tool_name}: '{func_name}' is not callable (FunctionTool.fn)"
 
 

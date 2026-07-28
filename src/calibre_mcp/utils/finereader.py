@@ -178,9 +178,7 @@ class FineReaderCLI:
         """Legacy method for backwards compatibility - use find_cli_path() instead."""
         found = self.find_cli_path()
         if not found:
-            raise FileNotFoundError(
-                "FineReader CLI not found. Please install FineReader 15+ or specify path."
-            )
+            raise FileNotFoundError("FineReader CLI not found. Please install FineReader 15+ or specify path.")
         return found
 
     def _validate_input_file(self, input_path: Path) -> None:
@@ -200,9 +198,7 @@ class FineReaderCLI:
         file_size = input_path.stat().st_size
         max_size = 100_000_000  # 100 MB
         if file_size > max_size:
-            raise ValueError(
-                f"File too large: {file_size / 1_000_000:.1f} MB (max: {max_size / 1_000_000} MB)"
-            )
+            raise ValueError(f"File too large: {file_size / 1_000_000:.1f} MB (max: {max_size / 1_000_000} MB)")
 
         # Check if file is readable
         if not os.access(input_path, os.R_OK):
@@ -270,9 +266,7 @@ class FineReaderCLI:
 
             if process.returncode != 0:
                 error_msg = stderr.decode("utf-8", errors="ignore")
-                raise OCRProcessingError(
-                    f"FineReader failed with return code {process.returncode}: {error_msg}"
-                )
+                raise OCRProcessingError(f"FineReader failed with return code {process.returncode}: {error_msg}")
 
             # Verify output file was created
             if not output_path.exists() or output_path.stat().st_size == 0:
@@ -359,14 +353,10 @@ class FineReaderCLI:
                 result = await self.process_document(
                     input_file, output_file, language=language, output_format=output_format
                 )
-                results.append(
-                    {"file": str(input_file), "success": True, "output": result, "error": None}
-                )
+                results.append({"file": str(input_file), "success": True, "output": result, "error": None})
             except Exception as e:
                 logger.exception(f"Failed to process {input_file.name}: {e}")
-                results.append(
-                    {"file": str(input_file), "success": False, "output": None, "error": str(e)}
-                )
+                results.append({"file": str(input_file), "success": False, "output": None, "error": str(e)})
 
         successful = sum(1 for r in results if r["success"])
         failed = len(results) - successful
@@ -505,10 +495,7 @@ async def safe_ocr_process(
         except OCRProcessingError as e:
             if attempt < max_retries - 1:
                 wait_time = 2**attempt  # Exponential backoff: 1s, 2s, 4s
-                logger.warning(
-                    f"OCR failed (attempt {attempt + 1}/{max_retries}), "
-                    f"retrying in {wait_time}s: {e}"
-                )
+                logger.warning(f"OCR failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
                 await asyncio.sleep(wait_time)
             else:
                 logger.exception(f"OCR failed after {max_retries} attempts: {e}")

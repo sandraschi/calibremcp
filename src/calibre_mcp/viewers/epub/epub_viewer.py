@@ -116,9 +116,7 @@ class EPubViewer:
 
         # Create indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmarks_file_hash ON bookmarks(file_hash)")
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_annotations_file_hash ON annotations(file_hash)"
-        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_annotations_file_hash ON annotations(file_hash)")
 
         self._db_conn.commit()
 
@@ -143,9 +141,7 @@ class EPubViewer:
         file_hash = self._get_file_hash(file_path)
 
         # Initialize metadata
-        self._metadata = EPubMetadata(
-            file_path=str(file_path), file_hash=file_hash, file_size=file_path.stat().st_size
-        )
+        self._metadata = EPubMetadata(file_path=str(file_path), file_hash=file_hash, file_size=file_path.stat().st_size)
 
         # Open the EPUB file
         self._zip_file = zipfile.ZipFile(file_path, "r")
@@ -324,9 +320,7 @@ class EPubViewer:
         if not self._metadata or not self._db_conn:
             raise RuntimeError("No EPUB file loaded")
 
-        bookmark_id = (
-            f"bm_{hashlib.sha256(f'{self._metadata.file_hash}:{cfi}'.encode()).hexdigest()[:16]}"
-        )
+        bookmark_id = f"bm_{hashlib.sha256(f'{self._metadata.file_hash}:{cfi}'.encode()).hexdigest()[:16]}"
 
         # Create the bookmark
         bookmark = {

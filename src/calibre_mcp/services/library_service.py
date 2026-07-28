@@ -86,9 +86,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
 
             # Add subqueries for counts
             book_count = (
-                session.query(
-                    Library.id.label("library_id"), func.count(Book.id).label("book_count")
-                )
+                session.query(Library.id.label("library_id"), func.count(Book.id).label("book_count"))
                 .join(Library.books, isouter=True)
                 .group_by(Library.id)
                 .subquery()
@@ -113,9 +111,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             # Apply filters
             if search:
                 search_term = f"%{search}%"
-                query = query.filter(
-                    or_(Library.name.ilike(search_term), Library.path.ilike(search_term))
-                )
+                query = query.filter(or_(Library.name.ilike(search_term), Library.path.ilike(search_term)))
 
             if is_active is not None:
                 query = query.filter(Library.is_active == is_active)
@@ -178,12 +174,8 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
 
             if existing:
                 if existing.name.lower() == library_data.name.lower():
-                    raise ValidationError(
-                        f"A library with name '{library_data.name}' already exists"
-                    )
-                raise ValidationError(
-                    f"A library with path '{library_data.path}' already exists"
-                )
+                    raise ValidationError(f"A library with name '{library_data.name}' already exists")
+                raise ValidationError(f"A library with path '{library_data.path}' already exists")
 
             # Create new library
             library = Library(
@@ -199,9 +191,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
 
             return self._to_response(library)
 
-    def update(
-        self, library_id: int, library_data: LibraryUpdate | dict[str, Any]
-    ) -> dict[str, Any]:
+    def update(self, library_id: int, library_data: LibraryUpdate | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing library.
 
@@ -273,12 +263,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
         """
         with self._get_db_session() as session:
             # Get the library with books for counting
-            library = (
-                session.query(Library)
-                .options(joinedload(Library.books))
-                .filter(Library.id == library_id)
-                .first()
-            )
+            library = session.query(Library).options(joinedload(Library.books)).filter(Library.id == library_id).first()
 
             if not library:
                 raise NotFoundError(f"Library with ID {library_id} not found")
@@ -287,8 +272,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
             if hasattr(library, "books") and library.books:
                 book_count = len(library.books)
                 raise ValidationError(
-                    f"Cannot delete library with {book_count} books. "
-                    "Please remove or move the books first."
+                    f"Cannot delete library with {book_count} books. Please remove or move the books first."
                 )
 
             session.delete(library)
@@ -391,9 +375,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
                 "libraries": all_stats,
             }
 
-    def search_across_library(
-        self, library_id: int, query: str, limit: int = 50, offset: int = 0
-    ) -> dict[str, Any]:
+    def search_across_library(self, library_id: int, query: str, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         """
         Search across all content in a specific library.
 
@@ -474,9 +456,7 @@ class LibraryService(BaseService[Library, LibraryCreate, LibraryUpdate, LibraryR
         if hasattr(library, "books"):
             for book in library.books:
                 if hasattr(book, "data"):
-                    total_size += sum(
-                        data.uncompressed_size for data in book.data if data.uncompressed_size
-                    )
+                    total_size += sum(data.uncompressed_size for data in book.data if data.uncompressed_size)
 
         # Build response
         return {

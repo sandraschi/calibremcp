@@ -105,13 +105,9 @@ async def update_book_metadata_helper(
         elif field == "pubdate" and isinstance(value, str):
             # Convert ISO date string to datetime
             try:
-                updates_by_book[book_id]["pubdate"] = datetime.fromisoformat(
-                    value.replace("Z", "+00:00")
-                )
+                updates_by_book[book_id]["pubdate"] = datetime.fromisoformat(value.replace("Z", "+00:00"))
             except ValueError:
-                failed_updates.append(
-                    {"book_id": book_id, "field": field, "error": f"Invalid date format: {value}"}
-                )
+                failed_updates.append({"book_id": book_id, "field": field, "error": f"Invalid date format: {value}"})
                 continue
         else:
             # Simple field update
@@ -123,9 +119,7 @@ async def update_book_metadata_helper(
             book_service.update(book_id, update_data)
             updated_books.append(book_id)
         except Exception as e:
-            failed_updates.append(
-                {"book_id": book_id, "fields": list(update_data.keys()), "error": str(e)}
-            )
+            failed_updates.append({"book_id": book_id, "fields": list(update_data.keys()), "error": str(e)})
             logger.warning(f"Failed to update book {book_id}: {e}")
 
     return MetadataUpdateResponse(

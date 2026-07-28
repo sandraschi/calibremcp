@@ -88,7 +88,9 @@ def format_book_table(
             tags = ", ".join(book.get("tags", [])[:3]) or "-"
             if len(tags) > 20:
                 tags = tags[:17] + "..."
-            row = f"{book_id:<{id_width}} | {title:<{title_width}} | {authors:<{author_width}} | {rating:<6} | {tags:<20}"
+            row = (
+                f"{book_id:<{id_width}} | {title:<{title_width}} | {authors:<{author_width}} | {rating:<6} | {tags:<20}"
+            )
 
         rows.append(row)
 

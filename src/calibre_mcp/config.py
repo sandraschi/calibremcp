@@ -61,14 +61,10 @@ class CalibreConfig(BaseModel):
 
     # Disable remote access by default
     default_remote: str | None = Field(None, description="Default remote server name to use")
-    remotes: dict[str, RemoteServerConfig] = Field(
-        default_factory=dict, description="Configured remote servers"
-    )
+    remotes: dict[str, RemoteServerConfig] = Field(default_factory=dict, description="Configured remote servers")
 
     # Server connection (disabled by default)
-    use_remote: bool = Field(
-        default=False, description="Set to True to enable remote server access"
-    )
+    use_remote: bool = Field(default=False, description="Set to True to enable remote server access")
     server_url: str = Field(default="http://localhost:8080", description="Calibre server URL")
     username: str | None = Field(default=None, description="Calibre username (if auth enabled)")
     password: str | None = Field(default=None, description="Calibre password (if auth enabled)")
@@ -352,9 +348,9 @@ class CalibreConfig(BaseModel):
                     for _, lib_info in libraries.items():
                         # Check if library is in the user's preferred location
                         try:
-                            if lib_info.path.is_relative_to(user_library_path) or str(
-                                lib_info.path
-                            ).startswith(str(user_library_path)):
+                            if lib_info.path.is_relative_to(user_library_path) or str(lib_info.path).startswith(
+                                str(user_library_path)
+                            ):
                                 preferred_library = lib_info
                                 break
                         except (ValueError, AttributeError):

@@ -254,9 +254,7 @@ class LibraryOrganizer(MCPTool):
             "results": results,
             "total_books": len(results),
             "books_modified": sum(
-                1
-                for r in results
-                if any(a.get("result", {}).get("modified", False) for a in r.get("actions", []))
+                1 for r in results if any(a.get("result", {}).get("modified", False) for a in r.get("actions", []))
             ),
             "dry_run": org_plan.dry_run,
         }
@@ -274,9 +272,7 @@ class LibraryOrganizer(MCPTool):
         """Get all saved organization plans."""
         return {
             "success": True,
-            "plans": [
-                {"name": p.name, "description": p.description} for p in self._saved_plans.values()
-            ],
+            "plans": [{"name": p.name, "description": p.description} for p in self._saved_plans.values()],
         }
 
     async def get_organization_plan(self, name: str) -> dict:
@@ -534,9 +530,7 @@ class LibraryOrganizer(MCPTool):
         return results
 
     # Helper Methods
-    async def _apply_action(
-        self, storage, book: dict, action_type: str, params: dict, dry_run: bool = True
-    ) -> dict:
+    async def _apply_action(self, storage, book: dict, action_type: str, params: dict, dry_run: bool = True) -> dict:
         """Apply an organization action to a book."""
         result = {"modified": False}
 
@@ -715,4 +709,3 @@ class LibraryOrganizer(MCPTool):
 
         # Replace multiple spaces/underscores with a single underscore
         return re.sub(r"[ _]+", "_", sanitized)
-

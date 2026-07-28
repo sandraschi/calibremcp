@@ -114,9 +114,7 @@ class ExportLibraryTool(MCPTool):
                         results["exported_covers"] += 1
 
             except Exception as e:
-                results["errors"].append(
-                    {"book_id": str(book.id), "title": book.title, "error": str(e)}
-                )
+                results["errors"].append({"book_id": str(book.id), "title": book.title, "error": str(e)})
 
         # Create manifest
         manifest = {
@@ -143,9 +141,7 @@ class ExportLibraryTool(MCPTool):
         self._update_progress(progress_callback, total_books, total_books, "Export complete!")
         return results
 
-    def _update_progress(
-        self, callback_url: str | None, current: int, total: int, message: str
-    ) -> None:
+    def _update_progress(self, callback_url: str | None, current: int, total: int, message: str) -> None:
         """Send progress updates if a callback URL is provided."""
         if not callback_url:
             return
@@ -153,6 +149,7 @@ class ExportLibraryTool(MCPTool):
         from contextlib import suppress
 
         import requests
+
         with suppress(Exception):
             requests.post(
                 callback_url,

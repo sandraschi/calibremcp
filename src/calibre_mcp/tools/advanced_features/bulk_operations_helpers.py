@@ -79,9 +79,7 @@ async def delete_helper(
     """Helper to delete multiple books."""
     try:
         tool = _get_bulk_tool()
-        return await tool.bulk_delete(
-            book_ids=book_ids, library_path=library_path, delete_files=delete_files
-        )
+        return await tool.bulk_delete(book_ids=book_ids, library_path=library_path, delete_files=delete_files)
     except Exception as e:
         logger.error(f"Error deleting books: {e}", exc_info=True)
         return format_error_response(

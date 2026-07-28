@@ -20,7 +20,6 @@ sys.path.insert(0, str(src_path))
 async def run_test_battery():
     """Run comprehensive test battery for Calibre MCP."""
 
-
     test_results = []
 
     try:
@@ -30,7 +29,6 @@ async def run_test_battery():
         from calibre_mcp.services.author_service import AuthorService
         from calibre_mcp.services.book_service import BookService
         from calibre_mcp.services.tag_service import TagService
-
 
         # Initialize database
         config = CalibreConfig()
@@ -78,9 +76,7 @@ async def run_test_battery():
             result = book_service.get_all(limit=20)
             books = result.get("items", [])
             total = result.get("total", 0)
-            test_results.append(
-                ("Book Retrieval", len(books) > 0, f"Retrieved {len(books)} books (total: {total})")
-            )
+            test_results.append(("Book Retrieval", len(books) > 0, f"Retrieved {len(books)} books (total: {total})"))
             if books:
                 for book in books[:3]:
                     pass
@@ -247,9 +243,7 @@ async def run_test_battery():
                     type_issues += 1
                 if not isinstance(book.get("tags", []), list):
                     type_issues += 1
-                if book.get("rating") is not None and not isinstance(
-                    book.get("rating"), (int, float)
-                ):
+                if book.get("rating") is not None and not isinstance(book.get("rating"), (int, float)):
                     type_issues += 1
             test_results.append(
                 (
@@ -402,9 +396,7 @@ async def run_test_battery():
                 pass
 
         except Exception as e:
-            test_results.append(
-                ("FTS Availability", False, f"FTS availability check failed: {str(e)}")
-            )
+            test_results.append(("FTS Availability", False, f"FTS availability check failed: {str(e)}"))
 
         # Test 21: FTS Detail Level Analysis
         try:
@@ -425,7 +417,6 @@ async def run_test_battery():
                         break
 
             if test_library:
-
                 # Switch to the small library
                 from calibre_mcp.db.database import init_database
 
@@ -442,7 +433,6 @@ async def run_test_battery():
 
                 fts_result = book_service_small.get_all(search="book", limit=3)
                 books = fts_result.get("items", [])
-
 
                 if books:
                     # Analyze what information FTS provides
@@ -488,7 +478,6 @@ async def run_test_battery():
                         fields_present.extend(location_fields)
                     else:
                         pass
-
 
                     # Summary of FTS capabilities
 
@@ -563,9 +552,7 @@ async def run_test_battery():
                 fts_detail_level = (
                     "book-level"
                     if not any(
-                        "location" in str(v).lower()
-                        or "chapter" in str(v).lower()
-                        or "verse" in str(v).lower()
+                        "location" in str(v).lower() or "chapter" in str(v).lower() or "verse" in str(v).lower()
                         for book in books
                         for v in book.values()
                     )
@@ -582,9 +569,7 @@ async def run_test_battery():
                 test_results.append(("FTS Detail Level", False, "No small test library found"))
 
         except Exception as e:
-            test_results.append(
-                ("FTS Detail Level", False, f"FTS detail analysis failed: {str(e)}")
-            )
+            test_results.append(("FTS Detail Level", False, f"FTS detail analysis failed: {str(e)}"))
 
             # Try to restore original library
             with contextlib.suppress(builtins.BaseException):
@@ -678,9 +663,7 @@ async def run_test_battery():
                     )
                 )
             else:
-                test_results.append(
-                    ("FTS Performance", True, "FTS not available (performance assessment N/A)")
-                )
+                test_results.append(("FTS Performance", True, "FTS not available (performance assessment N/A)"))
 
         except Exception as e:
             test_results.append(("FTS Performance", False, str(e)))
@@ -722,7 +705,6 @@ async def run_test_battery():
                     matching_books = [b for b in all_books if b.get("rating", 0) >= 4]
                     books_found = len(matching_books)
 
-
                     # List all collections
                     list_result = await tool.collection_list()
                     len(list_result.get("collections", []))
@@ -763,9 +745,7 @@ async def run_test_battery():
                 )
 
         except Exception as e:
-            test_results.append(
-                ("Virtual Library", False, f"Virtual library test failed: {str(e)}")
-            )
+            test_results.append(("Virtual Library", False, f"Virtual library test failed: {str(e)}"))
             import traceback
 
             traceback.print_exc()
@@ -784,7 +764,6 @@ async def run_test_battery():
     for _test_name, success, _details in test_results:
         if success:
             passed += 1
-
 
     return passed == total
 

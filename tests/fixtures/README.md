@@ -45,6 +45,7 @@ def test_search_books(test_database):
     results = book_service.get_all(search="Conan Doyle")
     assert len(results["items"]) >= 2
 
+
 def test_open_book_file(test_library):
     """Test uses full library (database + files)."""
     library_path = test_library["path"]
@@ -74,4 +75,3 @@ These fixtures are committed to GitHub and used in:
 - Database uses real Calibre schema structure
 - All files should be committed (not in .gitignore)
 - Update fixtures if schema changes significantly
-

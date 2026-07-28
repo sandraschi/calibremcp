@@ -46,17 +46,11 @@ class TagListInput(BaseModel):
     search: str | None = Field(None, description="Search query to filter tags by name")
     limit: int = Field(100, description="Maximum number of results to return", ge=1, le=1000)
     offset: int = Field(0, description="Number of results to skip (for pagination)", ge=0)
-    sort_by: str = Field(
-        "name", description="Field to sort by (name, book_count)", pattern="^(name|book_count)$"
-    )
+    sort_by: str = Field("name", description="Field to sort by (name, book_count)", pattern="^(name|book_count)$")
     sort_order: str = Field("asc", description="Sort order (asc, desc)", pattern="^(asc|desc)$")
     unused_only: bool = Field(False, description="If True, only return tags with 0 books")
-    min_book_count: int | None = Field(
-        None, description="Minimum number of books using this tag", ge=0
-    )
-    max_book_count: int | None = Field(
-        None, description="Maximum number of books using this tag", ge=0
-    )
+    min_book_count: int | None = Field(None, description="Minimum number of books using this tag", ge=0)
+    max_book_count: int | None = Field(None, description="Maximum number of books using this tag", ge=0)
 
 
 class TagListOutput(BaseModel):
@@ -91,9 +85,7 @@ class TagMergeInput(BaseModel):
 class DuplicateTagsOutput(BaseModel):
     """Output model for duplicate tags detection."""
 
-    duplicate_groups: list[dict[str, Any]] = Field(
-        ..., description="List of groups of similar/duplicate tags"
-    )
+    duplicate_groups: list[dict[str, Any]] = Field(..., description="List of groups of similar/duplicate tags")
     total_duplicates: int = Field(..., description="Total number of duplicate groups found")
     similarity_threshold: float = Field(..., description="Similarity threshold used (0.0-1.0)")
 

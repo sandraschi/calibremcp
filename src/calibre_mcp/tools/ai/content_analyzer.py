@@ -96,9 +96,7 @@ class ContentAnalyzer(MCPTool):
             self.logger.error(f"Error analyzing book content: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    async def analyze_reading_habits(
-        self, reading_history: list[dict], time_period: str = "all"
-    ) -> dict:
+    async def analyze_reading_habits(self, reading_history: list[dict], time_period: str = "all") -> dict:
         """
         Analyze reading habits from reading history data.
 
@@ -134,9 +132,7 @@ class ContentAnalyzer(MCPTool):
                 ]
 
             # Calculate basic statistics
-            total_reading_time = sum(
-                session.get("duration_minutes", 0) for session in reading_history
-            )
+            total_reading_time = sum(session.get("duration_minutes", 0) for session in reading_history)
 
             # Analyze reading patterns
             reading_times = self._analyze_reading_times(reading_history)
@@ -158,9 +154,7 @@ class ContentAnalyzer(MCPTool):
                 "time_period": time_period,
                 "total_sessions": len(reading_history),
                 "total_reading_time_minutes": total_reading_time,
-                "average_session_length": total_reading_time / len(reading_history)
-                if reading_history
-                else 0,
+                "average_session_length": total_reading_time / len(reading_history) if reading_history else 0,
                 "reading_times": reading_times,
                 "top_genres": genre_counter.most_common(10),
                 "top_authors": author_counter.most_common(10),
@@ -183,9 +177,7 @@ class ContentAnalyzer(MCPTool):
             "avg_word_length": sum(len(word) for word in words) / len(words) if words else 0,
             "avg_sentence_length": len(words) / len(sentences) if sentences else 0,
             "unique_words": len({word.lower() for word in words}),
-            "lexical_diversity": len({word.lower() for word in words}) / len(words)
-            if words
-            else 0,
+            "lexical_diversity": len({word.lower() for word in words}) / len(words) if words else 0,
         }
 
     def _extract_entities(self, doc) -> dict:
@@ -237,11 +229,7 @@ class ContentAnalyzer(MCPTool):
             "positive_words": positive_count,
             "negative_words": negative_count,
             "sentiment_score": sentiment_score,
-            "sentiment": "positive"
-            if sentiment_score > 0.01
-            else "negative"
-            if sentiment_score < -0.01
-            else "neutral",
+            "sentiment": "positive" if sentiment_score > 0.01 else "negative" if sentiment_score < -0.01 else "neutral",
         }
 
     def _extract_themes(self, doc) -> dict:
@@ -253,9 +241,7 @@ class ContentAnalyzer(MCPTool):
         chunk_counter = Counter(chunk.text.lower() for chunk in noun_chunks)
 
         # Get most common noun chunks as themes
-        themes = [
-            {"theme": theme, "count": count} for theme, count in chunk_counter.most_common(20)
-        ]
+        themes = [{"theme": theme, "count": count} for theme, count in chunk_counter.most_common(20)]
 
         # Extract named entities as potential themes
         entities = [{"theme": ent.text, "type": ent.label_, "count": 1} for ent in doc.ents]
@@ -360,9 +346,7 @@ class ContentAnalyzer(MCPTool):
             "total_days_read": len(reading_dates),
             "current_streak_days": current_streak,
             "longest_streak_days": max_streak,
-            "reading_frequency": len(reading_dates) / ((max(dates) - min(dates)).days + 1)
-            if len(dates) > 1
-            else 1.0,
+            "reading_frequency": len(reading_dates) / ((max(dates) - min(dates)).days + 1) if len(dates) > 1 else 1.0,
         }
 
 
@@ -374,17 +358,13 @@ class ContentAnalysisOptions(BaseModel):
     analyze_themes: bool = Field(True, description="Whether to identify key themes and topics")
 
     class Config:
-        schema_extra = {
-            "example": {"analyze_entities": True, "analyze_sentiment": True, "analyze_themes": True}
-        }
+        schema_extra = {"example": {"analyze_entities": True, "analyze_sentiment": True, "analyze_themes": True}}
 
 
 class ReadingHabitOptions(BaseModel):
     """Options for reading habit analysis."""
 
-    time_period: str = Field(
-        "all", description="Time period to analyze ('day', 'week', 'month', 'year', 'all')"
-    )
+    time_period: str = Field("all", description="Time period to analyze ('day', 'week', 'month', 'year', 'all')")
 
     class Config:
         schema_extra = {"example": {"time_period": "month"}}

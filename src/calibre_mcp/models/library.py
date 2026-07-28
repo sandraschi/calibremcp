@@ -112,9 +112,7 @@ class LibraryResponse(LibraryBase):
     book_count: int = Field(0, description="Number of books in the library")
     author_count: int = Field(0, description="Number of unique authors")
     total_size: int = Field(0, description="Total size of the library in bytes")
-    format_counts: dict[str, int] = Field(
-        default_factory=dict, description="Count of books by format"
-    )
+    format_counts: dict[str, int] = Field(default_factory=dict, description="Count of books by format")
     created_at: datetime = Field(..., description="When the library was created")
     updated_at: datetime | None = Field(None, description="When the library was last updated")
 

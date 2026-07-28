@@ -155,9 +155,7 @@ def apply_online_metadata_for_book(
     if isbn_clean and re.match(r"^[\dX]{10,17}$", isbn_clean, re.I):
         cmd.extend(["--isbn", isbn_clean])
 
-    skip_ident_keys = frozenset(
-        {"isbn", "isbn10", "isbn13", "isbn-10", "isbn-13", "lccn", "uuid"}
-    )
+    skip_ident_keys = frozenset({"isbn", "isbn10", "isbn13", "isbn-10", "isbn-13", "lccn", "uuid"})
     extra = 0
     for k, v in idents.items():
         if k in skip_ident_keys or not v:

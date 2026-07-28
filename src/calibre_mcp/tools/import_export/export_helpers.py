@@ -214,9 +214,7 @@ async def export_csv_helper(
     try:
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext="csv"
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext="csv")
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -255,11 +253,7 @@ async def export_csv_helper(
             "has_cover",
             "timestamp",
         ]
-        if (
-            detail_level
-            and detail_level in DETAIL_LEVEL_FIELDS
-            and DETAIL_LEVEL_FIELDS[detail_level]
-        ):
+        if detail_level and detail_level in DETAIL_LEVEL_FIELDS and DETAIL_LEVEL_FIELDS[detail_level]:
             default_fields = DETAIL_LEVEL_FIELDS[detail_level]
         fields_to_include = include_fields if include_fields else default_fields
 
@@ -271,7 +265,14 @@ async def export_csv_helper(
             for field in fields_to_include:
                 value = book.get(field, "")
 
-                if field == "authors" and isinstance(value, list) or field == "tags" and isinstance(value, list) or field == "formats" and isinstance(value, list):
+                if (
+                    field == "authors"
+                    and isinstance(value, list)
+                    or field == "tags"
+                    and isinstance(value, list)
+                    or field == "formats"
+                    and isinstance(value, list)
+                ):
                     value = ", ".join(value)
                 elif field == "series" and isinstance(value, dict):
                     value = value.get("name", "") if value else ""
@@ -323,9 +324,7 @@ async def export_json_helper(
     try:
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext="json"
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext="json")
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -388,13 +387,9 @@ def _generate_styled_html(
 ) -> str:
     """Generate styled HTML catalog. Style: catalog, gallery, dashboard."""
     if style == "gallery":
-        return _generate_html_gallery(
-            books, author, tag, book_ids, export_date, export_date_formatted
-        )
+        return _generate_html_gallery(books, author, tag, book_ids, export_date, export_date_formatted)
     if style == "dashboard":
-        return _generate_html_dashboard(
-            books, author, tag, book_ids, export_date, export_date_formatted
-        )
+        return _generate_html_dashboard(books, author, tag, book_ids, export_date, export_date_formatted)
     return _generate_html_catalog(books, author, tag, book_ids, export_date, export_date_formatted)
 
 
@@ -551,23 +546,16 @@ def _generate_html_dashboard(
     export_date_formatted: str,
 ) -> str:
     """Generate dashboard-style HTML (stats + book list)."""
-    stats = _get_library_stats_for_export(
-        book_ids=book_ids, author=author, tag=tag, limit=len(books) + 1
-    )
+    stats = _get_library_stats_for_export(book_ids=book_ids, author=author, tag=tag, limit=len(books) + 1)
     fmt_items = "".join(
-        f"<li>{k}: {v}</li>"
-        for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
+        f"<li>{k}: {v}</li>" for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
     )
-    top_authors = "".join(
-        f"<li>{x['name']} ({x['count']})</li>" for x in stats.get("top_authors", [])[:10]
-    )
+    top_authors = "".join(f"<li>{x['name']} ({x['count']})</li>" for x in stats.get("top_authors", [])[:10])
     filter_desc = "All books"
     if author:
         filter_desc = f'Author "{author}"'
     if tag:
-        filter_desc = (
-            f'Tag "{tag}"' if filter_desc == "All books" else f'{filter_desc}, tag "{tag}"'
-        )
+        filter_desc = f'Tag "{tag}"' if filter_desc == "All books" else f'{filter_desc}, tag "{tag}"'
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -643,9 +631,7 @@ async def export_html_helper(
 
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext="html"
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext="html")
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -765,9 +751,7 @@ async def export_pandoc_helper(
 
             if book.get("series"):
                 series_name = (
-                    book["series"].get("name")
-                    if isinstance(book.get("series"), dict)
-                    else str(book.get("series"))
+                    book["series"].get("name") if isinstance(book.get("series"), dict) else str(book.get("series"))
                 )
                 markdown_lines.append(f"**Series:** {series_name}")
 
@@ -798,11 +782,7 @@ async def export_pandoc_helper(
             if book.get("comments"):
                 comments = book["comments"]
                 if isinstance(comments, list) and comments:
-                    comments = (
-                        comments[0].get("text", "")
-                        if isinstance(comments[0], dict)
-                        else str(comments[0])
-                    )
+                    comments = comments[0].get("text", "") if isinstance(comments[0], dict) else str(comments[0])
                 if comments and comments.strip():
                     markdown_lines.append("")
                     markdown_lines.append("**Description:**")
@@ -830,17 +810,13 @@ async def export_pandoc_helper(
             ]
         )
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False, encoding="utf-8"
-        ) as tmp_md:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as tmp_md:
             tmp_md.write("\n".join(markdown_lines))
             tmp_md_path = tmp_md.name
 
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext=format_type
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext=format_type)
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -942,9 +918,7 @@ async def export_stats_csv_helper(
             w.writerow(["total_authors", stats.get("total_authors", 0)])
             w.writerow(["total_series", stats.get("total_series", 0)])
             w.writerow(["total_tags", stats.get("total_tags", 0)])
-            for fmt, cnt in sorted(
-                stats.get("format_distribution", {}).items(), key=lambda x: -x[1]
-            ):
+            for fmt, cnt in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1]):
                 w.writerow([f"format_{fmt}", cnt])
             for item in stats.get("top_authors", [])[:20]:
                 w.writerow([f"author:{item['name']}", item["count"]])
@@ -1025,16 +999,13 @@ async def export_stats_html_helper(
             for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
         )
         top_authors = "".join(
-            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
-            for x in stats.get("top_authors", [])[:15]
+            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>" for x in stats.get("top_authors", [])[:15]
         )
         top_tags = "".join(
-            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
-            for x in stats.get("top_tags", [])[:15]
+            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>" for x in stats.get("top_tags", [])[:15]
         )
         top_series = "".join(
-            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
-            for x in stats.get("top_series", [])[:15]
+            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>" for x in stats.get("top_series", [])[:15]
         )
         date_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
 

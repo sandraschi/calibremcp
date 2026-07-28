@@ -524,9 +524,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     # Apply AND logic: author name must contain ALL search words
                     for word in author_words:
                         word_pattern = f"%{word}%"
-                        author_book_ids_subq = author_book_ids_subq.filter(
-                            Author.name.ilike(word_pattern)
-                        )
+                        author_book_ids_subq = author_book_ids_subq.filter(Author.name.ilike(word_pattern))
 
                     author_book_ids_subq = author_book_ids_subq.distinct().subquery()
                     query = query.filter(Book.id.in_(session.query(author_book_ids_subq.c.id)))
@@ -595,11 +593,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     tag_conditions.append(Tag.name.ilike(tag_pattern))
                 if tag_conditions:
                     tag_book_ids_subq = (
-                        session.query(Book.id)
-                        .join(Book.tags)
-                        .filter(or_(*tag_conditions))
-                        .distinct()
-                        .subquery()
+                        session.query(Book.id).join(Book.tags).filter(or_(*tag_conditions)).distinct().subquery()
                     )
                     query = query.filter(Book.id.in_(session.query(tag_book_ids_subq.c.id)))
                     logger.debug(
@@ -617,11 +611,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 )
                 # Single tag - use subquery for clean filtering
                 tag_book_ids_subq = (
-                    session.query(Book.id)
-                    .join(Book.tags)
-                    .filter(Tag.name.ilike(f"%{tag_name}%"))
-                    .distinct()
-                    .subquery()
+                    session.query(Book.id).join(Book.tags).filter(Tag.name.ilike(f"%{tag_name}%")).distinct().subquery()
                 )
                 query = query.filter(Book.id.in_(session.query(tag_book_ids_subq.c.id)))
                 logger.debug(
@@ -743,9 +733,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     },
                 )
                 comment_pattern = f"%{comment}%"
-                query = (
-                    query.join(Book.comments).filter(Comment.text.ilike(comment_pattern)).distinct()
-                )
+                query = query.join(Book.comments).filter(Comment.text.ilike(comment_pattern)).distinct()
                 logger.debug(
                     "Comment filter applied",
                     extra={"service": "book_service", "action": "comment_filter_applied"},
@@ -773,12 +761,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             max_rating = filters.pop("max_rating", None)
             unrated = filters.pop("unrated", None)
 
-            if (
-                rating_value is not None
-                or min_rating is not None
-                or max_rating is not None
-                or unrated
-            ):
+            if rating_value is not None or min_rating is not None or max_rating is not None or unrated:
                 # Rating is stored via Book.ratings relationship (many-to-many through books_ratings_link)
                 if unrated:
                     # Unrated books don't have a rating entry - use outerjoin to include books without ratings
@@ -934,14 +917,10 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 query = query.order_by(sort_field, Book.sort)
             else:
                 query = query.order_by(sort_field)
-            logger.debug(
-                "Sorting applied", extra={"service": "book_service", "action": "sorting_applied"}
-            )
+            logger.debug("Sorting applied", extra={"service": "book_service", "action": "sorting_applied"})
 
             # Get total count before pagination
-            logger.debug(
-                "Counting total results", extra={"service": "book_service", "action": "count_total"}
-            )
+            logger.debug("Counting total results", extra={"service": "book_service", "action": "count_total"})
             try:
                 total = query.distinct().count()
                 logger.debug(
@@ -1081,9 +1060,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         """
         with self._get_db_session() as session:
             # Create book instance
-            book_dict = book_data.dict(
-                exclude={"author_ids", "series_id", "tag_ids", "rating"}, exclude_unset=True
-            )
+            book_dict = book_data.dict(exclude={"author_ids", "series_id", "tag_ids", "rating"}, exclude_unset=True)
             book = Book(**book_dict)
 
             # Handle relationships
@@ -1154,9 +1131,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
 
             # Handle relationships if provided
             if "author_ids" in update_data:
-                authors = (
-                    session.query(Author).filter(Author.id.in_(update_data["author_ids"])).all()
-                )
+                authors = session.query(Author).filter(Author.id.in_(update_data["author_ids"])).all()
                 if len(authors) != len(update_data["author_ids"]):
                     found_ids = {a.id for a in authors}
                     missing_ids = set(update_data["author_ids"]) - found_ids
@@ -1167,9 +1142,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 if update_data["series_id"] is not None:
                     series = session.query(Series).get(update_data["series_id"])
                     if not series:
-                        raise ValidationError(
-                            f"Series with ID {update_data['series_id']} not found"
-                        )
+                        raise ValidationError(f"Series with ID {update_data['series_id']} not found")
                     book.series = [series]
                 else:
                     book.series = []
@@ -1347,30 +1320,22 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         book_dict["authors"] = [
             {"id": a.id, "name": a.name} for a in (book.authors if hasattr(book, "authors") else [])
         ]
-        book_dict["tags"] = [
-            {"id": t.id, "name": t.name} for t in (book.tags if hasattr(book, "tags") else [])
-        ]
+        book_dict["tags"] = [{"id": t.id, "name": t.name} for t in (book.tags if hasattr(book, "tags") else [])]
         # Handle series - db.models.Book has series as relationship
         if hasattr(book, "series") and book.series:
-            book_dict["series"] = (
-                {"id": book.series[0].id, "name": book.series[0].name} if book.series else None
-            )
+            book_dict["series"] = {"id": book.series[0].id, "name": book.series[0].name} if book.series else None
         else:
             book_dict["series"] = None
 
         # Rating from ratings relationship
         if hasattr(book, "ratings") and book.ratings:
-            book_dict["rating"] = (
-                book.ratings[0].rating if hasattr(book.ratings[0], "rating") else None
-            )
+            book_dict["rating"] = book.ratings[0].rating if hasattr(book.ratings[0], "rating") else None
         else:
             book_dict["rating"] = None
 
         # Publisher from publishers relationship
         if hasattr(book, "publishers") and book.publishers:
-            book_dict["publisher"] = ", ".join(
-                p.name for p in book.publishers if getattr(p, "name", None)
-            )
+            book_dict["publisher"] = ", ".join(p.name for p in book.publishers if getattr(p, "name", None))
         else:
             book_dict["publisher"] = None
 
@@ -1417,9 +1382,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     filename = f"{data.id}.{data.format.lower()}"
 
                 relative_path = f"{book.path}/{filename}" if book.path else filename
-                full_path = (
-                    str(Path(library_path) / relative_path) if library_path else relative_path
-                )
+                full_path = str(Path(library_path) / relative_path) if library_path else relative_path
 
                 formats.append(
                     {

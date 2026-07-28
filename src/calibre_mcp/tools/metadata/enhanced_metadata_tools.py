@@ -165,9 +165,7 @@ class EnhancedMetadataTools(MCPTool):
                 result.success = True
 
             except Exception as e:
-                self.logger.error(
-                    f"Error enhancing metadata for book {book_id}: {str(e)}", exc_info=True
-                )
+                self.logger.error(f"Error enhancing metadata for book {book_id}: {str(e)}", exc_info=True)
                 result.errors.append(f"Error: {str(e)}")
                 result.success = False
 
@@ -228,9 +226,7 @@ class EnhancedMetadataTools(MCPTool):
 
                     if opts.title_remove_series and "series" in book and book["series"]:
                         # Remove series name from title if present
-                        series_pattern = re.compile(
-                            rf"\s*\(?i:{re.escape(book['series'])}[^)]*\)", re.IGNORECASE
-                        )
+                        series_pattern = re.compile(rf"\s*\(?i:{re.escape(book['series'])}[^)]*\)", re.IGNORECASE)
                         new_title = series_pattern.sub("", new_title).strip()
 
                     if opts.remove_special_chars:
@@ -256,9 +252,9 @@ class EnhancedMetadataTools(MCPTool):
 
                         if opts.author_invert_names and "," in clean_author:
                             # Simple inversion of "Last, First" to "First Last"
-                                parts = [p.strip() for p in clean_author.split(",", 1)]
-                                if len(parts) == 2:
-                                    clean_author = f"{parts[1]} {parts[0]}"
+                            parts = [p.strip() for p in clean_author.split(",", 1)]
+                            if len(parts) == 2:
+                                clean_author = f"{parts[1]} {parts[0]}"
 
                         if opts.remove_special_chars:
                             clean_author = self._remove_special_chars(clean_author)
@@ -330,9 +326,7 @@ class EnhancedMetadataTools(MCPTool):
                         clean_publisher = unicodedata.normalize("NFKC", clean_publisher)
 
                     # Convert to title case (first letter of each word)
-                    clean_publisher = " ".join(
-                        word.capitalize() for word in clean_publisher.split()
-                    )
+                    clean_publisher = " ".join(word.capitalize() for word in clean_publisher.split())
 
                     if clean_publisher != book["publisher"]:
                         result["changes"]["publisher"] = {
@@ -387,9 +381,7 @@ class EnhancedMetadataTools(MCPTool):
                     result["message"] = "No changes needed"
 
             except Exception as e:
-                self.logger.error(
-                    f"Error standardizing metadata for book {book_id}: {str(e)}", exc_info=True
-                )
+                self.logger.error(f"Error standardizing metadata for book {book_id}: {str(e)}", exc_info=True)
                 result["errors"].append(f"Error: {str(e)}")
                 result["success"] = False
 
@@ -461,11 +453,7 @@ class EnhancedMetadataTools(MCPTool):
 
     def _load_default_metadata_sources(self) -> list[MetadataSource]:
         """Load default metadata sources."""
-        return [
-            MetadataSource(
-                name="calibre", priority=0, enabled=True, config={"prefer_embedded_metadata": True}
-            )
-        ]
+        return [MetadataSource(name="calibre", priority=0, enabled=True, config={"prefer_embedded_metadata": True})]
 
     def _title_case(self, text: str) -> str:
         """Convert text to title case with proper handling of small words."""
@@ -527,11 +515,7 @@ class EnhancedMetadataTools(MCPTool):
 
     def _convert_isbn10_to_isbn13(self, isbn10: str) -> str:
         """Convert an ISBN-10 to ISBN-13."""
-        if (
-            len(isbn10) != 10
-            or not isbn10[:-1].isdigit()
-            or not (isbn10[-1].isdigit() or isbn10[-1].upper() == "X")
-        ):
+        if len(isbn10) != 10 or not isbn10[:-1].isdigit() or not (isbn10[-1].isdigit() or isbn10[-1].upper() == "X"):
             return isbn10  # Not a valid ISBN-10, return as-is
 
         # Convert to ISBN-13 by prefixing with 978 and removing the old check digit

@@ -127,10 +127,7 @@ async def manage_import(
                 Path(tmp_path).unlink(missing_ok=True)
 
         return format_error_response(
-            error_msg=(
-                f"Invalid operation: '{operation}'. Must be one of: "
-                "'annas_search', 'from_url', 'from_path'"
-            ),
+            error_msg=(f"Invalid operation: '{operation}'. Must be one of: 'annas_search', 'from_url', 'from_path'"),
             error_code="INVALID_OPERATION",
             error_type="ValueError",
             operation=operation,

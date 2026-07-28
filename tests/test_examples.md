@@ -66,11 +66,12 @@ python tests/test_runner.py --test "search_by_author"
 import pytest
 from calibre_mcp.tools.book_tools import search_books_helper
 
+
 @pytest.mark.asyncio
 async def test_my_new_feature(test_database):
     """Test description."""
     result = await search_books_helper(text="query", limit=10)
-    
+
     assert "items" in result
     assert result["total"] >= 0
 ```
@@ -81,13 +82,8 @@ async def test_my_new_feature(test_database):
 @pytest.mark.asyncio
 async def test_search_with_multiple_filters(test_database):
     """Test search with multiple filters."""
-    result = await search_books_helper(
-        author="Conan Doyle",
-        tag="mystery",
-        min_rating=4,
-        limit=10
-    )
-    
+    result = await search_books_helper(author="Conan Doyle", tag="mystery", min_rating=4, limit=10)
+
     assert result["total"] >= 0
     # Verify filters were applied
     for book in result["items"]:
@@ -102,7 +98,7 @@ async def test_invalid_input(test_database):
     """Test error handling for invalid input."""
     with pytest.raises(ValueError) as exc_info:
         await search_books_helper(limit=0)
-    
+
     assert "Limit must be between" in str(exc_info.value)
 ```
 
@@ -111,12 +107,13 @@ async def test_invalid_input(test_database):
 ```python
 import logging
 
+
 @pytest.mark.asyncio
 async def test_logging(test_database, caplog):
     """Test that operations are logged."""
     with caplog.at_level(logging.INFO):
         await search_books_helper(text="test", limit=10)
-    
+
     # Check logs
     log_messages = [record.message for record in caplog.records]
     assert any("search" in msg.lower() for msg in log_messages)
@@ -127,13 +124,14 @@ async def test_logging(test_database, caplog):
 ```python
 import time
 
+
 @pytest.mark.asyncio
 async def test_performance(test_database):
     """Test search performance."""
     start_time = time.time()
     result = await search_books_helper(text="test", limit=10)
     duration = time.time() - start_time
-    
+
     assert duration < 1.0  # Should complete in under 1 second
     assert "items" in result
 ```
@@ -188,11 +186,11 @@ async def test_pagination(test_database):
     """Test pagination works correctly."""
     # Get first page
     page1 = await search_books_helper(limit=2, offset=0)
-    
+
     # Get second page
     if page1["total"] > 2:
         page2 = await search_books_helper(limit=2, offset=2)
-        
+
         # Verify no duplicates
         page1_ids = {book["id"] for book in page1["items"]}
         page2_ids = {book["id"] for book in page2["items"]}
@@ -207,7 +205,7 @@ async def test_case_insensitive(test_database):
     """Test that search is case-insensitive."""
     result1 = await search_books_helper(text="scarlet", limit=10)
     result2 = await search_books_helper(text="SCARLET", limit=10)
-    
+
     assert result1["total"] == result2["total"]
 ```
 
@@ -218,20 +216,15 @@ async def test_case_insensitive(test_database):
 async def test_filter_combinations(test_database):
     """Test multiple filter combinations."""
     # Test AND logic between different filter types
-    result = await search_books_helper(
-        author="Conan Doyle",
-        tag="mystery",
-        min_rating=1,
-        formats=["EPUB"]
-    )
-    
+    result = await search_books_helper(author="Conan Doyle", tag="mystery", min_rating=1, formats=["EPUB"])
+
     assert result["total"] >= 0
     # Verify all filters were applied
     for book in result["items"]:
         # Check author
         authors = [a.get("name", "") for a in book.get("authors", [])]
         assert any("Conan Doyle" in a for a in authors)
-        
+
         # Check format
         formats = [f.get("format", "") for f in book.get("formats", [])]
         assert "EPUB" in formats or len(formats) == 0

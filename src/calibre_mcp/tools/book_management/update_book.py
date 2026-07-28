@@ -172,9 +172,7 @@ async def update_book_helper(
 
                 if "tags" in metadata and metadata["tags"]:
                     tags_str = (
-                        ", ".join(metadata["tags"])
-                        if isinstance(metadata["tags"], list)
-                        else str(metadata["tags"])
+                        ", ".join(metadata["tags"]) if isinstance(metadata["tags"], list) else str(metadata["tags"])
                     )
                     cmd.extend(["--field", f"tags:{tags_str}"])
                     updated_fields.append("tags")
@@ -233,9 +231,7 @@ async def update_book_helper(
                 stdout, stderr = await process.communicate()
 
                 if process.returncode != 0:
-                    error_msg = (
-                        stderr.decode("utf-8", errors="replace") if stderr else "Unknown error"
-                    )
+                    error_msg = stderr.decode("utf-8", errors="replace") if stderr else "Unknown error"
                     logger.error(f"calibredb set_metadata failed: {error_msg}")
                     raise MCPServerError(f"Failed to update book metadata: {error_msg}")
 
@@ -352,7 +348,5 @@ def _validate_metadata_update(metadata: dict[str, Any]) -> None:
     if "identifiers" in metadata:
         if not isinstance(metadata["identifiers"], dict):
             raise ValueError("Identifiers must be a dictionary")
-        if not all(
-            isinstance(k, str) and isinstance(v, str) for k, v in metadata["identifiers"].items()
-        ):
+        if not all(isinstance(k, str) and isinstance(v, str) for k, v in metadata["identifiers"].items()):
             raise ValueError("All identifier keys and values must be strings")

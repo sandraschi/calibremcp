@@ -244,9 +244,7 @@ class TestCalibreAPIClient(unittest.IsolatedAsyncioTestCase):
 
         mock_request.side_effect = [search_response, books_response]
 
-        results = await self.client.advanced_search(
-            text="programming", fields=["title", "tags"], operator="OR"
-        )
+        results = await self.client.advanced_search(text="programming", fields=["title", "tags"], operator="OR")
 
         self.assertEqual(len(results), 2)
         # Verify the search query was constructed correctly

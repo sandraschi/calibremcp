@@ -132,8 +132,7 @@ async def delete_book_helper(
             has_dependencies = await _check_book_dependencies(book_id_int)
             if has_dependencies:
                 raise MCPServerError(
-                    "Cannot delete book: it is referenced by other entities. "
-                    "Use force=True to delete anyway."
+                    "Cannot delete book: it is referenced by other entities. Use force=True to delete anyway."
                 )
 
         # Use calibredb remove for proper deletion
@@ -179,8 +178,7 @@ async def delete_book_helper(
             # Fallback to BookService if calibredb not available
             if book_id_int is None:
                 raise MCPServerError(
-                    "calibredb not found and book_id is not numeric. "
-                    "Cannot delete book without calibredb."
+                    "calibredb not found and book_id is not numeric. Cannot delete book without calibredb."
                 )
 
             logger.warning("calibredb not found, using BookService.delete() as fallback")

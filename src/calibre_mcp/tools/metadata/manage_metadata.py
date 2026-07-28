@@ -47,8 +47,7 @@ async def manage_metadata(
             if not updates:
                 return format_error_response(
                     error_msg=(
-                        "updates is required for operation='update'. "
-                        "Provide a list of metadata update requests."
+                        "updates is required for operation='update'. Provide a list of metadata update requests."
                     ),
                     error_code="MISSING_UPDATES",
                     error_type="ValueError",
@@ -157,9 +156,7 @@ async def manage_metadata(
 
                 tags_list = book_data.get("tags", [])
                 tags_str = (
-                    ", ".join(
-                        [t.get("name", "") if isinstance(t, dict) else str(t) for t in tags_list]
-                    )
+                    ", ".join([t.get("name", "") if isinstance(t, dict) else str(t) for t in tags_list])
                     if tags_list
                     else "None"
                 )
@@ -183,12 +180,7 @@ async def manage_metadata(
                 isbn = book_data.get("isbn", "None")
                 formats_list = book_data.get("formats", [])
                 formats_str = (
-                    ", ".join(
-                        [
-                            f.get("format", "") if isinstance(f, dict) else str(f)
-                            for f in formats_list
-                        ]
-                    )
+                    ", ".join([f.get("format", "") if isinstance(f, dict) else str(f) for f in formats_list])
                     if formats_list
                     else "None"
                 )
@@ -198,9 +190,7 @@ async def manage_metadata(
                 if comments:
                     if isinstance(comments, list) and comments:
                         comment_text = (
-                            comments[0].get("text", "")
-                            if isinstance(comments[0], dict)
-                            else str(comments[0])
+                            comments[0].get("text", "") if isinstance(comments[0], dict) else str(comments[0])
                         )
                     elif isinstance(comments, str):
                         comment_text = comments
@@ -382,8 +372,7 @@ Book ID:     {book_id}
         else:
             return format_error_response(
                 error_msg=(
-                    f"Invalid operation: '{operation}'. Must be one of: "
-                    "'update', 'organize_tags', 'fix_issues', 'show'"
+                    f"Invalid operation: '{operation}'. Must be one of: 'update', 'organize_tags', 'fix_issues', 'show'"
                 ),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",

@@ -166,9 +166,7 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-def log_operation(
-    logger: logging.Logger, operation: str, level: str = "INFO", **kwargs: Any
-) -> None:
+def log_operation(logger: logging.Logger, operation: str, level: str = "INFO", **kwargs: Any) -> None:
     """
     Log an operation with structured data.
 

@@ -115,9 +115,7 @@ class PDFViewer:
 
         # Create indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmarks_file_hash ON bookmarks(file_hash)")
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_annotations_file_hash ON annotations(file_hash)"
-        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_annotations_file_hash ON annotations(file_hash)")
 
         self._db_conn.commit()
 
@@ -142,9 +140,7 @@ class PDFViewer:
         file_hash = self._get_file_hash(file_path)
 
         # Extract basic metadata
-        self._metadata = PDFMetadata(
-            file_path=str(file_path), file_hash=file_hash, file_size=file_path.stat().st_size
-        )
+        self._metadata = PDFMetadata(file_path=str(file_path), file_hash=file_hash, file_size=file_path.stat().st_size)
 
         # Load bookmarks and annotations from the database
         self._load_bookmarks(file_hash)
@@ -202,20 +198,16 @@ class PDFViewer:
                 # If no TOC found, create a simple page list
                 if not self._state.toc and self._metadata:
                     self._state.toc = [
-                        {"title": f"Page {i + 1}", "page": i, "level": 1}
-                        for i in range(self._metadata.page_count)
+                        {"title": f"Page {i + 1}", "page": i, "level": 1} for i in range(self._metadata.page_count)
                     ]
         except ImportError:
             # Fallback if PyMuPDF is not available
             if self._metadata:
                 self._state.toc = [
-                    {"title": f"Page {i + 1}", "page": i, "level": 1}
-                    for i in range(self._metadata.page_count)
+                    {"title": f"Page {i + 1}", "page": i, "level": 1} for i in range(self._metadata.page_count)
                 ]
 
-    def _process_toc(
-        self, toc_items: list[tuple[int, str, int, dict[str, Any]]]
-    ) -> list[dict[str, Any]]:
+    def _process_toc(self, toc_items: list[tuple[int, str, int, dict[str, Any]]]) -> list[dict[str, Any]]:
         """Process the raw TOC items into a hierarchical structure."""
 
         def build_hierarchy(items, level=1):
@@ -341,7 +333,9 @@ class PDFViewer:
         if not self._metadata or not self._db_conn:
             raise RuntimeError("No PDF file loaded")
 
-        bookmark_id = f"bm_{hashlib.sha256(f'{self._metadata.file_hash}:{title}:{page_number}'.encode()).hexdigest()[:16]}"
+        bookmark_id = (
+            f"bm_{hashlib.sha256(f'{self._metadata.file_hash}:{title}:{page_number}'.encode()).hexdigest()[:16]}"
+        )
 
         # Create the bookmark
         bookmark = Bookmark(

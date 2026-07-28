@@ -75,6 +75,7 @@ def _comments_plain_text(raw: str, max_chars: int = 1200) -> str:
     s = str(raw).strip()
     if "<" in s and ">" in s:
         from bs4 import BeautifulSoup
+
         s = BeautifulSoup(s, "html.parser").get_text(separator="\n", strip=True)
     lines: list[str] = []
     for line in s.splitlines():
@@ -161,5 +162,6 @@ def register_book_card_tool() -> None:
         return PrefabApp(view=view, title=title)
 
     import sys
+
     sys.modules[__name__].show_book_prefab_card = show_book_prefab_card
     logger.info("Registered show_book_prefab_card (MCP App / Prefab)")

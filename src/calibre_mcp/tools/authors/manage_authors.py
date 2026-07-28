@@ -70,8 +70,7 @@ async def manage_authors(
             if not author_id:
                 return format_error_response(
                     error_msg=(
-                        "author_id is required for operation='get'. "
-                        "Use operation='list' to find available authors."
+                        "author_id is required for operation='get'. Use operation='list' to find available authors."
                     ),
                     error_code="MISSING_AUTHOR_ID",
                     error_type="ValueError",
@@ -110,9 +109,7 @@ async def manage_authors(
                     related_tools=["manage_authors"],
                 )
             try:
-                return await get_author_books_helper(
-                    author_id=author_id, limit=limit, offset=offset
-                )
+                return await get_author_books_helper(author_id=author_id, limit=limit, offset=offset)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -141,10 +138,7 @@ async def manage_authors(
         elif operation == "by_letter":
             if not letter:
                 return format_error_response(
-                    error_msg=(
-                        "letter is required for operation='by_letter'. "
-                        "Provide a single alphabetic character."
-                    ),
+                    error_msg=("letter is required for operation='by_letter'. Provide a single alphabetic character."),
                     error_code="MISSING_LETTER",
                     error_type="ValueError",
                     operation=operation,

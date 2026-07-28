@@ -132,9 +132,7 @@ async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
                     base_path,
                 )
             else:
-                messages.append(
-                    f"CALIBRE_BASE_PATH '{base_path}' exists but contains no metadata.db files"
-                )
+                messages.append(f"CALIBRE_BASE_PATH '{base_path}' exists but contains no metadata.db files")
                 startup_log.warning("STARTUP PROBE: %s", messages[-1])
         else:
             messages.append(f"CALIBRE_BASE_PATH '{base_path}' does not exist")
@@ -151,9 +149,10 @@ async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
         try:
             import aiohttp
 
-            async with aiohttp.ClientSession() as session, session.get(
-                probe_url, timeout=aiohttp.ClientTimeout(total=5)
-            ) as resp:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(probe_url, timeout=aiohttp.ClientTimeout(total=5)) as resp,
+            ):
                 if resp.status < 500:
                     remote_ok = True
                     startup_log.info("STARTUP PROBE: remote server OK (HTTP %d)", resp.status)
@@ -162,14 +161,11 @@ async def _probe_calibre_connectivity(startup_log: logging.Logger) -> None:
                     startup_log.warning("STARTUP PROBE: %s", messages[-1])
         except TimeoutError:
             messages.append(
-                f"CALIBRE_SERVER_URL '{server_url}' timed out after 5s — "
-                "is Calibre Content Server running?"
+                f"CALIBRE_SERVER_URL '{server_url}' timed out after 5s — is Calibre Content Server running?"
             )
             startup_log.warning("STARTUP PROBE: %s", messages[-1])
         except Exception as exc:
-            messages.append(
-                f"CALIBRE_SERVER_URL '{server_url}' unreachable: {type(exc).__name__}: {exc}"
-            )
+            messages.append(f"CALIBRE_SERVER_URL '{server_url}' unreachable: {type(exc).__name__}: {exc}")
             startup_log.warning("STARTUP PROBE: %s", messages[-1])
 
     # --- 3. Decision ---
@@ -635,6 +631,7 @@ async def discover_libraries() -> dict[str, str]:
         return available_libraries
 
     from calibre_mcp.config import CalibreConfig
+
     config = CalibreConfig()
     libraries = {}
 
@@ -673,7 +670,16 @@ async def main():
 
         _resp = httpx.post(
             _probe_url,
-            json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "probe", "version": "1"}}},
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-11-25",
+                    "capabilities": {},
+                    "clientInfo": {"name": "probe", "version": "1"},
+                },
+            },
             headers={"Accept": "application/json, text/event-stream"},
             timeout=0.5,
         )
@@ -711,9 +717,7 @@ async def main():
 
         except Exception as import_error:
             logger.exception(f"CRITICAL: Module import failed: {import_error}")
-            raise RuntimeError(
-                f"Failed to import required modules: {import_error}"
-            ) from import_error
+            raise RuntimeError(f"Failed to import required modules: {import_error}") from import_error
 
         # PHASE 2: Initialize logging with timeout protection
         try:
@@ -722,9 +726,7 @@ async def main():
             import asyncio
 
             await asyncio.wait_for(
-                asyncio.to_thread(
-                    setup_logging, level="INFO", log_file=log_file_path, enable_console=False
-                ),
+                asyncio.to_thread(setup_logging, level="INFO", log_file=log_file_path, enable_console=False),
                 timeout=5.0,
             )
 

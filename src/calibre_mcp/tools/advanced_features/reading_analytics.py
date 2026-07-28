@@ -149,9 +149,7 @@ class ReadingAnalyticsTool(MCPTool):
         total_pages = sum(s.get("pages_read", 0) for s in sessions)
 
         # Reading speed
-        speeds = [
-            s.get("pages_per_minute") for s in sessions if s.get("pages_per_minute") is not None
-        ]
+        speeds = [s.get("pages_per_minute") for s in sessions if s.get("pages_per_minute") is not None]
 
         stats = {
             "total_sessions": len(sessions),
@@ -159,14 +157,10 @@ class ReadingAnalyticsTool(MCPTool):
             "total_hours": round(total_minutes / 60, 2),
             "total_books": total_books,
             "total_pages": total_pages,
-            "avg_pages_per_session": round(
-                statistics.mean(s.get("pages_read", 0) for s in sessions), 2
-            )
+            "avg_pages_per_session": round(statistics.mean(s.get("pages_read", 0) for s in sessions), 2)
             if sessions
             else 0,
-            "avg_minutes_per_session": round(
-                statistics.mean(s.get("duration_minutes", 0) for s in sessions), 2
-            )
+            "avg_minutes_per_session": round(statistics.mean(s.get("duration_minutes", 0) for s in sessions), 2)
             if sessions
             else 0,
             "reading_speed": {

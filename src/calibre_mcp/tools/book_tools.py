@@ -107,9 +107,7 @@ def _format_books_table(
                     # Try parsing ISO format or date strings
                     for fmt in ["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y"]:
                         try:
-                            dt = datetime.strptime(
-                                pubdate.split("T")[0] if "T" in pubdate else pubdate, fmt
-                            )
+                            dt = datetime.strptime(pubdate.split("T")[0] if "T" in pubdate else pubdate, fmt)
                             year = str(dt.year)
                             break
                         except (ValueError, AttributeError):
@@ -204,19 +202,11 @@ class BookSearchInput(BaseModel):
     highlight: bool | None = Field(
         False, description="Whether to include highlighted snippets of matching text in results"
     )
-    suggest: bool | None = Field(
-        False, description="Whether to include search suggestions for misspelled queries"
-    )
-    author: str | None = Field(
-        None, description="Filter by author name (case-insensitive partial match)"
-    )
+    suggest: bool | None = Field(False, description="Whether to include search suggestions for misspelled queries")
+    author: str | None = Field(None, description="Filter by author name (case-insensitive partial match)")
     tag: str | None = Field(None, description="Filter by tag name (case-insensitive partial match)")
-    series: str | None = Field(
-        None, description="Filter by series name (case-insensitive partial match)"
-    )
-    comment: str | None = Field(
-        None, description="Search in book comments (case-insensitive partial match)"
-    )
+    series: str | None = Field(None, description="Filter by series name (case-insensitive partial match)")
+    comment: str | None = Field(None, description="Search in book comments (case-insensitive partial match)")
     has_empty_comments: bool | None = Field(
         None, description="Filter books with empty (True) or non-empty (False) comments"
     )
@@ -234,27 +224,17 @@ class BookSearchInput(BaseModel):
         le=5,
     )
     unrated: bool | None = Field(None, description="Filter for books with no rating when True")
-    publisher: str | None = Field(
-        None, description="Filter by publisher name (case-insensitive partial match)"
-    )
-    publishers: list[str] | None = Field(
-        None, description="Filter by multiple publishers (OR condition)"
-    )
-    has_publisher: bool | None = Field(
-        None, description="Filter books with (True) or without (False) a publisher"
-    )
+    publisher: str | None = Field(None, description="Filter by publisher name (case-insensitive partial match)")
+    publishers: list[str] | None = Field(None, description="Filter by multiple publishers (OR condition)")
+    has_publisher: bool | None = Field(None, description="Filter books with (True) or without (False) a publisher")
     pubdate_start: str | None = Field(
         None, description="Filter by publication date (YYYY-MM-DD format), inclusive start date"
     )
     pubdate_end: str | None = Field(
         None, description="Filter by publication date (YYYY-MM-DD format), inclusive end date"
     )
-    added_after: str | None = Field(
-        None, description="Filter by date added (YYYY-MM-DD format), inclusive start date"
-    )
-    added_before: str | None = Field(
-        None, description="Filter by date added (YYYY-MM-DD format), inclusive end date"
-    )
+    added_after: str | None = Field(None, description="Filter by date added (YYYY-MM-DD format), inclusive start date")
+    added_before: str | None = Field(None, description="Filter by date added (YYYY-MM-DD format), inclusive end date")
     min_size: int | None = Field(None, description="Minimum file size in bytes", ge=0)
     max_size: int | None = Field(None, description="Maximum file size in bytes", ge=0)
     formats: str | list[str] | None = Field(
@@ -778,11 +758,7 @@ async def search_books_helper(
         # 3. Try active library from Calibre config
         if not target_library_path:
             active_lib = get_active_calibre_library()
-            if (
-                active_lib
-                and active_lib.path.exists()
-                and (active_lib.path / "metadata.db").exists()
-            ):
+            if active_lib and active_lib.path.exists() and (active_lib.path / "metadata.db").exists():
                 target_library_path = active_lib.path
                 target_library_name = active_lib.name
 
@@ -818,9 +794,7 @@ async def search_books_helper(
                         echo=False,
                         force=True,
                     )
-                    logger.info(
-                        f"Initialized database with library: {target_library_name or target_library_path.name}"
-                    )
+                    logger.info(f"Initialized database with library: {target_library_name or target_library_path.name}")
                 except Exception as init_error:
                     logger.exception(f"Failed to initialize database: {init_error}")
                     raise ValueError(f"Cannot initialize database: {init_error}") from init_error
@@ -902,13 +876,7 @@ async def search_books_helper(
             rating = parsed["rating"]
 
         # Use remaining query text (after removing structured params) for text search
-        if (
-            parsed["author"]
-            or parsed["tag"]
-            or parsed["series"]
-            or parsed["pubdate"]
-            or parsed["rating"]
-        ):
+        if parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"]:
             search_text = parsed["text"] if parsed["text"] else None
 
             # Handle text search across specified fields
@@ -1002,11 +970,7 @@ async def search_books_helper(
                 # Add highlighting if requested
                 if highlight:
                     filters["highlight"] = {
-                        "fields": {
-                            field: {}
-                            for field in processed_fields
-                            if field not in ["authors", "tags"]
-                        },
+                        "fields": {field: {} for field in processed_fields if field not in ["authors", "tags"]},
                         "pre_tags": ["<mark>"],
                         "post_tags": ["</mark>"],
                     }
@@ -1026,9 +990,7 @@ async def search_books_helper(
 
         # Handle tag exclusions (NOT logic)
         if exclude_tags:
-            filters["exclude_tags_list"] = (
-                exclude_tags if isinstance(exclude_tags, list) else [exclude_tags]
-            )
+            filters["exclude_tags_list"] = exclude_tags if isinstance(exclude_tags, list) else [exclude_tags]
 
         # Handle author exclusions (NOT logic)
         if exclude_authors:
@@ -1041,9 +1003,7 @@ async def search_books_helper(
 
         # Handle series exclusions (NOT logic)
         if exclude_series:
-            filters["exclude_series_list"] = (
-                exclude_series if isinstance(exclude_series, list) else [exclude_series]
-            )
+            filters["exclude_series_list"] = exclude_series if isinstance(exclude_series, list) else [exclude_series]
         if comment is not None:
             filters["comment"] = comment
 
@@ -1107,9 +1067,7 @@ async def search_books_helper(
                 except json.JSONDecodeError:
                     formats = [f.strip().upper() for f in formats.split(",") if f.strip()]
             if formats:  # Only add if not empty
-                filters["formats"] = [
-                    f.upper() if isinstance(f, str) else str(f).upper() for f in formats
-                ]
+                filters["formats"] = [f.upper() if isinstance(f, str) else str(f).upper() for f in formats]
 
         # Add search suggestions if requested and we have a query
         if suggest and search_text and len(search_terms) > 0:
@@ -1427,9 +1385,7 @@ async def get_books_by_series_helper(series_id: int) -> list[dict[str, Any]]:
 
 # Helper function - called by query_books portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def get_books_by_author_helper(
-    author_id: int, limit: int = 50, offset: int = 0
-) -> dict[str, Any]:
+async def get_books_by_author_helper(author_id: int, limit: int = 50, offset: int = 0) -> dict[str, Any]:
     """
     Get all books written by a specific author.
 

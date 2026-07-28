@@ -23,9 +23,7 @@ class Tag(Base, BaseMixin):
     name: Mapped[str] = mapped_column(Text, nullable=False, unique=True, index=True)
 
     # Relationships
-    books: Mapped[list["Book"]] = relationship(
-        "Book", secondary="books_tags_link", back_populates="tags"
-    )
+    books: Mapped[list["Book"]] = relationship("Book", secondary="books_tags_link", back_populates="tags")
 
     def __repr__(self) -> str:
         return f"<Tag(id={self.id}, name='{self.name}')>"

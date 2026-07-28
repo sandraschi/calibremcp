@@ -86,9 +86,7 @@ class TestAIEnhancementsTool:
         # Mock the AI response
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "choices": [{"message": {"content": json.dumps(mock_ai_response)}}]
-        }
+        mock_response.json.return_value = {"choices": [{"message": {"content": json.dumps(mock_ai_response)}}]}
         mock_client.post.return_value = mock_response
 
         # Call the method via _run (which routes to ai_generate_metadata)
@@ -177,8 +175,7 @@ class TestAIEnhancementsTool:
 
         # Mock the search results
         similar_books = [
-            {"id": f"book-{i}", "title": f"Similar Book {i}", "embedding": mock_embedding}
-            for i in range(3)
+            {"id": f"book-{i}", "title": f"Similar Book {i}", "embedding": mock_embedding} for i in range(3)
         ]
         if hasattr(tool.book_service, "search_similar_books"):
             tool.book_service.search_similar_books = AsyncMock(return_value=similar_books)

@@ -18,14 +18,12 @@ sys.path.insert(0, str(src_path))
 async def test_calibre_mcp():
     """Run comprehensive tests for Calibre MCP functionality."""
 
-
     try:
         # Test 1: Basic imports and setup
         from calibre_mcp.tools.authors.manage_authors import manage_authors
         from calibre_mcp.tools.book_management.query_books import query_books
         from calibre_mcp.tools.library.manage_libraries import manage_libraries
         from calibre_mcp.tools.tags.manage_tags import manage_tags
-
 
         # Test 2: List libraries
         result = await manage_libraries(operation="list")
@@ -100,13 +98,10 @@ async def test_calibre_mcp():
                 book.get("pubdate", "Unknown")
 
         # Test 10: Search by year range
-        result = await query_books(
-            operation="search", query="", min_year=2010, max_year=2020, limit=5
-        )
+        result = await query_books(operation="search", query="", min_year=2010, max_year=2020, limit=5)
         if result.get("items"):
             for book in result["items"][:3]:
                 book.get("pubdate", "Unknown")
-
 
     except Exception:
         import traceback

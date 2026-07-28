@@ -299,15 +299,9 @@ async def help_helper(level: HelpLevel, topic: str | None = None) -> str:
         if level in [HelpLevel.ADVANCED, HelpLevel.EXPERT]:
             content.append("## Troubleshooting")
             content.append("")
-            content.append(
-                "1. **Library not found**: manage_libraries(operation='list') to see discovered libraries"
-            )
-            content.append(
-                "2. **DB offline**: Ensure library path exists; check CALIBRE_LIBRARY_PATH"
-            )
-            content.append(
-                "3. **Open file fails**: Verify book has EPUB/PDF; check library path resolution"
-            )
+            content.append("1. **Library not found**: manage_libraries(operation='list') to see discovered libraries")
+            content.append("2. **DB offline**: Ensure library path exists; check CALIBRE_LIBRARY_PATH")
+            content.append("3. **Open file fails**: Verify book has EPUB/PDF; check library path resolution")
             content.append("")
 
         return "\n".join(content)
@@ -491,9 +485,7 @@ async def status(level: StatusLevel = StatusLevel.BASIC, focus: str | None = Non
 
                 # Python process info
                 process = psutil.Process()
-                content.append(
-                    f"**Python Process Memory:** {process.memory_info().rss // (1024**2)}MB"
-                )
+                content.append(f"**Python Process Memory:** {process.memory_info().rss // (1024**2)}MB")
                 content.append(f"**Python Process CPU:** {process.cpu_percent()}%")
                 content.append("")
 
@@ -565,9 +557,7 @@ def _get_registered_tools() -> list[dict[str, Any]]:
                 tool_info = {
                     "name": tool_name,
                     "description": getattr(tool_obj, "__doc__", "") or "",
-                    "signature": str(inspect.signature(tool_obj.func))
-                    if hasattr(tool_obj, "func")
-                    else "",
+                    "signature": str(inspect.signature(tool_obj.func)) if hasattr(tool_obj, "func") else "",
                 }
 
                 # Try to get parameter info
@@ -577,12 +567,8 @@ def _get_registered_tools() -> list[dict[str, Any]]:
                     for param_name, param in sig.parameters.items():
                         param_info = {
                             "name": param_name,
-                            "type": str(param.annotation)
-                            if param.annotation != inspect.Parameter.empty
-                            else "Any",
-                            "default": param.default
-                            if param.default != inspect.Parameter.empty
-                            else None,
+                            "type": str(param.annotation) if param.annotation != inspect.Parameter.empty else "Any",
+                            "default": param.default if param.default != inspect.Parameter.empty else None,
                             "required": param.default == inspect.Parameter.empty,
                         }
                         params.append(param_info)
@@ -648,9 +634,7 @@ async def tool_help(tool_name: str, level: HelpLevel = HelpLevel.BASIC) -> str:
 
             if similar:
                 return f"Tool '{tool_name}' not found. Did you mean: {', '.join(similar[:5])}?"
-            return (
-                f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
-            )
+            return f"Tool '{tool_name}' not found. Use `list_tools()` to see all available tools."
 
         # Build help content
         content = []
@@ -875,8 +859,7 @@ async def list_tools(category: str | None = None) -> dict[str, Any]:
             filtered = [
                 t
                 for t in all_tools
-                if category.lower() in t["name"].lower()
-                or category.lower() in (t.get("description", "").lower())
+                if category.lower() in t["name"].lower() or category.lower() in (t.get("description", "").lower())
             ]
         else:
             filtered = all_tools
@@ -1032,9 +1015,7 @@ async def health_check() -> dict[str, Any]:
             }
 
         # Overall status determination
-        unhealthy_checks = [
-            check for check in health_status["checks"].values() if check["status"] == "unhealthy"
-        ]
+        unhealthy_checks = [check for check in health_status["checks"].values() if check["status"] == "unhealthy"]
         if unhealthy_checks:
             health_status["status"] = "unhealthy"
 

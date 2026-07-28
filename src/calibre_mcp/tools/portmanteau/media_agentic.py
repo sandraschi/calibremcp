@@ -31,10 +31,7 @@ logger = logging.getLogger(__name__)
 # ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 _HEADERS = {
-    "User-Agent": (
-        "CalibreMCP/1.6 (https://github.com/sandraschi/calibre-mcp; "
-        "research-tool/book-deep-research)"
-    )
+    "User-Agent": ("CalibreMCP/1.6 (https://github.com/sandraschi/calibre-mcp; research-tool/book-deep-research)")
 }
 _FETCH_TIMEOUT = 12.0
 
@@ -42,8 +39,7 @@ _FETCH_TIMEOUT = 12.0
 async def _fetch(url: str, client: httpx.AsyncClient) -> str | None:
     """GET url, return text or None on any error."""
     try:
-        r = await client.get(url, headers=_HEADERS, timeout=_FETCH_TIMEOUT,
-                             follow_redirects=True)
+        r = await client.get(url, headers=_HEADERS, timeout=_FETCH_TIMEOUT, follow_redirects=True)
         if r.status_code == 200:
             return r.text
         return None
@@ -55,8 +51,7 @@ async def _fetch(url: str, client: httpx.AsyncClient) -> str | None:
 async def _fetch_json(url: str, client: httpx.AsyncClient) -> dict | None:
     """GET url, return parsed JSON or None."""
     try:
-        r = await client.get(url, headers=_HEADERS, timeout=_FETCH_TIMEOUT,
-                             follow_redirects=True)
+        r = await client.get(url, headers=_HEADERS, timeout=_FETCH_TIMEOUT, follow_redirects=True)
         if r.status_code == 200:
             return r.json()
         return None
@@ -66,6 +61,7 @@ async def _fetch_json(url: str, client: httpx.AsyncClient) -> dict | None:
 
 
 # ── Slug helpers ──────────────────────────────────────────────────────────────
+
 
 def _slugify(text: str) -> str:
     """Basic slug: lowercase, spaces → underscores, strip punctuation."""
@@ -93,8 +89,8 @@ def _tvtropes_slug(title: str) -> str:
 
 # ── Source fetchers ───────────────────────────────────────────────────────────
 
-async def _fetch_wikipedia_book(title: str, authors: list[str],
-                                 client: httpx.AsyncClient) -> dict[str, str]:
+
+async def _fetch_wikipedia_book(title: str, authors: list[str], client: httpx.AsyncClient) -> dict[str, str]:
     """Fetch Wikipedia summary + key sections for a book."""
     result: dict[str, str] = {}
 
@@ -108,9 +104,7 @@ async def _fetch_wikipedia_book(title: str, authors: list[str],
     summary_data = None
     used_slug = None
     for slug in slugs_to_try:
-        d = await _fetch_json(
-            f"https://en.wikipedia.org/api/rest_v1/page/summary/{slug}", client
-        )
+        d = await _fetch_json(f"https://en.wikipedia.org/api/rest_v1/page/summary/{slug}", client)
         if d and d.get("type") not in ("disambiguation", None) and d.get("extract"):
             summary_data = d
             used_slug = slug
@@ -123,12 +117,9 @@ async def _fetch_wikipedia_book(title: str, authors: list[str],
 
     # Fetch full page sections for Reception, Plot, Adaptations, Accolades
     if used_slug:
-        sections_data = await _fetch_json(
-            f"https://en.wikipedia.org/api/rest_v1/page/sections/{used_slug}", client
-        )
+        sections_data = await _fetch_json(f"https://en.wikipedia.org/api/rest_v1/page/sections/{used_slug}", client)
         if sections_data and "sections" in sections_data:
-            want = {"plot", "reception", "critical reception", "adaptations",
-                    "accolades", "awards", "legacy", "themes"}
+            want = {"plot", "reception", "critical reception", "adaptations", "accolades", "awards", "legacy", "themes"}
             for sec in sections_data["sections"]:
                 title_lower = sec.get("title", "").lower()
                 if any(w in title_lower for w in want):
@@ -140,21 +131,17 @@ async def _fetch_wikipedia_book(title: str, authors: list[str],
     return result
 
 
-async def _fetch_wikipedia_author(author: str,
-                                   client: httpx.AsyncClient) -> dict[str, str]:
+async def _fetch_wikipedia_author(author: str, client: httpx.AsyncClient) -> dict[str, str]:
     """Fetch Wikipedia summary for the primary author."""
     result: dict[str, str] = {}
     slug = _wiki_slug(author)
-    d = await _fetch_json(
-        f"https://en.wikipedia.org/api/rest_v1/page/summary/{slug}", client
-    )
+    d = await _fetch_json(f"https://en.wikipedia.org/api/rest_v1/page/summary/{slug}", client)
     if d and d.get("extract"):
         result["author_summary"] = d["extract"]
     return result
 
 
-async def _fetch_sf_encyclopedia(title: str,
-                                  client: httpx.AsyncClient) -> str | None:
+async def _fetch_sf_encyclopedia(title: str, client: httpx.AsyncClient) -> str | None:
     """Fetch SF Encyclopedia entry for a title."""
     slug = _sfe_slug(title)
     html = await _fetch(f"https://www.sf-encyclopedia.com/entry/{slug}", client)
@@ -180,8 +167,7 @@ async def _fetch_tvtropes(title: str, client: httpx.AsyncClient) -> str | None:
         return None
     soup = BeautifulSoup(html, "html.parser")
     # TVTropes main content is in div.page-content or div#main-article
-    content = soup.find("div", {"id": "main-article"}) or \
-              soup.find("div", {"class": "page-content"})
+    content = soup.find("div", {"id": "main-article"}) or soup.find("div", {"class": "page-content"})
     if not content:
         return None
     # Extract description paragraph(s) — stop before the tropes list
@@ -194,8 +180,7 @@ async def _fetch_tvtropes(title: str, client: httpx.AsyncClient) -> str | None:
             break
     # Also grab a sample of trope names
     trope_links = content.find_all("a", {"class": re.compile(r"twikilink", re.I)})
-    tropes = list({a.get_text(strip=True) for a in trope_links[:30]
-                   if a.get_text(strip=True)})[:20]
+    tropes = list({a.get_text(strip=True) for a in trope_links[:30] if a.get_text(strip=True)})[:20]
     if not paragraphs and not tropes:
         return None
     out = "\n\n".join(paragraphs)
@@ -204,12 +189,9 @@ async def _fetch_tvtropes(title: str, client: httpx.AsyncClient) -> str | None:
     return out[:2500]
 
 
-async def _fetch_anime_news_network(title: str,
-                                     client: httpx.AsyncClient) -> str | None:
+async def _fetch_anime_news_network(title: str, client: httpx.AsyncClient) -> str | None:
     """Fetch ANN encyclopedia entry for manga/anime titles."""
-    search_url = (
-        f"https://www.animenewsnetwork.com/search?q={quote_plus(title)}&type=manga"
-    )
+    search_url = f"https://www.animenewsnetwork.com/search?q={quote_plus(title)}&type=manga"
     html = await _fetch(search_url, client)
     if not html:
         return None
@@ -232,9 +214,7 @@ async def _fetch_anime_news_network(title: str,
 
 async def _fetch_open_library(isbn: str, client: httpx.AsyncClient) -> dict | None:
     """Fetch Open Library metadata for a given ISBN."""
-    d = await _fetch_json(
-        f"https://openlibrary.org/isbn/{isbn}.json", client
-    )
+    d = await _fetch_json(f"https://openlibrary.org/isbn/{isbn}.json", client)
     if not d:
         return None
     return {
@@ -248,10 +228,12 @@ async def _fetch_open_library(isbn: str, client: httpx.AsyncClient) -> dict | No
 
 # ── Local data helpers ────────────────────────────────────────────────────────
 
+
 async def _get_book_metadata(book_id: int) -> dict[str, Any]:
     """Pull book metadata from Calibre via the MCP tool."""
     try:
         from calibre_mcp.tools.book_management.manage_books import manage_books
+
         result = await manage_books(operation="get", book_id=book_id)
         if isinstance(result, dict) and result.get("success"):
             return result.get("book", result)
@@ -265,29 +247,22 @@ async def _get_personal_notes(book_id: int, library_path: str) -> str:
     """Pull personal notes from calibre_mcp_data.db."""
     try:
         from calibre_mcp.db.user_data import get_user_comment
+
         return get_user_comment(book_id, library_path) or ""
     except Exception:
         return ""
 
 
-async def _get_rag_passages(book_id: int, title: str,
-                             n: int = 5) -> list[str]:
+async def _get_rag_passages(book_id: int, title: str, n: int = 5) -> list[str]:
     """Pull thematically relevant RAG passages from the content index."""
     try:
         from calibre_mcp.tools.portmanteau.search import _get_vector_store
+
         store = _get_vector_store(table_name="calibre_fulltext")
         tbl = store.db.open_table(store.table_name)
-        qemb = list(store.embedding_model.embed([
-            f"themes setting premise of {title}"
-        ]))[0]
+        qemb = list(store.embedding_model.embed([f"themes setting premise of {title}"]))[0]
         qvec = qemb.tolist() if hasattr(qemb, "tolist") else list(qemb)
-        rows = (
-            tbl.search(qvec)
-            .where(f"metadata.book_id = '{book_id}'")
-            .limit(n)
-            .to_arrow()
-            .to_pylist()
-        )
+        rows = tbl.search(qvec).where(f"metadata.book_id = '{book_id}'").limit(n).to_arrow().to_pylist()
         return [r.get("content", "") for r in rows if r.get("content")]
     except Exception as e:
         logger.debug("RAG passages unavailable for book %s: %s", book_id, e)
@@ -297,13 +272,27 @@ async def _get_rag_passages(book_id: int, title: str,
 # ── Source routing table ──────────────────────────────────────────────────────
 
 _SF_TAGS = {
-    "science fiction", "sf", "fantasy", "space opera", "cyberpunk",
-    "steampunk", "hard sf", "new weird", "speculative fiction",
-    "alternate history", "horror", "dark fantasy",
+    "science fiction",
+    "sf",
+    "fantasy",
+    "space opera",
+    "cyberpunk",
+    "steampunk",
+    "hard sf",
+    "new weird",
+    "speculative fiction",
+    "alternate history",
+    "horror",
+    "dark fantasy",
 }
 _MANGA_TAGS = {
-    "manga", "anime", "light novel", "manhwa", "manhua",
-    "japanese", "japanese fiction",
+    "manga",
+    "anime",
+    "light novel",
+    "manhwa",
+    "manhua",
+    "japanese",
+    "japanese fiction",
 }
 
 
@@ -316,8 +305,16 @@ def _select_sources(tags: list[str]) -> set[str]:
     if tag_set & _MANGA_TAGS:
         sources.add("anime_news_network")
     # TVTropes for any fiction — heuristic: not if purely non-fiction tags
-    nonfiction_tags = {"non-fiction", "nonfiction", "history", "biography",
-                       "science", "mathematics", "philosophy", "reference"}
+    nonfiction_tags = {
+        "non-fiction",
+        "nonfiction",
+        "history",
+        "biography",
+        "science",
+        "mathematics",
+        "philosophy",
+        "reference",
+    }
     if not (tag_set <= nonfiction_tags):
         sources.add("tvtropes")
     return sources
@@ -325,8 +322,8 @@ def _select_sources(tags: list[str]) -> set[str]:
 
 # ── Sampling helper ───────────────────────────────────────────────────────────
 
-async def _sample(ctx: Context, prompt: str,
-                  system: str, max_tokens: int = 3000) -> str:
+
+async def _sample(ctx: Context, prompt: str, system: str, max_tokens: int = 3000) -> str:
     """Call ctx.sample() with FastMCP 3.2 API, return text."""
     from mcp.types import (
         CreateMessageRequest,
@@ -334,12 +331,10 @@ async def _sample(ctx: Context, prompt: str,
         TextContent,
         UserMessage,
     )
+
     req = CreateMessageRequest(
         params=CreateMessageRequestParams(
-            messages=[UserMessage(
-                role="user",
-                content=TextContent(type="text", text=prompt)
-            )],
+            messages=[UserMessage(role="user", content=TextContent(type="text", text=prompt))],
             maxTokens=max_tokens,
             systemPrompt=system,
         )
@@ -354,6 +349,7 @@ async def _sample(ctx: Context, prompt: str,
 
 
 # ── Main tool ─────────────────────────────────────────────────────────────────
+
 
 @mcp.tool()
 async def media_research_book(
@@ -382,8 +378,7 @@ async def media_research_book(
         include_spoilers: Whether to include plot spoilers in synopsis sections.
         ctx: FastMCP context (injected).
     """
-    if not ctx or not hasattr(ctx, "session") or \
-            not hasattr(ctx.session, "create_message"):
+    if not ctx or not hasattr(ctx, "session") or not hasattr(ctx.session, "create_message"):
         return {
             "success": False,
             "error": (
@@ -472,32 +467,22 @@ async def media_research_book(
     wiki_book = fetched.get("wikipedia_book", {})
     if wiki_book.get("summary"):
         sections.append(f"\n--- WIKIPEDIA SUMMARY ---\n{wiki_book['summary'][:1500]}")
-    for sec_name in ("Plot", "Reception", "Critical reception",
-                     "Adaptations", "Accolades", "Legacy", "Themes"):
+    for sec_name in ("Plot", "Reception", "Critical reception", "Adaptations", "Accolades", "Legacy", "Themes"):
         if wiki_book.get(sec_name):
-            sections.append(
-                f"\n--- WIKIPEDIA: {sec_name.upper()} ---\n{wiki_book[sec_name]}"
-            )
+            sections.append(f"\n--- WIKIPEDIA: {sec_name.upper()} ---\n{wiki_book[sec_name]}")
 
     wiki_author = fetched.get("wikipedia_author", {})
     if wiki_author.get("author_summary"):
-        sections.append(
-            f"\n--- WIKIPEDIA AUTHOR ({primary_author}) ---\n"
-            f"{wiki_author['author_summary'][:1000]}"
-        )
+        sections.append(f"\n--- WIKIPEDIA AUTHOR ({primary_author}) ---\n{wiki_author['author_summary'][:1000]}")
 
     if fetched.get("sf_encyclopedia"):
-        sections.append(
-            f"\n--- SF ENCYCLOPEDIA ---\n{fetched['sf_encyclopedia']}"
-        )
+        sections.append(f"\n--- SF ENCYCLOPEDIA ---\n{fetched['sf_encyclopedia']}")
 
     if fetched.get("tvtropes"):
         sections.append(f"\n--- TVTROPES ---\n{fetched['tvtropes']}")
 
     if fetched.get("anime_news_network"):
-        sections.append(
-            f"\n--- ANIME NEWS NETWORK ---\n{fetched['anime_news_network']}"
-        )
+        sections.append(f"\n--- ANIME NEWS NETWORK ---\n{fetched['anime_news_network']}")
 
     if isinstance(fetched.get("open_library"), dict):
         ol = fetched["open_library"]
@@ -570,7 +555,7 @@ SOURCE MATERIAL:
 ---
 
 Sources consulted: {source_list}
-Sources unavailable: {', '.join(failed) if failed else 'none'}
+Sources unavailable: {", ".join(failed) if failed else "none"}
 
 Write the report now. Be specific, be authoritative, be interesting.
 Do not pad with vague generalities. If you have no data for a section, omit it.
@@ -579,7 +564,8 @@ Do not pad with vague generalities. If you have no data for a section, omit it.
     # ── 6. Sample ─────────────────────────────────────────────────────────────
     logger.info("media_research_book: sampling LLM for %s", title)
     report = await _sample(
-        ctx, prompt,
+        ctx,
+        prompt,
         system="You are an expert literary researcher, critic, and bibliographer.",
         max_tokens=4000,
     )
@@ -609,6 +595,7 @@ Do not pad with vague generalities. If you have no data for a section, omit it.
 
 
 # ── Existing tools below (unchanged) ─────────────────────────────────────────
+
 
 @mcp.tool()
 async def media_synopsis(
@@ -671,9 +658,9 @@ main narrative arc, brief style analysis. Return ONLY markdown-formatted synopsi
 {compiled_text}
 </book_excerpts>"""
 
-        synopsis_text = await _sample(ctx, prompt,
-                                       "You are an expert literary synthesizer and reviewer.",
-                                       max_tokens=2000)
+        synopsis_text = await _sample(
+            ctx, prompt, "You are an expert literary synthesizer and reviewer.", max_tokens=2000
+        )
 
         return {
             "success": True,
@@ -774,13 +761,7 @@ async def media_deep_research(
                 tbl = store.db.open_table(store.table_name)
                 qemb = list(store.embedding_model.embed([topic]))[0]
                 qvec = qemb.tolist() if hasattr(qemb, "tolist") else list(qemb)
-                rows = (
-                    tbl.search(qvec)
-                    .where(f"metadata.book_id = '{b_id}'")
-                    .limit(5)
-                    .to_arrow()
-                    .to_pylist()
-                )
+                rows = tbl.search(qvec).where(f"metadata.book_id = '{b_id}'").limit(5).to_arrow().to_pylist()
                 if rows:
                     books_analyzed.append(b_title)
                     compiled_research.append(f"### Source: {b_title}\n")

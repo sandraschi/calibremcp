@@ -47,13 +47,9 @@ class AddBooksTool(MCPTool):
                     continue
 
                 # Add book to library
-                book_id = await storage.add_book(
-                    path=path, copy_to_library=copy_files, auto_convert=auto_convert
-                )
+                book_id = await storage.add_book(path=path, copy_to_library=copy_files, auto_convert=auto_convert)
 
-                results["added"].append(
-                    {"path": str(path), "book_id": book_id, "file_hash": file_hash}
-                )
+                results["added"].append({"path": str(path), "book_id": book_id, "file_hash": file_hash})
 
             except Exception as e:
                 results["failed"].append({"path": str(path), "error": str(e)})

@@ -74,9 +74,7 @@ class CalibreAPIClient:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
-        retry=retry_if_exception_type(
-            (httpx.TimeoutException, httpx.ConnectError, httpx.RequestError)
-        ),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.ConnectError, httpx.RequestError)),
         reraise=True,
     )
     async def _make_request(
@@ -124,8 +122,7 @@ class CalibreAPIClient:
                 )
             if response.status_code >= 400:
                 raise CalibreAPIError(
-                    f"HTTP error {response.status_code}: {response.text}. "
-                    f"Endpoint: {endpoint}, Method: {method}"
+                    f"HTTP error {response.status_code}: {response.text}. Endpoint: {endpoint}, Method: {method}"
                 )
 
             # Parse JSON response
@@ -228,9 +225,7 @@ class CalibreAPIClient:
         except Exception as e:
             raise CalibreAPIError(f"Library search failed: {str(e)}") from e
 
-    async def advanced_search(
-        self, text: str, fields: list[str], operator: str = "AND"
-    ) -> list[dict[str, Any]]:
+    async def advanced_search(self, text: str, fields: list[str], operator: str = "AND") -> list[dict[str, Any]]:
         """
         Advanced search with field targeting and boolean logic.
 
@@ -292,9 +287,7 @@ class CalibreAPIClient:
                 "identifiers": response.get("identifiers", {}),
                 "last_modified": response.get("last_modified"),
                 "cover_url": f"{self.config.server_url}/get/cover/{book_id}",
-                "download_links": self._generate_download_links(
-                    book_id, response.get("formats", {})
-                ),
+                "download_links": self._generate_download_links(book_id, response.get("formats", {})),
             }
 
         except Exception as e:
@@ -314,9 +307,7 @@ class CalibreAPIClient:
             # Get metadata for all books at once
             params = {"ids": ",".join(map(str, book_ids))}
 
-            log_operation(
-                logger, "fetch_book_metadata", level="INFO", book_ids=book_ids, count=len(book_ids)
-            )
+            log_operation(logger, "fetch_book_metadata", level="INFO", book_ids=book_ids, count=len(book_ids))
 
             try:
                 response = await self._make_request("books", params=params)
@@ -406,9 +397,7 @@ async def quick_library_test(server_url: str = "http://localhost:8080") -> bool:
         await client.test_connection()
         await client.close()
 
-        log_operation(
-            logger, "server_test_success", level="INFO", server_url=server_url, status="accessible"
-        )
+        log_operation(logger, "server_test_success", level="INFO", server_url=server_url, status="accessible")
         return True
 
     except Exception as e:

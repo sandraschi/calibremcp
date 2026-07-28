@@ -113,9 +113,7 @@ class AIEnhancementsTool(MCPTool):
             "update_result": update_result,
         }
 
-    async def ai_recommend_books(
-        self, book_id: int | str, limit: int = 5, library_path: str | None = None
-    ) -> dict:
+    async def ai_recommend_books(self, book_id: int | str, limit: int = 5, library_path: str | None = None) -> dict:
         """
         Get book recommendations based on a book.
 
@@ -208,9 +206,7 @@ class AIEnhancementsTool(MCPTool):
             "tags": ["fiction", "adventure", "classic"],  # Example tags
         }
 
-    async def ai_extract_quotes(
-        self, book_id: int | str, max_quotes: int = 5, library_path: str | None = None
-    ) -> dict:
+    async def ai_extract_quotes(self, book_id: int | str, max_quotes: int = 5, library_path: str | None = None) -> dict:
         """
         Extract notable quotes from a book using AI.
 
@@ -290,9 +286,7 @@ class AIEnhancementsTool(MCPTool):
                 )
                 raise AIServiceError("Failed to initialize AI client") from e
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10), reraise=True
-    )
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10), reraise=True)
     async def _generate_metadata(self, metadata, fields: list[str]) -> dict:
         """Generate metadata using AI.
 
@@ -344,9 +338,7 @@ class AIEnhancementsTool(MCPTool):
                         "error": error_data,
                     },
                 )
-                raise AIServiceError(
-                    "AI service error", status_code=response.status_code, details=error_data
-                )
+                raise AIServiceError("AI service error", status_code=response.status_code, details=error_data)
 
             # Parse the AI response
             result = response.json()
@@ -380,8 +372,7 @@ class AIEnhancementsTool(MCPTool):
     def _build_metadata_prompt(self, metadata, fields: list[str]) -> str:
         """Build a prompt for the AI to generate metadata."""
         prompt_parts = [
-            "You are a helpful assistant that generates book metadata. "
-            "Generate the following fields in JSON format:"
+            "You are a helpful assistant that generates book metadata. Generate the following fields in JSON format:"
         ]
 
         field_descriptions = {
@@ -508,9 +499,7 @@ class AIEnhancementsTool(MCPTool):
                         "error": error_data,
                     },
                 )
-                raise AIServiceError(
-                    "Embedding API error", status_code=response.status_code, details=error_data
-                )
+                raise AIServiceError("Embedding API error", status_code=response.status_code, details=error_data)
 
             result = response.json()
             embedding = result["data"][0]["embedding"]

@@ -57,15 +57,11 @@ async def manage_library_operations(
     try:
         if operation == "analyze_series":
             series_manager = SeriesManager()
-            return await series_manager.analyze_series(
-                library_path=library_path, update_metadata=update_metadata
-            )
+            return await series_manager.analyze_series(library_path=library_path, update_metadata=update_metadata)
 
         if operation == "fix_series_metadata":
             series_manager = SeriesManager()
-            return await series_manager.fix_series_metadata(
-                library_path=library_path, dry_run=dry_run
-            )
+            return await series_manager.fix_series_metadata(library_path=library_path, dry_run=dry_run)
 
         if operation == "merge_series":
             if not source_series or not target_series:
