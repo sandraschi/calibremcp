@@ -1,4 +1,4 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 import 'scripts/just/fleet.just'
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -50,6 +50,13 @@ sync:
 sync-dev:
     uv sync --all-extras
 
+# Synchronize deps, pre-commit hooks, and webapp frontend
+bootstrap:
+    uv sync --all-extras
+    uv run pre-commit install
+    Set-Location webapp/frontend; npm ci; if ($LASTEXITCODE -ne 0) { npm install }
+    Write-Host "Pre-commit hooks installed." -ForegroundColor Green
+
 # Build webapp frontend for production
 build-webapp:
     Set-Location '{{justfile_directory()}}\webapp\frontend'
@@ -57,15 +64,15 @@ build-webapp:
 
 # Start webapp in production mode (builds first if needed)
 start-webapp:
-    pwsh -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1'
+    powershell.exe -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1'
 
 # Start webapp in dev mode (slow, recompiles on request)
 start-webapp-dev:
-    pwsh -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1' -Dev
+    powershell.exe -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1' -Dev
 
 # Rebuild + start webapp (force rebuild)
 rebuild-webapp:
-    pwsh -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1' -Rebuild
+    powershell.exe -NoProfile -File '{{justfile_directory()}}\webapp\start.ps1' -Rebuild
 
 # MCP server (stdio)
 mcp:
@@ -75,25 +82,25 @@ mcp:
 
 # Rebuild metadata LanceDB index (CPU)
 rag-metadata:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-metadata.ps1
+    @powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-metadata.ps1
 
 # Rebuild metadata LanceDB index on GPU (after rag-gpu-install)
 rag-gpu-metadata:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-gpu-metadata.ps1
+    @powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-gpu-metadata.ps1
 
 # One-time: install fastembed-gpu + onnxruntime-gpu + NVIDIA CUDA 12 runtimes (~1.5 GB)
 rag-gpu-install:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-gpu-install.ps1
+    @powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-gpu-install.ps1
 
 # Revert to CPU onnxruntime stack
 rag-cpu-install:
-    @pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-cpu-install.ps1
+    @powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/just/rag-cpu-install.ps1
 
 test:
     uv run pytest
 
 e2e:
-    pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
+    powershell.exe -NoProfile -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
 
 # Unit tests only (fast)
 test-unit:
@@ -110,7 +117,7 @@ check: lint test
 
 # Build embedded Python backend → native/resources/
 build-sidecar:
-    pwsh -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\native\build-sidecar.ps1'
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\native\build-sidecar.ps1'
 
 # Primary end-user deliverable: Next static export + embedded backend + NSIS
 build-native install-desktop:
@@ -122,8 +129,3 @@ build-native-debug:
     Set-Location '{{justfile_directory()}}\native'
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
-
-# Run CUA-NSIS smoke test (install -> launch -> verify -> uninstall)
-cua-nsis-test:
-    uv run python scripts/cua-smoke.py
-

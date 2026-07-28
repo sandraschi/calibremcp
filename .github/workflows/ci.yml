@@ -1,31 +1,54 @@
+﻿# Fleet: mcp-central-docs/templates/ci.yml.template
 name: CI
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
   check:
-    name: Windows check
+    name: Lint & Test (Windows)
     runs-on: windows-latest
-    env:
-      CI: "true"
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          version: latest
           enable-cache: true
 
-      - name: Sync dependencies
-        run: uv sync --frozen
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: webapp/frontend/package-lock.json
+
+      - name: Install Python dependencies
+        run: uv sync --all-extras
 
       - name: Ruff check
-        run: uv run ruff check .
+        run: uv run ruff check src tests
 
-      - name: Unit tests
-        run: uv run pytest tests/unit -q --tb=short
+      - name: Ruff format check
+        run: uv run ruff format --check src tests
 
-      - name: Import smoke
-        run: uv run python -c "from calibre_mcp.server import mcp; print(mcp.name)"
+      - name: Pytest
+        run: uv run python -m pytest -q --tb=short
+
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: webapp/frontend
+
+      - name: Biome check
+        run: npm run biome:ci
+        working-directory: webapp/frontend
