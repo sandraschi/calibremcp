@@ -1,6 +1,6 @@
 # calibre-plugin-test.ps1
 # Test loop for CalibreMCP Integration plugin.
-# Run from D:\Dev\repos\calibre-mcp or anywhere — uses full paths throughout.
+# Run from D:\Dev\repos\calibre-mcp or anywhere - uses full paths throughout.
 
 $CALIBRE      = "C:\Program Files\calibre2"
 $CUSTOMIZE    = "$CALIBRE\calibre-customize.exe"
@@ -35,7 +35,7 @@ function Remove-Plugin {
 
 function Launch-Debug {
     Write-Host "Launching Calibre with console attached..." -ForegroundColor Cyan
-    Write-Host "(stdout/stderr visible here — print() and tracebacks will appear)" -ForegroundColor DarkGray
+    Write-Host "(stdout/stderr visible here - print() and tracebacks will appear)" -ForegroundColor DarkGray
     & $DEBUG -g
 }
 

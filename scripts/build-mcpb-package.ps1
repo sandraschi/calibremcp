@@ -76,7 +76,7 @@ try {
     Write-ColorOutput "Package: calibre-mcp.mcpb" $Cyan
     Write-ColorOutput "Repo root: $RepoRoot" $White
 
-    # Step 1: MCPB CLI (global install only — trivial)
+    # Step 1: MCPB CLI (global install only - trivial)
     Write-Step "Checking prerequisites..."
 
     $mcpbCmd = Get-Command mcpb -ErrorAction SilentlyContinue
@@ -92,7 +92,7 @@ try {
     $mcpbVersion = (& $mcpbCmd --version 2>&1 | Out-String).Trim()
     Write-Success "mcpb $mcpbVersion"
 
-    # Sync canonical server source into mcpb/ (pack root — see mcpb/README.md)
+    # Sync canonical server source into mcpb/ (pack root - see mcpb/README.md)
     Write-Step "Syncing src/calibre_mcp → mcpb/src/calibre_mcp..."
     $srcCalibre = Join-Path $RepoRoot "src\calibre_mcp"
     $dstCalibre = Join-Path $RepoRoot "mcpb\src\calibre_mcp"
@@ -119,7 +119,7 @@ try {
     if (Test-Path $mcpbIgnore) {
         Write-Success "Ignore file: mcpb\.mcpbignore"
     } else {
-        Write-Warning "mcpb\.mcpbignore missing — bundle may be oversized"
+        Write-Warning "mcpb\.mcpbignore missing - bundle may be oversized"
     }
 
     # Step 2: Validate mcpb/manifest.json (MCPB v0.2)
@@ -164,7 +164,7 @@ try {
         $relOut = Join-Path ".." $OutputDir
         $buildArgs = @("pack", ".", (Join-Path $relOut "calibre-mcp.mcpb"))
     } else {
-        Write-ColorOutput "mcpb/ missing — packing from repo root (fallback)..." $Yellow
+        Write-ColorOutput "mcpb/ missing - packing from repo root (fallback)..." $Yellow
         $buildArgs = @("pack", ".", "$packagePath")
     }
 
@@ -218,7 +218,7 @@ try {
     Write-ColorOutput "Size: $packageSizeMB MB" $Green
     Write-ColorOutput "Location: $packagePath" $Green
     Write-ColorOutput "Signed: $(if ($NoSign) { 'No' } else { 'Yes' })" $Green
-    Write-ColorOutput "Standards: MCPB v0.2 — mcp-central-docs MCPB_PACKAGING_STANDARDS.md" $Green
+    Write-ColorOutput "Standards: MCPB v0.2 - mcp-central-docs MCPB_PACKAGING_STANDARDS.md" $Green
 
     Write-ColorOutput "`n=== Next Steps ===" $Cyan
     Write-ColorOutput "1. Test package: Drag $packagePath to Claude Desktop" $White
@@ -238,4 +238,3 @@ try {
     Write-Error "Stack trace: $($_.ScriptStackTrace)"
     exit 1
 }
-

@@ -1,4 +1,4 @@
-# Metadata RAG reindex on CPU — venv python (not uv run while GPU mode active).
+# Metadata RAG reindex on CPU - venv python (not uv run while GPU mode active).
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 Set-Location $RepoRoot

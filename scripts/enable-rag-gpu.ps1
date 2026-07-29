@@ -1,7 +1,7 @@
 # Swap MCD RAG stack to GPU (Goliath / RTX class machines).
 # fastembed-gpu replaces fastembed; onnxruntime-gpu replaces onnxruntime.
-# STOP any running `just rag` first — ONNX DLLs are locked while embed runs.
-# IMPORTANT: use `just rag-gpu` (not `uv run`) — uv run re-installs CPU onnxruntime from pyproject.toml.
+# STOP any running `just rag` first - ONNX DLLs are locked while embed runs.
+# IMPORTANT: use `just rag-gpu` (not `uv run`) - uv run re-installs CPU onnxruntime from pyproject.toml.
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path $PSScriptRoot -Parent
