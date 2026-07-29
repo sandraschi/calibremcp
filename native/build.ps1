@@ -21,9 +21,9 @@ foreach ($dir in $frontendDirs) {
         $tscOut = npx tsc --noEmit 2>&1
         $tscExit = $LASTEXITCODE
         if ($tscExit -ne 0) {
-            Write-Host "  TypeScript compilation FAILED — fix errors before building NSIS" -ForegroundColor Red
+            Write-Host "  TypeScript compilation FAILED - fix errors before building NSIS" -ForegroundColor Red
             Write-Host $tscOut
-            throw "TypeScript compilation failed — fix all errors before building NSIS installer"
+            throw "TypeScript compilation failed - fix all errors before building NSIS installer"
         }
 
         $isNextJs = (Test-Path "next.config.js") -or (Test-Path "next.config.ts") -or (Test-Path "next.config.mjs")
@@ -88,20 +88,20 @@ _RUNTIME_CONTEXT'
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
     Pop-Location
 } else {
-    Write-Host "  WARNING: spec file not found at $specFile — using existing backend exe if present" -ForegroundColor DarkYellow
+    Write-Host "  WARNING: spec file not found at $specFile - using existing backend exe if present" -ForegroundColor DarkYellow
 }
 
 # Step 3: Embed in Tauri resources (+ dev fallback) with size gate + smoke test
 Write-Host "-> [3/4] Embedding backend..." -ForegroundColor Yellow
 $src = "$Root\dist\${RepoName}-backend.exe"
-if (-not (Test-Path $src)) { throw "Backend exe not found at $src — PyInstaller step failed" }
+if (-not (Test-Path $src)) { throw "Backend exe not found at $src - PyInstaller step failed" }
 $sizeMB = (Get-Item $src).Length / 1MB
 if ($sizeMB -lt 5) {
-    throw "Backend exe is only $([math]::Round($sizeMB, 1)) MB at $src — PyInstaller produced an empty/broken binary"
+    throw "Backend exe is only $([math]::Round($sizeMB, 1)) MB at $src - PyInstaller produced an empty/broken binary"
 }
 Write-Host "  Backend exe: $sizeMB MB"
 
-# Bundle .env.example (NOT .env — dev .env has personal API keys)
+# Bundle .env.example (NOT .env - dev .env has personal API keys)
 $envExampleSrc = "$Root\.env.example"
 if (Test-Path $envExampleSrc) {
     Copy-Item $envExampleSrc "$ResourceDir\.env.example" -Force
@@ -166,4 +166,3 @@ if (Test-Path "$frontendDir\package.json") {
 
 Write-Host "=== Build complete ===" -ForegroundColor Green
 Write-Host "Ship: $nsisDir\*.exe"
-
