@@ -267,3 +267,7 @@ calibremcp - Trust Report _ ToolBench.htm
 calibremcp - Trust Report _ ToolBench_files/
 
 _dashboard/
+
+# Runtime logs
+*.log
+logs/
