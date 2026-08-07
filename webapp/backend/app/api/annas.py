@@ -72,7 +72,7 @@ async def download_annas_book_api(body: AnnasDownloadRequest):
                 "success": False,
                 "error_code": "MANUAL_INTERACTION_REQUIRED",
                 "message": str(e),
-                "detail_url": f"https://annas-archive.gl/md5/{body.md5.strip()}" # Fallback link
+                "detail_url": f"https://annas-archive.gl/md5/{body.md5.strip()}",  # Fallback link
             }
         except AnnasNoLinksError as e:
             raise HTTPException(status_code=404, detail=str(e))

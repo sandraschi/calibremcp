@@ -118,7 +118,10 @@ def _get_base_url(provider: str | None = None, base_url: str | None = None) -> s
 
 
 async def _llm_call(
-    messages: list[dict], model: str, url: str, tools: list | None = None,
+    messages: list[dict],
+    model: str,
+    url: str,
+    tools: list | None = None,
 ) -> dict | None:
     """Call LLM. Returns the full response dict for tool-calling, or None on failure."""
     if "ollama" in url or ":11434" in url:
@@ -191,13 +194,23 @@ TOOL_ROUTES = {
 }
 
 TOOL_ARG_MAP = {
-    "search_books": lambda a: {"operation": "search", "text": a.get("query", ""), "author": a.get("author", ""), "limit": min(a.get("limit", 15), 50)},
+    "search_books": lambda a: {
+        "operation": "search",
+        "text": a.get("query", ""),
+        "author": a.get("author", ""),
+        "limit": min(a.get("limit", 15), 50),
+    },
     "list_libraries": lambda a: {"operation": "list"},
     "get_library_stats": lambda a: {"operation": "stats", "library_name": a.get("library")},
     "get_book": lambda a: {"operation": "get", "book_id": a.get("book_id")},
     "list_tags": lambda a: {"operation": "list"},
-    "list_authors": lambda a: {"operation": "list", "limit": min(a.get("limit", 30), 100), "offset": a.get("offset", 0)},
+    "list_authors": lambda a: {
+        "operation": "list",
+        "limit": min(a.get("limit", 30), 100),
+        "offset": a.get("offset", 0),
+    },
 }
+
 
 @router.get("/models")
 async def list_models(
@@ -363,13 +376,20 @@ async def _agentic_impl(
             if len(result_str) > 4000:
                 result_str = result_str[:4000] + "\n... (truncated)"
 
-            ctx.append({
-                "role": "tool",
-                "content": result_str,
-                "tool_call_id": tc.get("id", ""),
-                "name": name,
-            })
+            ctx.append(
+                {
+                    "role": "tool",
+                    "content": result_str,
+                    "tool_call_id": tc.get("id", ""),
+                    "name": name,
+                }
+            )
 
     # Max turns exhausted — return whatever we have
     last_msg = _extract_message(await _llm_call(ctx, model, url))
-    return {"message": {"role": "assistant", "content": _extract_content(last_msg) or "I've looked into it but need more specific information."}}
+    return {
+        "message": {
+            "role": "assistant",
+            "content": _extract_content(last_msg) or "I've looked into it but need more specific information.",
+        }
+    }

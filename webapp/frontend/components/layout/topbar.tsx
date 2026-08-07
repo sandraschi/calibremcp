@@ -14,7 +14,9 @@ import {
 	FileText,
 	HelpCircle,
 	Minus,
+	Moon,
 	Plus,
+	Sun,
 	Wifi,
 	WifiOff,
 } from "lucide-react";
@@ -46,6 +48,33 @@ interface LaunchModalState {
 	error?: string;
 }
 
+// EXPERIMENTAL light mode (invert hack). Not fleet standard — see globals.css.
+// Toggling `.dark` off the root flips the invert filter; persisted so the
+// choice survives reloads. Delete this + the CSS block to revert.
+const THEME_KEY = "calibre-light-mode";
+
+function useExperimentalTheme() {
+	const [light, setLight] = useState(() => {
+		if (typeof window === "undefined") return false;
+		try {
+			return localStorage.getItem(THEME_KEY) === "1";
+		} catch {
+			return false;
+		}
+	});
+
+	useEffect(() => {
+		document.documentElement.classList.toggle("dark", !light);
+		try {
+			localStorage.setItem(THEME_KEY, light ? "1" : "0");
+		} catch {
+			// ignore storage errors
+		}
+	}, [light]);
+
+	return { light, toggle: () => setLight((v) => !v) };
+}
+
 export function Topbar() {
 	const [showZoo, setShowZoo] = useState(false);
 	const [showHelp, setShowHelp] = useState(false);
@@ -54,6 +83,7 @@ export function Topbar() {
 	const [fleetApps, setFleetApps] = useState<FleetApp[]>([]);
 	const [fleetLoading, setFleetLoading] = useState(true);
 	const zooRef = useRef<HTMLDivElement>(null);
+	const { light, toggle } = useExperimentalTheme();
 
 	useEffect(() => {
 		let cancelled = false;
@@ -163,6 +193,15 @@ export function Topbar() {
 					<div className="flex items-center gap-2 shrink-0">
 						{/* Connection Status */}
 						<ConnectionBadge />
+						<button
+							type="button"
+							onClick={toggle}
+							className="p-2 rounded-md text-slate-400 hover:bg-slate-700 hover:text-amber"
+							title={light ? "Switch to dark (experimental light mode)" : "Switch to light (experimental, ugly)"}
+							aria-label="Toggle light mode (experimental)"
+						>
+							{light ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+						</button>
 						<div className="relative" ref={zooRef}>
 							<button
 								type="button"

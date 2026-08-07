@@ -88,6 +88,7 @@ async def get_tool_help(
 async def get_api_docs_info():
     """Return Swagger UI, ReDoc, and OpenAPI schema URLs for this server."""
     from ..config import settings
+
     base = f"http://localhost:{settings.PORT}"
     return {
         "swagger_ui": f"{base}/docs",

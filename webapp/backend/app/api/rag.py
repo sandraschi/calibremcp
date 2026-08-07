@@ -16,6 +16,7 @@ PROGRESS_FILENAME = ".build_progress.json"
 
 # ── Index build ──────────────────────────────────────────────────────────────
 
+
 @router.get("/metadata/build/status")
 async def rag_metadata_build_status():
     """Return current metadata RAG build progress (percentage, status) for the current library."""
@@ -75,6 +76,7 @@ async def rag_content_build(force_rebuild: bool = False):
 
 # ── Metadata semantic search ──────────────────────────────────────────────────
 
+
 @router.get("/metadata/search")
 async def rag_metadata_search(
     q: str = Query(..., min_length=1, description="Natural-language search query"),
@@ -94,16 +96,13 @@ async def rag_metadata_search(
 
 # ── Full-text RAG (passage-level) ─────────────────────────────────────────────
 
+
 @router.get("/retrieve")
 async def rag_retrieve(
     q: str = Query(..., min_length=1, description="Natural-language query over book content"),
     top_k: int = Query(10, ge=1, le=50),
-    book_ids: str | None = Query(
-        None, description="Optional comma-separated Calibre book IDs to scope search"
-    ),
-    formats: str | None = Query(
-        None, description="Optional comma-separated format codes (EPUB, MOBI, …)"
-    ),
+    book_ids: str | None = Query(None, description="Optional comma-separated Calibre book IDs to scope search"),
+    formats: str | None = Query(None, description="Optional comma-separated format codes (EPUB, MOBI, …)"),
 ):
     """Semantic passage retrieval from full book content using LanceDB.
     Returns ranked passages with book attribution, page/chapter context.
@@ -144,6 +143,7 @@ async def rag_retrieve(
 
 # ── Combined portmanteau RAG (metadata + content, agentic) ────────────────────
 
+
 @router.post("/search")
 async def calibre_rag_search(
     q: str = Query(..., min_length=1, description="Free-form library query"),
@@ -165,6 +165,7 @@ async def calibre_rag_search(
 
 # ── Media synopsis ────────────────────────────────────────────────────────────
 
+
 @router.post("/synopsis/{book_id}")
 async def rag_synopsis(
     book_id: int,
@@ -185,6 +186,7 @@ async def rag_synopsis(
 
 # ── Critical reception (agentic web + library) ────────────────────────────────
 
+
 @router.post("/critical-reception/{book_id}")
 async def rag_critical_reception(book_id: int):
     """Synthesize external critical reviews and academic reception for a book
@@ -200,6 +202,7 @@ async def rag_critical_reception(book_id: int):
 
 
 # ── Deep research (multi-book thematic) ──────────────────────────────────────
+
 
 @router.post("/deep-research")
 async def rag_deep_research(
@@ -219,6 +222,7 @@ async def rag_deep_research(
 
 
 # ── Book deep research ────────────────────────────────────────────────────────
+
 
 @router.post("/research/{book_id}")
 async def rag_research_book(

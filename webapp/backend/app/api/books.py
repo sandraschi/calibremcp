@@ -172,10 +172,7 @@ async def get_book(book_id: int):
                     "title": book_dict.get("title"),
                     "authors": authors,
                     "rating": book_dict.get("rating"),
-                    "tags": [
-                        t.get("name", t) if isinstance(t, dict) else t
-                        for t in book_dict.get("tags", [])
-                    ],
+                    "tags": [t.get("name", t) if isinstance(t, dict) else t for t in book_dict.get("tags", [])],
                     "formats": book_dict.get("formats", []),
                     "publisher": book_dict.get("publisher"),
                     "pubdate": book_dict.get("pubdate"),
@@ -194,6 +191,7 @@ async def get_book(book_id: int):
                 }
         except Exception as e:
             import logging
+
             logging.getLogger(__name__).debug("Direct BookService access failed, falling back to MCP: %s", e)
         # Fallback to MCP tool
         result = await mcp_client.call_tool(

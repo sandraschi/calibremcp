@@ -353,9 +353,7 @@ async def smart_search(req: SmartSearchRequest):
         if query and _NATURAL_LANGUAGE_RE.search(query):
             semantic = await _semantic_search(query, limit=min(req.limit, 30))
             if semantic.get("total", 0) > 0:
-                semantic["message"] = (
-                    f"{semantic['message']} (auto: natural-language query → semantic index)"
-                )
+                semantic["message"] = f"{semantic['message']} (auto: natural-language query → semantic index)"
                 return semantic
 
         return await _keyword_search(

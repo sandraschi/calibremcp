@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -7,9 +6,11 @@ from calibre_mcp.tools.import_export.arxiv_client import download_arxiv_paper, s
 
 router = APIRouter(tags=["arxiv"])
 
+
 class ArxivSearchRequest(BaseModel):
     query: str
     max_results: int | None = 20
+
 
 class ArxivImportRequest(BaseModel):
     arxiv_id: str
@@ -19,6 +20,7 @@ class ArxivImportRequest(BaseModel):
     series: str | None = None
     library_path: str | None = None
 
+
 @router.post("/search")
 async def api_arxiv_search(req: ArxivSearchRequest):
     result = await search_arxiv(req.query, max_results=req.max_results)
@@ -27,12 +29,13 @@ async def api_arxiv_search(req: ArxivSearchRequest):
         raise HTTPException(status_code=500, detail=throw_msg)
     return result
 
+
 @router.post("/import")
 async def api_arxiv_import(req: ArxivImportRequest):
     tmp_path = await download_arxiv_paper(req.arxiv_id)
     if not tmp_path:
         raise HTTPException(status_code=500, detail=f"Failed to download arXiv paper {req.arxiv_id}")
-    
+
     try:
         # Prepare metadata for import
         import_metadata = {}
@@ -55,5 +58,6 @@ async def api_arxiv_import(req: ArxivImportRequest):
         return import_result
     finally:
         import os
+
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)

@@ -50,6 +50,7 @@ class SPAStaticFiles(StaticFiles):
             response = await super().get_response("index.html", scope)
         return response
 
+
 from .api import (  # noqa: E402, I001
     analysis,
     annas,
@@ -85,6 +86,7 @@ from .mcp_access_log_filter import configure_quiet_mcp_http_logging  # noqa: E40
 
 try:
     import prometheus_client
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -93,9 +95,7 @@ except ImportError:
 _log_dir = project_root / "logs"
 _log_dir.mkdir(parents=True, exist_ok=True)
 _log_file = _log_dir / "webapp.log"
-_handler = logging.handlers.RotatingFileHandler(
-    _log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
-)
+_handler = logging.handlers.RotatingFileHandler(_log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8")
 _handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 logging.getLogger("uvicorn").addHandler(_handler)
 logging.getLogger("uvicorn.error").addHandler(_handler)
@@ -111,6 +111,7 @@ configure_quiet_mcp_http_logging()
 _mcp_app = None
 try:
     from calibre_mcp.server import create_app as create_mcp_app
+
     _mcp_app = create_mcp_app()
 except Exception as e:
     logger.warning(f"Could not create FastMCP HTTP app: {e}")
@@ -185,9 +186,7 @@ async def startup_event():
         libraries_result = await mcp_client.call_tool("manage_libraries", {"operation": "list"})
 
         if not libraries_result.get("success", True):
-            logger.warning(
-                f"Failed to list libraries: {libraries_result.get('error', 'Unknown error')}"
-            )
+            logger.warning(f"Failed to list libraries: {libraries_result.get('error', 'Unknown error')}")
             return
 
         libraries = libraries_result.get("libraries", [])
@@ -233,18 +232,14 @@ async def startup_event():
                 )
                 logger.info(f"Library path: {switch_result.get('library_path', 'N/A')}")
             else:
-                error_msg = switch_result.get(
-                    "error", switch_result.get("message", "Unknown error")
-                )
+                error_msg = switch_result.get("error", switch_result.get("message", "Unknown error"))
                 logger.error(f"Failed to switch to library '{library_to_load}': {error_msg}")
         else:
             logger.warning("No library available to load")
 
     except Exception as e:
         logger.error(f"Failed to initialize database/library on startup: {e}", exc_info=True)
-        logger.warning(
-            "Server will start but database/library operations may fail until manually initialized"
-        )
+        logger.warning("Server will start but database/library operations may fail until manually initialized")
 
 
 # CORS middleware (Tauri webview origin is http(s)://tauri.localhost, not localhost:10721)
@@ -293,7 +288,7 @@ app.include_router(api_settings.router, prefix="/api/settings", tags=["settings"
 # Mount frontend SPA at /app/ for Tauri WebView navigation
 _frontend_dist = None
 _try_paths = []
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
     _mei = sys._MEIPASS
     _try_paths = [
         os.path.join(_mei, "webapp", "frontend", "out"),
@@ -411,19 +406,36 @@ async def get_cua_diagnostics():
     window = False
     with contextlib.suppress(Exception):
         import psutil
+
         cpu = psutil.cpu_percent(interval=0.3)
         mem = psutil.virtual_memory().percent
-        disk = psutil.disk_usage(os.environ.get("SystemDrive","C:")+"\\").percent
+        disk = psutil.disk_usage(os.environ.get("SystemDrive", "C:") + "\\").percent
     with contextlib.suppress(Exception):
         import subprocess
-        tesseract = subprocess.run([r"C:\Program Files\Tesseract-OCR\tesseract.exe","--version"],capture_output=True,timeout=5).returncode==0
+
+        tesseract = (
+            subprocess.run(
+                [r"C:\Program Files\Tesseract-OCR\tesseract.exe", "--version"], capture_output=True, timeout=5
+            ).returncode
+            == 0
+        )
     with contextlib.suppress(Exception):
         import pywinauto
+
         a = pywinauto.Application(backend="uia").connect(title_re="Calibre MCP")
         win = a.window(title_re="Calibre MCP")
         win.wait("visible", timeout=2)
         window = True
-    return {"success":True,"data":{"backend":{"status":"ok","version":"1.8.6","uptime_seconds":uptime,"port":10720},"system":{"cpu_percent":cpu,"memory_percent":mem,"disk_percent":disk},"tools":{"total":_count_tools(),"categories":["calibre"]},"errors":{"count":0,"recent":[]},"cua_status":{"window_found":window,"backend_reachable":True,"tesseract_available":tesseract}}}
+    return {
+        "success": True,
+        "data": {
+            "backend": {"status": "ok", "version": "1.8.6", "uptime_seconds": uptime, "port": 10720},
+            "system": {"cpu_percent": cpu, "memory_percent": mem, "disk_percent": disk},
+            "tools": {"total": _count_tools(), "categories": ["calibre"]},
+            "errors": {"count": 0, "recent": []},
+            "cua_status": {"window_found": window, "backend_reachable": True, "tesseract_available": tesseract},
+        },
+    }
 
 
 @app.get("/api/libraries/list")

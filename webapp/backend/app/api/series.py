@@ -18,9 +18,7 @@ async def list_series(
 ):
     """List series with optional search. Cached 60s."""
     lib = get_libraries_cache().get("current_library") or ""
-    key = _ttl_key(
-        "series", lib=lib, query=query or "", limit=limit, offset=offset, letter=letter or ""
-    )
+    key = _ttl_key("series", lib=lib, query=query or "", limit=limit, offset=offset, letter=letter or "")
     cached = get_ttl_cached(key)
     if cached is not None:
         return cached
@@ -96,9 +94,7 @@ async def get_series_completion(
 async def get_series(series_id: int):
     """Get series details by ID."""
     try:
-        return await mcp_client.call_tool(
-            "manage_series", {"operation": "get", "series_id": series_id}
-        )
+        return await mcp_client.call_tool("manage_series", {"operation": "get", "series_id": series_id})
     except Exception as e:
         raise handle_mcp_error(e)
 

@@ -76,9 +76,7 @@ def update_current_library(current: str, library_path: str | None = None) -> Non
             init_database(db_path, force=True)
             import logging
 
-            logging.getLogger("app.cache").info(
-                f"Backend database re-initialized for library: {current}"
-            )
+            logging.getLogger("app.cache").info(f"Backend database re-initialized for library: {current}")
         except Exception as e:
             import logging
 

@@ -31,7 +31,7 @@ export default function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={`${crimson.variable} ${sourceSans.variable}`}
+			className={`dark ${crimson.variable} ${sourceSans.variable}`}
 			suppressHydrationWarning
 		>
 			<body

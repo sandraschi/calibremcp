@@ -95,8 +95,7 @@ if not _imports_ok:
 
     logger = logging.getLogger(__name__)
     logger.warning(
-        "calibre_mcp imports failed at module load time. "
-        "Individual tool imports will be attempted at call time."
+        "calibre_mcp imports failed at module load time. Individual tool imports will be attempted at call time."
     )
 
 
@@ -116,9 +115,7 @@ class MCPClient:
     async def _get_http_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client for MCP server."""
         if self._http_client is None:
-            self._http_client = httpx.AsyncClient(
-                base_url=self.mcp_url, timeout=30.0, follow_redirects=True
-            )
+            self._http_client = httpx.AsyncClient(base_url=self.mcp_url, timeout=30.0, follow_redirects=True)
         return self._http_client
 
     async def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -150,9 +147,7 @@ class MCPClient:
                         return result
                     return {"result": result}
                 except Exception as cache_err:
-                    logger.warning(
-                        f"Cache call failed for {tool_name}: {cache_err}, falling back to HTTP/import"
-                    )
+                    logger.warning(f"Cache call failed for {tool_name}: {cache_err}, falling back to HTTP/import")
                     # Fall through to HTTP/import
 
         # Try HTTP transport first if enabled
@@ -190,9 +185,7 @@ class MCPClient:
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.warning(
-                    f"HTTP call to MCP server failed: {e}, falling back to direct import"
-                )
+                logger.warning(f"HTTP call to MCP server failed: {e}, falling back to direct import")
                 # Fall through to direct import
 
         # Fallback: Direct import approach (for stdio mode or HTTP failure)
@@ -322,6 +315,7 @@ class MCPClient:
                         calibre_mcp_imported = True
                     except ImportError as e:
                         import logging
+
                         logging.getLogger(__name__).debug("Strategy 2 import failed: %s", e)
 
                 # Strategy 3: Use importlib.util to force import from file
@@ -339,6 +333,7 @@ class MCPClient:
                                 calibre_mcp_imported = True
                     except Exception as e:
                         import logging
+
                         logging.getLogger(__name__).debug("Strategy 3 import failed: %s", e)
 
                 if not calibre_mcp_imported:
@@ -429,9 +424,7 @@ class MCPClient:
                     tool_func = tool_func.fn
 
             if not callable(tool_func):
-                raise MCPError(
-                    f"Tool function '{tool_name}' is not callable. Type: {type(tool_func)}"
-                )
+                raise MCPError(f"Tool function '{tool_name}' is not callable. Type: {type(tool_func)}")
 
             # Call the tool function directly
             # Note: MCP tools are async, so we await them
@@ -476,9 +469,7 @@ class MCPClient:
             )
             # If tool IS in cache, something is very wrong - try using cache anyway
             if tool_name in _tool_cache and _tool_cache[tool_name] is not None:
-                logger.warning(
-                    f"Tool {tool_name} IS in cache but import failed - using cache anyway"
-                )
+                logger.warning(f"Tool {tool_name} IS in cache but import failed - using cache anyway")
                 try:
                     tool_func = _tool_cache[tool_name]
                     result = await tool_func(**arguments)

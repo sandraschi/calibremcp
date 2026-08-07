@@ -1,13 +1,42 @@
 {
-    "product_name": "Calibre MCP",
-    "install_dir": "%LOCALAPPDATA%\\Calibre MCP",
-    "operator_exe": "calibre-mcp-native.exe",
-    "backend_process_names": ["calibre-mcp-native", "calibre-mcp-native-backend"],
-    "backend_port": 10720,
-    "health_path": "/api/health",
-    "diagnostics_path": "/api/v1/diagnostics",
-    "feature_smoke_path": "/api/v1/diagnostics",
-    "window_title_re": "Calibre",
-    "nsis_glob": "native/target/release/bundle/nsis/Calibre MCP_*_x64-setup.exe",
-    "uninstall_registry_filter": "*Calibre MCP*"
+  "product_name": "Calibre MCP",
+  "install_dir": "%LOCALAPPDATA%\\Calibre MCP",
+  "operator_exe": "calibre-mcp-native.exe",
+  "backend_process_names": [
+    "calibre-mcp-native",
+    "calibre-mcp-native-backend"
+  ],
+  "backend_port": 10720,
+  "health_path": "/api/health",
+  "diagnostics_path": "/api/v1/diagnostics",
+  "feature_smoke_path": "/api/v1/diagnostics",
+  "window_title_re": "Calibre",
+  "nsis_glob": "native/target/release/bundle/nsis/Calibre MCP_*_x64-setup.exe",
+  "uninstall_registry_filter": "*Calibre MCP*",
+  "nav_routes": [
+    [
+      "Overview",
+      "Overview"
+    ],
+    [
+      "Books",
+      "Books"
+    ],
+    [
+      "Search",
+      "Search"
+    ],
+    [
+      "Chat",
+      "Chat"
+    ],
+    [
+      "Settings",
+      "Settings"
+    ],
+    [
+      "Help",
+      "Help"
+    ]
+  ]
 }

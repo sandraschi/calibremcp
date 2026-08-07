@@ -1,13 +1,13 @@
 set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 import 'scripts/just/fleet.just'
 
-# ── Dashboard ─────────────────────────────────────────────────────────────────
+# --- Dashboard ---
 
 # Open the interactive recipe dashboard in the browser
 default:
     @just --list
 
-# ── Quality ───────────────────────────────────────────────────────────────────
+# --- Quality ---
 
 # Execute Ruff SOTA v13.1 linting
 lint:
@@ -23,7 +23,7 @@ fix:
     Set-Location '{{justfile_directory()}}\webapp\frontend'
     npx @biomejs/biome check --write .
 
-# ── Hardening ─────────────────────────────────────────────────────────────────
+# --- Hardening ---
 
 # Execute Bandit security audit
 check-sec:
@@ -35,7 +35,7 @@ audit-deps:
     Set-Location '{{justfile_directory()}}'
     uv run safety check
 
-# CalibreMCP — fleet justfile (mcp-central-docs PACKAGING_STANDARDS §5)
+# --- CalibreMCP  fleet justfile  mcp-central-docs PACKAGING_STANDARDS ---
 # https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md
 
 stats:
@@ -46,7 +46,7 @@ stats:
 sync:
     uv sync
 
-# Dev + optional extras (pytest, pre-commit, …)
+# --- Dev  optional extras  pytest pre-commit ---
 sync-dev:
     uv sync --all-extras
 
@@ -78,7 +78,7 @@ rebuild-webapp:
 mcp:
     uv run python -m calibre_mcp
 
-# ── RAG (LanceDB metadata index) ─────────────────────────────────────────────
+# --- RAG  LanceDB metadata index ---
 
 # Rebuild metadata LanceDB index (CPU)
 rag-metadata:
@@ -113,9 +113,9 @@ fmt:
 # Lint + tests (CI-friendly)
 check: lint test
 
-# ── Native (Tauri) ─────────────────────────────────────────────────────────────
+# --- Native  Tauri ---
 
-# Build embedded Python backend → native/resources/
+# --- Build embedded Python backend  native resources ---
 build-sidecar:
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\native\build-sidecar.ps1'
 
@@ -129,3 +129,5 @@ build-native-debug:
     Set-Location '{{justfile_directory()}}\native'
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
+
+# Bootstrap: install dev deps + pre-commit hook

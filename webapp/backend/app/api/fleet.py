@@ -118,9 +118,7 @@ async def fleet_webapps() -> dict:
             async with sem:
                 return port, await _probe_port(client, port)
 
-        probe_results = await asyncio.gather(
-            *(_probe_with_sem(p) for p in all_ports), return_exceptions=True
-        )
+        probe_results = await asyncio.gather(*(_probe_with_sem(p) for p in all_ports), return_exceptions=True)
 
     results: dict[int, bool] = {}
     for item in probe_results:
@@ -135,25 +133,29 @@ async def fleet_webapps() -> dict:
     webapps = []
     for app in FLEET_APPS:
         port = app["port"]
-        webapps.append({
-            "label": app["label"],
-            "port": port,
-            "url": f"http://127.0.0.1:{port}/",
-            "description": app["desc"],
-            "up": results.get(port, False),
-        })
+        webapps.append(
+            {
+                "label": app["label"],
+                "port": port,
+                "url": f"http://127.0.0.1:{port}/",
+                "description": app["desc"],
+                "up": results.get(port, False),
+            }
+        )
 
     # Build container list
     containers = []
     for c in CONTAINER_PORTS:
         port = c["port"]
-        containers.append({
-            "label": c["label"],
-            "port": port,
-            "url": f"http://127.0.0.1:{port}/",
-            "description": c["desc"],
-            "up": results.get(port, False),
-        })
+        containers.append(
+            {
+                "label": c["label"],
+                "port": port,
+                "url": f"http://127.0.0.1:{port}/",
+                "description": c["desc"],
+                "up": results.get(port, False),
+            }
+        )
 
     return {
         "webapps": webapps,
