@@ -164,6 +164,10 @@ def register_tools(mcp: Any) -> None:
         import_time = time.time() - import_start
         logger.info(f"Book management loaded in {import_time:.2f}s")
 
+        # Bookcase photo cataloging (bookcase_catalog)
+        with contextlib.suppress(ImportError):
+            importlib.import_module("calibre_mcp.tools.bookcase")
+
         # RAG (semantic search over book text and metadata; lancedb/fastembed in main deps)
         import_start = time.time()
         with contextlib.suppress(ImportError):
@@ -252,14 +256,18 @@ def register_tools(mcp: Any) -> None:
         logger.error(f"Failed to load portmanteau tools: {e}", exc_info=True)
         error_count += 1
 
-    # Get count of registered tools from FastMCP
+    # Get count of registered tools from FastMCP (public async API - private
+    # attrs were removed in FastMCP 3.4.x)
+    registered_tools_count = "unknown"
     try:
-        if hasattr(mcp, "_tools"):
-            registered_tools_count = len(mcp._tools)
-        elif hasattr(mcp, "tools"):
-            registered_tools_count = len(mcp.tools) if isinstance(mcp.tools, dict) else 0
-        else:
-            registered_tools_count = "unknown"
+        import asyncio
+
+        async def _count_tools() -> int:
+            return len(await mcp.list_tools())
+
+        loop = asyncio.get_event_loop()
+        if not loop.is_running():
+            registered_tools_count = asyncio.run(_count_tools())
     except Exception:
         registered_tools_count = "unknown"
 
