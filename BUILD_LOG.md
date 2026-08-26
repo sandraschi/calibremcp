@@ -4,6 +4,19 @@
 > This is NOT a changelog (functional changes) — it records build-process issues
 > so we can recover faster when a pattern repeats.
 
+## 2026-08-26 Tauri NSIS — blank UI / "problem with basepath"
+
+**Symptom:** Rebuilt NSIS installer rendered blank/broken app. Root cause traced to `basePath` in `webapp/frontend/next.config.js`.
+
+**Root cause:** A working-copy edit dropped `basePath: '/app'` from the Tauri branch (`output: 'export'`). The backend serves the static export as an SPA mounted at `/app` (webview navigates to `http://127.0.0.1:10720/app/`). Without basePath, Next.js emits **absolute** `/_next/...` asset URLs and `/books` page links, which 404 under the `/app` mount → blank UI.
+
+**Fix:** Restored `basePath: '/app'` for `TAURI_BUILD=1`. Verified via `scripts/build-tauri-frontend.ps1`: `out/index.html` stays at root but now references `/app/_next/...`, `/app/books/`, etc., which resolve correctly when `out/` is mounted at `/app` by `SPAStaticFiles`.
+
+**Verification:** `npm run build` (TAURI_BUILD=1) exports clean; `out/index.html` + `out/_next/` present; all `src/href` asset refs prefixed `/app/`.
+
+**Detection:** Grep the built `out/index.html` for asset refs. If they start `/_next/` (not `/app/_next/`), basePath is missing and the installer will render blank.
+
+
 ## 2026-06-23 v1.8.6
 
 ### PyInstaller runt (14 MB instead of 186 MB)
