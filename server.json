@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.sandraschi/calibre-mcp",
+  "description": "Conversational Calibre e-book library management: search, metadata, tags, conversion, RAG",
+  "version": "1.8.6",
+  "repository": {
+    "url": "https://github.com/sandraschi/calibremcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/sandraschi/calibremcp/releases/download/v1.8.6/calibre-mcp-v1.8.6.mcpb",
+      "fileSha256": "594a1f3cbc5bf96069bdadf3ca62275e78a69438c4a3231a48e939e78d1530ed",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

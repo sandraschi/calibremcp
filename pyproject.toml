@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "calibremcp"
 version = "1.8.6"
-description = "SOTA April 2026 industrialized FastMCP 3.2.0 server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG"
+description = "Conversational Calibre e-book library management: search, metadata, tags, conversion, RAG"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }

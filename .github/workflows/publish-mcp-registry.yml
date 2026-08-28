@@ -1,0 +1,59 @@
+# Publish MCP Server to the official MCP Registry (registry.modelcontextprotocol.io)
+#
+# Fleet template - copy into a repo's .github/workflows/publish-mcp.yml once server.json
+# exists at repo root with a REAL fileSha256 (not a placeholder - the generator at
+# mcp-central-docs/scripts/generate-server-json.ps1 exits 1 if it can't compute one).
+#
+# Matches the official documented flow exactly (verified 2026-08-27 against
+# https://modelcontextprotocol.io/registry/github-actions - do not "improve" on this
+# without re-checking that page, the CLI's exact steps have changed before).
+#
+# Trigger: push a tag matching v* (e.g. v0.3.0) AFTER creating the GitHub release with the
+# .mcpb asset attached at the path server.json's packages[0].identifier already points to.
+# The identifier URL must already resolve before this runs, or the registry publish fails.
+#
+# Auth: GitHub Actions OIDC (no secrets stored). Namespace io.github.sandraschi/<repo> is
+# authenticated because this workflow runs inside an Action on the sandraschi/<repo> repo.
+#
+# No npm/PyPI publish steps here - the fleet ships MCPB bundles as GitHub release assets,
+# not package-registry packages. Adjust if a given repo ever also ships to npm/PyPI.
+
+name: Publish to MCP Registry
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}  # allow manual re-run, e.g. after a rejected publish
+
+permissions:
+  id-token: write   # required for OIDC authentication - do not narrow further
+  contents: read     # to check out server.json
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify server.json exists and has no placeholder hash
+        run: |
+          if [ ! -f server.json ]; then
+            echo "::error::server.json not found at repo root. Run generate-server-json.ps1 first."
+            exit 1
+          fi
+          if grep -q '"fileSha256": *"0000000000000000000000000000000000000000000000000000000000000000"' server.json; then
+            echo "::error::server.json still has the placeholder fileSha256 - the real .mcpb was never hashed in. Rebuild (just mcpb-pack) and regenerate (generate-server-json.ps1) before tagging."
+            exit 1
+          fi
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server to MCP Registry
+        run: ./mcp-publisher publish
