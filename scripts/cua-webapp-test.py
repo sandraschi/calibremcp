@@ -19,8 +19,8 @@ Phases:
     8. Diagnostics check (if backend exposes /api/v1/diagnostics)
     9. Cleanup: kill spawned processes
 """
+
 import argparse
-import glob
 import json
 import os
 import re
@@ -29,6 +29,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from contextlib import suppress
 from pathlib import Path
 
 CUA_WEBAPP_TEST_VERSION = 1
@@ -37,8 +38,16 @@ _CONFIG = {}
 
 CONNECTED_KEYWORDS = ["connected", "system online", "online", "ready"]
 CONNECTING_KEYWORDS = ["connecting", "waiting for backend", "connecting..."]
-FAIL_KEYWORDS = ["404", "not found", "error", "timeout", "internal server error",
-                 "failed to fetch", "cannot connect", "connection refused"]
+FAIL_KEYWORDS = [
+    "404",
+    "not found",
+    "error",
+    "timeout",
+    "internal server error",
+    "failed to fetch",
+    "cannot connect",
+    "connection refused",
+]
 
 
 def load_config(path=None):
@@ -80,24 +89,30 @@ def kill_stale():
     ports = [str(p) for p in (BACKEND_PORT, FRONTEND_PORT) if p]
     if not ports:
         return
-    ps = "\n".join([
-        "Get-NetTCPConnection -LocalPort " + p + " -ErrorAction SilentlyContinue "
-        "| ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
-        for p in ports
-    ]) + "\nexit 0\n"
+    ps = (
+        "\n".join(
+            [
+                "Get-NetTCPConnection -LocalPort " + p + " -ErrorAction SilentlyContinue "
+                "| ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
+                for p in ports
+            ]
+        )
+        + "\nexit 0\n"
+    )
     import tempfile
+
     fd, path = tempfile.mkstemp(suffix=".ps1")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(ps)
-        subprocess.run(
-            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path],
-            capture_output=True, timeout=15)
+        subprocess.run(  # noqa: S603 - fixed literal command array, local test script
+            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path],  # noqa: S607 - powershell on PATH by fleet standard
+            capture_output=True,
+            timeout=15,
+        )
     finally:
-        try:
+        with suppress(OSError):
             os.remove(path)
-        except OSError:
-            pass
     log(f"Cleared ports {', '.join(ports)}")
     time.sleep(2)
     return True
@@ -112,10 +127,27 @@ def start_stack():
     if start_ps1.exists():
         try:
             log("Starting stack via start.ps1 -Headless...")
-            subprocess.Popen(
-                ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
-                 "-File", str(start_ps1), "-Headless"],
-                cwd=str(repo_root), creationflags=subprocess.CREATE_NO_WINDOW)
+            # Fleet unified launcher requires probe mode env (same as fleet-webapp-start-probe.ps1)
+            env = dict(os.environ)
+            for v in ("VIRTUAL_ENV", "PYTHONPATH", "UV_PROJECT_ENVIRONMENT"):
+                env.pop(v, None)
+            env["FLEET_PROBE_RUN"] = "1"
+            env["FLEET_PROBE_LOG_DIR"] = str(repo_root / "cua-reports" / "logs")
+            subprocess.Popen(  # noqa: S603 - fixed literal command array, local test script
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",  # noqa: S607 - powershell on PATH by fleet standard
+                    "-File",
+                    str(start_ps1),
+                    "-Headless",
+                ],
+                cwd=str(repo_root),
+                stdin=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                env=env,
+            )
             return True
         except Exception as e:
             log(f"start.ps1 -Headless failed ({e}), falling back to direct spawn")
@@ -126,11 +158,17 @@ def start_stack():
         log("No backend_module in config — cannot direct-spawn backend")
         return False
     log(f"Direct spawn fallback: python -m {module}")
-    subprocess.Popen(
-        ["powershell.exe", "-NoProfile", "-Command",
-         f"Set-Location '{repo_root}'; $env:BACKEND_PORT='{BACKEND_PORT}'; "
-         f"uv run python -m {module}"],
-        cwd=str(repo_root), creationflags=subprocess.CREATE_NO_WINDOW)
+    subprocess.Popen(  # noqa: S603 - fixed literal command array, local test script
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-Command",  # noqa: S607 - powershell on PATH by fleet standard
+            f"Set-Location '{repo_root}'; $env:BACKEND_PORT='{BACKEND_PORT}'; uv run python -m {module}",
+        ],
+        cwd=str(repo_root),
+        stdin=subprocess.DEVNULL,
+        creationflags=subprocess.CREATE_NO_WINDOW,
+    )
     return True
 
 
@@ -140,11 +178,11 @@ def wait_backend():
     deadline = time.time() + int(cfg("backend_timeout", 30))
     while time.time() < deadline:
         try:
-            r = urllib.request.urlopen(url, timeout=3)
+            r = urllib.request.urlopen(url, timeout=3)  # noqa: S310 - localhost health poll from config
             if r.status == 200:
                 log(f"Backend ready ({url})")
                 return True
-        except Exception:
+        except Exception:  # noqa: S110 - poll loop, backoff handled by time.sleep below
             pass
         time.sleep(2)
     log(f"Backend not reachable at {url}")
@@ -164,7 +202,7 @@ def wait_frontend():
             if r.status == 200:
                 log(f"Frontend ready ({url})")
                 return True
-        except Exception:
+        except Exception:  # noqa: S110 - poll loop, backoff handled by time.sleep below
             pass
         time.sleep(2)
     log(f"Frontend not reachable at {url}")
@@ -177,7 +215,7 @@ def open_browser():
         return True
     url = f"http://127.0.0.1:{FRONTEND_PORT}"
     try:
-        subprocess.Popen(["cmd", "/c", "start", "", url])
+        subprocess.Popen(["cmd", "/c", "start", "", url])  # noqa: S603, S607 - fixed literal, cmd.exe on PATH by design
         log(f"Opened browser: {url}")
         return True
     except Exception as e:
@@ -188,8 +226,8 @@ def open_browser():
 def find_webapp_window():
     """Find the browser window showing the webapp (by title regex, prefer one with links)."""
     try:
-        import pywinauto
         from pywinauto import Desktop
+
         desktop = Desktop(backend="uia")
         candidates = []
         for w in desktop.windows():
@@ -204,7 +242,7 @@ def find_webapp_window():
             try:
                 if w.descendants(control_type="Hyperlink"):
                     return w
-            except Exception:
+            except Exception:  # noqa: S110 - try each candidate, fall through on failure
                 pass
         return candidates[0]
     except Exception:
@@ -230,6 +268,7 @@ def wait_connected_badge(timeout=None):
                 # OCR via tesseract
                 try:
                     import pytesseract
+
                     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
                     text = (pytesseract.image_to_string(img) or "").lower()
                 except Exception:
@@ -240,7 +279,7 @@ def wait_connected_badge(timeout=None):
                 # If we see connecting text, keep waiting (not an error)
                 if any(k in text for k in CONNECTING_KEYWORDS):
                     log("  Still connecting...")
-            except Exception:
+            except Exception:  # noqa: S110 - OCR/window failures are retried by the poll loop
                 pass
         time.sleep(2)
     if win is None:
@@ -252,7 +291,6 @@ def wait_connected_badge(timeout=None):
 
 def nav_click_through(output_dir, win):
     """Title-matching sidebar walk (same strategy as cua-smoke template v3)."""
-    import pywinauto
     nav_routes = cfg("nav_routes", [])
     if not isinstance(nav_routes, list) or not nav_routes:
         log("No nav_routes in config — nav walk skipped")
@@ -261,11 +299,11 @@ def nav_click_through(output_dir, win):
     try:
         win.maximize()
         time.sleep(1)
-    except Exception:
+    except Exception:  # noqa: S110 - maximize is best-effort
         pass
 
     nav_failures = []
-    for label, expected in nav_routes:
+    for label, _expected in nav_routes:
         try:
             link = win.descendants(title=label)
             if link:
@@ -280,7 +318,7 @@ def nav_click_through(output_dir, win):
                     log(f"Nav '{label}': no link found — skipped")
                     continue
             time.sleep(2)
-            path = os.path.join(output_dir, f"webapp-{label.lower().replace(' ','-')}.png")
+            path = os.path.join(output_dir, f"webapp-{label.lower().replace(' ', '-')}.png")
             win.capture_as_image().save(path)
             log(f"Nav '{label}': clicked + screenshot ({os.path.getsize(path)} bytes)")
         except Exception as e:
@@ -295,7 +333,7 @@ def nav_click_through(output_dir, win):
 
 def check_diagnostics():
     try:
-        r = urllib.request.urlopen(f"{BACKEND_URL}/api/v1/diagnostics", timeout=5)
+        r = urllib.request.urlopen(f"{BACKEND_URL}/api/v1/diagnostics", timeout=5)  # noqa: S310 - localhost diagnostics check
         data = json.loads(r.read())
         log(f"Diagnostics: HTTP {r.status}, tools={len(data.get('tools', [])) if isinstance(data, dict) else '?'}")
         return True
@@ -375,7 +413,7 @@ def main():
                 log(f"CRITICAL — aborting ({name})")
                 break
 
-    log(f"Result: {passed}/{passed+failed}")
+    log(f"Result: {passed}/{passed + failed}")
     sys.exit(0 if failed == 0 else 1)
 
 
