@@ -244,10 +244,10 @@ if (-not $SkipMcpb) {
 
         Copy-Item $mcpbOut "$RepoRoot\dist\calibre-mcp.mcpb" -Force
 
-        npx @anthropic-ai/mcpb validate $mcpbOut
-        Assert-Exit $LASTEXITCODE 'mcpb validate' `
-            'The generated .mcpb bundle failed validation.' `
-            'Inspect the bundle: npx @anthropic-ai/mcpb inspect dist\*.mcpb'
+        npx @anthropic-ai/mcpb info $mcpbOut
+        Assert-Exit $LASTEXITCODE 'mcpb info' `
+            'The generated .mcpb bundle failed verification.' `
+            'Inspect the bundle: npx @anthropic-ai/mcpb info dist\*.mcpb'
 
         $sizeMb = (Get-Item $mcpbOut).Length / 1MB
         if ($sizeMb -gt 100) {

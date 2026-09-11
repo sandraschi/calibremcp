@@ -31,7 +31,7 @@ from .storage import LocalStorage, StorageBackend
 try:
     __version__ = _metadata_version("calibremcp")
 except PackageNotFoundError:
-    __version__ = "1.8.6"
+    __version__ = "1.9.0"
 __author__ = "Sandra"
 __description__ = "FastMCP 2.14.1+ server for Calibre e-book library management"
 

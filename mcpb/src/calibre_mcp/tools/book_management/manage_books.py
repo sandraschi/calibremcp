@@ -89,6 +89,7 @@ async def manage_books(
                 try:
                     if isinstance(res, dict) and res.get("id"):
                         from calibre_mcp.rag.metadata_rag import upsert_book_metadata
+
                         upsert_book_metadata(res["id"], metadata_db_path=library_path)
                 except Exception as rag_err:
                     logger.debug("Incremental RAG upsert skipped or failed: %s", rag_err)
@@ -224,6 +225,7 @@ async def manage_books(
                 )
                 try:
                     from calibre_mcp.rag.metadata_rag import upsert_book_metadata
+
                     upsert_book_metadata(book_id, metadata_db_path=library_path)
                 except Exception as rag_err:
                     logger.debug("Incremental RAG update skipped or failed: %s", rag_err)
@@ -263,6 +265,7 @@ async def manage_books(
                 )
                 try:
                     from calibre_mcp.rag.metadata_rag import remove_book_metadata
+
                     remove_book_metadata(book_id, metadata_db_path=library_path)
                 except Exception as rag_err:
                     logger.debug("Incremental RAG remove skipped or failed: %s", rag_err)
