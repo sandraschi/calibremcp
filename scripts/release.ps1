@@ -46,27 +46,27 @@ $ErrorActionPreference = 'Stop'
 # ==============================================================================
 
 # HTTP port the sidecar listens on (fleet port registry)
-$Port = 10762
+$Port = 10720
 
 # Environment variable that tells the backend it is running under Tauri
-$TauriEnvVar = 'WINRARMCP_TAURI'
+$TauriEnvVar = 'CALIBRE_TAURI'
 
 # A real API route that returns JSON (not /health -- prove feature routes work).
 # To find candidates: Get-ChildItem src -Recurse -Filter '*.py' |
 #   Select-String '@app.get|@router.get' | Select -First 10
-$SmokeRoute = '/api/archive/list'
+$SmokeRoute = '/api/v1/diagnostics'
 
 # mcpb source dir relative to repo root ('.' if packing from root)
-$McpbSrcDir = '.'
+$McpbSrcDir = 'mcpb'
 
 # Path to the Tauri build script in native/
 $NativeBuildScript = 'native\build.ps1'
 
 # Name of the sidecar exe produced by PyInstaller in dist/
-$BackendExeName = 'winrar-mcp-backend.exe'
+$BackendExeName = 'calibre-mcp-backend.exe'
 
 # Name of the main Tauri binary (mainBinaryName in tauri.conf.json)
-$NativeExeName = 'winrar-mcp-native.exe'
+$NativeExeName = 'calibre-mcp-native.exe'
 
 # Path to Tauri starts shortcut update script (set to '' to skip)
 $TauriStartsScript = 'scripts\update-tauri-starts-link.ps1'
