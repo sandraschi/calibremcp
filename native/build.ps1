@@ -54,6 +54,8 @@ Write-Host "-> [2/4] PyInstaller backend..." -ForegroundColor Yellow
 $specFile = "$Root\${RepoName}-backend.spec"
 if (Test-Path $specFile) {
     Push-Location $Root
+    Get-Process -Name "${RepoName}-backend" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 500
     # Patch fastmcp to not crash on missing metadata (dist-info stripped below)
     $fm = "$Root\.venv\Lib\site-packages\fastmcp\__init__.py"
     if (Test-Path $fm) {

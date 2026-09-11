@@ -359,6 +359,8 @@ if (-not $SkipSidecar -and -not $SkipNsis) {
 
         } finally {
             Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            $procName = $BackendExeName -replace '\.exe$',''
+            Get-Process -Name $procName -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
             Remove-Item -Path 'Env:PORT'          -ErrorAction SilentlyContinue
             Remove-Item -Path "Env:$TauriEnvVar"  -ErrorAction SilentlyContinue
         }
