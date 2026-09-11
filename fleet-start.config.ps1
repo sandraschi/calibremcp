@@ -5,7 +5,7 @@
     BackendPort  = 10720
     FrontendPort = 10721
     HealthPath   = '/health'
-    WebRoot      = 'D:\Dev\repos\calibre-mcp\webapp'
+    WebRoot      = 'webapp\frontend'
     Backend = @{
         Kind          = 'uvicorn'
         UvicornTarget = 'calibre_mcp.server:app'
@@ -13,9 +13,9 @@
         Env           = @{ WEB_PORT = '10720' }
     }
     Frontend = @{
-        Kind           = 'vite-npm'
+        Kind           = 'next'
         PackageManager = 'npm'
-        PortEnvVar     = 'VITE_PORT'
+        PortEnvVar     = 'PORT'
         ApiTargetEnv   = 'VITE_API_TARGET'
     }
 }

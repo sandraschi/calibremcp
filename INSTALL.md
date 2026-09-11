@@ -46,10 +46,10 @@ MCP tools only — no desktop UI.
 ```powershell
 git clone https://github.com/sandraschi/calibre-mcp
 cd calibre-mcp
-.\start.ps1
+.\webapp\start.bat
 ```
 
-Or: `just sync` then `just start-webapp` — backend **10720**, frontend **10721**.
+Or from PowerShell: `.\webapp\start.ps1` (starts backend **10720**, frontend **10721** in standalone mode without any external repository dependencies).
 
 ---
 
@@ -59,7 +59,7 @@ Or: `just sync` then `just start-webapp` — backend **10720**, frontend **10721
 git clone https://github.com/sandraschi/calibre-mcp
 cd calibre-mcp
 uv sync
-uv run python -m calibre_mcp
+uv run calibre-mcp
 ```
 
 Or: `just mcp`
@@ -99,6 +99,7 @@ Other recipes: `just test`, `just lint`, `just mcpb-pack`. List all: `just --lis
 | Port 10720/10721 in use | Stop other service on that port |
 | `just` not found | Use Option A (no just) or Option C without just |
 | Dependencies out of sync | `just sync-dev` or `uv sync --all-extras` |
+| Windows Terminal Error `0x800700e8` (`ERROR_NO_DATA`) | Windows Terminal pseudoconsole pipe closed prematurely. Launch with `.\webapp\start.bat` or run PowerShell directly with `-NoExit`. |
 
 ---
 

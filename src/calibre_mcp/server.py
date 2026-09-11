@@ -290,7 +290,15 @@ if not _is_stdio_mode:
 # Register prompt templates
 register_prompts(mcp)
 
-# ASGI app for uvicorn (webapp/start.ps1): uvicorn calibre_mcp.server:app
+# Register MCP tools so they are available for ASGI / HTTP / test imports
+try:
+    from calibre_mcp.tools import register_tools
+
+    register_tools(mcp)
+except Exception as _e:
+    logger.debug(f"Deferred tool registration: {_e}")
+
+# ASGI app for uvicorn: uvicorn calibre_mcp.server:app
 
 app = FastAPI(title="CalibreMCP", version="1.0.0")
 _tauri = os.environ.get("CALIBRE_TAURI", "").lower() in ("1", "true", "yes")
@@ -330,6 +338,8 @@ def _get_calibre_status() -> dict:
 
 def _count_tools() -> int:
     try:
+        if hasattr(mcp, "_local_provider") and hasattr(mcp._local_provider, "_components"):
+            return len([k for k in mcp._local_provider._components if k.startswith("tool:")])
         if hasattr(mcp, "_tools"):
             return len(mcp._tools)
     except Exception:
@@ -354,7 +364,13 @@ async def health():
 async def diagnostics():
     tool_list = []
     try:
-        if hasattr(mcp, "_tools"):
+        if hasattr(mcp, "_local_provider") and hasattr(mcp._local_provider, "_components"):
+            tool_list = [
+                {"name": k.split("tool:", 1)[1].split("@", 1)[0]}
+                for k in mcp._local_provider._components
+                if k.startswith("tool:")
+            ]
+        elif hasattr(mcp, "_tools"):
             tool_list = [{"name": name} for name in mcp._tools.keys()]
     except Exception:
         pass

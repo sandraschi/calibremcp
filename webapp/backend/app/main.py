@@ -325,6 +325,8 @@ def _count_tools() -> int:
     try:
         from calibre_mcp.server import mcp as _mcp
 
+        if hasattr(_mcp, "_local_provider") and hasattr(_mcp._local_provider, "_components"):
+            return len([k for k in _mcp._local_provider._components if k.startswith("tool:")])
         if hasattr(_mcp, "_tools"):
             return len(_mcp._tools)
     except Exception:

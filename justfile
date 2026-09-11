@@ -100,7 +100,7 @@ test:
     uv run pytest
 
 e2e:
-    powershell.exe -NoProfile -NoProfile -ExecutionPolicy Bypass -File "D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1" -RepoPath "{{justfile_directory()}}"
+    @powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$p = 'D:\Dev\repos\mcp-central-docs\scripts\playwright-audit.ps1'; if (Test-Path -LiteralPath $p) { & $p -RepoPath '{{justfile_directory()}}' } else { Write-Host 'E2E audit skipped: central playwright-audit.ps1 not found (fleet-only test)' -ForegroundColor Yellow }"
 
 # Unit tests only (fast)
 test-unit:
