@@ -157,6 +157,7 @@ class Chapter:
     title: str
     paragraphs: list[str]
 
+
 @dataclass
 class ExtractedBook:
     book_id: int
@@ -204,9 +205,9 @@ Output: annotated paragraphs with metadata.
 @dataclass
 class AnnotatedParagraph:
     text: str
-    emotion: str                    # see list above
-    pace: str                       # "normal" | "slow" | "fast"
-    speakers: list[str]             # character names in spoken order, [] if pure narration
+    emotion: str  # see list above
+    pace: str  # "normal" | "slow" | "fast"
+    speakers: list[str]  # character names in spoken order, [] if pure narration
     emphasis_words: list[str]
     is_dialogue: bool
     is_chapter_heading: bool
@@ -336,8 +337,7 @@ CREATE INDEX idx_jobs_book ON audiobook_jobs(book_id);
 ```python
 @mcp.tool()
 async def manage_audiobook(
-    operation: Literal["generate", "status", "cancel", "list_jobs",
-                       "preview_first_chapter", "eligibility_check"],
+    operation: Literal["generate", "status", "cancel", "list_jobs", "preview_first_chapter", "eligibility_check"],
     book_id: int | None = None,
     job_id: int | None = None,
     backend: Literal["gemini", "kokoro"] = "kokoro",

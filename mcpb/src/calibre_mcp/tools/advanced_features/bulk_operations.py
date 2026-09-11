@@ -53,9 +53,7 @@ class BulkOperationsTool(MCPTool):
         # Process books in batches
         for i in range(0, len(book_ids), batch_size):
             batch = book_ids[i : i + batch_size]
-            batch_results = await update_tool._run(
-                book_ids=batch, metadata=updates, library_path=library_path
-            )
+            batch_results = await update_tool._run(book_ids=batch, metadata=updates, library_path=library_path)
 
             results["successful"] += len(batch_results.get("updated", []))
             results["failed"] += len(batch_results.get("failed", []))
@@ -71,7 +69,7 @@ class BulkOperationsTool(MCPTool):
         book_ids: list[int | str],
         export_path: str,
         library_path: str | None = None,
-        format: str = "directory",
+        fmt: str = "directory",
     ) -> dict:
         """
         Export multiple books to a specified location.
@@ -86,9 +84,7 @@ class BulkOperationsTool(MCPTool):
 
         export_tool = ExportLibraryTool()
 
-        return await export_tool._run(
-            export_path=export_path, library_path=library_path, book_ids=book_ids, format=format
-        )
+        return await export_tool._run(export_path=export_path, library_path=library_path, book_ids=book_ids, format=fmt)
 
     async def bulk_delete(
         self,
@@ -156,16 +152,15 @@ class BulkOperationsTool(MCPTool):
                 if not metadata:
                     raise ValueError(f"Book {book_id} not found")
 
-                if target_format.lower() in [f.lower() for f in (metadata.formats or [])]:
-                    if not replace_existing:
-                        results["errors"].append(
-                            {
-                                "book_id": book_id,
-                                "error": f"Book already has {target_format} format",
-                            }
-                        )
-                        results["failed"] += 1
-                        continue
+                if target_format.lower() in [f.lower() for f in (metadata.formats or [])] and not replace_existing:
+                    results["errors"].append(
+                        {
+                            "book_id": book_id,
+                            "error": f"Book already has {target_format} format",
+                        }
+                    )
+                    results["failed"] += 1
+                    continue
 
                 # Convert the book
                 result = await conversion_tool._run(
@@ -183,9 +178,7 @@ class BulkOperationsTool(MCPTool):
                     )
                 else:
                     results["failed"] += 1
-                    results["errors"].append(
-                        {"book_id": book_id, "error": result.get("error", "Unknown error")}
-                    )
+                    results["errors"].append({"book_id": book_id, "error": result.get("error", "Unknown error")})
 
             except Exception as e:
                 results["failed"] += 1

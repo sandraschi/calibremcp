@@ -2,9 +2,9 @@
 Minimal CalibreMCP Server for testing
 """
 
-print("MINIMAL SERVER: Starting...", file=__import__("sys").stderr)
-
 from fastmcp import FastMCP
+
+print("MINIMAL SERVER: Starting...", file=__import__("sys").stderr)
 
 print("MINIMAL SERVER: FastMCP imported", file=__import__("sys").stderr)
 

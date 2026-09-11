@@ -31,7 +31,7 @@ async def manage_import(
     md5: str | None = None,
     book_id: int | None = None,
     arxiv_id: str | None = None,
-    format: str | None = None,
+    fmt: str | None = None,
     max_results: int = 20,
     library_path: str | None = None,
 ) -> dict[str, Any]:
@@ -100,7 +100,7 @@ async def manage_import(
             if not book_id:
                 return {"success": False, "error": "book_id is required for gutenberg_import"}
             logger.info(f"Starting Gutenberg import for #{book_id}")
-            tmp_path = await download_gutenberg_book(book_id, preferred_format=format or "application/epub+zip")
+            tmp_path = await download_gutenberg_book(book_id, preferred_format=fmt or "application/epub+zip")
             if not tmp_path:
                 return {"success": False, "error": f"Failed to download Gutenberg book {book_id}"}
             try:
@@ -127,10 +127,7 @@ async def manage_import(
                 Path(tmp_path).unlink(missing_ok=True)
 
         return format_error_response(
-            error_msg=(
-                f"Invalid operation: '{operation}'. Must be one of: "
-                "'annas_search', 'from_url', 'from_path'"
-            ),
+            error_msg=(f"Invalid operation: '{operation}'. Must be one of: 'annas_search', 'from_url', 'from_path'"),
             error_code="INVALID_OPERATION",
             error_type="ValueError",
             operation=operation,

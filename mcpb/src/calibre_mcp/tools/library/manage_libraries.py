@@ -48,9 +48,7 @@ def _add_dialogic_fields(
                 "Use operation='switch' to activate",
             ],
         }
-        result["recommendations"] = recs.get(
-            operation, ["Use manage_libraries for library operations"]
-        )
+        result["recommendations"] = recs.get(operation, ["Use manage_libraries for library operations"])
     return result
 
 

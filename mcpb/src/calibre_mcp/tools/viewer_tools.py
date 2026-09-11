@@ -36,11 +36,7 @@ class UpdateStateInput(BaseModel):
     book_id: int = Field(..., description="ID of the book")
     file_path: str = Field(..., description="Path to the book file")
     current_page: int | None = Field(None, ge=0, description="Current page number")
-    reading_direction: str | None = Field(
-        None, description="Reading direction (ltr, rtl, vertical)"
-    )
+    reading_direction: str | None = Field(None, description="Reading direction (ltr, rtl, vertical)")
     page_layout: str | None = Field(None, description="Page layout mode (single, double, auto)")
-    zoom_mode: str | None = Field(
-        None, description="Zoom mode (fit-width, fit-height, fit-both, original, custom)"
-    )
+    zoom_mode: str | None = Field(None, description="Zoom mode (fit-width, fit-height, fit-both, original, custom)")
     zoom_level: float | None = Field(None, ge=0.1, le=5.0, description="Zoom level (1.0 = 100%)")

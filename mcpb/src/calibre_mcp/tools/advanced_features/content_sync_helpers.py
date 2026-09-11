@@ -87,9 +87,7 @@ async def start_sync_helper(
     """Helper to start a sync job."""
     try:
         tool = _get_sync_tool()
-        return await tool.sync_start(
-            device_id=device_id, sync_type=sync_type, library_path=library_path
-        )
+        return await tool.sync_start(device_id=device_id, sync_type=sync_type, library_path=library_path)
     except Exception as e:
         logger.error(f"Error starting sync: {e}", exc_info=True)
         return format_error_response(

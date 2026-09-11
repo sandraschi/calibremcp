@@ -38,7 +38,7 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
    ```bash
    # Install uv if you haven't already
    pip install uv
-   
+
    # Install project dependencies
    uv sync --dev
    ```
@@ -47,24 +47,24 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
    ```bash
    # Install Git hooks for automatic code quality checks
    pre-commit install
-   
+
    # Run hooks on all files (first time)
    pre-commit run --all-files
    ```
-   
+
    Pre-commit hooks automatically run code quality checks before each commit:
    - Ruff linting and formatting
    - MyPy type checking
    - Security scanning (bandit)
    - File quality checks
-   
+
    See [Pre-commit Setup Guide](docs/development/PRE_COMMIT_SETUP.md) for details.
 
 4. **Set Up Environment**
    ```bash
    # Copy example environment file
    cp .env.example .env
-   
+
    # Edit .env with your Calibre server details
    CALIBRE_SERVER_URL=http://localhost:8080
    CALIBRE_USERNAME=your_username
@@ -75,7 +75,7 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
    ```bash
    # Run tests
    uv run pytest tests/ -v
-   
+
    # Run linting
    uv run ruff check .
    ```
@@ -135,21 +135,17 @@ uv run pytest tests/ --cov=src/calibre_mcp --cov-report=html
 
 ```python
 # Good example
-async def search_books(
-    query: str,
-    limit: int = 10,
-    offset: int = 0
-) -> List[Book]:
+async def search_books(query: str, limit: int = 10, offset: int = 0) -> List[Book]:
     """Search for books with optional filters.
-    
+
     Args:
         query: Search query string
         limit: Maximum number of results
         offset: Number of results to skip
-        
+
     Returns:
         List of matching books
-        
+
     Raises:
         CalibreError: If search fails
     """
@@ -206,15 +202,16 @@ import pytest
 from calibre_mcp.models import Book
 from calibre_mcp.tools.book_tools import search_books
 
+
 @pytest.mark.asyncio
 async def test_search_books():
     """Test book search functionality."""
     # Arrange
     query = "python programming"
-    
+
     # Act
     result = await search_books(query, limit=5)
-    
+
     # Assert
     assert isinstance(result, list)
     assert len(result) <= 5
@@ -352,7 +349,7 @@ asyncio.run(test())
    ```bash
    # Ensure you're in the project directory
    cd calibre-mcp
-   
+
    # Check Python path
    uv run python -c "import sys; print(sys.path)"
    ```
@@ -361,7 +358,7 @@ asyncio.run(test())
    ```bash
    # Run with verbose output
    uv run pytest tests/ -v -s
-   
+
    # Run specific test
    uv run pytest tests/test_specific.py::test_function -v
    ```
@@ -370,7 +367,7 @@ asyncio.run(test())
    ```bash
    # Test Calibre server
    curl http://localhost:8080/opds
-   
+
    # Check environment variables
    uv run python -c "from calibre_mcp.config import CalibreConfig; print(CalibreConfig())"
    ```

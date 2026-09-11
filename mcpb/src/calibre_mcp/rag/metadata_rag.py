@@ -7,6 +7,7 @@ embeds with fastembed, stores in LanceDB. Enables semantic search without full-t
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from pathlib import Path
@@ -35,18 +36,14 @@ def _get_embedder(model_name: str, cache_dir: str) -> Any:
     if key not in _EMBEDDERS:
         from calibre_mcp.rag.fastembed_gpu import create_text_embedding, repo_root_from_here
 
-        model, device, batch = create_text_embedding(
-            model_name, cache_dir, repo_root=repo_root_from_here()
-        )
+        model, device, batch = create_text_embedding(model_name, cache_dir, repo_root=repo_root_from_here())
         _EMBEDDERS[key] = model
         _EMBED_BATCH = batch
         logger.info("[rag] Embed device: %s (batch %s)", device, batch)
     return _EMBEDDERS[key]
 
 
-def _write_progress(
-    lancedb_dir: Path, status: str, current: int, total: int, message: str = ""
-) -> None:
+def _write_progress(lancedb_dir: Path, status: str, current: int, total: int, message: str = "") -> None:
     path = lancedb_dir / PROGRESS_FILENAME
     try:
         data = {"status": status, "current": current, "total": total, "message": message}
@@ -136,24 +133,23 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
 
         # Locate calibre_mcp_data.db using same logic as plugin db_adapter
         if os.name == "nt":
-            appdata = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
-            db_path = os.path.join(appdata, "calibre-mcp", "calibre_mcp_data.db")
+            appdata = os.getenv("APPDATA", Path("~\\AppData\\Roaming").expanduser())
+            db_path = Path(appdata) / "calibre-mcp" / "calibre_mcp_data.db"
         else:
             import platform
-            home = os.path.expanduser("~")
+
+            home = Path("~").expanduser()
             if platform.system() == "Darwin":
-                db_path = os.path.join(home, "Library", "Application Support",
-                                       "calibre-mcp", "calibre_mcp_data.db")
+                db_path = home / "Library" / "Application Support" / "calibre-mcp" / "calibre_mcp_data.db"
             else:
-                db_path = os.path.join(home, ".local", "share",
-                                       "calibre-mcp", "calibre_mcp_data.db")
+                db_path = home / ".local" / "share" / "calibre-mcp" / "calibre_mcp_data.db"
 
         # Allow env override
         env_dir = os.getenv("CALIBRE_MCP_USER_DATA_DIR")
         if env_dir:
-            db_path = os.path.join(env_dir, "calibre_mcp_data.db")
+            db_path = Path(env_dir) / "calibre_mcp_data.db"
 
-        if not os.path.exists(db_path):
+        if not Path(db_path).exists():
             return ""
 
         conn = sqlite3.connect(db_path)
@@ -169,8 +165,7 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
 
             # Also get personal notes from user_comments
             note_row = conn.execute(
-                "SELECT comment_text FROM user_comments "
-                "WHERE book_id=? AND library_path=?",
+                "SELECT comment_text FROM user_comments WHERE book_id=? AND library_path=?",
                 (book_id, library_path),
             ).fetchone()
         finally:
@@ -233,9 +228,7 @@ def build_metadata_index(
     db_svc = get_database()
     current = db_svc.get_current_path()
     if not current:
-        raise RuntimeError(
-            "Database not initialized. Use manage_libraries(operation='switch') first."
-        )
+        raise RuntimeError("Database not initialized. Use manage_libraries(operation='switch') first.")
     metadata_db_path = metadata_db_path or current
 
     lancedb_dir = get_metadata_rag_path(metadata_db_path)
@@ -281,8 +274,7 @@ def build_metadata_index(
         progress_interval = 50
         try:
             for i, book in enumerate(books):
-                text = _book_to_searchable_text(session, book,
-                                                library_path=library_path_str)
+                text = _book_to_searchable_text(session, book, library_path=library_path_str)
                 if not text:
                     continue
                 documents.append(text)
@@ -294,9 +286,7 @@ def build_metadata_index(
                     }
                 )
                 if (i + 1) % progress_interval == 0:
-                    _write_progress(
-                        lancedb_dir, "building", i + 1, total_books, "Gathering metadata"
-                    )
+                    _write_progress(lancedb_dir, "building", i + 1, total_books, "Gathering metadata")
         finally:
             session.close()
 
@@ -324,9 +314,7 @@ def build_metadata_index(
             for j, row in enumerate(rows[start:end]):
                 if j < len(batch_embeddings):
                     row["vector"] = batch_embeddings[j]
-            _write_progress(
-                lancedb_dir, "embedding", end, num_docs, f"Embedding ({end}/{num_docs})"
-            )
+            _write_progress(lancedb_dir, "embedding", end, num_docs, f"Embedding ({end}/{num_docs})")
 
         if table_name in db.table_names():
             tbl = db.open_table(table_name)
@@ -383,3 +371,118 @@ def search_metadata(
         }
         for r in results
     ]
+
+
+def upsert_book_metadata(
+    book_id: int | str,
+    metadata_db_path: str | Path | None = None,
+    *,
+    embedding_model: str = "BAAI/bge-small-en-v1.5",
+) -> bool:
+    """
+    Incrementally update or insert a single book into the LanceDB metadata index.
+    """
+    import lancedb
+    from sqlalchemy.orm import joinedload
+
+    if metadata_db_path is None:
+        db_svc = get_database()
+        current = db_svc.get_current_path()
+        if not current:
+            return False
+        metadata_db_path = current
+    else:
+        db_svc = get_database()
+
+    lancedb_dir = get_metadata_rag_path(metadata_db_path)
+    if not lancedb_dir.exists():
+        return False
+
+    db = lancedb.connect(str(lancedb_dir))
+    table_name = "calibre_metadata"
+    if table_name not in db.table_names():
+        return False
+
+    tbl = db.open_table(table_name)
+
+    bid = int(book_id)
+    session = db_svc.session
+    try:
+        book = (
+            session.query(Book)
+            .options(
+                joinedload(Book.authors),
+                joinedload(Book.tags),
+                joinedload(Book.series),
+            )
+            .filter(Book.id == bid)
+            .first()
+        )
+        if not book:
+            # Book was deleted, remove from LanceDB
+            with contextlib.suppress(Exception):
+                tbl.delete(f"book_id = {bid}")
+            return True
+
+        library_path_str = str(Path(metadata_db_path).resolve())
+        if Path(library_path_str).is_file():
+            library_path_str = str(Path(library_path_str).parent)
+
+        text = _book_to_searchable_text(session, book, library_path=library_path_str)
+        if not text:
+            return False
+
+        embedding = _get_embedder(embedding_model, str(lancedb_dir / "cache"))
+        vector = list(embedding.embed([text]))[0]
+
+        # Delete existing entry if present, then add new row
+        with contextlib.suppress(Exception):
+            tbl.delete(f"book_id = {bid}")
+
+        tbl.add(
+            [
+                {
+                    "book_id": bid,
+                    "title": book.title or "",
+                    "text": text,
+                    "vector": vector,
+                }
+            ]
+        )
+        logger.info("Incrementally updated book %d in metadata RAG index", bid)
+        return True
+    finally:
+        session.close()
+
+
+def remove_book_metadata(
+    book_id: int | str,
+    metadata_db_path: str | Path | None = None,
+) -> bool:
+    """
+    Remove a deleted book from the LanceDB metadata index.
+    """
+    import lancedb
+
+    if metadata_db_path is None:
+        db_svc = get_database()
+        current = db_svc.get_current_path()
+        if not current:
+            return False
+        metadata_db_path = current
+
+    lancedb_dir = get_metadata_rag_path(metadata_db_path)
+    if not lancedb_dir.exists():
+        return False
+
+    db = lancedb.connect(str(lancedb_dir))
+    table_name = "calibre_metadata"
+    if table_name not in db.table_names():
+        return False
+
+    tbl = db.open_table(table_name)
+    bid = int(book_id)
+    with contextlib.suppress(Exception):
+        tbl.delete(f"book_id = {bid}")
+    logger.info("Removed book %d from metadata RAG index", bid)
+    return True

@@ -7,6 +7,7 @@ embeds with fastembed, stores in LanceDB. Enables semantic search without full-t
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from pathlib import Path
@@ -370,3 +371,118 @@ def search_metadata(
         }
         for r in results
     ]
+
+
+def upsert_book_metadata(
+    book_id: int | str,
+    metadata_db_path: str | Path | None = None,
+    *,
+    embedding_model: str = "BAAI/bge-small-en-v1.5",
+) -> bool:
+    """
+    Incrementally update or insert a single book into the LanceDB metadata index.
+    """
+    import lancedb
+    from sqlalchemy.orm import joinedload
+
+    if metadata_db_path is None:
+        db_svc = get_database()
+        current = db_svc.get_current_path()
+        if not current:
+            return False
+        metadata_db_path = current
+    else:
+        db_svc = get_database()
+
+    lancedb_dir = get_metadata_rag_path(metadata_db_path)
+    if not lancedb_dir.exists():
+        return False
+
+    db = lancedb.connect(str(lancedb_dir))
+    table_name = "calibre_metadata"
+    if table_name not in db.table_names():
+        return False
+
+    tbl = db.open_table(table_name)
+
+    bid = int(book_id)
+    session = db_svc.session
+    try:
+        book = (
+            session.query(Book)
+            .options(
+                joinedload(Book.authors),
+                joinedload(Book.tags),
+                joinedload(Book.series),
+            )
+            .filter(Book.id == bid)
+            .first()
+        )
+        if not book:
+            # Book was deleted, remove from LanceDB
+            with contextlib.suppress(Exception):
+                tbl.delete(f"book_id = {bid}")
+            return True
+
+        library_path_str = str(Path(metadata_db_path).resolve())
+        if Path(library_path_str).is_file():
+            library_path_str = str(Path(library_path_str).parent)
+
+        text = _book_to_searchable_text(session, book, library_path=library_path_str)
+        if not text:
+            return False
+
+        embedding = _get_embedder(embedding_model, str(lancedb_dir / "cache"))
+        vector = list(embedding.embed([text]))[0]
+
+        # Delete existing entry if present, then add new row
+        with contextlib.suppress(Exception):
+            tbl.delete(f"book_id = {bid}")
+
+        tbl.add(
+            [
+                {
+                    "book_id": bid,
+                    "title": book.title or "",
+                    "text": text,
+                    "vector": vector,
+                }
+            ]
+        )
+        logger.info("Incrementally updated book %d in metadata RAG index", bid)
+        return True
+    finally:
+        session.close()
+
+
+def remove_book_metadata(
+    book_id: int | str,
+    metadata_db_path: str | Path | None = None,
+) -> bool:
+    """
+    Remove a deleted book from the LanceDB metadata index.
+    """
+    import lancedb
+
+    if metadata_db_path is None:
+        db_svc = get_database()
+        current = db_svc.get_current_path()
+        if not current:
+            return False
+        metadata_db_path = current
+
+    lancedb_dir = get_metadata_rag_path(metadata_db_path)
+    if not lancedb_dir.exists():
+        return False
+
+    db = lancedb.connect(str(lancedb_dir))
+    table_name = "calibre_metadata"
+    if table_name not in db.table_names():
+        return False
+
+    tbl = db.open_table(table_name)
+    bid = int(book_id)
+    with contextlib.suppress(Exception):
+        tbl.delete(f"book_id = {bid}")
+    logger.info("Removed book %d from metadata RAG index", bid)
+    return True

@@ -23,14 +23,14 @@ Write-Host ""
 # Pre-check (optional)
 if (-not $SkipPrecheck) {
     Write-Host "[0/4] Pre-checking server load..." -ForegroundColor Yellow
-    
+
     # Get log file size before pre-check (to avoid checking our own logs)
     $LogFile = Join-Path $RepoRoot "logs\calibremcp.log"
     $LogSizeBefore = 0
     if (Test-Path $LogFile) {
         $LogSizeBefore = (Get-Item $LogFile).Length
     }
-    
+
     # Run pre-check
     $PythonCmd = Get-Command python -ErrorAction SilentlyContinue
     if (-not $PythonCmd) {
@@ -59,7 +59,7 @@ if (-not $SkipPrecheck) {
 if (-not $NoRestart) {
     # Step 1: Stop Claude
     Write-Host "[1/4] Stopping Claude Desktop (using taskkill)..." -ForegroundColor Yellow
-    
+
     $ClaudeProcess = Get-Process -Name "Claude" -ErrorAction SilentlyContinue
     if ($ClaudeProcess) {
         Stop-Process -Name "Claude" -Force -ErrorAction SilentlyContinue
@@ -69,10 +69,10 @@ if (-not $NoRestart) {
         Write-Host "[INFO] Claude Desktop was not running" -ForegroundColor Gray
     }
     Write-Host ""
-    
+
     # Step 2: Start Claude
     Write-Host "[2/4] Starting Claude Desktop..." -ForegroundColor Yellow
-    
+
     # Find Claude executable
     if (-not $ClaudePath) {
         $PossiblePaths = @(
@@ -80,14 +80,14 @@ if (-not $NoRestart) {
             "$env:ProgramFiles\Claude\Claude.exe",
             "${env:ProgramFiles(x86)}\Claude\Claude.exe"
         )
-        
+
         foreach ($Path in $PossiblePaths) {
             if (Test-Path $Path) {
                 $ClaudePath = $Path
                 break
             }
         }
-        
+
         # Try finding via PATH
         if (-not $ClaudePath) {
             try {
@@ -100,7 +100,7 @@ if (-not $NoRestart) {
             }
         }
     }
-    
+
     if (-not $ClaudePath -or -not (Test-Path $ClaudePath)) {
         Write-Host "[FAIL] Could not find Claude Desktop executable" -ForegroundColor Red
         Write-Host ""
@@ -108,7 +108,7 @@ if (-not $NoRestart) {
         Write-Host "  python scripts\check_logs.py --errors-only" -ForegroundColor Yellow
         exit 1
     }
-    
+
     try {
         Start-Process -FilePath $ClaudePath -ErrorAction Stop
         Write-Host "[OK] Started Claude Desktop from: $ClaudePath" -ForegroundColor Green
@@ -184,7 +184,7 @@ for ($i = $LastStartupIdx; $i -lt $LogLines.Count; $i++) {
         $Operation = ($Entry.operation -split "_")[0].ToLower()
         $Message = $Entry.message.ToLower()
         $Logger = $Entry.logger.ToLower()
-        
+
         # Check for server_startup_error
         if ($Entry.operation -eq "server_startup_error") {
             $FoundError = $true
@@ -193,7 +193,7 @@ for ($i = $LastStartupIdx; $i -lt $LogLines.Count; $i++) {
             Write-Host "  Error: $($Entry.message.Substring(0, [Math]::Min(200, $Entry.message.Length)))..." -ForegroundColor Gray
             exit 1
         }
-        
+
         # Check for successful tool registration
         if ($Message -match "registered" -and $Message -match "basetool classes") {
             if ($Logger -match "tools") {
@@ -231,4 +231,3 @@ if ($FoundSuccess) {
     Write-Host "  3. Check Claude Desktop console for errors" -ForegroundColor Gray
     exit 1
 }
-

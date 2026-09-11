@@ -9,17 +9,14 @@ originally attempted in Calibre++ but with proper permission controls.
 """
 
 import contextlib
-import os
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-
 from ...logging_config import get_logger
 from ...server import mcp
+from ...utils.subprocess_utils import _cmd
 from ..shared.error_handling import format_error_response
 
 logger = get_logger("calibremcp.tools.library_discovery")
@@ -60,7 +57,7 @@ class LibraryDiscoveryTool:
 
         calibre_exe = None
         for path in calibre_paths:
-            if os.path.exists(path):
+            if Path(path).exists():
                 calibre_exe = path
                 break
 
@@ -70,8 +67,9 @@ class LibraryDiscoveryTool:
 
         try:
             # Try to get library list from Calibre CLI
-            result = subprocess.run(
-                [calibre_exe, "--with-library"], capture_output=True, text=True, timeout=10, creationflags=_NO_WINDOW,
+            result = _cmd(
+                [calibre_exe, "--with-library"],
+                timeout=10,
             )
 
             if result.returncode == 0:
@@ -95,7 +93,7 @@ class LibraryDiscoveryTool:
         libraries = []
 
         wizfile_path = r"C:\Program Files\WizFile\WizFile64.exe"
-        if not os.path.exists(wizfile_path):
+        if not Path(wizfile_path).exists():
             self.logger.info("WizFile not found")
             return []
 
@@ -105,19 +103,16 @@ class LibraryDiscoveryTool:
                 temp_path = temp_file.name
 
             # Run WizFile search for metadata.db files
-            result = subprocess.run(
+            result = _cmd(
                 [wizfile_path, "metadata.db", f"/export={temp_path}"],
-                capture_output=True,
-                text=True,
                 timeout=30,
-                creationflags=_NO_WINDOW,
             )
 
-            if result.returncode == 0 and os.path.exists(temp_path):
+            if result.returncode == 0 and Path(temp_path).exists():
                 try:
                     import json
 
-                    with open(temp_path, encoding="utf-8") as f:
+                    with Path(temp_path).open(encoding="utf-8") as f:
                         results = json.load(f)
 
                     for entry in results.get("files", []):
@@ -141,7 +136,7 @@ class LibraryDiscoveryTool:
                     self.logger.warning(f"Error parsing WizFile results: {e}")
                 finally:
                     with contextlib.suppress(OSError):
-                        os.unlink(temp_path)
+                        Path(temp_path).unlink()
 
         except subprocess.TimeoutExpired:
             self.logger.warning("WizFile search timed out")
@@ -156,16 +151,16 @@ class LibraryDiscoveryTool:
 
         # Common Calibre library locations
         common_paths = [
-            os.path.expanduser("~/Calibre Library"),
-            os.path.expanduser("~/Documents/Calibre Library"),
+            Path("~/Calibre Library").expanduser(),
+            Path("~/Documents/Calibre Library").expanduser(),
             "C:/Users/Public/Documents/Calibre Library",
         ]
 
         for base_path in common_paths:
-            if os.path.exists(base_path):
+            if Path(base_path).exists():
                 # Check if this path directly contains metadata.db
-                metadata_path = os.path.join(base_path, "metadata.db")
-                if os.path.exists(metadata_path) and self._is_valid_calibre_db(metadata_path):
+                metadata_path = Path(base_path) / "metadata.db"
+                if Path(metadata_path).exists() and self._is_valid_calibre_db(metadata_path):
                     library_id = f"common_{hash(base_path) % 10000}"
                     library_info = {
                         "id": library_id,
@@ -180,26 +175,21 @@ class LibraryDiscoveryTool:
 
                 # Also check subdirectories
                 try:
-                    for item in os.listdir(base_path):
-                        sub_path = os.path.join(base_path, item)
-                        if os.path.isdir(sub_path):
-                            metadata_path = os.path.join(sub_path, "metadata.db")
-                            if os.path.exists(metadata_path) and self._is_valid_calibre_db(
-                                metadata_path
-                            ):
-                                library_id = f"common_sub_{hash(sub_path) % 10000}"
+                    for item in Path(base_path).iterdir():
+                        if item.is_dir():
+                            metadata_path = item / "metadata.db"
+                            if metadata_path.exists() and self._is_valid_calibre_db(str(metadata_path)):
+                                library_id = f"common_sub_{hash(item) % 10000}"
                                 library_info = {
                                     "id": library_id,
-                                    "name": f"Common Sub: {Path(sub_path).name}",
-                                    "path": sub_path,
-                                    "metadata_db_path": metadata_path,
+                                    "name": f"Common Sub: {item.name}",
+                                    "path": str(item),
+                                    "metadata_db_path": str(metadata_path),
                                     "discovery_method": "common_paths_subdir",
                                     "is_valid": True,
                                 }
                                 libraries.append(library_info)
-                                self.logger.info(
-                                    f"Found library in common subdirectory: {sub_path}"
-                                )
+                                self.logger.info(f"Found library in common subdirectory: {item}")
                 except (OSError, PermissionError) as e:
                     self.logger.warning(f"Could not scan subdirectories of {base_path}: {e}")
 
@@ -316,6 +306,4 @@ async def library_discovery(
 
     except Exception as e:
         logger.error(f"Library discovery failed: {e}", exc_info=True)
-        return format_error_response(
-            f"Library discovery failed: {str(e)}", error_code="DISCOVERY_FAILED"
-        )
+        return format_error_response(f"Library discovery failed: {str(e)}", error_code="DISCOVERY_FAILED")

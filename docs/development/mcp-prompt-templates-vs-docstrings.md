@@ -15,7 +15,7 @@
    ```python
    def search_bookmarks(query: str, profile_path: Optional[str] = None):
        """Search Firefox bookmarks by title/URL (requires Firefox closed).
-       
+
        Args:
            query (str, REQUIRED): Search term...
            profile_path (str, OPTIONAL): Full path...
@@ -164,7 +164,7 @@ parameters:
       - "plex"
       - "github.com"
       - "machine learning"
-    
+
   - name: profile_path
     type: string
     required: false
@@ -174,7 +174,7 @@ parameters:
     examples:
       - "C:\\Users\\sandr\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\airiswdq.default-release"
     get_value_from: get_firefox_profiles()
-    
+
   - name: limit
     type: integer
     required: false
@@ -203,7 +203,7 @@ errors:
     cause: Firefox is running
     fix: Close Firefox completely (check Task Manager)
     workaround: Use export_bookmarks() instead
-    
+
   - condition: "Profile not found"
     cause: Invalid path or doesn't exist
     fix: Use get_firefox_profiles() to find path
@@ -215,7 +215,7 @@ examples:
     code: |
       search_bookmarks(query="plex")
     returns: Up to 50 bookmarks matching "plex"
-    
+
   - name: Specific profile
     when: Multiple profiles or auto-detect fails
     code: |
@@ -231,12 +231,12 @@ platforms:
     location: "%APPDATA%\\Mozilla\\Firefox\\Profiles\\"
     format: Double backslashes "C:\\Users\\..."
     check_process: Task Manager → firefox.exe
-    
+
   linux:
     location: "~/.mozilla/firefox/"
     format: Forward slashes "/home/user/..."
     check_process: ps aux | grep firefox
-    
+
   macos:
     location: "~/Library/Application Support/Firefox/Profiles/"
     format: Forward slashes (with spaces)
@@ -261,13 +261,13 @@ from jinja2 import Template
 def generate_docstring(tool_spec):
     """Generate Python docstring from YAML spec"""
     template = Template('''"""{{ summary }}
-    
+
     {{ description }}
-    
+
     Prerequisites:
     {% for prereq in prerequisites %}    - {{ prereq }}
     {% endfor %}
-    
+
     Args:
     {% for param in parameters %}    {{ param.name }} ({{ param.type }}, {{ 'REQUIRED' if param.required else 'OPTIONAL' }}):
             {{ param.description }}
@@ -275,42 +275,42 @@ def generate_docstring(tool_spec):
             {% if param.examples %}Examples: {{ param.examples|join(', ') }}{% endif %}
             {% if not param.required %}Default: {{ param.default }}{% endif %}
             {% if param.get_value_from %}Get value: {{ param.get_value_from }}{% endif %}
-            
+
     {% endfor %}
     Returns:
         dict: {{ returns.success.status }}
-        
+
         Structure (Success):
         {{ returns.success|format_structure }}
-        
+
         Structure (Error):
         {{ returns.error|format_structure }}
-    
+
     Common Issues:
     {% for error in errors %}    {{ loop.index }}. "{{ error.condition }}"
            CAUSE: {{ error.cause }}
            FIX: {{ error.fix }}
            {% if error.workaround %}WORKAROUND: {{ error.workaround }}{% endif %}
-           
+
     {% endfor %}
     Examples:
     {% for example in examples %}    # {{ example.name }}
         # Use when: {{ example.when }}
         {{ example.code }}
         # Returns: {{ example.returns }}
-        
+
     {% endfor %}
     Platform Notes:
     {% for platform, details in platforms.items %}    {{ platform.upper() }}:
             - Location: {{ details.location }}
             - Format: {{ details.format }}
             - Check: {{ details.check_process }}
-            
+
     {% endfor %}
     See Also:
     {% for tool, desc in see_also.items %}    - {{ tool }}(): {{ desc }}
     {% endfor %}"""''')
-    
+
     return template.render(**tool_spec)
 
 def generate_prompt_template(tool_spec):
@@ -367,29 +367,29 @@ Use when: {{ example.when }}
 - `{{ tool }}()` - {{ desc }}
 {% endfor %}
 ''')
-    
+
     return template.render(**tool_spec)
 
 def generate_all():
     """Generate all documentation from YAML sources"""
     docs_dir = Path("docs/tools")
-    
+
     for yaml_file in docs_dir.glob("*.yaml"):
         with open(yaml_file) as f:
             spec = yaml.safe_load(f)
-        
+
         # Generate docstring (for insertion into Python code)
         docstring = generate_docstring(spec)
         output_file = Path("generated/docstrings") / f"{spec['name']}.txt"
         output_file.parent.mkdir(exist_ok=True)
         output_file.write_text(docstring)
-        
+
         # Generate prompt template (for mcpb package)
         prompt = generate_prompt_template(spec)
         prompt_file = Path("prompts") / f"{spec['name']}.md"
         prompt_file.parent.mkdir(exist_ok=True)
         prompt_file.write_text(prompt)
-        
+
         print(f"✅ Generated docs for {spec['name']}")
 
 if __name__ == "__main__":
@@ -425,7 +425,7 @@ mcpb pack                        # Package with generated prompts
 1. **Conversational Tone**
    ```markdown
    # search_bookmarks Tool
-   
+
    This tool helps you find bookmarks in Firefox. Before using it,
    **make sure Firefox is completely closed** - otherwise the database
    will be locked and the search will fail.
@@ -434,11 +434,11 @@ mcpb pack                        # Package with generated prompts
 2. **Common User Mistakes**
    ```markdown
    ## Common Mistakes to Avoid
-   
+
    ❌ Don't use this while Firefox is running
    ❌ Don't use relative paths for profile_path
    ❌ Don't forget to call get_firefox_profiles() first
-   
+
    ✅ Close Firefox completely
    ✅ Use full absolute paths
    ✅ Get profile path from get_firefox_profiles()
@@ -447,12 +447,12 @@ mcpb pack                        # Package with generated prompts
 3. **Decision Trees**
    ```markdown
    ## When to Use This Tool
-   
+
    Use search_bookmarks() when:
    - You know what you're looking for (have search term)
    - Firefox is closed
    - You want fast, targeted results
-   
+
    Use list_bookmarks() instead when:
    - You want to browse all bookmarks
    - You don't know what you're searching for
@@ -462,12 +462,12 @@ mcpb pack                        # Package with generated prompts
 4. **LLM-Specific Guidance**
    ```markdown
    ## For AI Assistants
-   
+
    Before calling this tool:
    1. Check if Firefox is mentioned as running in conversation
    2. If user has multiple profiles, call get_firefox_profiles() first
    3. If this fails with "locked", suggest export_bookmarks() alternative
-   
+
    After calling:
    - If count is 0, suggest broader search terms
    - If count is high, offer to filter results
@@ -496,7 +496,7 @@ mcpb pack                        # Package with generated prompts
    ```markdown
    # Create shared errors.md
    All Firefox tools may encounter these errors: [see errors.md]
-   
+
    Tool-specific errors:
    - "No results found" → Try broader search terms
    ```
@@ -633,7 +633,7 @@ git add generated/ prompts/
 
 **The Duplication Dilemma**: Docstrings vs prompt templates
 
-**The Solution**: 
+**The Solution**:
 - Small servers: Comprehensive docstrings only
 - Large servers: Single source YAML → generate both
 - All servers: Never manually maintain both!

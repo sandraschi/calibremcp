@@ -1,6 +1,6 @@
 # Thank you for using Snapshots for AI
 
-Thanks for using Snapshots for AI. We hope this tool has helped you solve a problem or two. 
+Thanks for using Snapshots for AI. We hope this tool has helped you solve a problem or two.
 
 If you would like to support our work, please help us by considering the following offers and requests:
 
@@ -19,7 +19,7 @@ BugHerd is a visual feedback and bug-tracking tool designed to streamline websit
 ### Hire Developers from Codeable 👥
 Codeable connects you with top-tier professionals skilled in frameworks and technologies such as Laravel, React, Django, Node, Vue.js, Angular, Ruby on Rails, and Node.js. Don't let the WordPress focus discourage you. Codeable experts do it all.
 
-- Visit [Codeable](https://www.codeable.io/developers/?ref=z8h3e) to hire your next team member. 
+- Visit [Codeable](https://www.codeable.io/developers/?ref=z8h3e) to hire your next team member.
 
 ### Lead positive reviews on our marketplace listing ⭐⭐⭐⭐⭐
 - Rate us on [VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=GBTI.snapshots-for-ai)

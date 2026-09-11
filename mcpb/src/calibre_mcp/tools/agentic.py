@@ -59,7 +59,6 @@ def register_agentic_tools():
                 ],
             }
 
-
         except Exception as e:
             return {
                 "success": False,
@@ -120,7 +119,6 @@ def register_agentic_tools():
                 ],
             }
 
-
         except Exception as e:
             return {
                 "success": False,
@@ -156,9 +154,7 @@ def register_agentic_tools():
             return {
                 "success": True,
                 "operation": "conversational_assistance",
-                "message": response_templates.get(
-                    context_level, response_templates["comprehensive"]
-                ),
+                "message": response_templates.get(context_level, response_templates["comprehensive"]),
                 "user_query": user_query,
                 "context_level": context_level,
                 "suggestions": [
@@ -175,7 +171,6 @@ def register_agentic_tools():
                     "Use 'manage_collections' to organize books",
                 ],
             }
-
 
         except Exception as e:
             return {

@@ -92,9 +92,7 @@ async def intelligent_query_parsing(
             parsed_parameters["semantic_query"] = semantic_candidate or query.strip()
 
         success = bool(parsed_parameters) or bool(structured.get("prefer_semantic_search"))
-        confidence = (
-            0.85 if structured.get("prefer_semantic_search") else (0.75 if success else 0.25)
-        )
+        confidence = 0.85 if structured.get("prefer_semantic_search") else (0.75 if success else 0.25)
 
         result = {
             "success": success,
@@ -118,9 +116,7 @@ async def intelligent_query_parsing(
         return result
 
     except Exception as e:
-        logger.exception(
-            f"Intelligent query parsing failed: {e}", extra={"error": str(e), "query": query}
-        )
+        logger.exception(f"Intelligent query parsing failed: {e}", extra={"error": str(e), "query": query})
         return {
             "success": False,
             "parsed_parameters": {},
@@ -379,9 +375,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                     elapsed = int(time.time() * 1000) - start_ms
                     return build_success_response(
                         operation="agentic_library_workflow",
-                        summary=result.text[:500]
-                        if result.text
-                        else "Workflow completed via LLM sampling.",
+                        summary=result.text[:500] if result.text else "Workflow completed via LLM sampling.",
                         result={
                             "workflow_prompt": workflow_prompt,
                             "sampling_complete": True,
@@ -405,9 +399,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                 except Exception as samp_err:
                     logger.info(f"Sampling fallback to basic workflow: {samp_err}")
 
-            workflow_result = await self._execute_basic_workflow(
-                workflow_prompt, available_operations
-            )
+            workflow_result = await self._execute_basic_workflow(workflow_prompt, available_operations)
             elapsed = int(time.time() * 1000) - start_ms
 
             return build_success_response(
@@ -507,9 +499,7 @@ Use the tools to gather information and perform operations. Summarize what you d
             }
 
         parsed = parse_intelligent_query(workflow_prompt)
-        search = (parsed.get("text") or "").strip() or strip_inventory_question_phrases(
-            workflow_prompt
-        )
+        search = (parsed.get("text") or "").strip() or strip_inventory_question_phrases(workflow_prompt)
 
         def fts_fallback() -> dict[str, Any]:
             return self.search_ops.get_all(
@@ -534,9 +524,7 @@ Use the tools to gather information and perform operations. Summarize what you d
             "workflow_type": "nl_discovery_fts_fallback",
         }
 
-    async def _execute_basic_workflow(
-        self, workflow_prompt: str, _available_operations: list[str]
-    ) -> dict[str, Any]:
+    async def _execute_basic_workflow(self, workflow_prompt: str, _available_operations: list[str]) -> dict[str, Any]:
         """
         Execute a basic workflow based on prompt analysis.
 
@@ -585,9 +573,7 @@ Use the tools to gather information and perform operations. Summarize what you d
                 results.append(
                     {
                         "operation": "find_missing_metadata",
-                        "result": missing_metadata.get("books", [])
-                        if isinstance(missing_metadata, dict)
-                        else [],
+                        "result": missing_metadata.get("books", []) if isinstance(missing_metadata, dict) else [],
                     }
                 )
 
@@ -639,11 +625,7 @@ Use the tools to gather information and perform operations. Summarize what you d
         elif any(keyword in prompt_lower for keyword in ["bulk", "batch", "convert", "export"]):
             try:
                 # Get conversion capabilities
-                formats = (
-                    await self.conversion_manager.get_supported_formats()
-                    if self.conversion_manager
-                    else []
-                )
+                formats = await self.conversion_manager.get_supported_formats() if self.conversion_manager else []
                 executed.append("get_supported_formats")
                 results.append({"operation": "get_supported_formats", "result": formats})
 

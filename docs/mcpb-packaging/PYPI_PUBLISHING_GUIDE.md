@@ -2,8 +2,8 @@
 
 **Complete guide to publishing notepadpp-mcp on the Python Package Index (PyPI)**
 
-**Date**: October 8, 2025  
-**Status**: Ready to publish  
+**Date**: October 8, 2025
+**Status**: Ready to publish
 **Target**: Make `pip install notepadpp-mcp` work globally
 
 ---
@@ -92,7 +92,7 @@
 3. Click **"Add API token"**
 4. Fill in:
    - **Token name**: `notepadpp-mcp-upload` (descriptive name)
-   - **Scope**: 
+   - **Scope**:
      - **Option 1**: "Entire account" (can upload any package)
      - **Option 2**: "Project" → Select `notepadpp-mcp` (package-specific, more secure)
 5. Click **"Add token"**
@@ -515,7 +515,7 @@ ERROR: HTTPError: 400 Bad Request
 File already exists. See https://pypi.org/help/#file-name-reuse
 ```
 
-**Cause**: Trying to upload same version again  
+**Cause**: Trying to upload same version again
 **Solution**: Increment version number in `pyproject.toml`
 
 ---
@@ -527,8 +527,8 @@ ERROR: HTTPError: 403 Forbidden
 Invalid or non-existent authentication information
 ```
 
-**Cause**: Wrong token or username  
-**Solution**: 
+**Cause**: Wrong token or username
+**Solution**:
 - Username must be `__token__` (with underscores!)
 - Password is your API token starting with `pypi-AgEI...`
 
@@ -540,8 +540,8 @@ Invalid or non-existent authentication information
 ERROR: The name 'notepadpp-mcp' is already claimed
 ```
 
-**Cause**: Someone else registered this name  
-**Solution**: 
+**Cause**: Someone else registered this name
+**Solution**:
 - Choose different name (e.g., `notepadpp-mcp-server`)
 - Contact PyPI admins if you own the name
 
@@ -680,19 +680,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      
+
       - name: Install dependencies
         run: |
           pip install build twine
-      
+
       - name: Build package
         run: python -m build
-      
+
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
@@ -780,10 +780,9 @@ https://pepy.tech/project/notepadpp-mcp
 
 ---
 
-*PyPI Publishing Guide*  
-*Created: October 8, 2025*  
-*For: notepadpp-mcp v1.2.0*  
+*PyPI Publishing Guide*
+*Created: October 8, 2025*
+*For: notepadpp-mcp v1.2.0*
 *Status: Ready to publish*
 
 **Happy publishing!** 🚀📦
-

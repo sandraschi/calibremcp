@@ -2,7 +2,6 @@
 
 import asyncio
 import hashlib
-import os
 from datetime import datetime
 from typing import Any
 
@@ -10,6 +9,8 @@ try:
     from fastmcp import MCPTool
 except ImportError:
     from ..compat import MCPTool
+import pathlib
+
 from pydantic import BaseModel, Field
 
 
@@ -113,9 +114,7 @@ class ContentSyncTool(MCPTool):
             # Generate a device ID if not provided
             device_id = f"dev_{hashlib.sha256(f'{name}{datetime.utcnow().isoformat()}'.encode()).hexdigest()[:16]}"
 
-        device = SyncDevice(
-            id=device_id, name=name, type=device_type, sync_settings=sync_settings or {}
-        )
+        device = SyncDevice(id=device_id, name=name, type=device_type, sync_settings=sync_settings or {})
 
         self._devices[device_id] = device
         return {"success": True, "device": device.dict()}
@@ -209,9 +208,7 @@ class ContentSyncTool(MCPTool):
         # and establish a connection to the cloud storage provider
 
         # For now, just return a success response with a mock connection ID
-        connection_id = (
-            f"cloud_{provider}_{hashlib.sha256(str(credentials).encode()).hexdigest()[:8]}"
-        )
+        connection_id = f"cloud_{provider}_{hashlib.sha256(str(credentials).encode()).hexdigest()[:8]}"
 
         return {
             "success": True,
@@ -220,14 +217,12 @@ class ContentSyncTool(MCPTool):
             "status": "connected",
         }
 
-    async def sync_upload_to_cloud(
-        self, connection_id: str, local_path: str, remote_path: str
-    ) -> dict:
+    async def sync_upload_to_cloud(self, connection_id: str, local_path: str, remote_path: str) -> dict:
         """Upload a file to cloud storage."""
         # In a real implementation, this would upload the file to the cloud
         # For now, just simulate the upload
 
-        file_size = os.path.getsize(local_path) if os.path.exists(local_path) else 0
+        file_size = pathlib.Path(local_path).stat().st_size if pathlib.Path(local_path).exists() else 0
 
         return {
             "success": True,
@@ -238,9 +233,7 @@ class ContentSyncTool(MCPTool):
             "uploaded_at": datetime.utcnow().isoformat(),
         }
 
-    async def sync_download_from_cloud(
-        self, connection_id: str, remote_path: str, local_path: str
-    ) -> dict:
+    async def sync_download_from_cloud(self, connection_id: str, remote_path: str, local_path: str) -> dict:
         """Download a file from cloud storage."""
         # In a real implementation, this would download the file from the cloud
         # For now, just simulate the download
@@ -266,9 +259,7 @@ class ContentSyncTool(MCPTool):
             "status": "connected",
         }
 
-    async def sync_to_ereader(
-        self, device_id: str, book_ids: list[str], format: str = "epub"
-    ) -> dict:
+    async def sync_to_ereader(self, device_id: str, book_ids: list[str], fmt: str = "epub") -> dict:
         """Send books to an e-reader."""
         # In a real implementation, this would transfer the books to the e-reader
         # For now, just return a success response
@@ -362,9 +353,7 @@ class ContentSyncTool(MCPTool):
         }
 
     # Utility Methods
-    async def sync_get_changes_since(
-        self, device_id: str, last_sync_time: datetime | None = None
-    ) -> dict:
+    async def sync_get_changes_since(self, device_id: str, last_sync_time: datetime | None = None) -> dict:
         """Get changes since the last sync for a device."""
         if device_id not in self._devices:
             return {"error": f"Device {device_id} not found", "success": False}

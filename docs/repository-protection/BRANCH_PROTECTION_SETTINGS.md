@@ -1,6 +1,6 @@
 # Branch Protection Settings - Quick Reference
 
-**For Repository**: notepadpp-mcp  
+**For Repository**: notepadpp-mcp
 **Setup Time**: ~5 minutes
 
 ---
@@ -79,7 +79,7 @@ Use lighter restrictions:
 
 - [x] **Require a pull request before merging** (optional)
   - [ ] Require approvals: `0`
-  
+
 - [ ] Allow force pushes (enabled for cleanup)
 - [x] Restrict deletions
 
@@ -112,7 +112,7 @@ git push origin main
 # Should SUCCEED (unprotected)
 git checkout feature/experimental
 echo "test" >> test.txt
-git add test.txt  
+git add test.txt
 git commit -m "test"
 git push origin feature/experimental
 # Expected: Success!
@@ -156,10 +156,10 @@ Protect matching branches
 ☑ Require a pull request before merging
   ☑ Require approvals: [0]
   ☑ Dismiss stale pull request approvals
-  
+
 ☑ Require status checks to pass
   ☑ Require branches to be up to date
-  
+
 ☑ Require conversation resolution
 
 ☑ Include administrators
@@ -230,7 +230,6 @@ If protection blocks something you need:
 
 ---
 
-*Setup Guide created: October 8, 2025*  
-*Estimated setup time: 5 minutes*  
+*Setup Guide created: October 8, 2025*
+*Estimated setup time: 5 minutes*
 *Difficulty: Easy*
-

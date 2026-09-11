@@ -26,9 +26,7 @@ class UserService:
             users = repo.list_all()
             return [self._to_dict(u) for u in users]
 
-    async def create_user(
-        self, user_id: str, username: str, email: str = None, role: str = "user"
-    ) -> dict:
+    async def create_user(self, user_id: str, username: str, email: str = None, role: str = "user") -> dict:
         with self.db.session_scope() as session:
             repo = UserRepository(session)
             user = repo.create(user_id, username, email, role)

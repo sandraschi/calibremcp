@@ -73,10 +73,7 @@ async def manage_files(
         elif operation == "download":
             if not book_id:
                 return format_error_response(
-                    error_msg=(
-                        "book_id is required for operation='download'. "
-                        "Provide the ID of the book to download."
-                    ),
+                    error_msg=("book_id is required for operation='download'. Provide the ID of the book to download."),
                     error_code="MISSING_BOOK_ID",
                     error_type="ValueError",
                     operation=operation,
@@ -135,10 +132,7 @@ async def manage_files(
 
         else:
             return format_error_response(
-                error_msg=(
-                    f"Invalid operation: '{operation}'. Must be one of: "
-                    "'convert', 'download', 'bulk'"
-                ),
+                error_msg=(f"Invalid operation: '{operation}'. Must be one of: 'convert', 'download', 'bulk'"),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",
                 operation=operation,

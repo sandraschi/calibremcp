@@ -1,5 +1,6 @@
 """Tool for managing CalibreMCP users and permissions."""
 
+import os
 import secrets
 import string
 from datetime import datetime, timedelta
@@ -183,7 +184,7 @@ class UserManagerTool(MCPTool):
         # await self._update_user_in_db(user['id'], {'last_login': datetime.utcnow()})
 
         # For now, use a mock user
-        if username != "admin" or password != "admin123":
+        if username != "admin" or password != os.environ.get("CALIBRE_ADMIN_PASSWORD", "admin123"):
             return {"error": "Invalid username or password", "success": False}
 
         user_data = {
@@ -203,9 +204,7 @@ class UserManagerTool(MCPTool):
                 "id": user_data["id"],
                 "username": user_data["username"],
                 "role": user_data["role"],
-                "token_expires": (
-                    datetime.utcnow() + timedelta(minutes=self._jwt_expire_minutes)
-                ).isoformat(),
+                "token_expires": (datetime.utcnow() + timedelta(minutes=self._jwt_expire_minutes)).isoformat(),
             },
         }
 

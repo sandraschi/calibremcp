@@ -363,7 +363,7 @@ wheels = [
 
 [[package]]
 name = "calibremcp"
-version = "1.8.6"
+version = "1.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

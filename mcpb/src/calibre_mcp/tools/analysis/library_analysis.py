@@ -196,18 +196,12 @@ async def find_duplicate_books() -> DuplicatesResponse:
             )
 
             for title, author, _count in dupes:
-                books = (
-                    session.query(Book)
-                    .filter(Book.title == title, Book.author_sort == author)
-                    .all()
-                )
+                books = session.query(Book).filter(Book.title == title, Book.author_sort == author).all()
                 duplicate_groups.append(
                     {
                         "title": title,
                         "author": author,
-                        "books": [
-                            {"id": b.id, "formats": [f.format for f in b.formats]} for b in books
-                        ],
+                        "books": [{"id": b.id, "formats": [f.format for f in b.formats]} for b in books],
                         "confidence": 1.0,
                     }
                 )
@@ -277,9 +271,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                 total_books_in_series += len(books)
 
                 # Get series_index values
-                indices = sorted(
-                    [book.series_index for book in books if book.series_index is not None]
-                )
+                indices = sorted([book.series_index for book in books if book.series_index is not None])
 
                 if not indices:
                     continue
@@ -375,9 +367,7 @@ async def get_series_analysis() -> SeriesAnalysisResponse:
                 "total_series": total_series,
                 "total_books_in_series": total_books_in_series,
                 "series_with_gaps": series_with_gaps,
-                "average_books_per_series": round(total_books_in_series / total_series, 2)
-                if total_series > 0
-                else 0,
+                "average_books_per_series": round(total_books_in_series / total_series, 2) if total_series > 0 else 0,
                 "complete_series_count": total_series - series_with_gaps,
                 "incomplete_series_count": series_with_gaps,
             }
@@ -433,20 +423,10 @@ async def analyze_library_health() -> LibraryHealthResponse:
 
                     # Calibre file path: Author/Title/File.ext
                     # Note: This is an approximation of the Calibre folder structure
-                    file_path = (
-                        lib_path
-                        / book.author_sort
-                        / book.title
-                        / f"{fmt.name}.{fmt.format.lower()}"
-                    )
+                    file_path = lib_path / book.author_sort / book.title / f"{fmt.name}.{fmt.format.lower()}"
                     if not file_path.exists():
                         # Try another common Calibre pattern
-                        file_path = (
-                            lib_path
-                            / book.authors[0].name
-                            / book.title
-                            / f"{fmt.name}.{fmt.format.lower()}"
-                        )
+                        file_path = lib_path / book.authors[0].name / book.title / f"{fmt.name}.{fmt.format.lower()}"
                         if not file_path.exists():
                             missing_files += 1
                             issues.append(
@@ -501,9 +481,7 @@ async def unread_priority_list() -> UnreadPriorityResponse:
             books = session.query(Book).order_by(Book.rating.desc()).limit(20).all()
 
             return UnreadPriorityResponse(
-                prioritized_books=[
-                    {"id": b.id, "title": b.title, "rating": b.rating} for b in books
-                ],
+                prioritized_books=[{"id": b.id, "title": b.title, "rating": b.rating} for b in books],
                 priority_reasons={"quality": "Sorted by highest rating"},
                 total_unread=len(books),
             )

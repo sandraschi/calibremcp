@@ -1,8 +1,8 @@
 # Comic OCR Strategy for CBZ Archives
 
-**Date**: 2025-10-30  
-**Status**: Strategy Document  
-**Library**: Calibre Comics Library (207 CBZ files)  
+**Date**: 2025-10-30
+**Status**: Strategy Document
+**Library**: Calibre Comics Library (207 CBZ files)
 **Goal**: Make scanned comics searchable through OCR
 
 ---
@@ -28,9 +28,9 @@ L:\Multimedia Files\Written Word\Calibre-Bibliothek Comics\
 └── 207 total CBZ files
 ```
 
-**Sample Comic**: Batman: The Killing Joke  
-- **Pages**: 65 images  
-- **Structure**: Sequential numbered images  
+**Sample Comic**: Batman: The Killing Joke
+- **Pages**: 65 images
+- **Structure**: Sequential numbered images
 - **Format**: JPG files in ZIP archive
 
 ---
@@ -62,54 +62,50 @@ L:\Multimedia Files\Written Word\Calibre-Bibliothek Comics\
 async def ocr_comic_cbz(cbz_path: Path) -> Dict[str, Any]:
     """
     OCR a CBZ comic archive.
-    
+
     Args:
         cbz_path: Path to CBZ file
-        
+
     Returns:
         OCR results with searchable text per page
     """
     # 1. Extract CBZ to temp directory
     temp_dir = tempfile.TemporaryDirectory()
     zipfile.ZipFile(cbz_path).extractall(temp_dir.name)
-    
+
     # 2. Get list of page images
     pages = sorted(Path(temp_dir.name).glob("*.jpg"))
-    
+
     # 3. Process each page through OCR
     finereader = FineReaderCLI()
     ocr_results = []
-    
+
     for page_num, page_img in enumerate(pages, 1):
         logger.info(f"OCR page {page_num}/{len(pages)}")
-        
+
         # OCR single page
         result = await finereader.process_document(
             page_img,
             output_path=None,  # We don't need PDF output
-            language="multilingual"  # Comics can have multiple languages
+            language="multilingual",  # Comics can have multiple languages
         )
-        
+
         # Extract text from OCR result
         text = await extract_text_from_ocr_result(result)
-        
-        ocr_results.append({
-            "page": page_num,
-            "text": text,
-            "confidence": result["confidence"]
-        })
-    
+
+        ocr_results.append({"page": page_num, "text": text, "confidence": result["confidence"]})
+
     # 4. Store OCR text in Calibre metadata
     await store_comic_ocr_metadata(cbz_path, ocr_results)
-    
+
     # 5. Clean up
     temp_dir.cleanup()
-    
+
     return {
         "success": True,
         "total_pages": len(pages),
         "ocr_results": ocr_results,
-        "average_confidence": sum(r["confidence"] for r in ocr_results) / len(ocr_results)
+        "average_confidence": sum(r["confidence"] for r in ocr_results) / len(ocr_results),
     }
 ```
 
@@ -133,47 +129,39 @@ async def ocr_comic_cbz(cbz_path: Path) -> Dict[str, Any]:
 ```python
 async def ocr_comic_cbz_streaming(cbz_path: Path) -> Dict[str, Any]:
     """OCR CBZ without extracting to disk."""
-    with zipfile.ZipFile(cbz_path, 'r') as zip_file:
+    with zipfile.ZipFile(cbz_path, "r") as zip_file:
         # Get list of pages
-        pages = sorted([
-            f for f in zip_file.namelist() 
-            if f.lower().endswith(('.jpg', '.jpeg', '.png'))
-        ])
-        
+        pages = sorted([f for f in zip_file.namelist() if f.lower().endswith((".jpg", ".jpeg", ".png"))])
+
         ocr_results = []
         finereader = FineReaderCLI()
-        
+
         for page_num, page_name in enumerate(pages, 1):
             # Read page from archive
             with zip_file.open(page_name) as page_data:
                 # Write to temp file for FineReader (it needs file path)
-                temp_page = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+                temp_page = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
                 temp_page.write(page_data.read())
                 temp_page.close()
-                
+
                 # OCR
-                result = await finereader.process_document(
-                    temp_page.name,
-                    language="multilingual"
+                result = await finereader.process_document(temp_page.name, language="multilingual")
+
+                ocr_results.append(
+                    {
+                        "page": page_num,
+                        "text": await extract_text_from_ocr_result(result),
+                        "confidence": result["confidence"],
+                    }
                 )
-                
-                ocr_results.append({
-                    "page": page_num,
-                    "text": await extract_text_from_ocr_result(result),
-                    "confidence": result["confidence"]
-                })
-                
+
                 # Clean up temp file
                 os.unlink(temp_page.name)
-    
+
     # Store OCR metadata
     await store_comic_ocr_metadata(cbz_path, ocr_results)
-    
-    return {
-        "success": True,
-        "total_pages": len(pages),
-        "ocr_results": ocr_results
-    }
+
+    return {"success": True, "total_pages": len(pages), "ocr_results": ocr_results}
 ```
 
 ### **Option 3: Hybrid Approach**
@@ -194,18 +182,18 @@ async def ocr_comic_cbz_streaming(cbz_path: Path) -> Dict[str, Any]:
 async def ocr_comic_on_demand(cbz_path: Path, force: bool = False) -> Dict[str, Any]:
     """OCR comic only if needed."""
     # Check if OCR already exists
-    ocr_db_path = cbz_path.with_suffix('.cbz.ocr.json')
-    
+    ocr_db_path = cbz_path.with_suffix(".cbz.ocr.json")
+
     if not force and ocr_db_path.exists():
         logger.info(f"OCR cache exists for {cbz_path.name}")
         return json.loads(ocr_db_path.read_text())
-    
+
     # Perform OCR
     result = await ocr_comic_cbz(cbz_path)
-    
+
     # Cache result
     ocr_db_path.write_text(json.dumps(result, indent=2))
-    
+
     return result
 ```
 
@@ -257,19 +245,21 @@ Once OCR text is stored, enable search:
 async def search_comics_by_text(query: str) -> List[Dict]:
     """Search across all comic OCR text."""
     results = []
-    
+
     # Search through all OCR metadata
     for comic in all_comics:
         ocr_data = await get_comic_ocr_metadata(comic)
-        
-        if query.lower() in ocr_data['full_text'].lower():
-            results.append({
-                "title": comic.title,
-                "matches": find_matching_pages(query, ocr_data['pages']),
-                "confidence": ocr_data['average_confidence']
-            })
-    
-    return sorted(results, key=lambda x: x['confidence'], reverse=True)
+
+        if query.lower() in ocr_data["full_text"].lower():
+            results.append(
+                {
+                    "title": comic.title,
+                    "matches": find_matching_pages(query, ocr_data["pages"]),
+                    "confidence": ocr_data["average_confidence"],
+                }
+            )
+
+    return sorted(results, key=lambda x: x["confidence"], reverse=True)
 ```
 
 ---
@@ -309,7 +299,7 @@ async def search_comics_by_text(query: str) -> List[Dict]:
 result = await calibre_ocr(
     operation="process",
     source="L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Comics\\Alan Moore\\Batman_ The Killing Joke Deluxe (56)\\Batman_ The Killing Joke Deluxe - Alan Moore.cbz",
-    language="multilingual"
+    language="multilingual",
 )
 ```
 
@@ -319,17 +309,14 @@ result = await calibre_ocr(
 result = await calibre_ocr(
     operation="batch_process",
     source="L:\\Multimedia Files\\Written Word\\Calibre-Bibliothek Comics",
-    language="multilingual"
+    language="multilingual",
 )
 ```
 
 ### Search Comics
 ```python
 # Search comics by text
-results = await search_books(
-    text="Joker",
-    filter="format:CBZ"
-)
+results = await search_books(text="Joker", filter="format:CBZ")
 ```
 
 ---
@@ -358,16 +345,16 @@ results = await search_books(
 
 1. **OCR all comics upfront or on-demand?**
    - **Recommendation**: Hybrid (on-demand with caching)
-   
+
 2. **Where to store OCR text?**
    - **Recommendation**: Calibre comments + separate metadata file for search index
-   
+
 3. **Process images or extracted pages?**
    - **Recommendation**: Extract first for simplicity, optimize later
-   
+
 4. **Multi-language support?**
    - **Recommendation**: "multilingual" for comics (bubbles in different languages)
-   
+
 5. **Rebuild CBZ or keep original?**
    - **Recommendation**: Keep original, store OCR separately (no quality loss)
 
@@ -382,4 +369,3 @@ CBZ comics are ZIP archives with image pages. OCR strategy:
 4. **Make** comics searchable by dialogue/bubbles
 
 This enables searching comic libraries for quotes, character names, or story elements! 📚🦇
-

@@ -1,6 +1,6 @@
 # Tenacity Retry Pattern for MCP Servers
 
-**Last Updated**: 2025-11-02  
+**Last Updated**: 2025-11-02
 **Standard**: MCP Server Retry Logic Best Practices
 
 ## Overview
@@ -86,16 +86,16 @@ from tenacity import (
 async def _make_request(self, endpoint: str, ...) -> Dict[str, Any]:
     """
     Make HTTP request with automatic retry logic.
-    
+
     Retries transient network errors (timeouts, connection failures).
     Does NOT retry HTTP 4xx/5xx errors (permanent failures).
     """
     response = await client.request(...)
-    
+
     # HTTP errors should NOT be retried
     if response.status_code >= 400:
         raise APIError(f"HTTP {response.status_code}: {response.text}")
-    
+
     return response.json()
 ```
 
@@ -114,15 +114,13 @@ async def _make_request(self, endpoint: str, ...) -> Dict[str, Any]:
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=retry_if_exception_type(
-        (aiohttp.ClientConnectionError, aiohttp.ServerTimeoutError, aiohttp.ClientError)
-    ),
+    retry=retry_if_exception_type((aiohttp.ClientConnectionError, aiohttp.ServerTimeoutError, aiohttp.ClientError)),
     reraise=True,
 )
 async def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
     """
     Make authenticated request with automatic retry logic.
-    
+
     Retries transient network errors. Does NOT retry HTTP errors (4xx/5xx).
     """
     async with self.session.request(method, url, **kwargs) as response:
@@ -145,17 +143,17 @@ async def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
 async def _generate_metadata(self, metadata, fields: List[str]) -> Dict:
     """
     Generate metadata using AI service with automatic retry logic.
-    
+
     Retries transient service errors (timeouts, temporary unavailability).
     """
     response = await self._ai_client.post(...)
-    
+
     # Service errors (5xx) might be retried, but API errors (4xx) should not
     if response.status_code >= 500:
         raise AIServiceError("Service temporarily unavailable")
     elif response.status_code >= 400:
         raise AIServiceError("Invalid request - do not retry")
-    
+
     return response.json()
 ```
 
@@ -227,6 +225,7 @@ except httpx.ConnectError as e:
 from unittest.mock import patch, AsyncMock
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_retry_on_timeout():
     """Test that timeouts trigger retries."""
@@ -237,7 +236,7 @@ async def test_retry_on_timeout():
             httpx.TimeoutException("Request timed out"),
             AsyncMock(status_code=200, json=lambda: {"success": True}),
         ]
-        
+
         result = await client._make_request("test-endpoint")
         assert result == {"success": True}
         assert mock_request.call_count == 3  # Initial + 2 retries
@@ -252,10 +251,10 @@ async def test_no_retry_on_auth_error():
     with patch("httpx.AsyncClient.request") as mock_request:
         mock_response = AsyncMock(status_code=401, text="Unauthorized")
         mock_request.return_value = mock_response
-        
+
         with pytest.raises(CalibreAPIError, match="Authentication failed"):
             await client._make_request("test-endpoint")
-        
+
         # Should only try once (no retry for auth errors)
         assert mock_request.call_count == 1
 ```
@@ -347,4 +346,3 @@ See `src/calibre_mcp/tools/advanced_features/ai_enhancements.py` - `_generate_me
 - Do NOT retry permanent errors (authentication, validation, HTTP 4xx/5xx)
 - Provide AI-friendly error messages
 - Always use `reraise=True`
-

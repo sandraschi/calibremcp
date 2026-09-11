@@ -174,8 +174,8 @@ Glama.ai scans repositories:
 
 ---
 
-**Integration Status**: ✅ Complete  
-**Achievement**: 🏆 Gold Status (85/100)  
-**Last Updated**: October 5, 2025  
-**Repository**: notepadpp-mcp  
+**Integration Status**: ✅ Complete
+**Achievement**: 🏆 Gold Status (85/100)
+**Last Updated**: October 5, 2025
+**Repository**: notepadpp-mcp
 **Platform**: Glama.ai MCP Directory

@@ -36,7 +36,6 @@ if __name__ != "__main__":
         BookStatus = pydantic_models.BookStatus
     else:
         # Fallback: define minimal enums
-        from enum import Enum
 
         class BookFormat(enum.StrEnum):
             EPUB = "epub"
@@ -49,7 +48,6 @@ if __name__ != "__main__":
             FINISHED = "finished"
 else:
     # Fallback for direct execution
-    from enum import Enum
 
     class BookFormat(enum.StrEnum):
         EPUB = "epub"
@@ -92,19 +90,13 @@ books_ratings_link = Table(
 )
 
 # Update relationship configurations
-Book.authors = relationship(
-    "Author", secondary=books_authors_link, back_populates="books", lazy="selectin"
-)
+Book.authors = relationship("Author", secondary=books_authors_link, back_populates="books", lazy="selectin")
 
-Book.series_rel = relationship(
-    "Series", secondary=books_series_link, back_populates="books", lazy="selectin"
-)
+Book.series_rel = relationship("Series", secondary=books_series_link, back_populates="books", lazy="selectin")
 
 Book.tags = relationship("Tag", secondary=books_tags_link, back_populates="books", lazy="selectin")
 
-Book.ratings = relationship(
-    "Rating", secondary=books_ratings_link, back_populates="books", lazy="selectin"
-)
+Book.ratings = relationship("Rating", secondary=books_ratings_link, back_populates="books", lazy="selectin")
 
 # Export all models and tables
 __all__ = [

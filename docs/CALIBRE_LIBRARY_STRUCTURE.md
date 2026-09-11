@@ -50,7 +50,7 @@ config.set_active_library("IT Library")
 L:\Multimedia Files\Written Word\
 ├── Calibre-Bibliothek (Main Library - 4,982 books)
 ├── Calibre-Bibliothek Bullshit
-├── Calibre-Bibliothek Comics  
+├── Calibre-Bibliothek Comics
 ├── Calibre-Bibliothek Deutsch
 ├── Calibre-Bibliothek IT
 ├── Calibre-Bibliothek Japanisch

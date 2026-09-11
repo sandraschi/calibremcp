@@ -87,38 +87,34 @@ from ..config import settings
 
 class MCPClient:
     """Wrapper for MCP client to call CalibreMCP tools."""
-    
+
     def __init__(self):
         self.session: Optional[ClientSession] = None
         self._lock = asyncio.Lock()
-    
+
     async def connect(self):
         """Connect to CalibreMCP server."""
         if self.session is not None:
             return
-        
+
         async with self._lock:
             if self.session is not None:
                 return
-            
-            server_params = StdioServerParameters(
-                command="python",
-                args=["-m", "calibre_mcp.server"],
-                env=None
-            )
-            
+
+            server_params = StdioServerParameters(command="python", args=["-m", "calibre_mcp.server"], env=None)
+
             stdio_transport = await stdio_client(server_params)
             self.session = ClientSession(stdio_transport[0], stdio_transport[1])
             await self.session.initialize()
-    
+
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Call an MCP tool."""
         if self.session is None:
             await self.connect()
-        
+
         result = await self.session.call_tool(tool_name, arguments)
         return result.content[0].text if result.content else {}
-    
+
     async def close(self):
         """Close MCP connection."""
         if self.session:
@@ -144,11 +140,7 @@ from fastapi.responses import JSONResponse
 from .api import books, search, viewer, metadata, library
 from .config import settings
 
-app = FastAPI(
-    title="Calibre Webapp API",
-    description="HTTP API wrapper for CalibreMCP server",
-    version="1.0.0"
-)
+app = FastAPI(title="Calibre Webapp API", description="HTTP API wrapper for CalibreMCP server", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
@@ -212,7 +204,7 @@ async def list_books(
                 "offset": offset,
                 "author": author,
                 "tag": tag,
-            }
+            },
         )
         return BookListResponse(**result)
     except Exception as e:
@@ -230,7 +222,7 @@ async def get_book(book_id: int):
                 "book_id": str(book_id),
                 "include_metadata": True,
                 "include_formats": True,
-            }
+            },
         )
         return BookResponse(**result)
     except Exception as e:

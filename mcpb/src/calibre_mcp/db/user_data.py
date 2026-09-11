@@ -35,7 +35,7 @@ def _get_user_data_dir() -> Path:
     if env_dir:
         return Path(env_dir)
     if os.name == "nt":
-        appdata = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
+        appdata = os.getenv("APPDATA", Path("~\\AppData\\Roaming").expanduser())
         return Path(appdata) / "calibre-mcp"
     home = Path.home()
     if platform.system() == "Darwin":

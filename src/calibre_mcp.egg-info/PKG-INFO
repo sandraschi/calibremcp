@@ -57,7 +57,7 @@ Dynamic: author
 Dynamic: home-page
 Dynamic: requires-python
 
-# CalibreMCP 
+# CalibreMCP
 
 [![Python](https://img.shields.io/badge/Python-3.11+-green)](https://python.org)
 [![Web Interface](https://img.shields.io/badge/Web--Interface-Professional-purple)]()
@@ -296,7 +296,7 @@ A Next.js webapp provides a full browser UI for the Calibre library.
 - Logs page: Log file viewer with tail, filter, level filter, live tail (polling with backoff), plus System status view
 - Import (add by path), Export (CSV/JSON)
 
-**Start:** Use `webapp\start.ps1` for reservoir ports (10720 backend, 10721 frontend) with kill-port zombie clear. Or legacy: `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`  
+**Start:** Use `webapp\start.ps1` for reservoir ports (10720 backend, 10721 frontend) with kill-port zombie clear. Or legacy: `cd webapp/backend; uvicorn app.main:app --port 13000` and `cd webapp/frontend; npm run dev`
 See [webapp/README.md](webapp/README.md), [webapp/SETUP.md](webapp/SETUP.md) (port rules, zombie kill).
 
 #### **7. Logging**
@@ -344,7 +344,7 @@ Add to your `claude_desktop_config.json`:
   }
 }
 ```
-### **1. PyPI Package Install (Recommended)** 
+### **1. PyPI Package Install (Recommended)**
 
 **Simple pip installation - no repository cloning required!**
 
@@ -375,7 +375,7 @@ pip install calibre-mcp
 
 ---
 
-### **2. MCPB Package** 
+### **2. MCPB Package**
 
 **One-click installation via MCPB package - no Python setup required!**
 
@@ -528,7 +528,7 @@ print(' Working' if asyncio.run(quick_library_test()) else ' Failed')
 "
 ```
 
-#### **Verify Server Will Load in Claude** 
+#### **Verify Server Will Load in Claude**
 
 Before committing or restarting Claude, verify the server will load:
 
@@ -562,7 +562,7 @@ python scripts/check_logs.py --errors-only
 .\scripts\restart_claude_and_check_mcp.ps1
 ```
 
-**Note:** 
+**Note:**
 - **SOTA Script** - Generic MCP server debugging script (copied from central docs repo)
 - Uses `taskkill` to stop Claude (no UAC needed)
 - Auto-detects server name, log file location, Claude path
@@ -849,7 +849,7 @@ Full documentation available at [docs/](docs/).
 # Unit tests
 python -m pytest tests/test_api.py -v
 
-# Integration tests  
+# Integration tests
 python -m pytest tests/integration_tests.py -v
 
 # MCP Inspector
@@ -928,10 +928,10 @@ calibremcp/
 
 ##  Success Metrics
 
-### **Phase 1 Complete** 
+### **Phase 1 Complete**
 
 -  4/4 core MCP tools implemented and tested
--  FastMCP 2.0 compliance with proper structure  
+-  FastMCP 2.0 compliance with proper structure
 -  Comprehensive error handling and diagnostics
 -  Austrian efficiency: 45-minute realistic timeline
 -  Production-ready for immediate use with Claude Desktop and other MCP clients

@@ -1,6 +1,6 @@
 # Calibre MCP Tool Consolidation
 
-**Target:** 15 core tools (down from 27)  
+**Target:** 15 core tools (down from 27)
 **Timestamp:** 2025-01-31
 
 ## Summary

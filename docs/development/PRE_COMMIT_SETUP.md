@@ -1,7 +1,7 @@
 # Pre-commit Hooks Setup
 
-**Status:** ✅ Configured  
-**Date:** 2025-11-22  
+**Status:** ✅ Configured
+**Date:** 2025-11-22
 **Purpose:** Automated code quality checks before commits
 
 ---
@@ -236,7 +236,6 @@ pre-commit install
 
 ---
 
-*Pre-commit Hooks Setup*  
-*Location: `.pre-commit-config.yaml`*  
+*Pre-commit Hooks Setup*
+*Location: `.pre-commit-config.yaml`*
 *Last Updated: 2025-11-22*
-

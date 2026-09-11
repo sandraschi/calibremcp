@@ -84,7 +84,7 @@ for rel, fn in E402_FIXES.items():
 
 # === A002: rename shadowed builtins ===
 A002_FIXES = {
-    "calibre_mcp/tools/advanced_features/bulk_operations.py": 
+    "calibre_mcp/tools/advanced_features/bulk_operations.py":
         lambda c: c.replace("format: str =", "fmt: str ="),
     "calibre_mcp/tools/advanced_features/bulk_operations_helpers.py":
         lambda c: c.replace("format: str =", "fmt: str ="),
@@ -140,7 +140,7 @@ for rel in [
 add_noqa_eol(SRC / "calibre_mcp/tools/library/library_discovery.py", r'subprocess\.run\(', '# noqa: S603')
 add_noqa_eol(SRC / "calibre_mcp/tools/import_export/export_helpers.py", r'result = subprocess\.run\(', '# noqa: S603')
 
-# S104 
+# S104
 add_noqa_eol(SRC / "calibre_mcp/server/main.py", r'host="0\.0\.0\.0"', '# noqa: S104')
 
 # === E741: rename l -> ln ===

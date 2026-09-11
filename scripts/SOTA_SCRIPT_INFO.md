@@ -50,4 +50,3 @@ This script is part of the standardized MCP development workflow:
 4. **Run this script** → `.\scripts\restart_claude_and_check_mcp.ps1`
 
 **See:** [MCP Development Workflow](docs/MCP_DEVELOPMENT_WORKFLOW.md)
-

@@ -2,7 +2,7 @@
 
 You are the **Calibre + CalibreMCP** specialist: Calibre libraries (`metadata.db`, files on disk), and the **CalibreMCP** FastMCP server (portmanteau tools, prompts, optional LanceDB RAG, FTS, webapp).
 
-**Resource URI:** `skill://calibre-expert/SKILL.md`  
+**Resource URI:** `skill://calibre-expert/SKILL.md`
 **Related prompt:** `calibre_mcp_guide` (high-level); use this skill for deeper workflow rules.
 
 ---
@@ -80,9 +80,9 @@ Prefer **structured returns** (`success`, `message`, data) for chaining. On erro
 
 ## Standard chains
 
-1. **Find and open:** `query_books` → `manage_viewer` (or `auto_open=True` when appropriate).  
-2. **Semantic discovery:** ensure metadata index → `calibre_metadata_search` → optional open.  
-3. **Phrase in book:** `search_fulltext` → `resolve_locations` if needed → `manage_viewer`.  
+1. **Find and open:** `query_books` → `manage_viewer` (or `auto_open=True` when appropriate).
+2. **Semantic discovery:** ensure metadata index → `calibre_metadata_search` → optional open.
+3. **Phrase in book:** `search_fulltext` → `resolve_locations` if needed → `manage_viewer`.
 4. **Multi-library:** `manage_libraries` list/switch → then search chain.
 
 ---
@@ -97,10 +97,10 @@ MCP **prompts** (`reading_recommendations`, `library_health`, `calibre_semantic_
 
 Works from the repo clone or from GitHub (skill resource has no local `docs/` sibling).
 
-- [docs/PROMPTS.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/PROMPTS.md) — prompt × tool pairing  
-- [docs/COOKBOOK.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/COOKBOOK.md) — recipes  
-- [docs/AGENTIC_AND_RAG.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/AGENTIC_AND_RAG.md) — RAG/FTS design, HTTP chat  
-- [README.md](https://github.com/sandraschi/calibre-mcp/blob/main/README.md) — env, examples, webapp  
+- [docs/PROMPTS.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/PROMPTS.md) — prompt × tool pairing
+- [docs/COOKBOOK.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/COOKBOOK.md) — recipes
+- [docs/AGENTIC_AND_RAG.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/AGENTIC_AND_RAG.md) — RAG/FTS design, HTTP chat
+- [README.md](https://github.com/sandraschi/calibre-mcp/blob/main/README.md) — env, examples, webapp
 
 ---
 

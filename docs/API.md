@@ -145,28 +145,16 @@ async def query_books(
 
 ```python
 # User says: "list books by conan doyle"
-result = await query_books(
-    operation="search",
-    author="Conan Doyle",
-    format_table=True
-)
+result = await query_books(operation="search", author="Conan Doyle", format_table=True)
 
 # Advanced search: author + publisher + year
 result = await query_books(
-    operation="search",
-    author="Conan Doyle",
-    publisher="Penguin",
-    pubdate_start="1900-01-01",
-    pubdate_end="1930-12-31"
+    operation="search", author="Conan Doyle", publisher="Penguin", pubdate_start="1900-01-01", pubdate_end="1930-12-31"
 )
 
 # Search with multiple filters (AND logic)
 result = await query_books(
-    operation="search",
-    author="Agatha Christie",
-    tags=["mystery", "crime"],
-    min_rating=4,
-    exclude_tags=["horror"]
+    operation="search", author="Agatha Christie", tags=["mystery", "crime"], min_rating=4, exclude_tags=["horror"]
 )
 
 # Search by publisher with year range
@@ -174,32 +162,20 @@ result = await query_books(
     operation="search",
     publishers=["O'Reilly Media", "No Starch Press"],
     pubdate_start="2023-01-01",
-    pubdate_end="2024-12-31"
+    pubdate_end="2024-12-31",
 )
 
 # Search recently added books with rating
-result = await query_books(
-    operation="search",
-    added_after="2024-01-01",
-    min_rating=4,
-    format_table=True
-)
+result = await query_books(operation="search", added_after="2024-01-01", min_rating=4, format_table=True)
 
 # List all books (simple operation)
 result = await query_books(operation="list", limit=20)
 
 # Get books by author ID
-result = await query_books(
-    operation="by_author",
-    author_id=42,
-    limit=10
-)
+result = await query_books(operation="by_author", author_id=42, limit=10)
 
 # Get books in a series
-result = await query_books(
-    operation="by_series",
-    series_id=15
-)
+result = await query_books(operation="by_series", series_id=15)
 ```
 
 #### **Returns**
@@ -240,32 +216,17 @@ async def manage_books(
 ```python
 # Add a book
 result = await manage_books(
-    operation="add",
-    file_path="/path/to/book.epub",
-    metadata={"title": "My Book", "authors": ["Author Name"]}
+    operation="add", file_path="/path/to/book.epub", metadata={"title": "My Book", "authors": ["Author Name"]}
 )
 
 # Get book details
-result = await manage_books(
-    operation="get",
-    book_id="123",
-    include_metadata=True,
-    include_formats=True
-)
+result = await manage_books(operation="get", book_id="123", include_metadata=True, include_formats=True)
 
 # Update book metadata
-result = await manage_books(
-    operation="update",
-    book_id="123",
-    metadata={"rating": 5, "tags": ["favorite"]}
-)
+result = await manage_books(operation="update", book_id="123", metadata={"rating": 5, "tags": ["favorite"]})
 
 # Delete a book
-result = await manage_books(
-    operation="delete",
-    book_id="123",
-    delete_files=True
-)
+result = await manage_books(operation="delete", book_id="123", delete_files=True)
 ```
 
 ---
@@ -288,22 +249,14 @@ result = await manage_books(
 result = await manage_libraries(operation="list")
 
 # Switch library
-result = await manage_libraries(
-    operation="switch",
-    library_name="Main Library"
-)
+result = await manage_libraries(operation="switch", library_name="Main Library")
 
 # Get library statistics
-result = await manage_libraries(
-    operation="stats",
-    library_name="Main Library"
-)
+result = await manage_libraries(operation="stats", library_name="Main Library")
 
 # Search across libraries
 result = await manage_libraries(
-    operation="search",
-    query="python programming",
-    libraries=["Main Library", "IT Library"]
+    operation="search", query="python programming", libraries=["Main Library", "IT Library"]
 )
 ```
 
@@ -385,38 +338,20 @@ Searches for books matching author/tag/series filters, randomly selects one, and
 
 **Returns:**
 ```python
-{
-    "success": bool,
-    "book_id": int,
-    "title": str,
-    "author": str,
-    "file_path": str,
-    "format": str,
-    "message": str
-}
+{"success": bool, "book_id": int, "title": str, "author": str, "file_path": str, "format": str, "message": str}
 ```
 
 **Usage Examples:**
 
 ```python
 # Open a random book by author
-result = await manage_viewer(
-    operation="open_random",
-    author="Dickson Carr"
-)
+result = await manage_viewer(operation="open_random", author="Dickson Carr")
 
 # Open random mystery book
-result = await manage_viewer(
-    operation="open_random",
-    tag="mystery"
-)
+result = await manage_viewer(operation="open_random", tag="mystery")
 
 # Open random book in series with PDF preference
-result = await manage_viewer(
-    operation="open_random",
-    series="Sherlock Holmes",
-    format_preference="PDF"
-)
+result = await manage_viewer(operation="open_random", series="Sherlock Holmes", format_preference="PDF")
 ```
 
 ---
@@ -450,7 +385,7 @@ Searches for a book by title or author, retrieves comprehensive metadata, and di
     "author": str,
     "metadata": dict,  # Complete metadata dictionary
     "html_path": Optional[str],  # Path to HTML file if open_browser=True
-    "formatted_text": str  # Formatted text representation
+    "formatted_text": str,  # Formatted text representation
 }
 ```
 
@@ -458,23 +393,13 @@ Searches for a book by title or author, retrieves comprehensive metadata, and di
 
 ```python
 # Show metadata for a book (opens HTML popup)
-result = await manage_metadata(
-    operation="show",
-    query="Gormenghast"
-)
+result = await manage_metadata(operation="show", query="Gormenghast")
 
 # Show metadata by author
-result = await manage_metadata(
-    operation="show",
-    author="Peake"
-)
+result = await manage_metadata(operation="show", author="Peake")
 
 # Show metadata without browser popup
-result = await manage_metadata(
-    operation="show",
-    query="Gormenghast",
-    open_browser=False
-)
+result = await manage_metadata(operation="show", query="Gormenghast", open_browser=False)
 
 # Display formatted text
 if result["success"]:
@@ -622,10 +547,10 @@ CalibreMCP supports Calibre's native search syntax through the `query_books` too
 ```python
 # Use query_books with operation="search"
 query_books(operation="search", author="Conan Doyle")  # Author filter
-query_books(operation="search", tag="science")         # Tag filter
-query_books(operation="search", series="Foundation")   # Series filter
+query_books(operation="search", tag="science")  # Tag filter
+query_books(operation="search", series="Foundation")  # Series filter
 query_books(operation="search", publisher="O'Reilly")  # Publisher filter
-query_books(operation="search", min_rating=4)          # Rating filter
+query_books(operation="search", min_rating=4)  # Rating filter
 ```
 
 #### **Boolean Operations**
@@ -638,24 +563,17 @@ Filters in `query_books` use AND logic when combined:
 
 ```python
 # Date range filtering
-query_books(
-    operation="search",
-    pubdate_start="2020-01-01",
-    pubdate_end="2024-12-31"
-)
+query_books(operation="search", pubdate_start="2020-01-01", pubdate_end="2024-12-31")
 
 # File size filtering
 query_books(
     operation="search",
     min_size=1048576,  # 1 MB
-    max_size=10485760  # 10 MB
+    max_size=10485760,  # 10 MB
 )
 
 # Format filtering
-query_books(
-    operation="search",
-    formats=["EPUB", "PDF"]
-)
+query_books(operation="search", formats=["EPUB", "PDF"])
 ```
 
 ### **Sort Options** (for `operation="list"`)

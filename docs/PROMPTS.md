@@ -35,6 +35,6 @@ If the host supports **SEP-1577** (`ctx.sample`), prefer **`agentic_library_work
 
 ## See also
 
-- [COOKBOOK.md](./COOKBOOK.md) — goal-oriented recipes  
-- [AGENTIC_AND_RAG.md](./AGENTIC_AND_RAG.md) — FTS vs RAG, indexes, HTTP chat  
-- [README.md](../README.md) — configuration and usage examples  
+- [COOKBOOK.md](./COOKBOOK.md) — goal-oriented recipes
+- [AGENTIC_AND_RAG.md](./AGENTIC_AND_RAG.md) — FTS vs RAG, indexes, HTTP chat
+- [README.md](../README.md) — configuration and usage examples

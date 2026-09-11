@@ -11,8 +11,8 @@ SEP-1577 "Sampling with Tools" allows the MCP server to autonomously use the cli
 
 ### Agentic Workflow Tool
 
-**Location**: `src/calibre_mcp/tools/agentic_workflow.py`  
-**Tool Name**: `agentic_library_workflow`  
+**Location**: `src/calibre_mcp/tools/agentic_workflow.py`
+**Tool Name**: `agentic_library_workflow`
 **Purpose**: Autonomous orchestration of library operations
 
 ## Capabilities
@@ -108,9 +108,9 @@ result = await agentic_library_workflow(
         "find_duplicates",
         "find_missing_metadata",
         "batch_update_metadata",
-        "organize_library"
+        "organize_library",
     ],
-    max_iterations=5
+    max_iterations=5,
 )
 ```
 
@@ -126,13 +126,8 @@ result = await agentic_library_workflow(
 ```python
 result = await agentic_library_workflow(
     workflow_prompt="Find all books by Terry Pratchett, ensure they have covers, and export to EPUB",
-    available_operations=[
-        "search_books",
-        "find_missing_metadata",
-        "convert_books",
-        "export_books"
-    ],
-    max_iterations=3
+    available_operations=["search_books", "find_missing_metadata", "convert_books", "export_books"],
+    max_iterations=3,
 )
 ```
 
@@ -151,9 +146,9 @@ result = await agentic_library_workflow(
         "get_reading_history",
         "analyze_reading_patterns",
         "search_similar_books",
-        "generate_recommendations"
+        "generate_recommendations",
     ],
-    max_iterations=4
+    max_iterations=4,
 )
 ```
 
@@ -217,9 +212,9 @@ The agentic workflow tool complements existing Calibre MCP tools:
 
 ## Status
 
-✅ **Implemented** - SEP-1577 agentic workflow tool active  
-✅ **Integrated** - Registered with Calibre MCP server  
-✅ **Tested** - Basic functionality verified  
-✅ **Documented** - Complete implementation guide available  
+✅ **Implemented** - SEP-1577 agentic workflow tool active
+✅ **Integrated** - Registered with Calibre MCP server
+✅ **Tested** - Basic functionality verified
+✅ **Documented** - Complete implementation guide available
 
 The Calibre MCP now supports revolutionary autonomous library orchestration, transforming complex multi-step operations into simple natural language requests.

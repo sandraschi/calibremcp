@@ -24,7 +24,15 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # CORS configuration
-    CORS_ORIGINS: list[str] = ["*"]
+    CORS_ORIGINS: list[str] = [
+        "http://127.0.0.1:10721",
+        "http://localhost:10721",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+        "tauri://localhost",
+        "http://127.0.0.1:10720",
+        "http://localhost:10720",
+    ]
 
     # Database configuration (accepts CALIBRE_LIBRARY_PATH or LIBRARY_PATH)
     LIBRARY_PATH: str | None = Field(

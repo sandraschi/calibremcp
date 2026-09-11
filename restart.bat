@@ -8,4 +8,3 @@ if errorlevel 1 (
 )
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0webapp\start.ps1"
 pause
-

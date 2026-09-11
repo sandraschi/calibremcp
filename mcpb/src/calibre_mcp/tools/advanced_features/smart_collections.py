@@ -21,9 +21,7 @@ class CollectionRule(BaseModel):
     """Rule for dynamic collection membership."""
 
     field: str
-    operator: (
-        str  # '==', '!=', '>', '<', '>=', '<=', 'contains', 'not_contains', 'regex', 'in', 'not_in'
-    )
+    operator: str  # '==', '!=', '>', '<', '>=', '<=', 'contains', 'not_contains', 'regex', 'in', 'not_in'
     value: Any
 
     @field_validator("operator")
@@ -292,9 +290,7 @@ class SmartCollectionsTool(MCPTool):
         }
         return await self.collection_create(collection)
 
-    async def collection_create_recently_added(
-        self, name: str = "Recently Added", days: int = 30, **kwargs
-    ) -> dict:
+    async def collection_create_recently_added(self, name: str = "Recently Added", days: int = 30, **kwargs) -> dict:
         """Create a collection for recently added books."""
         cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
 
@@ -318,9 +314,7 @@ class SmartCollectionsTool(MCPTool):
         }
         return await self.collection_create(collection)
 
-    async def collection_create_ai_recommended(
-        self, name: str = "AI Recommendations", **kwargs
-    ) -> dict:
+    async def collection_create_ai_recommended(self, name: str = "AI Recommendations", **kwargs) -> dict:
         """Create a collection with AI-recommended books."""
         # This would integrate with the AI enhancements tool
         # For now, it's a placeholder that returns an empty collection

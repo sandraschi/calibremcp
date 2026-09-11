@@ -2,7 +2,7 @@
 Viewer module for CalibreMCP - Handles rendering and displaying different book formats.
 """
 
-from enum import Enum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol
 

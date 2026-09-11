@@ -160,8 +160,7 @@ class CalibreHighlightImporter:
     def import_all(self, library_path: Path) -> ImportReport:
         """One-shot import. Idempotent — duplicates skipped via UNIQUE key."""
 
-    def incremental_import(self, library_path: Path,
-                            since: datetime | None = None) -> ImportReport:
+    def incremental_import(self, library_path: Path, since: datetime | None = None) -> ImportReport:
         """Import highlights added since last import."""
 ```
 
@@ -176,8 +175,7 @@ Sandra has highlighted via Calibre viewer.
 class KindleHighlightImporter:
     """Parse Kindle's My Clippings.txt."""
 
-    def import_from_path(self, clippings_path: Path,
-                          library_path: Path) -> ImportReport:
+    def import_from_path(self, clippings_path: Path, library_path: Path) -> ImportReport:
         """Parse clippings and match to Calibre books by title+author."""
 ```
 
@@ -194,13 +192,13 @@ Matching strategy:
 **File:** `src/calibre_mcp/rag/highlights_rag.py` (new)
 
 ```python
-def build_highlights_index(library_path: Path,
-                            force_rebuild: bool = False) -> int:
+def build_highlights_index(library_path: Path, force_rebuild: bool = False) -> int:
     """Build LanceDB index over book_highlights."""
 
-def search_highlights(query: str, top_k: int = 15,
-                       book_id: int | None = None,
-                       tag_filter: list[str] | None = None) -> list[dict]:
+
+def search_highlights(
+    query: str, top_k: int = 15, book_id: int | None = None, tag_filter: list[str] | None = None
+) -> list[dict]:
     """Semantic search over highlights, optionally filtered."""
 ```
 

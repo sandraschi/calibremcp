@@ -1,6 +1,6 @@
 {
   "productName": "Calibre MCP",
-  "version": "1.8.6",
+  "version": "1.9.0",
   "identifier": "ai.fleet.calibre-mcp",
   "build": {
     "frontendDist": "../webapp/frontend/out",
@@ -61,4 +61,3 @@
     }
   }
 }
-

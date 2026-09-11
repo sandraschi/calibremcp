@@ -96,9 +96,7 @@ class SeriesService:
                 "book_count": book_count,
             }
 
-    def get_books_by_series(
-        self, series_id: int, limit: int = 50, offset: int = 0
-    ) -> dict[str, Any]:
+    def get_books_by_series(self, series_id: int, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         """Get books in a series with pagination."""
         with self._get_db_session() as session:
             series = session.query(Series).filter(Series.id == series_id).first()
@@ -138,10 +136,7 @@ class SeriesService:
 
         with self._get_db_session() as session:
             series_list = (
-                session.query(Series)
-                .filter(Series.name.ilike(f"{letter.lower()}%"))
-                .order_by(Series.name)
-                .all()
+                session.query(Series).filter(Series.name.ilike(f"{letter.lower()}%")).order_by(Series.name).all()
             )
 
             result = []
@@ -197,12 +192,8 @@ class SeriesService:
 
             return {
                 "total_series": total_series,
-                "series_by_letter": [
-                    {"letter": letter, "count": count} for letter, count in letter_counts
-                ],
-                "top_series": [
-                    {"id": s.id, "name": s.name, "book_count": bc} for s, bc in top_series
-                ],
+                "series_by_letter": [{"letter": letter, "count": count} for letter, count in letter_counts],
+                "top_series": [{"id": s.id, "name": s.name, "book_count": bc} for s, bc in top_series],
             }
 
 

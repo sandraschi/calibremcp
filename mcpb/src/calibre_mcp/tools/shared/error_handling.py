@@ -189,9 +189,7 @@ def handle_tool_error(
         diagnostic["context"] = context
 
     # Format comprehensive error message
-    formatted_msg = (
-        f"ERROR: {tool_name} failed with {error_type}: {error_msg}\n\n**Diagnostic Information:**\n"
-    )
+    formatted_msg = f"ERROR: {tool_name} failed with {error_type}: {error_msg}\n\n**Diagnostic Information:**\n"
     if operation:
         formatted_msg += f"- Operation: {operation}\n"
     if parameters:
@@ -204,12 +202,8 @@ def handle_tool_error(
         formatted_msg += f"{i}. {suggestion}\n"
 
     if isinstance(exception, FileNotFoundError):
-        formatted_msg += (
-            "\n**Important:** This is LOCAL library access using direct SQLite database.\n"
-        )
-        formatted_msg += (
-            "Do NOT try to connect to a Calibre HTTP server or configure remote access."
-        )
+        formatted_msg += "\n**Important:** This is LOCAL library access using direct SQLite database.\n"
+        formatted_msg += "Do NOT try to connect to a Calibre HTTP server or configure remote access."
 
     return format_error_response(
         error_msg=formatted_msg,

@@ -24,9 +24,7 @@ class Series(Base, BaseMixin):
     sort: Mapped[str | None] = mapped_column(Text)
 
     # Relationships
-    books: Mapped[list["Book"]] = relationship(
-        "Book", secondary="books_series_link", back_populates="series_rel"
-    )
+    books: Mapped[list["Book"]] = relationship("Book", secondary="books_series_link", back_populates="series_rel")
 
     def __repr__(self) -> str:
         return f"<Series(id={self.id}, name='{self.name}')>"

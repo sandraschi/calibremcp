@@ -55,7 +55,7 @@ python -m pytest $pytestArgs
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "All tests passed!" -ForegroundColor Green
-    
+
     if ($Coverage) {
         Write-Host ""
         Write-Host "Coverage report generated in htmlcov/index.html" -ForegroundColor Cyan

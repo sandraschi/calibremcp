@@ -198,8 +198,7 @@ async def query_books(
             if parsed.get("prefer_semantic_search") and isinstance(result, dict):
                 result["semantic_search_recommended"] = True
                 result["semantic_query_suggestion"] = (
-                    strip_inventory_question_phrases(search_text or "")
-                    or (search_text or "").strip()
+                    strip_inventory_question_phrases(search_text or "") or (search_text or "").strip()
                 )
                 result["language_hints"] = parsed.get("language_hints") or []
                 if result.get("message") is None or isinstance(result.get("message"), str):
@@ -221,10 +220,7 @@ async def query_books(
                 # Find the preferred format
                 file_path = None
                 for fmt in book.get("formats", []):
-                    if (
-                        isinstance(fmt, dict)
-                        and fmt.get("format", "").upper() == auto_open_format.upper()
-                    ):
+                    if isinstance(fmt, dict) and fmt.get("format", "").upper() == auto_open_format.upper():
                         file_path = fmt.get("path")
                         break
 
@@ -238,9 +234,9 @@ async def query_books(
                     try:
                         from ..viewer.manage_viewer import manage_viewer
 
-                        open_result = await (
-                            manage_viewer.fn if hasattr(manage_viewer, "fn") else manage_viewer
-                        )(operation="open_file", book_id=book["id"], file_path=file_path)
+                        open_result = await (manage_viewer.fn if hasattr(manage_viewer, "fn") else manage_viewer)(
+                            operation="open_file", book_id=book["id"], file_path=file_path
+                        )
 
                         # Add viewer info to the result
                         result["auto_opened"] = True

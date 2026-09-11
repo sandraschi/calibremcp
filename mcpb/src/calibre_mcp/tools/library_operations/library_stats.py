@@ -98,9 +98,7 @@ class LibraryStatsTool(MCPTool):
 
         # Add human-readable sizes
         stats["file_sizes"]["total_human"] = self._human_readable_size(total_size)
-        stats["file_sizes"]["average_human"] = self._human_readable_size(
-            stats["file_sizes"]["average"]
-        )
+        stats["file_sizes"]["average_human"] = self._human_readable_size(stats["file_sizes"]["average"])
 
         # Sort the breakdowns
         for key in [

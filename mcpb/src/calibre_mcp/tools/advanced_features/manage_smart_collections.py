@@ -33,8 +33,7 @@ async def manage_smart_collections(
     limit: int = 100,
     offset: int = 0,
     # Specialized collection creation parameters
-    name: str
-    | None = None,  # For create_series, create_recently_added, create_unread, create_ai_recommended
+    name: str | None = None,  # For create_series, create_recently_added, create_unread, create_ai_recommended
     series_name: str | None = None,  # For create_series
     days: int | None = None,  # For create_recently_added
 ) -> dict[str, Any]:
@@ -357,9 +356,7 @@ async def manage_smart_collections(
                 name = "Unread"
             try:
                 legacy_tool = SmartCollectionsTool()
-                return await legacy_tool.collection_create_unread(
-                    name=name, library_path=library_path
-                )
+                return await legacy_tool.collection_create_unread(name=name, library_path=library_path)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -374,9 +371,7 @@ async def manage_smart_collections(
                 name = "AI Recommendations"
             try:
                 legacy_tool = SmartCollectionsTool()
-                return await legacy_tool.collection_create_ai_recommended(
-                    name=name, library_path=library_path
-                )
+                return await legacy_tool.collection_create_ai_recommended(name=name, library_path=library_path)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -620,9 +615,7 @@ async def _handle_list() -> dict[str, Any]:
         )
 
 
-async def _handle_query(
-    collection_id: str, library_path: str | None, limit: int, offset: int
-) -> dict[str, Any]:
+async def _handle_query(collection_id: str, library_path: str | None, limit: int, offset: int) -> dict[str, Any]:
     """Handle query collection operation."""
     try:
         global _collections_storage

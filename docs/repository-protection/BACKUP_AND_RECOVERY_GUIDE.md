@@ -120,8 +120,8 @@ git branch "backup-$Date"
 git push origin "backup-$Date"
 
 # Clean old backup branches (keep 30 days)
-git branch | Where-Object { $_ -match 'backup-\d{4}-\d{2}-\d{2}' } | 
-    Where-Object { 
+git branch | Where-Object { $_ -match 'backup-\d{4}-\d{2}-\d{2}' } |
+    Where-Object {
         $BranchDate = [DateTime]::ParseExact($_.Substring(7), "yyyy-MM-dd", $null)
         $BranchDate -lt (Get-Date).AddDays(-30)
     } | ForEach-Object {
@@ -368,13 +368,13 @@ git stash pop
 
 Based on what we just set up:
 
-✅ **Layer 1**: GitHub remote (automatic)  
-✅ **Layer 2**: Git reflog (automatic, 90 days)  
-🔄 **Layer 3**: Backup branches (manual, but easy)  
-✅ **Layer 4**: Bundle script created (needs scheduling)  
+✅ **Layer 1**: GitHub remote (automatic)
+✅ **Layer 2**: Git reflog (automatic, 90 days)
+🔄 **Layer 3**: Backup branches (manual, but easy)
+✅ **Layer 4**: Bundle script created (needs scheduling)
 ⏳ **Layer 5**: Multiple remotes (optional, not set up)
 
-**Protection Level**: **GOOD** (3/5 layers active)  
+**Protection Level**: **GOOD** (3/5 layers active)
 **Recommendation**: Set up automated bundling for **EXCELLENT**
 
 ---
@@ -410,8 +410,8 @@ git merge cursor-changes
 
 ```powershell
 # Verify backups exist
-Get-ChildItem D:\Backups\notepadpp-mcp\*.bundle | 
-    Sort-Object LastWriteTime -Descending | 
+Get-ChildItem D:\Backups\notepadpp-mcp\*.bundle |
+    Sort-Object LastWriteTime -Descending |
     Select-Object -First 5
 
 # Verify GitHub is synced
@@ -449,7 +449,6 @@ If something goes wrong:
 
 ---
 
-*Document created: October 8, 2025*  
-*Backup script: `scripts/backup-repo.ps1`*  
+*Document created: October 8, 2025*
+*Backup script: `scripts/backup-repo.ps1`*
 *Your code is safe! 🛡️*
-

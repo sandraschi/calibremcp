@@ -45,9 +45,7 @@ class Identifier(Base, BaseMixin):
 class IdentifierBase(BaseModel):
     """Base Pydantic model for Identifier"""
 
-    type: str = Field(
-        ..., description="Type of identifier (e.g., isbn, amazon, google)", max_length=32
-    )
+    type: str = Field(..., description="Type of identifier (e.g., isbn, amazon, google)", max_length=32)
     val: str = Field(..., description="The identifier value")
 
     class Config:

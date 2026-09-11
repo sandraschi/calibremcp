@@ -8,7 +8,7 @@ CalibreMCP has migrated entirely to **Pydantic V2**. The legacy V1 `@validator` 
 
 ### 1. Field Validators
 
-Instead of `@validator`, use `@field_validator`. 
+Instead of `@validator`, use `@field_validator`.
 
 > [!IMPORTANT]
 > All validators must be `classmethod` and follow the V2 signature.
@@ -16,6 +16,7 @@ Instead of `@validator`, use `@field_validator`.
 ```python
 from pydantic import BaseModel, field_validator, ValidationInfo
 from typing import ClassVar
+
 
 class MyModel(BaseModel):
     name: str

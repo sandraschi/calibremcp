@@ -71,20 +71,20 @@ pytest tests/ -n auto
 
 ## What Gets Tested
 
-✅ Basic search (text, author, tag, series)  
-✅ Multiple filter combinations  
-✅ Exclusion filters  
-✅ Pagination  
-✅ Sorting  
-✅ Format filtering  
-✅ Date filtering  
-✅ Size filtering  
-✅ Error handling  
-✅ Logging  
-✅ Performance  
-✅ Edge cases  
-✅ Case insensitivity  
-✅ Partial matching  
+✅ Basic search (text, author, tag, series)
+✅ Multiple filter combinations
+✅ Exclusion filters
+✅ Pagination
+✅ Sorting
+✅ Format filtering
+✅ Date filtering
+✅ Size filtering
+✅ Error handling
+✅ Logging
+✅ Performance
+✅ Edge cases
+✅ Case insensitivity
+✅ Partial matching
 
 ## Troubleshooting
 

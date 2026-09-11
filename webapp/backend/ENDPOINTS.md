@@ -485,5 +485,3 @@ Get all books in a series.
 **Query Parameters:**
 - `limit` (int, default: 50)
 - `offset` (int, default: 0)
-
-

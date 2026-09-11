@@ -44,9 +44,7 @@ async def rag_index_build(
     def _run() -> dict[str, Any]:
         meta_path = _get_metadata_path()
         if not meta_path or not meta_path.exists():
-            return format_error_response(
-                error_msg="No library loaded. Use manage_libraries(operation='switch') first."
-            )
+            return format_error_response(error_msg="No library loaded. Use manage_libraries(operation='switch') first.")
         try:
             from calibre_mcp.rag.indexer import build_rag_index
         except ImportError as e:
@@ -73,9 +71,7 @@ async def rag_index_build(
             "chunks_indexed": n,
             "message": f"RAG index built: {n} chunks indexed.",
             "execution_time_ms": int((__import__("time").time() - start) * 1000),
-            "recommendations": [
-                "Use rag_retrieve(query=...) to search by meaning (e.g. icicle murder)."
-            ],
+            "recommendations": ["Use rag_retrieve(query=...) to search by meaning (e.g. icicle murder)."],
         }
 
     try:
@@ -223,9 +219,7 @@ async def calibre_metadata_index_build(
         return {
             "status": "started",
             "message": "Build started in background. Poll GET /api/rag/metadata/build/status for progress.",
-            "recommendations": [
-                "Use calibre_metadata_search(query=...) to search by meaning when done."
-            ],
+            "recommendations": ["Use calibre_metadata_search(query=...) to search by meaning when done."],
         }
 
     try:

@@ -29,9 +29,7 @@ async def list_libraries(
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
     search: str | None = Query(None, description="Search term to filter libraries by name or path"),
     is_active: bool | None = Query(None, description="Filter by active status"),
-    sort_by: str = Query(
-        "name", description="Field to sort by (name, book_count, author_count, created_at)"
-    ),
+    sort_by: str = Query("name", description="Field to sort by (name, book_count, author_count, created_at)"),
     sort_order: str = Query("asc", description="Sort order (asc or desc)"),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -90,9 +88,7 @@ async def get_library(library_id: int, db: Session = Depends(get_db)) -> dict:
     description="Update an existing library's details.",
     responses={404: {"description": "Library not found"}, 400: {"description": "Invalid input"}},
 )
-async def update_library(
-    library_id: int, library: LibraryUpdate, db: Session = Depends(get_db)
-) -> dict:
+async def update_library(library_id: int, library: LibraryUpdate, db: Session = Depends(get_db)) -> dict:
     """
     Update a library's details.
     """
@@ -122,9 +118,7 @@ async def delete_library(library_id: int, db: Session = Depends(get_db)) -> None
     try:
         success = library_service.delete(library_id)
         if not success:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete library"
-            )
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete library")
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except ValidationError as e:
@@ -179,8 +173,6 @@ async def search_library(
     Search for content within a specific library.
     """
     try:
-        return library_service.search_across_library(
-            library_id=library_id, query=query, limit=limit, offset=offset
-        )
+        return library_service.search_across_library(library_id=library_id, query=query, limit=limit, offset=offset)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

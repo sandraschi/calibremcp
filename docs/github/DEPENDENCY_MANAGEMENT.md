@@ -32,28 +32,28 @@ dev-dependencies = [
     "pytest-mock>=3.12.0",
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.0.0",  # Parallel testing
-    
+
     # === Linting & Formatting ===
     "ruff>=0.1.6",  # Fast linter + formatter
     "black>=24.0.0",  # Alternative formatter
     "isort>=5.13.0",  # Import sorting
-    
+
     # === Type Checking ===
     "pyright>=1.1.390",  # Microsoft's type checker
     "mypy>=1.8.0",  # Alternative type checker
     "types-setuptools>=69.0.0",  # Type stubs
-    
+
     # === Security ===
     "bandit>=1.7.0",  # Code security scanner
     "safety>=3.0.0",  # Dependency vulnerability scanner
-    
+
     # === Building & Publishing ===
     "build>=1.0.0",  # CRITICAL - for building packages
     "twine>=5.0.0",  # CRITICAL - for validating packages
-    
+
     # === Pre-commit ===
     "pre-commit>=3.6.0",  # Git hooks
-    
+
     # === Utilities ===
     "icecream>=2.1.3",  # Debugging
     "gevent>=24.11.1",  # Async support
@@ -401,7 +401,7 @@ dependencies = [
 ]
 ```
 
-**Pros**: Predictable, few breaking changes  
+**Pros**: Predictable, few breaking changes
 **Cons**: Miss security patches
 
 ---
@@ -416,7 +416,7 @@ dependencies = [
 ]
 ```
 
-**Pros**: Security patches, minor features  
+**Pros**: Security patches, minor features
 **Cons**: Occasional breaking changes
 
 ---
@@ -431,7 +431,7 @@ dependencies = [
 ]
 ```
 
-**Pros**: Latest features and fixes  
+**Pros**: Latest features and fixes
 **Cons**: More breaking changes
 
 ---
@@ -494,4 +494,3 @@ uv run safety scan
 ---
 
 **Remember**: 15 minutes managing dependencies saves 3+ hours debugging CI failures! 📦
-

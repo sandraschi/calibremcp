@@ -72,17 +72,13 @@ def get_library_metadata(library_path: Path) -> dict[str, any]:
         except (sqlite3.Error, OSError, PermissionError):
             # Fallback to directory counting if database query fails
             try:
-                metadata["book_count"] = sum(
-                    1 for _ in library_path.glob("*") if _.is_dir() and _.name.isdigit()
-                )
+                metadata["book_count"] = sum(1 for _ in library_path.glob("*") if _.is_dir() and _.name.isdigit())
             except (OSError, PermissionError):
                 metadata["book_count"] = 0
     else:
         # No database, try directory counting
         try:
-            metadata["book_count"] = sum(
-                1 for _ in library_path.glob("*") if _.is_dir() and _.name.isdigit()
-            )
+            metadata["book_count"] = sum(1 for _ in library_path.glob("*") if _.is_dir() and _.name.isdigit())
         except (OSError, PermissionError):
             metadata["book_count"] = 0
 

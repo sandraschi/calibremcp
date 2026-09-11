@@ -384,4 +384,3 @@ All ruff checks passing. Code quality is excellent.
 **Last Updated:** 2025-01-30
 **Next Review:** After webapp polish and CI updates
 **Maintainer:** Sandra
-

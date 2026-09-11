@@ -8,7 +8,9 @@
     WebRoot      = 'webapp\frontend'
     Backend = @{
         Kind          = 'uvicorn'
-        UvicornTarget = 'calibre_mcp.server:app'
+        UvicornTarget = 'app.main:app'
+        WorkDir       = 'webapp\backend'
+        PythonPath    = 'webapp\backend;src'
         SyncExtras    = @('dev')
         Env           = @{ WEB_PORT = '10720' }
     }
@@ -16,6 +18,6 @@
         Kind           = 'next'
         PackageManager = 'npm'
         PortEnvVar     = 'PORT'
-        ApiTargetEnv   = 'VITE_API_TARGET'
+        ApiTargetEnv   = 'API_URL'
     }
 }

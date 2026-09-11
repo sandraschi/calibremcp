@@ -1,7 +1,7 @@
 # FastMCP 2.13.0 "Cache Me If You Can" - Persistence Research
 
-**Release Date**: October 25, 2025  
-**Latest Version**: 2.13.0.2 (October 28, 2025)  
+**Release Date**: October 25, 2025
+**Latest Version**: 2.13.0.2 (October 28, 2025)
 **Research Date**: 2025-01-XX
 
 ## Summary
@@ -121,4 +121,3 @@ FastMCP 2.13.0 introduces **pluggable storage backends** for persistent state ma
 5. ⏳ Migrate to server lifespans
 6. ⏳ Test persistence across restarts
 7. ⏳ Update documentation
-

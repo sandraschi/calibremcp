@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from calibre_mcp.rag.lancedb_vector_store import LanceVectorStore
 from calibre_mcp.rag.storage_paths import portmanteau_lancedb_dir
@@ -22,8 +23,7 @@ def _get_vector_store(
         path = db.get_current_path()
         if not path:
             raise RuntimeError(
-                "No Calibre library loaded. Use manage_libraries(operation='switch') first, "
-                "or pass db_path for ingest."
+                "No Calibre library loaded. Use manage_libraries(operation='switch') first, or pass db_path for ingest."
             )
         base = portmanteau_lancedb_dir(path)
     return LanceVectorStore(db_path=str(base), table_name=table_name)
@@ -45,12 +45,13 @@ async def calibre_rag(
 
     Operations:
     - search: Semantic search across library items using a natural language query.
+    - hybrid_search: Reciprocal Rank Fusion (RRF) combining BM25 lexical matches and LanceDB semantic vectors.
     - ingest: Index a library (db_path required).
     - ingest_fulltext: Deep index an EPUB/PDF (book_id, title, file_path required).
     - status: Vector store status and row counts.
 
     Example:
-    - calibre_rag(operation="search", query="murder mystery in a closed room")
+    - calibre_rag(operation="hybrid_search", query="murder mystery in a closed room")
     """
     try:
         table_name = "calibre_fulltext" if search_type == "fulltext" else "calibre_media"
@@ -85,9 +86,7 @@ async def calibre_rag(
                             "location": meta.get("location", ""),
                             "book_id": meta.get("book_id"),
                             "score": res.get("_distance", 0),
-                            "content_preview": res.get("content", "")[:300] + "..."
-                            if res.get("content")
-                            else "",
+                            "content_preview": res.get("content", "")[:300] + "..." if res.get("content") else "",
                         }
                     )
                 else:
@@ -107,6 +106,94 @@ async def calibre_rag(
                 "query": query,
                 "message": f"Found {len(formatted_results)} semantically relevant books",
                 "results": formatted_results,
+            }
+
+        if operation == "hybrid_search":
+            if not query:
+                return {
+                    "success": False,
+                    "error": "query parameter is required for hybrid search",
+                }
+
+            from pathlib import Path
+
+            from calibre_mcp.db.database import get_database
+            from calibre_mcp.services.book_service import book_service
+            from calibre_mcp.utils.fts_utils import find_fts_database, query_fts
+
+            # 1. Semantic search candidates from LanceDB
+            semantic_results = store.search(query=query, limit=max(limit * 2, 20))
+
+            # 2. Lexical search candidates from FTS5 SQLite database
+            lexical_ids = []
+            try:
+                cur_path = db_path or get_database().get_current_path()
+                if cur_path:
+                    fts_file = find_fts_database(Path(cur_path))
+                    if fts_file:
+                        lexical_ids, _, _ = query_fts(fts_file, search_text=query, limit=max(limit * 2, 20))
+            except Exception as fts_err:
+                logger.debug("Lexical FTS search skipped: %s", fts_err)
+
+            # 3. Reciprocal Rank Fusion (RRF with k=60)
+            rrf_scores: dict[Any, float] = {}
+            book_details: dict[Any, dict[str, Any]] = {}
+            k_rrf = 60.0
+
+            for rank, s_res in enumerate(semantic_results):
+                meta = s_res.get("metadata", {})
+                bid = meta.get("book_id")
+                if bid is not None:
+                    bid_key = str(bid)
+                    rrf_scores[bid_key] = rrf_scores.get(bid_key, 0.0) + (1.0 / (k_rrf + rank + 1))
+                    if bid_key not in book_details:
+                        book_details[bid_key] = {
+                            "book_id": bid,
+                            "title": meta.get("title", "Unknown Title"),
+                            "authors": meta.get("authors", "Unknown Author"),
+                            "series": meta.get("series", ""),
+                            "semantic_rank": rank + 1,
+                        }
+
+            for rank, l_bid in enumerate(lexical_ids):
+                bid_key = str(l_bid)
+                rrf_scores[bid_key] = rrf_scores.get(bid_key, 0.0) + (1.0 / (k_rrf + rank + 1))
+                if bid_key not in book_details:
+                    # Enrich from book_service
+                    try:
+                        b = book_service.get_by_id(int(l_bid))
+                        if b:
+                            authors_list = [a.name for a in b.authors] if hasattr(b, "authors") and b.authors else []
+                            book_details[bid_key] = {
+                                "book_id": l_bid,
+                                "title": getattr(b, "title", "Unknown Title"),
+                                "authors": ", ".join(authors_list) if authors_list else "Unknown Author",
+                                "series": getattr(b, "series", "") or "",
+                                "lexical_rank": rank + 1,
+                            }
+                    except Exception:
+                        book_details[bid_key] = {
+                            "book_id": l_bid,
+                            "title": f"Book #{l_bid}",
+                            "lexical_rank": rank + 1,
+                        }
+                else:
+                    book_details[bid_key]["lexical_rank"] = rank + 1
+
+            # Sort by fused RRF score descending
+            sorted_bids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)[:limit]
+            hybrid_results = []
+            for b_key in sorted_bids:
+                item = dict(book_details.get(b_key, {"book_id": b_key}))
+                item["rrf_score"] = round(rrf_scores[b_key], 5)
+                hybrid_results.append(item)
+
+            return {
+                "success": True,
+                "operation": "hybrid_search",
+                "query": query,
+                "message": f"Found {len(hybrid_results)} book(s) using reciprocal rank fusion (BM25 lexical + LanceDB semantic)",
+                "results": hybrid_results,
             }
 
         if operation == "ingest":
@@ -138,9 +225,7 @@ async def calibre_rag(
             from calibre_mcp.services.deep_ingestor import DeepIngestor
 
             ingestor = DeepIngestor(vector_store=store)
-            result = await ingestor.ingest_book_fulltext(
-                book_id=str(book_id), title=title, file_path=file_path
-            )
+            result = await ingestor.ingest_book_fulltext(book_id=str(book_id), title=title, file_path=file_path)
             return {
                 "success": result.get("status") == "success",
                 "operation": "ingest_fulltext",
@@ -151,7 +236,7 @@ async def calibre_rag(
         return {
             "success": False,
             "error": f"Invalid operation: '{operation}'",
-            "suggestions": ["search", "ingest", "status"],
+            "suggestions": ["search", "hybrid_search", "ingest", "status"],
         }
 
     except Exception as e:

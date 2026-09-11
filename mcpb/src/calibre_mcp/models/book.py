@@ -42,21 +42,13 @@ class Book(Base, BaseMixin):
     last_modified: Mapped[datetime | None] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
     # Relationships
-    authors: Mapped[list["Author"]] = relationship(
-        "Author", secondary="books_authors_link", back_populates="books"
-    )
+    authors: Mapped[list["Author"]] = relationship("Author", secondary="books_authors_link", back_populates="books")
 
-    series_rel: Mapped[list["Series"]] = relationship(
-        "Series", secondary="books_series_link", back_populates="books"
-    )
+    series_rel: Mapped[list["Series"]] = relationship("Series", secondary="books_series_link", back_populates="books")
 
-    tags: Mapped[list["Tag"]] = relationship(
-        "Tag", secondary="books_tags_link", back_populates="books"
-    )
+    tags: Mapped[list["Tag"]] = relationship("Tag", secondary="books_tags_link", back_populates="books")
 
-    ratings: Mapped[list["Rating"]] = relationship(
-        "Rating", secondary="books_ratings_link", back_populates="books"
-    )
+    ratings: Mapped[list["Rating"]] = relationship("Rating", secondary="books_ratings_link", back_populates="books")
 
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="book")
 

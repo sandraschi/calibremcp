@@ -4,15 +4,14 @@ EPUB Viewer for CalibreMCP with full TOC and bookmark support.
 
 import contextlib
 import hashlib
-import os
 import sqlite3
-import xml.etree.ElementTree as ET
 import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from bs4 import BeautifulSoup
+from defusedxml.ElementTree import fromstring
 from pydantic import BaseModel, Field
 
 
@@ -117,9 +116,7 @@ class EPubViewer:
 
         # Create indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_bookmarks_file_hash ON bookmarks(file_hash)")
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_annotations_file_hash ON annotations(file_hash)"
-        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_annotations_file_hash ON annotations(file_hash)")
 
         self._db_conn.commit()
 
@@ -128,7 +125,7 @@ class EPubViewer:
         file_path = Path(file_path)
         hasher = hashlib.sha256()
 
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             while chunk := f.read(65536):  # 64KB chunks
                 hasher.update(chunk)
 
@@ -144,9 +141,7 @@ class EPubViewer:
         file_hash = self._get_file_hash(file_path)
 
         # Initialize metadata
-        self._metadata = EPubMetadata(
-            file_path=str(file_path), file_hash=file_hash, file_size=file_path.stat().st_size
-        )
+        self._metadata = EPubMetadata(file_path=str(file_path), file_hash=file_hash, file_size=file_path.stat().st_size)
 
         # Open the EPUB file
         self._zip_file = zipfile.ZipFile(file_path, "r")
@@ -156,7 +151,7 @@ class EPubViewer:
         rootfile_path = self._parse_container(container_data)
 
         # Set the root directory
-        self._root_dir = os.path.dirname(rootfile_path) if "/" in rootfile_path else ""
+        self._root_dir = Path(rootfile_path).parent if "/" in rootfile_path else ""
 
         # Parse the root file (OPF)
         rootfile_data = self._zip_file.read(rootfile_path).decode("utf-8")
@@ -168,7 +163,7 @@ class EPubViewer:
 
     def _parse_container(self, container_data: bytes) -> str:
         """Parse the container.xml file to find the root file."""
-        root = ET.fromstring(container_data)  # noqa: S314
+        root = fromstring(container_data)
         ns = {"ocf": "urn:oasis:names:tc:opendocument:xmlns:container"}
 
         # Find the rootfile element
@@ -240,7 +235,7 @@ class EPubViewer:
 
             # Resolve relative paths
             if self._root_dir:
-                href = os.path.join(self._root_dir, href)
+                href = str(Path(self._root_dir) / href)
 
             self._manifest[item_id] = {
                 "id": item_id,
@@ -325,9 +320,7 @@ class EPubViewer:
         if not self._metadata or not self._db_conn:
             raise RuntimeError("No EPUB file loaded")
 
-        bookmark_id = (
-            f"bm_{hashlib.sha256(f'{self._metadata.file_hash}:{cfi}'.encode()).hexdigest()[:16]}"
-        )
+        bookmark_id = f"bm_{hashlib.sha256(f'{self._metadata.file_hash}:{cfi}'.encode()).hexdigest()[:16]}"
 
         # Create the bookmark
         bookmark = {
@@ -417,7 +410,7 @@ class EPubViewer:
 
         try:
             content = self._zip_file.read(item["href"]).decode("utf-8")
-            return self._process_content(content, os.path.dirname(item["href"]))
+            return self._process_content(content, Path(item["href"]).parent)
         except (KeyError, UnicodeDecodeError):
             return None
 

@@ -8,8 +8,8 @@ Goal-oriented recipes. Parameter-level SQL and search construction also live in 
 
 ## 1. “I remember a phrase from the book” (FTS first)
 
-1. Use **`search_fulltext`** with the phrase (or keywords).  
-2. If you need the exact place: set **`resolve_locations=True`** for PDF page / EPUB spine / Calibre viewer `ebook-viewer --open-at search:…` hints.  
+1. Use **`search_fulltext`** with the phrase (or keywords).
+2. If you need the exact place: set **`resolve_locations=True`** for PDF page / EPUB spine / Calibre viewer `ebook-viewer --open-at search:…` hints.
 3. Open the book with **`manage_viewer`** if the user wants to read immediately.
 
 **Why not RAG first:** phrase and rare-word matches are what Calibre’s FTS index is for; metadata RAG does not search the full body.
@@ -18,8 +18,8 @@ Goal-oriented recipes. Parameter-level SQL and search construction also live in 
 
 ## 2. “Books about X” by meaning (metadata)
 
-1. Ensure index: **`calibre_metadata_index_build`** (webapp Semantic Search page can build/rebuild).  
-2. **`calibre_metadata_search(query="…", top_k=…)`** over title, authors, tags, comments, series.  
+1. Ensure index: **`calibre_metadata_index_build`** (webapp Semantic Search page can build/rebuild).
+2. **`calibre_metadata_search(query="…", top_k=…)`** over title, authors, tags, comments, series.
 3. Optional: open a result with **`manage_viewer`**.
 
 **External vector DB / backup:** call **`calibre_metadata_export_json`** (writes JSON via `metadata.db`; default file `calibre_mcp_metadata_export.json` in the library folder) or run **`scripts/export_metadata_for_rag.py`** through **`calibre-debug -e`** for Calibre’s `new_api`. Tune **`CALIBRE_METADATA_COMMENT_MAX_CHARS`** and **`CALIBRE_METADATA_STRIP_HTML`** before **`calibre_metadata_index_build`** so the LanceDB metadata index matches how you treat comments. Details: [CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](./CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md).
@@ -28,8 +28,8 @@ Goal-oriented recipes. Parameter-level SQL and search construction also live in 
 
 ## 3. “What happens in chapter Y / this theme in the text” (chunk RAG)
 
-1. Build chunk index: **`rag_index_build`** (FTS-backed chunks → LanceDB `books_rag` under the library).  
-2. **`rag_retrieve`** (or portmanteau **`calibre_rag`** per your deployment) for semantic passage retrieval.  
+1. Build chunk index: **`rag_index_build`** (FTS-backed chunks → LanceDB `books_rag` under the library).
+2. **`rag_retrieve`** (or portmanteau **`calibre_rag`** per your deployment) for semantic passage retrieval.
 3. Combine with **`search_fulltext`** when the user gives exact wording.
 
 **Formats (content RAG only):** **Metadata RAG** (§2) is the same for PDF and EPUB — it never reads the file body. **Chunk RAG** (this section) indexes `searchable_text` from Calibre FTS; by default **PDF is excluded** (`CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS` unset → PDF skipped) because PDF body text is often a poor fit for semantic chunks. Set `CALIBRE_RAG_CHUNK_EXCLUDE_FORMATS=` empty to include PDFs, or `CALIBRE_RAG_MAX_BOOK_TEXT_CHARS` to skip oversized rows.
@@ -46,22 +46,22 @@ Use **`query_books`** with **`operation="search"`** — title, author, tag, text
 
 ## 5. Multi-library workflow
 
-1. **`manage_libraries(operation="list")`**  
-2. **`manage_libraries(operation="switch", library_id=…)`**  
+1. **`manage_libraries(operation="list")`**
+2. **`manage_libraries(operation="switch", library_id=…)`**
 3. Run search / RAG / viewer as above.
 
 ---
 
 ## 6. Library health and duplicates (maintenance)
 
-1. Prompts **`library_health`**, **`duplicate_detection`**, **`metadata_cleanup`** (see [PROMPTS.md](./PROMPTS.md)) set the intent.  
+1. Prompts **`library_health`**, **`duplicate_detection`**, **`metadata_cleanup`** (see [PROMPTS.md](./PROMPTS.md)) set the intent.
 2. **`manage_analysis`** and **`manage_library_operations`** (per docstrings) for duplicates, stats, and cleanup actions your deployment exposes.
 
 ---
 
 ## 7. One-shot natural language (“organize my IT books and flag outdated”)
 
-- With sampling: **`agentic_library_workflow(workflow_prompt="…")`**  
+- With sampling: **`agentic_library_workflow(workflow_prompt="…")`**
 - Without sampling: decompose into steps 4–6 manually; use **`calibre_mcp_guide`** prompt or **`skill://calibre-expert/SKILL.md`** for heuristics.
 
 ---

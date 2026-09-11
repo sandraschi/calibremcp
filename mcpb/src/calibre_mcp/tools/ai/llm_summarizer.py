@@ -312,7 +312,7 @@ Provide a comprehensive answer with citations to specific books:"""
             Summary text
         """
         # Check cache
-        cache_key = hashlib.md5(chunk.text.encode()).hexdigest()
+        cache_key = hashlib.sha256(chunk.text.encode()).hexdigest()
         if cache_key in self._cache:
             logger.debug(f"Cache hit for chunk {chunk.index}")
             return self._cache[cache_key]
@@ -378,9 +378,7 @@ Be concise but thorough. Preserve important quotes."""
                 logger.info(f"Processing chunk {i + 1}/{len(chunks)}...")
                 summary = await self.summarize_chunk(chunk)
 
-                chapter_label = (
-                    f"### {chunk.chapter}\n" if chunk.chapter else f"### Section {i + 1}\n"
-                )
+                chapter_label = f"### {chunk.chapter}\n" if chunk.chapter else f"### Section {i + 1}\n"
                 chunk_summaries.append(f"{chapter_label}{summary}")
 
             # Step 3: Reduce - synthesize into final document

@@ -172,8 +172,7 @@ async def export_books(
         else:
             return format_error_response(
                 error_msg=(
-                    f"Invalid operation: '{operation}'. Must be one of: "
-                    "'csv', 'json', 'html', 'pandoc', 'stats'"
+                    f"Invalid operation: '{operation}'. Must be one of: 'csv', 'json', 'html', 'pandoc', 'stats'"
                 ),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",

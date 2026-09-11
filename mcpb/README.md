@@ -21,13 +21,12 @@ Add to \claude_desktop_config.json\:
 
 - **test_tool**: test_tool
 - **health**: health
+- **diagnostics**: diagnostics
 - **metrics**: Prometheus metrics for unified monitoring stack (includes mcp_tool_* when instrumented).
-- **get_transport_config_stdio**: get_transport_config(stdio)
-- **get_transport_config_http**: get_transport_config(http)
-- **get_transport_config_sse**: get_transport_config(sse)
 - **get_page**: get_page
 - **update_viewer_settings**: update_viewer_settings
 - **health_check**: Health check endpoint.
+- **_count_tools**: _count_tools
 - **agentic_library_workflow**: agentic_library_workflow
 - **agentic_calibre_workflow**: agentic_calibre_workflow
 - **intelligent_library_processing**: intelligent_library_processing
@@ -70,6 +69,9 @@ Add to \claude_desktop_config.json\:
 - **reading_statistics**: reading_statistics
 - **manage_analysis**: manage_analysis
 - **manage_authors**: manage_authors
+- **bookcase_catalog**: bookcase_catalog
+- **bookcase_catalog_analyze**: bookcase_catalog(analyze)
+- **bookcase_catalog_csv**: bookcase_catalog(csv)
 - **search_fulltext**: search_fulltext
 - **get_book_helper**: get_book_helper
 - **manage_books**: manage_books

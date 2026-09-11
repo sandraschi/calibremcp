@@ -47,10 +47,7 @@ async def manage_comments(
         valid_operations = ["create", "read", "update", "delete", "append", "replace"]
         if operation not in valid_operations:
             return format_error_response(
-                error_msg=(
-                    f"Invalid operation: '{operation}'. Must be one of: "
-                    f"{', '.join(valid_operations)}"
-                ),
+                error_msg=(f"Invalid operation: '{operation}'. Must be one of: {', '.join(valid_operations)}"),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",
                 operation=operation,

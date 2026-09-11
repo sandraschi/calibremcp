@@ -60,9 +60,7 @@ class LibraryRepository(BaseRepository[Library]):
             }
 
             # Get book count
-            book_count = (
-                session.query(func.count(Book.id)).filter(Book.library_id == library_id).scalar()
-            )
+            book_count = session.query(func.count(Book.id)).filter(Book.library_id == library_id).scalar()
             stats["book_count"] = book_count or 0
 
             # Get author count
@@ -75,10 +73,7 @@ class LibraryRepository(BaseRepository[Library]):
 
             # Get newest book
             newest_book = (
-                session.query(Book)
-                .filter(Book.library_id == library_id)
-                .order_by(Book.timestamp.desc())
-                .first()
+                session.query(Book).filter(Book.library_id == library_id).order_by(Book.timestamp.desc()).first()
             )
 
             if newest_book:
@@ -234,9 +229,7 @@ class LibraryRepository(BaseRepository[Library]):
                 return False
 
             # Update book count
-            book_count = (
-                session.query(func.count(Book.id)).filter(Book.library_id == library_id).scalar()
-            )
+            book_count = session.query(func.count(Book.id)).filter(Book.library_id == library_id).scalar()
 
             # Update author count
             author_count = (
@@ -275,11 +268,7 @@ class LibraryRepository(BaseRepository[Library]):
         """
         with self._db.session_scope() as session:
             books = (
-                session.query(Book)
-                .options(joinedload(Book.authors))
-                .order_by(Book.timestamp.desc())
-                .limit(limit)
-                .all()
+                session.query(Book).options(joinedload(Book.authors)).order_by(Book.timestamp.desc()).limit(limit).all()
             )
 
             return [

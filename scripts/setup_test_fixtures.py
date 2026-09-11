@@ -21,4 +21,3 @@ if __name__ == "__main__":
 
     # Then create files
     create_test_files()
-

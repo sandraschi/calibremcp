@@ -1,7 +1,7 @@
 # 🐳 Smart Containerization Guidelines
 
-**When to Docker and When NOT to Docker**  
-**Based on Real Project Experience**  
+**When to Docker and When NOT to Docker**
+**Based on Real Project Experience**
 **Timeline**: September 2025
 
 ---
@@ -10,7 +10,7 @@
 
 ### **Core Principle**: Container complexity should match project complexity
 
-**Simple projects get simple deployment**  
+**Simple projects get simple deployment**
 **Complex projects get containerized environments**
 
 ---
@@ -340,7 +340,7 @@ docker-compose -f docker-compose.prod.yml up -d
 pip install -e .
 python -m package_name
 
-# Production  
+# Production
 pip install package_name
 package_name --config production.toml
 ```
@@ -407,7 +407,7 @@ curl -L url/package | sh
 - **Runtime**: 1-2 languages
 - **Examples**: Web app + database, API + worker
 
-### **High Complexity (Definitely Containerize)**  
+### **High Complexity (Definitely Containerize)**
 - **Services**: 3+
 - **Dependencies**: Database AND cache AND others
 - **Setup**: Complex environment setup
@@ -427,7 +427,7 @@ curl -L url/package | sh
 - [ ] **Do I need different runtime versions?**
 - [ ] **Is production deployment complex?**
 
-**If 3+ YES answers → Consider containerization**  
+**If 3+ YES answers → Consider containerization**
 **If <3 YES answers → Keep it simple, no containers**
 
 ---

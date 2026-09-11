@@ -347,8 +347,8 @@ The Notepad++ MCP Server has not only maintained its Gold Status (85/100) but ha
 - ✅ FastMCP 2.12 compliance (maintained)
 
 ### Net Result
-**Original Score**: 85/100 (Gold)  
-**Estimated New Score**: 90/100 (Gold++)  
+**Original Score**: 85/100 (Gold)
+**Estimated New Score**: 90/100 (Gold++)
 **Status**: ✅ **ENHANCED GOLD STATUS** 🏆🌟
 
 ---
@@ -367,12 +367,11 @@ The Notepad++ MCP Server has successfully **maintained its Gold Status** while a
 
 ---
 
-**Status Date**: October 8, 2025  
-**Version**: 1.2.0  
-**Score**: ~90/100 (estimated)  
-**Tier**: Gold++ (Enhanced)  
-**Platform**: Glama.ai MCP Directory  
+**Status Date**: October 8, 2025
+**Version**: 1.2.0
+**Score**: ~90/100 (estimated)
+**Tier**: Gold++ (Enhanced)
+**Platform**: Glama.ai MCP Directory
 **Readiness**: ✅ **PRODUCTION READY WITH ENHANCED FEATURES**
 
 🏆 **GOLD STATUS ENHANCED AND MAINTAINED!** 🌟
-

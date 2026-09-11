@@ -11,14 +11,12 @@ import logging
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 from typing import Any
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-
 from ..db.database import DatabaseService
+from ..utils.subprocess_utils import _cmd
 from .base_service import NotFoundError
 from .book_service import BookService
 
@@ -157,9 +155,7 @@ def apply_online_metadata_for_book(
     if isbn_clean and re.match(r"^[\dX]{10,17}$", isbn_clean, re.I):
         cmd.extend(["--isbn", isbn_clean])
 
-    skip_ident_keys = frozenset(
-        {"isbn", "isbn10", "isbn13", "isbn-10", "isbn-13", "lccn", "uuid"}
-    )
+    skip_ident_keys = frozenset({"isbn", "isbn10", "isbn13", "isbn-10", "isbn-13", "lccn", "uuid"})
     extra = 0
     for k, v in idents.items():
         if k in skip_ident_keys or not v:
@@ -178,14 +174,11 @@ def apply_online_metadata_for_book(
             run_cmd.extend(["--cover", str(cover_path)])
 
         try:
-            proc = subprocess.run(  # noqa: S603
+            proc = _cmd(
                 run_cmd,
-                capture_output=True,
-                text=True,
                 timeout=fetch_timeout + 60,
                 encoding="utf-8",
                 errors="replace",
-                creationflags=_NO_WINDOW,
             )
         except subprocess.TimeoutExpired:
             return {"success": False, "error": f"Timed out after {fetch_timeout + 60}s while fetching metadata."}
@@ -221,14 +214,11 @@ def apply_online_metadata_for_book(
             str(opf_path),
         ]
         try:
-            proc2 = subprocess.run(  # noqa: S603
+            proc2 = _cmd(
                 set_cmd,
-                capture_output=True,
-                text=True,
                 timeout=120,
                 encoding="utf-8",
                 errors="replace",
-                creationflags=_NO_WINDOW,
             )
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Timed out while applying metadata with calibredb."}
@@ -255,14 +245,11 @@ def apply_online_metadata_for_book(
                 f"cover:{cover_path}",
             ]
             try:
-                proc3 = subprocess.run(  # noqa: S603
+                proc3 = _cmd(
                     cover_cmd,
-                    capture_output=True,
-                    text=True,
                     timeout=90,
                     encoding="utf-8",
                     errors="replace",
-                    creationflags=_NO_WINDOW,
                 )
                 if proc3.returncode != 0:
                     w = (proc3.stderr or proc3.stdout or "").strip()

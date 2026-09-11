@@ -62,9 +62,7 @@ class RecommendationEngine(MCPTool):
             self.logger.error(f"Error training recommendation model: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    async def get_recommendations(
-        self, book_id: str, max_results: int = 5, exclude_read: bool = True
-    ) -> dict:
+    async def get_recommendations(self, book_id: str, max_results: int = 5, exclude_read: bool = True) -> dict:
         """Get book recommendations based on a given book ID."""
         try:
             if self.book_vectors is None:
@@ -100,9 +98,7 @@ class RecommendationEngine(MCPTool):
             self.logger.error(f"Error getting recommendations: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    async def get_personalized_recommendations(
-        self, user_preferences: dict[str, Any], max_results: int = 10
-    ) -> dict:
+    async def get_personalized_recommendations(self, user_preferences: dict[str, Any], max_results: int = 10) -> dict:
         """Get personalized recommendations based on user preferences."""
         try:
             if self.book_vectors is None:
@@ -130,9 +126,7 @@ class RecommendationEngine(MCPTool):
             return {"success": True, "recommendations": recommendations}
 
         except Exception as e:
-            self.logger.error(
-                f"Error getting personalized recommendations: {str(e)}", exc_info=True
-            )
+            self.logger.error(f"Error getting personalized recommendations: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
     def _preferences_to_text(self, preferences: dict[str, Any]) -> str:
@@ -165,9 +159,7 @@ class RecommendationEngine(MCPTool):
 class RecommendationOptions(BaseModel):
     """Options for generating recommendations."""
 
-    max_results: int = Field(
-        5, ge=1, le=50, description="Maximum number of recommendations to return"
-    )
+    max_results: int = Field(5, ge=1, le=50, description="Maximum number of recommendations to return")
     min_rating: float | None = Field(None, ge=0, le=5, description="Minimum rating threshold")
     exclude_read: bool = Field(True, description="Exclude already read books")
     include_tags: list[str] | None = Field(None, description="Only include books with these tags")

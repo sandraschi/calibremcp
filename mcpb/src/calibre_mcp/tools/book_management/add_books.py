@@ -47,13 +47,9 @@ class AddBooksTool(MCPTool):
                     continue
 
                 # Add book to library
-                book_id = await storage.add_book(
-                    path=path, copy_to_library=copy_files, auto_convert=auto_convert
-                )
+                book_id = await storage.add_book(path=path, copy_to_library=copy_files, auto_convert=auto_convert)
 
-                results["added"].append(
-                    {"path": str(path), "book_id": book_id, "file_hash": file_hash}
-                )
+                results["added"].append({"path": str(path), "book_id": book_id, "file_hash": file_hash})
 
             except Exception as e:
                 results["failed"].append({"path": str(path), "error": str(e)})
@@ -63,7 +59,7 @@ class AddBooksTool(MCPTool):
     def _calculate_file_hash(self, file_path: Path) -> str:
         """Calculate SHA-256 hash of a file."""
         sha256_hash = hashlib.sha256()
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()

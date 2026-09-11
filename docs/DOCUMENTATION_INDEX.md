@@ -186,20 +186,20 @@ Fleet Tauri installer pitfalls: [mcp-central-docs TAURI_PRODUCTION_PITFALLS](htt
 **1. New user (30 min)**
 [`README.md`](../README.md) → [`COOKBOOK.md`](COOKBOOK.md) → [`Configuration.md`](Configuration.md)
 
-**2. MCP integrator (1 h)**  
+**2. MCP integrator (1 h)**
 [`TOOLS_CONSOLIDATION.md`](TOOLS_CONSOLIDATION.md) → [`mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md`](mcp-technical/MCP_OUTPUT_SCHEMAS_AND_SKILLS.md) → [`API.md`](API.md)
 
-**3. RAG / search developer**  
+**3. RAG / search developer**
 [`AGENTIC_AND_RAG.md`](AGENTIC_AND_RAG.md) → [`FULL_TEXT_RAG_DESIGN.md`](FULL_TEXT_RAG_DESIGN.md) → [`SEARCH_QUERY_EXAMPLES.md`](SEARCH_QUERY_EXAMPLES.md)
 
-**4. Contributor**  
+**4. Contributor**
 [`CONTRIBUTING.md`](../CONTRIBUTING.md) → [`development/README.md`](development/README.md) → [`github/WORKFLOWS.md`](github/WORKFLOWS.md)
 
 ---
 
 ## Getting help
 
-- **Issues:** [github.com/sandraschi/calibre-mcp/issues](https://github.com/sandraschi/calibre-mcp/issues)  
+- **Issues:** [github.com/sandraschi/calibre-mcp/issues](https://github.com/sandraschi/calibre-mcp/issues)
 - **Docs wrong or stale:** open an issue or PR against this file or the specific doc.
 
 ---

@@ -262,7 +262,7 @@ a = Analysis(
     hiddenimports=hiddenimports,
 
     hookspath=[],
-    
+
     hooksconfig={},
 
     runtime_hooks=['hooks/runtime-opentelemetry.py'],
@@ -276,7 +276,7 @@ a = Analysis(
 
         "tensorboard",
 
-        
+
 
     ],
 
@@ -308,7 +308,7 @@ exe = EXE(
     a.datas,
 
     [],
-    
+
 
     name="calibre-mcp-backend",
 
@@ -336,12 +336,3 @@ exe = EXE(
     entitlements_file=None,
 
 )
-
-
-
-
-
-
-
-
-

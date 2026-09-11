@@ -4,7 +4,6 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 try:
     from fastmcp import MCPTool, Param
@@ -25,12 +24,12 @@ class ExportLibraryTool(MCPTool):
         Param("include_covers", bool, "Whether to include book covers", default=True),
         Param(
             "book_ids",
-            Optional[list[int | str]],
+            list[int | str] | None,
             "Specific book IDs to export (all if None)",
             default=None,
         ),
-        Param("format", str, "Export format (directory, zip, calibre)", default="directory"),
-        Param("progress_callback", Optional[str], "Callback for progress updates", required=False),
+        Param("fmt", str, "Export format (directory, zip, calibre)", default="directory"),
+        Param("progress_callback", str | None, "Callback for progress updates", required=False),
     ]
 
     async def _run(
@@ -41,7 +40,7 @@ class ExportLibraryTool(MCPTool):
         include_metadata: bool = True,
         include_covers: bool = True,
         book_ids: list[int | str] | None = None,
-        format: str = "directory",
+        fmt: str = "directory",
         progress_callback: str | None = None,
     ) -> dict:
         """Export the library to the specified location."""
@@ -88,7 +87,7 @@ class ExportLibraryTool(MCPTool):
                 # Export metadata
                 if include_metadata:
                     metadata_path = metadata_dir / f"{book.id}.json"
-                    with open(metadata_path, "w", encoding="utf-8") as f:
+                    with Path(metadata_path).open("w", encoding="utf-8") as f:
                         json.dump(book.dict(), f, ensure_ascii=False, indent=2)
                     results["exported_metadata"] += 1
 
@@ -115,9 +114,7 @@ class ExportLibraryTool(MCPTool):
                         results["exported_covers"] += 1
 
             except Exception as e:
-                results["errors"].append(
-                    {"book_id": str(book.id), "title": book.title, "error": str(e)}
-                )
+                results["errors"].append({"book_id": str(book.id), "title": book.title, "error": str(e)})
 
         # Create manifest
         manifest = {
@@ -131,11 +128,11 @@ class ExportLibraryTool(MCPTool):
             "book_ids": [str(book.id) for book in books],
         }
 
-        with open(export_path / "manifest.json", "w", encoding="utf-8") as f:
+        with Path(export_path / "manifest.json").open("w", encoding="utf-8") as f:
             json.dump(manifest, f, ensure_ascii=False, indent=2)
 
         # Package if requested
-        if format.lower() == "zip":
+        if fmt.lower() == "zip":
             self._update_progress(progress_callback, 0, 1, "Creating archive...")
             shutil.make_archive(str(export_path), "zip", export_path)
             shutil.rmtree(export_path)
@@ -144,16 +141,16 @@ class ExportLibraryTool(MCPTool):
         self._update_progress(progress_callback, total_books, total_books, "Export complete!")
         return results
 
-    def _update_progress(
-        self, callback_url: str | None, current: int, total: int, message: str
-    ) -> None:
+    def _update_progress(self, callback_url: str | None, current: int, total: int, message: str) -> None:
         """Send progress updates if a callback URL is provided."""
         if not callback_url:
             return
 
+        from contextlib import suppress
+
         import requests
 
-        try:
+        with suppress(Exception):
             requests.post(
                 callback_url,
                 json={
@@ -164,5 +161,3 @@ class ExportLibraryTool(MCPTool):
                 },
                 timeout=5,
             )
-        except Exception:
-            pass  # Don't fail the export if the callback fails

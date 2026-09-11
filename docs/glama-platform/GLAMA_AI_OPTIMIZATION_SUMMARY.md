@@ -193,10 +193,10 @@ The **notepadpp-mcp** repository has been successfully optimized for the Glama.a
 
 ---
 
-**Status**: 🏆 Gold Tier (85/100) - Production Ready  
-**Platform**: Glama.ai MCP Directory  
-**CI/CD**: Enterprise Automation Complete  
-**Community**: Active and Engaged  
+**Status**: 🏆 Gold Tier (85/100) - Production Ready
+**Platform**: Glama.ai MCP Directory
+**CI/CD**: Enterprise Automation Complete
+**Community**: Active and Engaged
 **Future**: Continuous Improvement and Growth
 
 ---

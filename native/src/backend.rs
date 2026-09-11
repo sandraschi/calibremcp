@@ -101,7 +101,10 @@ pub fn materialize_backend(app: &AppHandle) -> Result<PathBuf, String> {
         app,
         &format!("using bundled backend: {}", bundled.display()),
     );
-    Ok(bundled)
+    // Strip Windows extended-length prefix
+    let s = bundled.to_string_lossy().to_string();
+    let clean = s.strip_prefix("\\\\?\\").map(PathBuf::from).unwrap_or(bundled.clone());
+    Ok(clean)
 }
 
 fn free_port(port: u16) -> bool {
@@ -135,7 +138,7 @@ fn free_port(port: u16) -> bool {
         let poll_script = format!(
             "if (Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue) {{ 1 }} else {{ 0 }}"
         );
-        for i in 0..240 {
+        for i in 0..10 {
             let output = Command::new("powershell.exe")
                 .args(["-NoProfile", "-Command", &poll_script])
                 .stdout(Stdio::piped())

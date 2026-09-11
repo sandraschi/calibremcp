@@ -96,5 +96,5 @@ For security-related questions or concerns:
 
 ---
 
-**Last Updated**: 2025-01-21  
+**Last Updated**: 2025-01-21
 **Next Review**: 2025-04-21

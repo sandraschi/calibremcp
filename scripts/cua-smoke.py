@@ -461,7 +461,7 @@ def _nav_click_element(win_handle: int, wx: int, wy: int, idx: int, label: str =
             return
     except Exception:
         pass
-    # Try Pane (some WebView versions)  
+    # Try Pane (some WebView versions)
     try:
         elements = w.descendants(control_type="Pane")
         nav_elements = [e for e in elements if e.rectangle().left < wx + 200]

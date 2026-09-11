@@ -79,9 +79,7 @@ class ExtendedMetadataService:
         library_path: str | None = None,
     ) -> dict[str, Any]:
         """Set or update translator for a book."""
-        return self._upsert(
-            book_id, translator=translator.strip() or None, library_path=library_path
-        )
+        return self._upsert(book_id, translator=translator.strip() or None, library_path=library_path)
 
     def set_first_published(
         self,
@@ -90,9 +88,7 @@ class ExtendedMetadataService:
         library_path: str | None = None,
     ) -> dict[str, Any]:
         """Set or update first published (e.g. '1599', '44 BC')."""
-        return self._upsert(
-            book_id, first_published=first_published.strip() or None, library_path=library_path
-        )
+        return self._upsert(book_id, first_published=first_published.strip() or None, library_path=library_path)
 
     def upsert(
         self,

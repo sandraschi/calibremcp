@@ -84,7 +84,7 @@ Use this checklist to audit any MCP server repo before marking it production-rea
   - [ ] **Local test scripts in `tests/local/`** for both MCP and FastAPI
   - [ ] **Postman collection** with all API endpoints tested
   - [ ] **PowerShell test runner** for MCP stdio interface
-  - [ ] **FastAPI test client** for HTTP endpoints  
+  - [ ] **FastAPI test client** for HTTP endpoints
 - [ ] Unit tests in `tests/unit/` covering all tools
 - [ ] Integration tests in `tests/integration/`
 - [ ] **API endpoint testing:**
@@ -181,15 +181,15 @@ Use this checklist to audit any MCP server repo before marking it production-rea
 
 ---
 
-**Total Items:** 95  
-**Completed:** _____ / 95  
+**Total Items:** 95
+**Completed:** _____ / 95
 **Coverage:** _____%
 
-**🔥 CRITICAL:** Dual interface (MCP + FastAPI) with `/api/docs` and `/health` endpoints is MANDATORY  
-**🎯 TESTING:** Local test scripts + Postman collection required for production readiness  
+**🔥 CRITICAL:** Dual interface (MCP + FastAPI) with `/api/docs` and `/health` endpoints is MANDATORY
+**🎯 TESTING:** Local test scripts + Postman collection required for production readiness
 **⚡ DXT:** Use only `mcpb validate` and `mcpb pack` - NO `mcpb init` or `mcpb publish`
 
-**Auditor:** _____________  
-**Date:** _____________  
-**Repo:** _____________  
+**Auditor:** _____________
+**Date:** _____________
+**Repo:** _____________
 **Status:** ⬜ In Progress | ⬜ Ready for Review | ⬜ Production Ready

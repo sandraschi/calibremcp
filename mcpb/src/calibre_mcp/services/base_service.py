@@ -52,9 +52,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
         response_schema: Pydantic model for response serialization
     """
 
-    def __init__(
-        self, db: DatabaseService, model: type[ModelType], response_schema: type[ResponseSchemaType]
-    ):
+    def __init__(self, db: DatabaseService, model: type[ModelType], response_schema: type[ResponseSchemaType]):
         """Initialize with database service and model classes."""
         self.db = db
         self.model = model
@@ -102,9 +100,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             session.rollback()
             raise ServiceError(f"Database error: {str(e)}", status_code=500) from e
 
-    def _paginate_results(
-        self, items: list[Any], total: int, page: int = 1, per_page: int = 50
-    ) -> dict[str, Any]:
+    def _paginate_results(self, items: list[Any], total: int, page: int = 1, per_page: int = 50) -> dict[str, Any]:
         """
         Helper method to paginate query results.
 
@@ -190,9 +186,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             schema = self.response_schema
         return schema.from_orm(obj).dict()
 
-    def _to_response_list(
-        self, items: list[ModelType], schema: type[BaseModel] | None = None
-    ) -> list[dict[str, Any]]:
+    def _to_response_list(self, items: list[ModelType], schema: type[BaseModel] | None = None) -> list[dict[str, Any]]:
         """
         Convert a list of model instances to a list of response dictionaries.
 
@@ -220,13 +214,9 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             try:
                 return func(*args, **kwargs)
             except NotFoundError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail={"message": str(e)}
-                ) from e
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": str(e)}) from e
             except ValidationError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"message": str(e)}
-                ) from e
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"message": str(e)}) from e
             except ServiceError as e:
                 raise HTTPException(status_code=e.status_code, detail={"message": str(e)}) from e
             except Exception as e:
@@ -237,12 +227,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
 
         return wrapper
 
-    def get(self, id: int) -> dict[str, Any]:
+    def get(self, item_id: int) -> dict[str, Any]:
         """
         Retrieve a single item by ID.
 
         Args:
-            id: Item ID
+            item_id: Item ID
 
         Returns:
             Dictionary with item data
@@ -251,14 +241,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             NotFoundError: If item is not found
         """
         with self._get_db_session() as session:
-            item = session.query(self.model).get(id)
+            item = session.query(self.model).get(item_id)
             if not item:
                 raise NotFoundError(f"{self.model.__name__} not found")
             return self._to_response(item)
 
-    def get_multi(
-        self, skip: int = 0, limit: int = 100, **filters: Any
-    ) -> tuple[list[dict[str, Any]], int]:
+    def get_multi(self, skip: int = 0, limit: int = 100, **filters: Any) -> tuple[list[dict[str, Any]], int]:
         """
         Retrieve multiple items with optional filtering and pagination.
 
@@ -300,12 +288,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def update(self, id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
+    def update(self, item_id: int, data: UpdateSchemaType | dict[str, Any]) -> dict[str, Any]:
         """
         Update an existing item.
 
         Args:
-            id: Item ID
+            item_id: Item ID
             data: Updated data
 
         Returns:
@@ -315,7 +303,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             NotFoundError: If item is not found
         """
         with self._get_db_session() as session:
-            item = session.query(self.model).get(id)
+            item = session.query(self.model).get(item_id)
             if not item:
                 raise NotFoundError(f"{self.model.__name__} not found")
 
@@ -327,12 +315,12 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             self._commit_or_rollback(session)
             return self._to_response(item)
 
-    def delete(self, id: int) -> bool:
+    def delete(self, item_id: int) -> bool:
         """
         Delete an item by ID.
 
         Args:
-            id: Item ID
+            item_id: Item ID
 
         Returns:
             True if deletion was successful
@@ -341,7 +329,7 @@ class BaseService[ModelType, CreateSchemaType: BaseModel, UpdateSchemaType: Base
             NotFoundError: If item is not found
         """
         with self._get_db_session() as session:
-            item = session.query(self.model).get(id)
+            item = session.query(self.model).get(item_id)
             if not item:
                 raise NotFoundError(f"{self.model.__name__} not found")
 

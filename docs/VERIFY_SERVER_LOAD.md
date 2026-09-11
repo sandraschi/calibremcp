@@ -76,7 +76,7 @@ When Claude loads an MCP server, it:
 ### 3. Database Initialization Issues
 **Symptom:** `FileNotFoundError` or database connection errors
 
-**Solution:** 
+**Solution:**
 - Ensure library path is configured (or server allows starting without one)
 - Check that `metadata.db` exists if library is required
 
@@ -133,4 +133,3 @@ python scripts/test_server_load.py
 ```
 
 If the server starts without errors locally, it should work in Claude (assuming same Python version and dependencies).
-

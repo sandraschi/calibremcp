@@ -1,7 +1,7 @@
 # FastMCP 2.13+ / 2.14.4 Compliance Audit
 
-**Date:** 2025-11-22 (updated 2026-02-10)  
-**Status:** COMPLETE  
+**Date:** 2025-11-22 (updated 2026-02-10)
+**Status:** COMPLETE
 **Purpose:** Verify `@mcp.tool()` decorators and SOTA features (FastMCP 2.14.4)
 
 ---
@@ -58,10 +58,10 @@ All tools use docstrings for descriptions, which is the FastMCP 2.13+ standard:
 async def manage_books(...) -> Dict[str, Any]:
     """
     Comprehensive book management tool for CalibreMCP.
-    
+
     PORTMANTEAU PATTERN RATIONALE:
     ...
-    
+
     SUPPORTED OPERATIONS:
     ...
     """
@@ -126,11 +126,12 @@ All 18 portmanteau tools verified:
 ```python
 from ...server import mcp
 
+
 @mcp.tool()
 async def tool_name(param1: str, param2: int = 0) -> Dict[str, Any]:
     """
     Tool description from docstring.
-    
+
     This is the FastMCP 2.13+ way - descriptions come from docstrings,
     not from decorator parameters.
     """
@@ -191,7 +192,6 @@ grep -r "@mcp\.tool(.*kwargs" src/calibre_mcp/tools/
 
 ---
 
-*FastMCP 2.13+ Compliance Audit*  
-*Last Updated: 2025-11-22*  
+*FastMCP 2.13+ Compliance Audit*
+*Last Updated: 2025-11-22*
 *Status: ✅ COMPLETE*
-

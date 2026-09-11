@@ -4,8 +4,8 @@ calibre-mcp has two plugin projects that extend Calibre's GUI with MCP-powered f
 
 ## Plugin 1: CalibreMCP Integration (this repo)
 
-**Location:** `calibre_plugin/` in this repository  
-**Status:** Production — metadata editor + VL search  
+**Location:** `calibre_plugin/` in this repository
+**Status:** Production — metadata editor + VL search
 **Install:** `calibre-customize.exe -b D:\Dev\repos\calibre-mcp\calibre_plugin`
 
 ### What's implemented
@@ -33,7 +33,7 @@ Full docs: [calibre_plugin/README.md](../calibre_plugin/README.md)
 
 ## Plugin 2: calibreops-bridge (separate repo)
 
-**Repo:** [`D:\Dev\repos\calibre-plugins`](https://github.com/sandraschi/calibre-plugins)  
+**Repo:** [`D:\Dev\repos\calibre-plugins`](https://github.com/sandraschi/calibre-plugins)
 **Status:** Phase 0 — skeleton built, UI work not started
 
 ### Planned features

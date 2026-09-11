@@ -189,4 +189,3 @@ python scripts\check_logs.py --errors-only
 ---
 
 **This workflow ensures consistent quality across all MCP server projects.**
-

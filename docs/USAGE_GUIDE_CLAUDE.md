@@ -80,7 +80,7 @@ The `query_books` tool has explicit verb mapping guidance in its docstring that 
 result = await query_books(
     operation="search",
     author="Conan Doyle",
-    format_table=True  # Nice table output for user
+    format_table=True,  # Nice table output for user
 )
 
 # Result includes:
@@ -98,7 +98,7 @@ result = await query_books(
     text="python",  # Search in title, author, tags, comments
     pubdate_start="2023-01-01",
     pubdate_end="2023-12-31",
-    format_table=True
+    format_table=True,
 )
 ```
 
@@ -106,12 +106,7 @@ result = await query_books(
 
 ```python
 # Claude interprets: "get books" → query_books with operation="search"
-result = await query_books(
-    operation="search",
-    author="Agatha Christie",
-    tag="mystery",
-    format_table=True
-)
+result = await query_books(operation="search", author="Agatha Christie", tag="mystery", format_table=True)
 ```
 
 ### **Example 4: "Show me highly rated books added recently"**
@@ -123,12 +118,7 @@ from datetime import datetime, timedelta
 last_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 today = datetime.now().strftime("%Y-%m-%d")
 
-result = await query_books(
-    operation="search",
-    added_after=last_month,
-    min_rating=4,
-    format_table=True
-)
+result = await query_books(operation="search", added_after=last_month, min_rating=4, format_table=True)
 ```
 
 ---
@@ -141,29 +131,22 @@ result = await query_books(
 
 ```python
 # Step 1: Search for the book
-result = await query_books(
-    operation="search",
-    text="A Tale of Two Cities",
-    format_table=True
-)
+result = await query_books(operation="search", text="A Tale of Two Cities", format_table=True)
 
 # Step 2: Check results
 if result.get("total", 0) > 0:
     book = result["items"][0]
     book_id = book["id"]
-    
+
     # Step 3: Get full book details
     book_details = await manage_books(
-        operation="get",
-        book_id=str(book_id),
-        include_metadata=True,
-        include_formats=True
+        operation="get", book_id=str(book_id), include_metadata=True, include_formats=True
     )
-    
+
     # Step 4: Display to user
     print(f"Found: {book_details['title']}")
     print(f"Authors: {', '.join(book_details.get('authors', []))}")
-    if book_details.get('formats'):
+    if book_details.get("formats"):
         print(f"Available formats: {', '.join(book_details['formats'])}")
 else:
     print("Book not found in library")
@@ -176,21 +159,17 @@ else:
 ```python
 # Get complete book information
 book = await manage_books(
-    operation="get",
-    book_id="123",
-    include_metadata=True,
-    include_formats=True,
-    include_cover=False
+    operation="get", book_id="123", include_metadata=True, include_formats=True, include_cover=False
 )
 
 # Display formatted metadata
 print(f"Title: {book['title']}")
 print(f"Authors: {', '.join(book.get('authors', []))}")
-if book.get('rating'):
+if book.get("rating"):
     print(f"Rating: {'⭐' * book['rating']}")
-if book.get('tags'):
+if book.get("tags"):
     print(f"Tags: {', '.join(book['tags'])}")
-if book.get('comments'):
+if book.get("comments"):
     print(f"Description: {book['comments'][:200]}...")
 ```
 
@@ -206,7 +185,7 @@ result = await query_books(
     pubdate_start="2020-01-01",
     min_rating=4,
     format_table=True,
-    limit=20
+    limit=20,
 )
 
 # Display results
@@ -224,11 +203,7 @@ else:
 
 ```python
 # Open a random book by John Dickson Carr
-result = await manage_viewer(
-    operation="open_random",
-    author="Dickson Carr",
-    format_preference="EPUB"
-)
+result = await manage_viewer(operation="open_random", author="Dickson Carr", format_preference="EPUB")
 
 # Result includes:
 # - result["success"]: Whether operation succeeded
@@ -265,7 +240,7 @@ await manage_viewer(operation="open_random", author="Carr", format_preference="P
 result = await manage_metadata(
     operation="show",
     query="Gormenghast",
-    open_browser=True  # Opens formatted HTML popup (default: True)
+    open_browser=True,  # Opens formatted HTML popup (default: True)
 )
 
 # Result includes:
@@ -354,22 +329,15 @@ query_books(operation="search", has_publisher=True)
 
 ```python
 # Publication date range
-query_books(
-    operation="search",
-    pubdate_start="2020-01-01",
-    pubdate_end="2024-12-31"
-)
+query_books(operation="search", pubdate_start="2020-01-01", pubdate_end="2024-12-31")
 
 # Added date range
 from datetime import datetime, timedelta
+
 last_week = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
 today = datetime.now().strftime("%Y-%m-%d")
 
-query_books(
-    operation="search",
-    added_after=last_week,
-    added_before=today
-)
+query_books(operation="search", added_after=last_week, added_before=today)
 ```
 
 ### **File Filters**
@@ -378,15 +346,12 @@ query_books(
 # File size range (in bytes)
 query_books(
     operation="search",
-    min_size=1048576,   # 1 MB
-    max_size=10485760   # 10 MB
+    min_size=1048576,  # 1 MB
+    max_size=10485760,  # 10 MB
 )
 
 # Format filtering
-query_books(
-    operation="search",
-    formats=["EPUB", "PDF"]
-)
+query_books(operation="search", formats=["EPUB", "PDF"])
 ```
 
 ### **Combining Filters**
@@ -401,7 +366,7 @@ result = await query_books(
     tag="mystery",
     min_rating=4,
     pubdate_start="1960-01-01",
-    format_table=True
+    format_table=True,
 )
 ```
 
@@ -427,10 +392,7 @@ libraries = await manage_libraries(operation="list")
 print(f"Available libraries: {[lib['name'] for lib in libraries['libraries']]}")
 
 # Switch to a different library
-result = await manage_libraries(
-    operation="switch",
-    library_name="Main Library"
-)
+result = await manage_libraries(operation="switch", library_name="Main Library")
 
 if result["success"]:
     print(f"Switched to: {result['library_name']}")
@@ -443,9 +405,7 @@ else:
 ```python
 # Search across multiple libraries
 result = await manage_libraries(
-    operation="search",
-    query="python programming",
-    libraries=["Main Library", "IT Library"]
+    operation="search", query="python programming", libraries=["Main Library", "IT Library"]
 )
 
 for book in result["results"]:
@@ -471,11 +431,7 @@ result = await query_books(operation="list", author="Conan Doyle")  # 'list' doe
 
 ```python
 # ✅ Good for displaying to users
-result = await query_books(
-    operation="search",
-    author="Conan Doyle",
-    format_table=True
-)
+result = await query_books(operation="search", author="Conan Doyle", format_table=True)
 print(result.get("table", "No results"))
 ```
 

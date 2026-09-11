@@ -183,9 +183,7 @@ class CalibreMCPServer(MCPServer):
 
 def create_mcp_server(library_path: str | None = None) -> CalibreMCPServer:
     """Create and configure the MCP server."""
-    return CalibreMCPServer(
-        library_path=library_path or settings.LIBRARY_PATH, name="calibre-mcp", version="0.1.0"
-    )
+    return CalibreMCPServer(library_path=library_path or settings.LIBRARY_PATH, name="calibre-mcp", version="0.1.0")
 
 
 def run_mcp_server(library_path: str | None = None):

@@ -1,7 +1,7 @@
 # CalibreMCP query_books Search Bug Fix - Implementation Summary
 
-**Status**: Fixed  
-**Date**: January 30, 2025  
+**Status**: Fixed
+**Date**: January 30, 2025
 **Severity**: Critical (Author/series filtering completely broken)
 
 ---
@@ -10,7 +10,7 @@
 
 Fixed a critical bug in CalibreMCP's `query_books()` tool where author/series/tag filtering failed to work correctly. The issue was caused by improper SQLAlchemy query composition using sequential joins that created incorrect filtering conditions.
 
-**Impact**: 
+**Impact**:
 - Users cannot search for books by author name
 - Series filtering returns no results
 - Tag searches may return irrelevant results
@@ -45,8 +45,7 @@ query = query.distinct()  # Try to remove duplicates
 ```python
 # Fixed code (WORKING):
 author_book_ids_subq = (
-    session.query(Book.id)              # Find book IDs...
-    .join(Book.authors)                 # that have authors...
+    session.query(Book.id).join(Book.authors)  # Find book IDs...  # that have authors...
 )
 for word in author_words:
     author_book_ids_subq = author_book_ids_subq.filter(
@@ -79,11 +78,7 @@ All three filter types now use this pattern:
 ```python
 # Create isolated subquery for metadata matching
 metadata_book_ids_subq = (
-    session.query(Book.id)
-    .join(Book.metadata_relationship)
-    .filter(metadata_condition)
-    .distinct()
-    .subquery()
+    session.query(Book.id).join(Book.metadata_relationship).filter(metadata_condition).distinct().subquery()
 )
 
 # Filter main query by matching book IDs
@@ -120,7 +115,7 @@ File: `tests/test_query_books_search_bug.py`
 Test categories:
 - ✓ Author searches (full name, partial, multi-word)
 - ✓ Series searches
-- ✓ Tag searches  
+- ✓ Tag searches
 - ✓ Combined filter searches (author + tag, author + rating, etc.)
 - ✓ Edge cases (no matches, case insensitivity)
 - ✓ Text parameter parsing ("by Author" syntax)
@@ -154,7 +149,7 @@ No migration needed. Simply update the code and search functionality begins work
 
 ### Benchmark (Expected)
 - Simple author search: ~5-10ms (on library with 10k books)
-- Complex combined filters: ~20-50ms 
+- Complex combined filters: ~20-50ms
 - Full library scan: still ~100-200ms (acceptable for UI refresh)
 
 ### Optimization Notes
@@ -209,8 +204,8 @@ No migration needed. Simply update the code and search functionality begins work
 
 ## Author & Review
 
-**Implemented**: AI Coding Assistant (claude-4.5-haiku)  
-**Date**: January 30, 2025  
+**Implemented**: AI Coding Assistant (claude-4.5-haiku)
+**Date**: January 30, 2025
 **Status**: Ready for merge
 
 ---
@@ -219,7 +214,7 @@ No migration needed. Simply update the code and search functionality begins work
 
 This fix addresses a critical issue where author/series/tag searches were completely non-functional. The subquery-based approach ensures correct behavior while maintaining backwards compatibility and improving query efficiency.
 
-✓ Bug fixed  
-✓ Tests added  
-✓ Documentation updated  
+✓ Bug fixed
+✓ Tests added
+✓ Documentation updated
 ✓ Ready for production deployment

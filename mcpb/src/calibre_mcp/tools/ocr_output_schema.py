@@ -21,12 +21,8 @@ class CalibreOCROutput(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    success: bool = Field(
-        description="True when OCR completed; False on missing file, CLI, or model"
-    )
-    error: str | None = Field(
-        default=None, description="Human-readable failure summary when success is false"
-    )
+    success: bool = Field(description="True when OCR completed; False on missing file, CLI, or model")
+    error: str | None = Field(default=None, description="Human-readable failure summary when success is false")
     details: str | None = Field(
         default=None,
         description="Recovery hints: FINEREADER_CLI_PATH, install GOT-OCR deps, etc.",

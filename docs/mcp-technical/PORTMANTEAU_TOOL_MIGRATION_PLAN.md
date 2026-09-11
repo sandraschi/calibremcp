@@ -1,7 +1,7 @@
 # Portmanteau Tool Migration Plan
 
-**Last Updated**: 2025-11-22  
-**Status**: 🔴 IN PROGRESS - Phase 5 (Remove Duplicate Tools)  
+**Last Updated**: 2025-11-22
+**Status**: 🔴 IN PROGRESS - Phase 5 (Remove Duplicate Tools)
 **Priority**: High - Reduces tool count and improves consistency
 
 ## Overview
@@ -167,39 +167,39 @@ async def tool_name(
 ) -> Dict[str, Any]:
     """
     Brief description covering all operations.
-    
+
     Operations:
     - operation1: Description of first operation
     - operation2: Description of second operation
     - operation3: Description of third operation
-    
+
     Prerequisites:
         - Requirement 1
         - Requirement 2
-    
+
     Parameters:
         operation: The operation to perform. Must be one of: "operation1", "operation2", "operation3"
             - operation1: Description of what this does
             - operation2: Description of what this does
             - operation3: Description of what this does
-        
+
         param1: Description (required for operation1)
         param2: Description (required for operation2)
         param3: Description (optional)
-    
+
     Returns:
         Dictionary containing:
             - success: Boolean indicating operation success
             - data: Operation-specific data
             - error: Error message if success is False
-    
+
     Examples:
         # Operation 1
         result = await tool_name(operation="operation1", param1="value")
-        
+
         # Operation 2
         result = await tool_name(operation="operation2", param2="value")
-    
+
     Errors:
         - Invalid operation: Use one of the supported operations
         - Missing parameters: Provide required parameters for the operation
@@ -214,7 +214,7 @@ async def tool_name(
         return {
             "success": False,
             "error": f"Invalid operation: {operation}. Must be one of: operation1, operation2, operation3",
-            "suggestions": ["Use 'operation1' for...", "Use 'operation2' for..."]
+            "suggestions": ["Use 'operation1' for...", "Use 'operation2' for..."],
         }
 ```
 
@@ -238,7 +238,7 @@ async def tool_name(
 ## Risks and Mitigation
 
 ### Risk: Breaking Changes
-**Mitigation**: 
+**Mitigation**:
 - Keep old tools working during migration
 - Add deprecation warnings
 - Update all tests before removing old tools
@@ -294,4 +294,3 @@ async def tool_name(
 - `.cursorrules` - Portmanteau Tool Rules section
 - `docs/mcp-technical/TENACITY_RETRY_PATTERN.md` - Retry pattern documentation
 - FastMCP 2.13+ Documentation
-

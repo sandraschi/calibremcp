@@ -1,45 +1,39 @@
 """
 CalibreMCP Phase 2 - FastMCP 2.13+ Server for Calibre E-book Library Management
-
-Austrian efficiency for Sandra's 1000+ book collection across multiple libraries.
-Now with 23 comprehensive tools including multi-library, Japanese weeb optimization,
-and IT book curation. All tools properly categorized and FastMCP 2.13+ compliant.
-
-FastMCP 2.13 introduces persistent storage backends for stateful applications.
-
-Phase 2 adds 19 additional tools:
-- Multi-Library Management (4 tools)
-- Advanced Organization & Analysis (5 tools)
-- Metadata & Database Operations (4 tools)
-- File Operations (3 tools)
-- Austrian Efficiency Specials (3 tools)
 """
 
-# CRITICAL: Set stdio to binary mode on Windows for Antigravity IDE compatibility
-# Antigravity IDE is strict about JSON-RPC protocol and interprets trailing \r as "invalid trailing data"
-# This must happen BEFORE any imports that might write to stdout
+import logging
 import os
 import sys
+import warnings
+from contextlib import AbstractAsyncContextManager, asynccontextmanager, suppress
+from pathlib import Path
+from typing import Any
 
-if os.name == "nt":  # Windows only
+from fastmcp import FastMCP
+from pydantic import BaseModel
+
+from .calibre_api import CalibreAPIClient
+from .config import CalibreConfig
+from .logging_config import get_logger, log_operation
+from .prompts import register_prompts
+from .storage.persistence import CalibreMCPStorage, set_storage
+
+if os.name == "nt":
     try:
-        # Force binary mode for stdin/stdout to prevent CRLF conversion
         import msvcrt
 
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     except (OSError, AttributeError):
-        # Fallback: just ensure no CRLF conversion
         pass
 
 
-# DevNullStdout class for stdio mode suppression
 class DevNullStdout:
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
 
     def write(self, data):
-        # Suppress all writes to stdout during initialization
         pass
 
     def flush(self):
@@ -49,10 +43,6 @@ class DevNullStdout:
         sys.stdout = self.original_stdout
 
 
-# CRITICAL: Suppress all warnings before any imports
-# MCP stdio protocol requires clean stdout/stderr for JSON-RPC communication
-import warnings
-
 # Suppress all warnings immediately and aggressively
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
@@ -61,26 +51,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# For MCP stdio transport, we need to prevent ANY output to stderr
-# Warnings are printed to stderr, which breaks JSON-RPC protocol
-# Note: This is handled in __main__.py before imports
-
 # CRITICAL: Detect if we're running in stdio mode (MCP server)
-# MCP servers use stdio transport, so stdout must be clean for JSON-RPC
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
-
-import logging
-from contextlib import asynccontextmanager, suppress
-from pathlib import Path
-from typing import Any, AsyncContextManager
-
-from fastmcp import FastMCP
-from pydantic import BaseModel
-
-from .calibre_api import CalibreAPIClient
-from .config import CalibreConfig
-from .logging_config import get_logger, log_operation
-from .storage.persistence import CalibreMCPStorage, set_storage
 
 # Load environment variables first
 # load_dotenv()  # Temporarily disabled for testing
@@ -112,7 +84,7 @@ def create_app(path: str = "/mcp"):
 
 
 @asynccontextmanager
-async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
+async def server_lifespan(mcp_instance: FastMCP) -> AbstractAsyncContextManager[None]:
     """FastMCP 2.13 server lifespan for initialization and cleanup."""
     global api_client, current_library, available_libraries, storage, logger
 
@@ -183,11 +155,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
         # Try active library from Calibre's own config
         else:
             active_lib = get_active_calibre_library()
-            if (
-                active_lib
-                and active_lib.path.exists()
-                and (active_lib.path / "metadata.db").exists()
-            ):
+            if active_lib and active_lib.path.exists() and (active_lib.path / "metadata.db").exists():
                 library_to_load = active_lib.path
                 library_name_loaded = active_lib.name
                 logger.info(f"Using active Calibre library: {active_lib.name} at {active_lib.path}")
@@ -196,9 +164,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             first_lib_path = list(libraries.values())[0]
             library_to_load = Path(first_lib_path)
             library_name_loaded = list(libraries.keys())[0]
-            logger.info(
-                f"Auto-loading first discovered library: {library_name_loaded} at {library_to_load}"
-            )
+            logger.info(f"Auto-loading first discovered library: {library_name_loaded} at {library_to_load}")
 
         # Initialize database with the selected library
         # NOTE: Allow server to start even if database init fails - tools will handle errors gracefully
@@ -216,9 +182,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
                         await storage.set_current_library(current_library)
                     except Exception as storage_e:
                         logger.warning(f"Could not persist library to storage: {storage_e}")
-                    logger.info(
-                        f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}"
-                    )
+                    logger.info(f"SUCCESS: Database initialized with library: {current_library} at {library_to_load}")
                     db_initialized = True
                 except Exception as e:
                     logger.error(f"Failed to initialize database: {e}", exc_info=True)
@@ -229,9 +193,7 @@ async def server_lifespan(mcp_instance: FastMCP) -> AsyncContextManager[None]:
             else:
                 logger.warning(f"metadata.db not found at {metadata_db.absolute()}")
         else:
-            logger.warning(
-                "No libraries discovered. Server will start without database initialization."
-            )
+            logger.warning("No libraries discovered. Server will start without database initialization.")
 
         if not db_initialized:
             logger.warning(
@@ -300,9 +262,6 @@ if not _is_stdio_mode:
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-
-# Register prompt templates
-from .prompts import register_prompts
 
 register_prompts(mcp)
 
@@ -569,11 +528,6 @@ async def discover_libraries() -> dict[str, str]:
 
 
 # ==================== SERVER INITIALIZATION ====================
-
-
-def create_app() -> FastMCP:
-    """Create and configure the FastMCP application"""
-    return mcp
 
 
 async def main():

@@ -36,9 +36,7 @@ def calibre_ebook_viewer_hints(file_path: str, phrase: str) -> dict[str, Any]:
         "available": True,
         "open_at": open_at,
         "ebook_viewer_on_path": exe,
-        "powershell_example": (
-            f'& ebook-viewer --open-at "{open_at}" "{Path(file_path).as_posix()}"' if exe else None
-        ),
+        "powershell_example": (f'& ebook-viewer --open-at "{open_at}" "{Path(file_path).as_posix()}"' if exe else None),
         "note": "Use Calibre's ebook-viewer; --open-at search: runs Find after load.",
     }
 

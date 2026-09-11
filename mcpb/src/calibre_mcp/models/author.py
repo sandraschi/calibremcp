@@ -25,9 +25,7 @@ class Author(Base, BaseMixin):
     link: Mapped[str | None] = mapped_column(Text, default="")
 
     # Relationships
-    books: Mapped[list["Book"]] = relationship(
-        "Book", secondary="books_authors_link", back_populates="authors"
-    )
+    books: Mapped[list["Book"]] = relationship("Book", secondary="books_authors_link", back_populates="authors")
 
     def __repr__(self) -> str:
         return f"<Author(id={self.id}, name='{self.name}')>"

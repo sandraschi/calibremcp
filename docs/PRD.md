@@ -99,29 +99,29 @@ CalibreMCP is a FastMCP 3.1 server that provides comprehensive e-book library ma
 interface SearchParams {
   // Basic search
   query?: string;           // Search term (title, author, series, tags, comments)
-  
+
   // Date filters
   pubdate_start?: string;   // YYYY-MM-DD
   pubdate_end?: string;     // YYYY-MM-DD
   added_after?: string;     // YYYY-MM-DD
   added_before?: string;    // YYYY-MM-DD
-  
+
   // Content filters
   has_empty_comments?: boolean;  // True for empty, False for non-empty
   rating?: number;         // Exact rating (1-5)
   min_rating?: number;     // Minimum rating (1-5)
   unrated?: boolean;       // True for unrated books only
-  
+
   // Publisher filters
   publisher?: string;      // Single publisher (partial match)
   publishers?: string[];   // Multiple publishers (OR condition)
   has_publisher?: boolean; // True/False for has publisher
-  
+
   // File properties
   min_size?: number;       // Minimum file size in bytes
   max_size?: number;       // Maximum file size in bytes
   formats?: string[];      // File formats to include
-  
+
   // Pagination
   limit?: number;          // Results per page (default: 50, max: 1000)
   offset?: number;         // Pagination offset (default: 0)
@@ -281,7 +281,7 @@ MIT License
   - Support for multiple ingestion protocols (arXiv API, OPDS, Web Scraping).
 
 ### 12.2 arXiv Integration
-- **Hardening**: 
+- **Hardening**:
   - Mandatory exponential backoff for `HTTP 429` (Too Many Requests).
   - Explicit User-Agent header following `arxiv.org` robot guidelines.
 - **Metadata**: Automatic extraction of LaTeX-formatted titles, authors, and categories into Calibre metadata.

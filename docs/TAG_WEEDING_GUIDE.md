@@ -27,7 +27,7 @@ print(f"Top tags: {stats['top_tags'][:5]}")
 duplicates = find_duplicate_tags()
 
 # Review each duplicate group
-for group in duplicates['duplicate_groups']:
+for group in duplicates["duplicate_groups"]:
     print(f"Similar tags: {[t['name'] for t in group['tags']]}")
     print(f"  Suggested name: {group['suggested_name']}")
     print(f"  Total books: {group['total_books']}")
@@ -52,10 +52,7 @@ duplicates = find_duplicate_tags(similarity_threshold=0.7)
 target_tag_id = 1  # The "sci-fi" tag (most books)
 source_tag_ids = [2, 3]  # The "scifi" and "science fiction" tags
 
-result = merge_tags(
-    source_tag_ids=source_tag_ids,
-    target_tag_id=target_tag_id
-)
+result = merge_tags(source_tag_ids=source_tag_ids, target_tag_id=target_tag_id)
 
 print(f"Merged {len(result['merged_tags'])} tags into {result['target_tag']['name']}")
 print(f"Affected {result['books_affected']} books")
@@ -67,7 +64,7 @@ print(f"Affected {result['books_affected']} books")
 # First, review unused tags
 unused = get_unused_tags()
 print(f"Found {unused['count']} unused tags:")
-for tag in unused['unused_tags'][:10]:  # Show first 10
+for tag in unused["unused_tags"][:10]:  # Show first 10
     print(f"  - {tag['name']}")
 
 # Then delete them (safe - they're not used by any books)
@@ -79,21 +76,13 @@ print(f"Deleted {result['deleted_count']} unused tags")
 
 ```python
 # List all tags sorted by usage
-all_tags = list_tags(
-    sort_by="book_count",
-    sort_order="desc",
-    limit=50
-)
+all_tags = list_tags(sort_by="book_count", sort_order="desc", limit=50)
 
 # Find tags with specific patterns
 mystery_tags = list_tags(search="mystery")
 
 # Find rarely used tags (1-5 books)
-rare_tags = list_tags(
-    min_book_count=1,
-    max_book_count=5,
-    sort_by="book_count"
-)
+rare_tags = list_tags(min_book_count=1, max_book_count=5, sort_by="book_count")
 ```
 
 ## Tag CRUD Operations
@@ -138,11 +127,7 @@ tag = get_tag(tag_name="mystery")
 
 ```python
 # Tags used by 20+ books
-popular = list_tags(
-    min_book_count=20,
-    sort_by="book_count",
-    sort_order="desc"
-)
+popular = list_tags(min_book_count=20, sort_by="book_count", sort_order="desc")
 ```
 
 ### Find Orphaned Tags
@@ -174,17 +159,17 @@ duplicates = find_duplicate_tags(similarity_threshold=0.8)
 print(f"Found {duplicates['total_duplicates']} duplicate groups")
 
 # 3. Merge duplicates (example - do this for each group)
-for group in duplicates['duplicate_groups']:
-    tags = group['tags']
+for group in duplicates["duplicate_groups"]:
+    tags = group["tags"]
     if len(tags) > 1:
         target = tags[0]  # Most popular
-        sources = [t['id'] for t in tags[1:]]
-        merge_tags(source_tag_ids=sources, target_tag_id=target['id'])
+        sources = [t["id"] for t in tags[1:]]
+        merge_tags(source_tag_ids=sources, target_tag_id=target["id"])
         print(f"Merged {len(sources)} tags into '{target['name']}'")
 
 # 4. Delete unused tags
 unused = get_unused_tags()
-if unused['count'] > 0:
+if unused["count"] > 0:
     result = delete_unused_tags()
     print(f"Deleted {result['deleted_count']} unused tags")
 
@@ -223,4 +208,3 @@ Example:
 - `get_unused_tags()` - List unused tags
 - `delete_unused_tags()` - Delete all unused tags
 - `get_tag_statistics()` - Get tag statistics
-

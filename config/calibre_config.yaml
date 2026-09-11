@@ -8,21 +8,21 @@ presets:
     server_url: "http://localhost:8080"
     timeout: 30
     description: "Standard local Calibre server for development"
-    
+
   local_production:
-    name: "Local Production" 
+    name: "Local Production"
     server_url: "http://localhost:8080"
     timeout: 60
     max_retries: 5
     description: "Local Calibre server optimized for production use"
-    
+
   remote_server:
     name: "Remote Server"
     server_url: "http://192.168.1.100:8080"
     timeout: 45
     max_retries: 3
     description: "Remote Calibre server on local network"
-    
+
   cloud_server:
     name: "Cloud Server"
     server_url: "https://calibre.example.com"
@@ -38,8 +38,7 @@ libraries:
     description: "Main Calibre library"
     default_tags: ["imported"]
     auto_organize: true
-    auto_organize: true
-    
+
   programming:
     name: "Programming Library"
     description: "Technical and programming books"
@@ -50,14 +49,14 @@ libraries:
 formats:
   preferred_reading:
     - "EPUB"
-    - "PDF" 
+    - "PDF"
     - "MOBI"
     - "AZW3"
-    
+
   conversion_targets:
     - "EPUB"
     - "PDF"
-    
+
   download_priority:
     1: "EPUB"
     2: "PDF"
@@ -72,31 +71,31 @@ metadata:
     programming:
       keywords: ["python", "javascript", "programming", "code", "software"]
       tags: ["programming", "technical"]
-      
+
     fiction:
       keywords: ["novel", "story", "fiction", "fantasy", "sci-fi"]
       tags: ["fiction", "entertainment"]
-      
+
     academic:
       keywords: ["research", "university", "academic", "study", "textbook"]
       tags: ["academic", "reference"]
-      
+
     japanese:
       keywords: ["manga", "anime", "japanese", "nihongo"]
       tags: ["japanese", "weeb", "language"]
-  
+
   # Series detection patterns
   series_patterns:
     - pattern: "(.+?)\\s+(?:Book|Vol|Volume)\\s+(\\d+)"
       series_group: 1
       index_group: 2
-      
+
     - pattern: "(.+?)\\s+#(\\d+)"
       series_group: 1
       index_group: 2
-      
+
     - pattern: "(.+?)\\s+(\\d+)$"
-      series_group: 1  
+      series_group: 1
       index_group: 2
 
 # Search Configuration
@@ -108,7 +107,7 @@ search:
     series: 2.0
     tags: 1.5
     comments: 1.0
-    
+
   # Quick search shortcuts
   shortcuts:
     "recent": "sort:date"
@@ -118,23 +117,23 @@ search:
     "tech": "tags:programming OR tags:technical"
     "japanese": "tags:japanese OR languages:jpn"
 
-# User Interface Preferences  
+# User Interface Preferences
 ui:
   # Result display
   default_view: "grid"  # grid, list, table
   show_covers: true
   show_ratings: true
   show_series: true
-  
+
   # Pagination
   items_per_page: 25
   max_items_per_page: 100
-  
+
   # Sorting
   default_sort: "title"
   available_sorts:
     - "title"
-    - "authors" 
+    - "authors"
     - "rating"
     - "pubdate"
     - "last_modified"
@@ -149,8 +148,8 @@ workflow:
     3: "Verify series information"
     4: "Add to reading queue"
     5: "Download for offline reading"
-    
-  # Library management workflow  
+
+  # Library management workflow
   management_workflow:
     1: "Import new books"
     2: "Auto-tag by content"
@@ -165,19 +164,19 @@ integrations:
     list_books:
       cache_results: true
       cache_duration: 300  # 5 minutes
-      
+
     search_books:
       enable_fuzzy_search: true
       min_relevance_score: 0.3
-      
+
     get_book_details:
       include_cover_url: true
       include_download_links: true
-      
+
     test_connection:
       include_performance_metrics: true
       test_search_capability: true
-      
+
   # Claude Desktop optimization
   claude_desktop:
     response_format: "structured"

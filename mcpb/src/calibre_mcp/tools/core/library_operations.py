@@ -21,9 +21,7 @@ logger = get_logger("calibremcp.tools.core")
 
 # Helper function - called by query_books portmanteau tool
 # NOT registered as MCP tool (no @mcp.tool() decorator)
-async def list_books_helper(
-    query: str | None = None, limit: int = 50, sort: str = "title"
-) -> LibrarySearchResponse:
+async def list_books_helper(query: str | None = None, limit: int = 50, sort: str = "title") -> LibrarySearchResponse:
     """
     List books from the current Calibre library with optional filtering and sorting.
 
@@ -163,8 +161,7 @@ async def test_calibre_connection_helper() -> ConnectionTestResponse:
 
                 return ConnectionTestResponse(
                     connected=True,
-                    server_url="local://"
-                    + (str(config.local_library_path) if config.local_library_path else "local"),
+                    server_url="local://" + (str(config.local_library_path) if config.local_library_path else "local"),
                     server_version="Local SQLite",
                     library_count=1,
                     total_books=book_count,
@@ -198,6 +195,4 @@ async def test_calibre_connection_helper() -> ConnectionTestResponse:
 
     except Exception as e:
         log_error(logger, "test_calibre_connection", e)
-        return ConnectionTestResponse(
-            connected=False, server_url="unknown", response_time_ms=0, error_message=str(e)
-        )
+        return ConnectionTestResponse(connected=False, server_url="unknown", response_time_ms=0, error_message=str(e))

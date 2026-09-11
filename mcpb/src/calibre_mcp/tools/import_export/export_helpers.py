@@ -7,21 +7,17 @@ by the export_books portmanteau tool.
 
 import csv
 import json
-import os
-import platform
 import shutil
 import subprocess
-import sys
 import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-
 from ...logging_config import get_logger
 from ...services.book_service import book_service
+from ...utils.subprocess_utils import _cmd, _open_file
 
 logger = get_logger("calibremcp.tools.export.helpers")
 
@@ -36,7 +32,7 @@ def _get_export_dir() -> Path:
     """Get the export directory (Desktop/calibre_exports/)."""
     desktop = Path.home() / "Desktop"
     if not desktop.exists():
-        desktop = Path(os.path.expanduser("~/Desktop"))
+        desktop = Path(Path("~/Desktop").expanduser())
     export_dir = desktop / "calibre_exports"
     export_dir.mkdir(parents=True, exist_ok=True)
     return export_dir
@@ -45,16 +41,7 @@ def _get_export_dir() -> Path:
 def _open_file_with_app(file_path: Path) -> bool:
     """Open a file with the system's default application."""
     try:
-        system = platform.system()
-        file_path_str = str(file_path)
-
-        if system == "Windows":
-            os.startfile(file_path_str)
-        elif system == "Darwin":  # macOS
-            subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
-        else:  # Linux and others
-            subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
-
+        _open_file(file_path)
         logger.info(f"Opened file with default application: {file_path}")
         return True
     except Exception as e:
@@ -227,9 +214,7 @@ async def export_csv_helper(
     try:
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext="csv"
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext="csv")
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -268,11 +253,7 @@ async def export_csv_helper(
             "has_cover",
             "timestamp",
         ]
-        if (
-            detail_level
-            and detail_level in DETAIL_LEVEL_FIELDS
-            and DETAIL_LEVEL_FIELDS[detail_level]
-        ):
+        if detail_level and detail_level in DETAIL_LEVEL_FIELDS and DETAIL_LEVEL_FIELDS[detail_level]:
             default_fields = DETAIL_LEVEL_FIELDS[detail_level]
         fields_to_include = include_fields if include_fields else default_fields
 
@@ -284,7 +265,14 @@ async def export_csv_helper(
             for field in fields_to_include:
                 value = book.get(field, "")
 
-                if field == "authors" and isinstance(value, list) or field == "tags" and isinstance(value, list) or field == "formats" and isinstance(value, list):
+                if (
+                    field == "authors"
+                    and isinstance(value, list)
+                    or field == "tags"
+                    and isinstance(value, list)
+                    or field == "formats"
+                    and isinstance(value, list)
+                ):
                     value = ", ".join(value)
                 elif field == "series" and isinstance(value, dict):
                     value = value.get("name", "") if value else ""
@@ -297,7 +285,7 @@ async def export_csv_helper(
 
             csv_rows.append(row)
 
-        with open(output_path, "w", newline="", encoding="utf-8-sig") as csvfile:
+        with Path(output_path).open("w", newline="", encoding="utf-8-sig") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fields_to_include, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(csv_rows)
@@ -336,9 +324,7 @@ async def export_json_helper(
     try:
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext="json"
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext="json")
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -365,7 +351,7 @@ async def export_json_helper(
         if detail_level:
             books = [_filter_book_by_detail_level(b, detail_level) for b in books]
 
-        with open(output_path, "w", encoding="utf-8") as jsonfile:
+        with Path(output_path).open("w", encoding="utf-8") as jsonfile:
             if pretty:
                 json.dump(books, jsonfile, indent=2, ensure_ascii=False, default=str)
             else:
@@ -401,13 +387,9 @@ def _generate_styled_html(
 ) -> str:
     """Generate styled HTML catalog. Style: catalog, gallery, dashboard."""
     if style == "gallery":
-        return _generate_html_gallery(
-            books, author, tag, book_ids, export_date, export_date_formatted
-        )
+        return _generate_html_gallery(books, author, tag, book_ids, export_date, export_date_formatted)
     if style == "dashboard":
-        return _generate_html_dashboard(
-            books, author, tag, book_ids, export_date, export_date_formatted
-        )
+        return _generate_html_dashboard(books, author, tag, book_ids, export_date, export_date_formatted)
     return _generate_html_catalog(books, author, tag, book_ids, export_date, export_date_formatted)
 
 
@@ -564,23 +546,16 @@ def _generate_html_dashboard(
     export_date_formatted: str,
 ) -> str:
     """Generate dashboard-style HTML (stats + book list)."""
-    stats = _get_library_stats_for_export(
-        book_ids=book_ids, author=author, tag=tag, limit=len(books) + 1
-    )
+    stats = _get_library_stats_for_export(book_ids=book_ids, author=author, tag=tag, limit=len(books) + 1)
     fmt_items = "".join(
-        f"<li>{k}: {v}</li>"
-        for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
+        f"<li>{k}: {v}</li>" for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
     )
-    top_authors = "".join(
-        f"<li>{x['name']} ({x['count']})</li>" for x in stats.get("top_authors", [])[:10]
-    )
+    top_authors = "".join(f"<li>{x['name']} ({x['count']})</li>" for x in stats.get("top_authors", [])[:10])
     filter_desc = "All books"
     if author:
         filter_desc = f'Author "{author}"'
     if tag:
-        filter_desc = (
-            f'Tag "{tag}"' if filter_desc == "All books" else f'{filter_desc}, tag "{tag}"'
-        )
+        filter_desc = f'Tag "{tag}"' if filter_desc == "All books" else f'{filter_desc}, tag "{tag}"'
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -656,9 +631,7 @@ async def export_html_helper(
 
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext="html"
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext="html")
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -679,7 +652,7 @@ async def export_html_helper(
             books, author, tag, book_ids, export_date, export_date_formatted, style=html_style
         )
 
-        with open(output_path, "w", encoding="utf-8") as htmlfile:
+        with Path(output_path).open("w", encoding="utf-8") as htmlfile:
             htmlfile.write(html_content)
 
         logger.info(f"Exported {len(books)} books to {output_path}")
@@ -778,9 +751,7 @@ async def export_pandoc_helper(
 
             if book.get("series"):
                 series_name = (
-                    book["series"].get("name")
-                    if isinstance(book.get("series"), dict)
-                    else str(book.get("series"))
+                    book["series"].get("name") if isinstance(book.get("series"), dict) else str(book.get("series"))
                 )
                 markdown_lines.append(f"**Series:** {series_name}")
 
@@ -811,11 +782,7 @@ async def export_pandoc_helper(
             if book.get("comments"):
                 comments = book["comments"]
                 if isinstance(comments, list) and comments:
-                    comments = (
-                        comments[0].get("text", "")
-                        if isinstance(comments[0], dict)
-                        else str(comments[0])
-                    )
+                    comments = comments[0].get("text", "") if isinstance(comments[0], dict) else str(comments[0])
                 if comments and comments.strip():
                     markdown_lines.append("")
                     markdown_lines.append("**Description:**")
@@ -843,17 +810,13 @@ async def export_pandoc_helper(
             ]
         )
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".md", delete=False, encoding="utf-8"
-        ) as tmp_md:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as tmp_md:
             tmp_md.write("\n".join(markdown_lines))
             tmp_md_path = tmp_md.name
 
         if not output_path:
             export_dir = _get_export_dir()
-            filename = _generate_intelligent_filename(
-                author=author, tag=tag, book_ids=book_ids, format_ext=format_type
-            )
+            filename = _generate_intelligent_filename(author=author, tag=tag, book_ids=book_ids, format_ext=format_type)
             output_path = str(export_dir / filename)
 
         output_path = Path(output_path)
@@ -879,16 +842,13 @@ async def export_pandoc_helper(
         ]
 
         try:
-            result = subprocess.run(
+            result = _cmd(
                 cmd,
-                capture_output=True,
-                text=True,
                 timeout=300,
-                creationflags=_NO_WINDOW,
             )
 
             if result.returncode != 0:
-                raise Exception(f"Pandoc conversion failed: {result.stderr}")
+                raise RuntimeError(f"Pandoc conversion failed: {result.stderr}")
 
             Path(tmp_md_path).unlink()
 
@@ -910,7 +870,7 @@ async def export_pandoc_helper(
 
         except subprocess.TimeoutExpired:
             Path(tmp_md_path).unlink()
-            raise Exception("Pandoc conversion timed out") from None
+            raise TimeoutError("Pandoc conversion timed out") from None
         except FileNotFoundError:
             return {
                 "success": False,
@@ -951,16 +911,14 @@ async def export_stats_csv_helper(
             output_path = orig.parent / f"{orig.stem} ({counter}){orig.suffix}"
             counter += 1
 
-        with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
+        with Path(output_path).open("w", newline="", encoding="utf-8-sig") as f:
             w = csv.writer(f)
             w.writerow(["Metric", "Value"])
             w.writerow(["total_books", stats.get("total_books", 0)])
             w.writerow(["total_authors", stats.get("total_authors", 0)])
             w.writerow(["total_series", stats.get("total_series", 0)])
             w.writerow(["total_tags", stats.get("total_tags", 0)])
-            for fmt, cnt in sorted(
-                stats.get("format_distribution", {}).items(), key=lambda x: -x[1]
-            ):
+            for fmt, cnt in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1]):
                 w.writerow([f"format_{fmt}", cnt])
             for item in stats.get("top_authors", [])[:20]:
                 w.writerow([f"author:{item['name']}", item["count"]])
@@ -998,7 +956,7 @@ async def export_stats_json_helper(
             output_path = orig.parent / f"{orig.stem} ({counter}){orig.suffix}"
             counter += 1
 
-        with open(output_path, "w", encoding="utf-8") as f:
+        with Path(output_path).open("w", encoding="utf-8") as f:
             if pretty:
                 json.dump(stats, f, indent=2, default=str)
             else:
@@ -1041,16 +999,13 @@ async def export_stats_html_helper(
             for k, v in sorted(stats.get("format_distribution", {}).items(), key=lambda x: -x[1])
         )
         top_authors = "".join(
-            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
-            for x in stats.get("top_authors", [])[:15]
+            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>" for x in stats.get("top_authors", [])[:15]
         )
         top_tags = "".join(
-            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
-            for x in stats.get("top_tags", [])[:15]
+            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>" for x in stats.get("top_tags", [])[:15]
         )
         top_series = "".join(
-            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>"
-            for x in stats.get("top_series", [])[:15]
+            f"<tr><td>{x['name']}</td><td>{x['count']}</td></tr>" for x in stats.get("top_series", [])[:15]
         )
         date_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
 
@@ -1104,7 +1059,7 @@ async def export_stats_html_helper(
 </body>
 </html>"""
 
-        with open(output_path, "w", encoding="utf-8") as f:
+        with Path(output_path).open("w", encoding="utf-8") as f:
             f.write(html)
 
         opened = _open_file_with_app(output_path) if open_file else False

@@ -1,4 +1,24 @@
 
+## [1.9.0] — 2026-09-11
+
+### Added
+- **Embedded Web Reader Overlay**: Direct in-app e-book reading inside `BookModal` using Calibre Content Server's native `viewer.js` engine (`http://goliath:8099/`) with full-screen iframe, title header, pop-out to new tab, and exit controls.
+- **Dedicated WebApp Views**:
+  - `/library-health`: Database integrity checks (`PRAGMA integrity_check`), missing covers/formats audit, actionable recommendations, and re-scan controls.
+  - `/duplicates`: Duplicate candidate clusters grouped by title similarity, author match, and ISBN collisions with side-by-side cover and format comparison.
+  - `/reading`: Reading Queue prioritized by rating, author prominence, and series continuity + Reading Analytics (completion metrics, categories breakdown).
+  - `/collections`: Virtual shelves browser with 1-click presets ("5-Star Masterpieces", "Unread Sci-Fi", "Epic Series Starters", "Quick Reads") and custom rule builder.
+- **Hybrid Search (Reciprocal Rank Fusion)**: Added `hybrid_search` operation to `calibre_rag` portmanteau tool, combining Calibre FTS5 lexical rankings (`full-text-search.db`) and LanceDB semantic vector embeddings (`lancedb_calibre`) using RRF with $k=60$.
+- **Incremental LanceDB RAG Sync**: Added `upsert_book_metadata(book_id)` and `remove_book_metadata(book_id)` hooked into `manage_books` (`add`, `update`, `delete`) to keep LanceDB vectors synchronized with the library without full rebuilds.
+- **Production Artifacts**: Built and certified `dist/calibre-mcp.mcpb` (MCPB v0.2 spec via `@anthropic-ai/mcpb@2.1.2`) and `dist/Calibre MCP_1.8.6_x64-setup.exe` (Tauri v2 NSIS bundle).
+
+### Fixed
+- **Pytest collection NameError**: Fixed missing `mcp` and `book_service` imports in `tools/test_concurrency.py` and synced `mcpb` package trees.
+- **Next.js App Router route collision**: Separated `/library-health` UI page from `/health` API probe route.
+- **Backend system probe**: Fixed route decorator in `webapp/backend/app/api/system.py` and added Content Server status probe.
+
+---
+
 ## [Unreleased] — 2026-07-09
 
 ### Fixed
@@ -238,7 +258,7 @@ Fourth tab on `/rag` page alongside Metadata / Passages / Synopsis.
 
 ### Changed
 - **Codebase Hardening**: Purged all executable `print` statements to ensure strict JSON-RPC protocol compliance.
-- **Ruff Standard**: Aligned with 120-character line length and expanded SOTA linting rules. 
+- **Ruff Standard**: Aligned with 120-character line length and expanded SOTA linting rules.
 - **Webapp Performance**: Optimized Next.js dashboard with adjacent port assignments (10722).
 
 ### Fixed
@@ -295,4 +315,3 @@ Fourth tab on `/rag` page alongside Metadata / Passages / Synopsis.
 ## [1.0.0] - 2025-10-21
 ### Added
 - Initial release with core library management tools.
-

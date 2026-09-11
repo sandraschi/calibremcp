@@ -60,7 +60,7 @@ search_books(tag="crime novel", author="Conan Doyle")
 # JOIN tags ON books_tags_link.tag = tags.id
 # JOIN books_authors_link ON books.id = books_authors_link.book
 # JOIN authors ON books_authors_link.author = authors.id
-# WHERE 
+# WHERE
 #     tags.name ILIKE '%crime novel%'
 #     AND authors.name ILIKE '%Conan Doyle%'
 # DISTINCT
@@ -82,7 +82,7 @@ search_books(tags=["crime", "thriller"], author="Mick Herron")
 # JOIN tags ON books_tags_link.tag = tags.id
 # JOIN books_authors_link ON books.id = books_authors_link.book
 # JOIN authors ON books_authors_link.author = authors.id
-# WHERE 
+# WHERE
 #     (tags.name ILIKE '%crime%' OR tags.name ILIKE '%thriller%')
 #     AND authors.name ILIKE '%Mick Herron%'
 # DISTINCT
@@ -104,7 +104,7 @@ search_books(tag="crime novel", min_rating=4, exclude_tags=["young adult"])
 # JOIN books_tags_link ON books.id = books_tags_link.book
 # JOIN tags ON books_tags_link.tag = tags.id
 # JOIN ratings ON books.id = ratings.book
-# WHERE 
+# WHERE
 #     tags.name ILIKE '%crime novel%'
 #     AND ratings.rating >= 4
 
@@ -126,10 +126,7 @@ search_books(tag="crime novel", min_rating=4, exclude_tags=["young adult"])
 ```python
 # Claude calls:
 search_books(
-    authors=["Mick Herron", "John le Carré"],
-    tags=["spy", "thriller"],
-    exclude_tags=["non-fiction"],
-    min_rating=4
+    authors=["Mick Herron", "John le Carré"], tags=["spy", "thriller"], exclude_tags=["non-fiction"], min_rating=4
 )
 
 # SQL Generated:
@@ -170,10 +167,10 @@ search_books(
 ```python
 search_books(
     authors=["Conan Doyle", "Agatha Christie"],  # OR logic within list
-    tag="crime novel",                           # AND with authors
-    min_rating=4,                                # AND with rating
-    exclude_tags=["young adult"],                # AND NOT exclusion
-    pubdate_start="1900-01-01"                  # AND with date
+    tag="crime novel",  # AND with authors
+    min_rating=4,  # AND with rating
+    exclude_tags=["young adult"],  # AND NOT exclusion
+    pubdate_start="1900-01-01",  # AND with date
 )
 ```
 
@@ -293,13 +290,12 @@ search_books(tag="crime novel", exclude_tags=["young adult"])
 ```python
 search_books(
     authors=["Author1", "Author2"],  # OR
-    tags=["tag1", "tag2"],           # OR (ANDed with authors)
-    exclude_tags=["exclude1"],       # NOT
-    min_rating=4                     # AND
+    tags=["tag1", "tag2"],  # OR (ANDed with authors)
+    exclude_tags=["exclude1"],  # NOT
+    min_rating=4,  # AND
 )
 ```
 
 ---
 
 **Last Updated**: 2025-01-XX
-

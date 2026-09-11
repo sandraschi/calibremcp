@@ -25,7 +25,7 @@ Analyze my Calibre library collection, reading history, and current series progr
 
 📋 TOP 3 RECOMMENDATIONS:
 1. [Book] - [Reason]
-2. [Book] - [Reason]  
+2. [Book] - [Reason]
 3. [Book] - [Reason]
 
 🔄 CONTINUE SERIES:

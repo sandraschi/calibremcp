@@ -431,7 +431,7 @@ async def get_cua_diagnostics():
     return {
         "success": True,
         "data": {
-            "backend": {"status": "ok", "version": "1.8.6", "uptime_seconds": uptime, "port": 10720},
+            "backend": {"status": "ok", "version": "1.9.0", "uptime_seconds": uptime, "port": 10720},
             "system": {"cpu_percent": cpu, "memory_percent": mem, "disk_percent": disk},
             "tools": {"total": _count_tools(), "categories": ["calibre"]},
             "errors": {"count": 0, "recent": []},

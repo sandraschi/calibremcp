@@ -27,10 +27,7 @@ export_books_csv()
 export_books_csv(author="Conan Doyle", output_path="conan_doyle_books.csv")
 
 # Export specific books with custom fields
-export_books_csv(
-    book_ids=[1, 2, 3],
-    include_fields=["title", "authors", "rating", "tags"]
-)
+export_books_csv(book_ids=[1, 2, 3], include_fields=["title", "authors", "rating", "tags"])
 
 # Export mystery books with no limit
 export_books_csv(tag="mystery", limit=-1)
@@ -219,9 +216,7 @@ If Pandoc is not available:
 ### Custom CSV Fields
 
 ```python
-export_books_csv(
-    include_fields=["title", "authors", "rating", "tags", "isbn"]
-)
+export_books_csv(include_fields=["title", "authors", "rating", "tags", "isbn"])
 ```
 
 Available fields: `id`, `title`, `authors`, `tags`, `series`, `rating`, `pubdate`, `publisher`, `isbn`, `comments`, `formats`, `has_cover`, `timestamp`
@@ -300,4 +295,3 @@ If you still have issues, try opening the file with UTF-8 encoding in your sprea
 5. **Use Pandoc PDF for final documents** (but it's slower, use smaller limits)
 
 For regular exports, CSV is recommended. For formatted documents, use Pandoc with DOCX or HTML.
-

@@ -4,10 +4,9 @@ Comic viewer module for CalibreMCP - Handles CBZ and CBR formats.
 
 import base64
 import contextlib
-import os
 import re
 import zipfile
-from enum import Enum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -74,9 +73,7 @@ class ComicViewer:
                 ]
             elif ext == "cbr":
                 if rarfile is None:
-                    raise ImportError(
-                        "rarfile is required for CBR viewing. Install it with: pip install rarfile"
-                    )
+                    raise ImportError("rarfile is required for CBR viewing. Install it with: pip install rarfile")
                 self._archive = rarfile.RarFile(file_path, "r")
                 self._file_list = [
                     f
@@ -85,16 +82,14 @@ class ComicViewer:
                 ]
 
             # Sort files naturally (e.g., "page1.jpg", "page2.jpg")
-            self._file_list.sort(
-                key=lambda x: [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", x)]
-            )
+            self._file_list.sort(key=lambda x: [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", x)])
 
             # Extract basic metadata
             self._metadata = {
                 "title": self._file_path.stem,
                 "page_count": len(self._file_list),
                 "format": ext.upper(),
-                "file_size": os.path.getsize(file_path),
+                "file_size": Path(file_path).stat().st_size,
             }
 
         except Exception as e:
@@ -134,7 +129,7 @@ class ComicViewer:
             img_base64 = base64.b64encode(img_data).decode("utf-8")
 
             # Determine MIME type from file extension
-            ext = os.path.splitext(page_file)[1].lower()
+            ext = Path(page_file).suffix.lower()
             mime_type = f"image/{ext[1:]}"  # Remove the dot
             if ext == ".jpg":
                 mime_type = "image/jpeg"

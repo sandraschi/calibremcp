@@ -96,16 +96,16 @@ Set-Location "D:\Dev\repos\<repo-name>"
 
 **Best candidates** for Serena:
 
-✅ **Large projects** (1,000+ lines)  
-✅ **Multi-file codebases**  
-✅ **Complex relationships** (classes, imports)  
-✅ **Active development** (frequent navigation needed)  
-✅ **Python, TypeScript, Rust, Go** (best LSP support)  
+✅ **Large projects** (1,000+ lines)
+✅ **Multi-file codebases**
+✅ **Complex relationships** (classes, imports)
+✅ **Active development** (frequent navigation needed)
+✅ **Python, TypeScript, Rust, Go** (best LSP support)
 
 **Skip for**:
-❌ Single-file scripts  
-❌ Very small projects (<100 lines)  
-❌ Pure data/config repos  
+❌ Single-file scripts
+❌ Very small projects (<100 lines)
+❌ Pure data/config repos
 
 ---
 
@@ -149,11 +149,9 @@ Remove-Item ".serena" -Recurse -Force
 
 ---
 
-*Quick Copy Template*  
-*Add Serena to any repo in 30 seconds*  
-*No global installation*  
+*Quick Copy Template*
+*Add Serena to any repo in 30 seconds*
+*No global installation*
 *Easy to remove*
 
 **Copy and adapt for your repos!** 🚀
-
-

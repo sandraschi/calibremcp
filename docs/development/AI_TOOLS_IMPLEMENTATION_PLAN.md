@@ -1,8 +1,8 @@
 # Real AI Tools Implementation Plan
 ## Comprehensive Book Analysis, Metadata Enrichment, and Content Intelligence
 
-**Status**: Planning Phase  
-**Target**: Replace placeholder implementations with production-ready AI-powered features  
+**Status**: Planning Phase
+**Target**: Replace placeholder implementations with production-ready AI-powered features
 **Timeline**: Multi-phase rollout over 3-4 months
 
 ---
@@ -65,41 +65,35 @@ This plan outlines the implementation of real AI-powered tools for CalibreMCP th
 ```python
 # src/calibre_mcp/services/metadata/enrichment_service.py
 
+
 class MetadataEnrichmentService:
     """Unified service for aggregating book metadata from multiple sources."""
-    
+
     async def enrich_book_metadata(
-        self, 
-        book_id: str,
-        sources: List[str] = None,
-        prefer_existing: bool = True
+        self, book_id: str, sources: List[str] = None, prefer_existing: bool = True
     ) -> EnrichmentResult:
         """
         Enrich book metadata from multiple sources.
-        
+
         Args:
             book_id: Book identifier
             sources: List of sources to query (default: all)
             prefer_existing: Keep existing metadata if conflict
-            
+
         Returns:
             EnrichmentResult with aggregated metadata
         """
-    
+
     async def fetch_from_openlibrary(self, identifiers: Dict[str, str]) -> Dict:
         """Fetch metadata from Open Library."""
-    
+
     async def fetch_from_google_books(self, identifiers: Dict[str, str]) -> Dict:
         """Fetch metadata from Google Books."""
-    
+
     async def fetch_from_isbndb(self, isbn: str) -> Dict:
         """Fetch metadata from ISBNdb."""
-    
-    async def merge_metadata_sources(
-        self,
-        existing: BookMetadata,
-        *sources: Dict
-    ) -> BookMetadata:
+
+    async def merge_metadata_sources(self, existing: BookMetadata, *sources: Dict) -> BookMetadata:
         """Intelligently merge metadata from multiple sources."""
 ```
 
@@ -120,6 +114,7 @@ class MetadataEnrichmentService:
 ```python
 class PublicationEvent(BaseModel):
     """Represents a single publication event."""
+
     edition: str  # "1st Edition", "2nd Edition", etc.
     publisher: str
     publication_date: date
@@ -131,8 +126,10 @@ class PublicationEvent(BaseModel):
     source: str  # Which API provided this data
     confidence: float  # 0.0-1.0 confidence score
 
+
 class PublicationHistory(BaseModel):
     """Complete publication history for a book."""
+
     work_id: Optional[str]  # Open Library work ID
     original_publication_date: Optional[date]
     events: List[PublicationEvent]
@@ -145,14 +142,10 @@ class PublicationHistory(BaseModel):
 #### Implementation:
 
 ```python
-async def get_publication_history(
-    self,
-    book_id: str,
-    include_all_editions: bool = True
-) -> PublicationHistory:
+async def get_publication_history(self, book_id: str, include_all_editions: bool = True) -> PublicationHistory:
     """
     Retrieve complete publication history for a book.
-    
+
     Sources:
     - Open Library (multiple editions)
     - Google Books (edition info)
@@ -186,17 +179,14 @@ async def get_publication_history(
 ```python
 # src/calibre_mcp/services/content/text_extractor.py
 
+
 class BookTextExtractor:
     """Extract and clean text from various book formats."""
-    
-    async def extract_text(
-        self,
-        book_file_path: Path,
-        format: BookFormat
-    ) -> ExtractedText:
+
+    async def extract_text(self, book_file_path: Path, format: BookFormat) -> ExtractedText:
         """
         Extract text content from book file.
-        
+
         Returns:
             ExtractedText with:
             - full_text: Complete book text
@@ -205,11 +195,8 @@ class BookTextExtractor:
             - word_count: Total word count
             - estimated_reading_time: Minutes to read
         """
-    
-    async def extract_structured_content(
-        self,
-        book_file_path: Path
-    ) -> StructuredContent:
+
+    async def extract_structured_content(self, book_file_path: Path) -> StructuredContent:
         """
         Extract structured content (chapters, sections, etc.).
         """
@@ -230,17 +217,16 @@ class BookTextExtractor:
 ```python
 # src/calibre_mcp/services/content/content_analyzer.py
 
+
 class BookContentAnalyzer:
     """Analyze book content using AI models."""
-    
+
     async def generate_summary(
-        self,
-        book_text: str,
-        summary_type: Literal["short", "detailed", "chapter_wise"] = "detailed"
+        self, book_text: str, summary_type: Literal["short", "detailed", "chapter_wise"] = "detailed"
     ) -> BookSummary:
         """
         Generate comprehensive book summary.
-        
+
         Returns:
             - plot_summary: Main story/argument
             - key_themes: List of major themes
@@ -249,16 +235,16 @@ class BookContentAnalyzer:
             - structure_analysis: Narrative structure
             - reading_level: Estimated reading level
         """
-    
+
     async def extract_quotes(
         self,
         book_text: str,
         max_quotes: int = 10,
-        quote_types: List[str] = None  # ["inspirational", "humorous", "philosophical"]
+        quote_types: List[str] = None,  # ["inspirational", "humorous", "philosophical"]
     ) -> List[Quote]:
         """
         Extract notable quotes with context.
-        
+
         Returns:
             List of Quote objects with:
             - text: Quote text
@@ -269,35 +255,28 @@ class BookContentAnalyzer:
             - tags: AI-generated tags
             - significance_score: 0.0-1.0
         """
-    
-    async def analyze_themes(
-        self,
-        book_text: str
-    ) -> ThemeAnalysis:
+
+    async def analyze_themes(self, book_text: str) -> ThemeAnalysis:
         """
         Extract and analyze themes.
-        
+
         Returns:
             - primary_themes: List of main themes
             - theme_occurrences: Where themes appear
             - theme_development: How themes evolve
             - related_books: Books with similar themes
         """
-    
-    async def extract_key_insights(
-        self,
-        book_text: str,
-        book_type: Literal["fiction", "non-fiction"]
-    ) -> KeyInsights:
+
+    async def extract_key_insights(self, book_text: str, book_type: Literal["fiction", "non-fiction"]) -> KeyInsights:
         """
         Extract key insights based on book type.
-        
+
         Fiction:
             - Plot points
             - Character arcs
             - Narrative techniques
             - Symbolism
-        
+
         Non-fiction:
             - Main arguments
             - Key evidence
@@ -332,7 +311,7 @@ async def _analyze_with_ai(
     content: str,
     model: str = "gpt-4",
     max_tokens: int = 4000,
-    temperature: float = 0.3  # Lower for factual analysis
+    temperature: float = 0.3,  # Lower for factual analysis
 ) -> Dict:
     """
     Generic AI analysis method with retry logic.
@@ -358,14 +337,10 @@ async def _analyze_with_ai(
 #### Implementation:
 
 ```python
-async def extract_quotes(
-    self,
-    book_text: str,
-    filters: QuoteFilters
-) -> List[Quote]:
+async def extract_quotes(self, book_text: str, filters: QuoteFilters) -> List[Quote]:
     """
     Multi-stage quote extraction:
-    
+
     1. Candidate extraction (potential quotes)
     2. AI scoring (significance, memorability)
     3. Deduplication (similar quotes)
@@ -380,7 +355,7 @@ async def extract_quotes(
 
 ### 3.1 Multi-Factor Recommendation Engine
 
-**Current**: Basic embedding similarity  
+**Current**: Basic embedding similarity
 **Enhanced**: Multiple recommendation strategies
 
 #### Recommendation Strategies:
@@ -407,17 +382,17 @@ async def extract_quotes(
 ```python
 class RecommendationEngine:
     """Multi-strategy book recommendation engine."""
-    
+
     async def get_recommendations(
         self,
         book_id: str,
         strategy: Literal["content", "collaborative", "hybrid"] = "hybrid",
         limit: int = 10,
-        filters: RecommendationFilters = None
+        filters: RecommendationFilters = None,
     ) -> List[BookRecommendation]:
         """
         Get recommendations using specified strategy.
-        
+
         Returns recommendations with:
             - book_id: Recommended book
             - score: Recommendation score (0.0-1.0)
@@ -425,17 +400,12 @@ class RecommendationEngine:
             - strategy_used: Which strategy contributed
             - confidence: Confidence in recommendation
         """
-    
-    async def _content_based_recommendations(
-        self,
-        book_id: str
-    ) -> List[BookRecommendation]:
+
+    async def _content_based_recommendations(self, book_id: str) -> List[BookRecommendation]:
         """Enhanced content-based recommendations."""
-    
+
     async def _collaborative_recommendations(
-        self,
-        book_id: str,
-        user_id: Optional[str] = None
+        self, book_id: str, user_id: Optional[str] = None
     ) -> List[BookRecommendation]:
         """Collaborative filtering recommendations."""
 ```
@@ -451,29 +421,26 @@ class RecommendationEngine:
 ```python
 class MetadataValidator:
     """Validate and enhance metadata quality."""
-    
-    async def validate_book_metadata(
-        self,
-        book_id: str
-    ) -> ValidationReport:
+
+    async def validate_book_metadata(self, book_id: str) -> ValidationReport:
         """
         Comprehensive metadata validation:
-        
+
         - Completeness check (required fields)
         - Accuracy check (ISBN validation, date formats)
         - Consistency check (author name variations)
         - Source verification (cross-reference with APIs)
         - Quality score (0-100)
         """
-    
+
     async def auto_fix_metadata_issues(
         self,
         book_id: str,
-        fixes: List[str] = None  # Which issues to fix
+        fixes: List[str] = None,  # Which issues to fix
     ) -> FixReport:
         """
         Automatically fix common metadata issues:
-        
+
         - Standardize author names
         - Fix date formats
         - Add missing ISBNs
@@ -491,7 +458,7 @@ async def batch_enrich_metadata(
     self,
     book_ids: List[str] = None,  # None = all books
     sources: List[str] = None,
-    dry_run: bool = False
+    dry_run: bool = False,
 ) -> BatchEnrichmentReport:
     """
     Batch metadata enrichment with:
@@ -537,35 +504,36 @@ src/calibre_mcp/services/
 ```python
 # config/ai_tools_config.py
 
+
 class AIToolsConfig:
     """Configuration for AI tools."""
-    
+
     # API Keys
     openai_api_key: str = os.getenv("OPENAI_API_KEY")
     anthropic_api_key: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
     google_books_api_key: Optional[str] = os.getenv("GOOGLE_BOOKS_API_KEY")
     isbndb_api_key: Optional[str] = os.getenv("ISBNDB_API_KEY")
-    
+
     # Model Selection
     primary_ai_model: str = "gpt-4"  # or "claude-3-opus"
     embedding_model: str = "text-embedding-3-large"
     fast_model: str = "gpt-3.5-turbo"  # For simple tasks
-    
+
     # Rate Limiting
     openlibrary_rate_limit: int = 100  # requests per second
     google_books_rate_limit: int = 1000  # requests per day
     ai_api_rate_limit: int = 50  # requests per minute
-    
+
     # Caching
     cache_enabled: bool = True
     cache_ttl: int = 86400  # 24 hours
     cache_backend: str = "memory"  # or "redis"
-    
+
     # Processing
     max_text_length: int = 1_000_000  # characters
     chunk_size: int = 100_000  # characters per chunk
     max_concurrent_requests: int = 5
-    
+
     # Quality Thresholds
     min_quote_score: float = 0.7  # Minimum quote significance
     min_recommendation_confidence: float = 0.6
@@ -608,8 +576,10 @@ async def fetch_with_retry(...):
 ```python
 # src/calibre_mcp/models/ai_enhancements.py
 
+
 class BookSummary(BaseModel):
     """Comprehensive book summary."""
+
     short_summary: str  # 1-2 sentences
     detailed_summary: str  # Full summary
     plot_summary: Optional[str]  # For fiction
@@ -622,8 +592,10 @@ class BookSummary(BaseModel):
     generated_at: datetime
     model_used: str
 
+
 class Quote(BaseModel):
     """Extracted quote with metadata."""
+
     text: str
     context: str  # Surrounding text
     chapter: Optional[str]
@@ -634,8 +606,10 @@ class Quote(BaseModel):
     quote_type: Optional[str]  # "inspirational", "humorous", etc.
     extracted_at: datetime
 
+
 class EnrichmentResult(BaseModel):
     """Result of metadata enrichment."""
+
     book_id: str
     enriched_fields: List[str]
     source_data: Dict[str, Dict]  # Data from each source
@@ -644,8 +618,10 @@ class EnrichmentResult(BaseModel):
     conflicts: List[ConflictResolution]
     enrichment_date: datetime
 
+
 class PublicationHistory(BaseModel):
     """Complete publication history."""
+
     work_id: Optional[str]
     original_publication_date: Optional[date]
     events: List[PublicationEvent]
@@ -816,7 +792,6 @@ class PublicationHistory(BaseModel):
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-01-11  
+**Document Version**: 1.0
+**Last Updated**: 2025-01-11
 **Status**: Planning - Ready for Implementation
-

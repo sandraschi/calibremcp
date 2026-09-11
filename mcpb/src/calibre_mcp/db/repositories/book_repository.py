@@ -176,9 +176,7 @@ class BookRepository(BaseRepository[Book]):
             )
             return [self._format_book(book) for book in books]
 
-    def get_books_by_author(
-        self, author_id: int, limit: int = 50, offset: int = 0
-    ) -> tuple[list[dict[str, Any]], int]:
+    def get_books_by_author(self, author_id: int, limit: int = 50, offset: int = 0) -> tuple[list[dict[str, Any]], int]:
         """
         Get books by a specific author with pagination.
 
@@ -192,12 +190,7 @@ class BookRepository(BaseRepository[Book]):
         """
         with self._db.session_scope() as session:
             # Get total count
-            total = (
-                session.query(func.count(Book.id))
-                .join(Book.authors)
-                .filter(Author.id == author_id)
-                .scalar()
-            )
+            total = session.query(func.count(Book.id)).join(Book.authors).filter(Author.id == author_id).scalar()
 
             # Get paginated results
             books = (
@@ -251,9 +244,7 @@ class BookRepository(BaseRepository[Book]):
             "series_id": book.series[0].id if book.series else None,
             "rating": book.ratings[0].rating if book.ratings else 0,
             "comment": book.comments[0].text if book.comments else None,
-            "formats": [
-                {"format": d.format, "size": d.uncompressed_size, "name": d.name} for d in book.data
-            ],
+            "formats": [{"format": d.format, "size": d.uncompressed_size, "name": d.name} for d in book.data],
             "identifiers": idents,
         }
 
@@ -326,19 +317,17 @@ class BookRepository(BaseRepository[Book]):
         stats["total_books"] = self._fetch_one("SELECT COUNT(*) as count FROM books")["count"]
 
         # Total authors
-        stats["total_authors"] = self._fetch_one(
-            "SELECT COUNT(DISTINCT author) as count FROM books_authors_link"
-        )["count"]
+        stats["total_authors"] = self._fetch_one("SELECT COUNT(DISTINCT author) as count FROM books_authors_link")[
+            "count"
+        ]
 
         # Total series
-        stats["total_series"] = self._fetch_one(
-            "SELECT COUNT(DISTINCT series) as count FROM books_series_link"
-        )["count"]
+        stats["total_series"] = self._fetch_one("SELECT COUNT(DISTINCT series) as count FROM books_series_link")[
+            "count"
+        ]
 
         # Total tags
-        stats["total_tags"] = self._fetch_one(
-            "SELECT COUNT(DISTINCT tag) as count FROM books_tags_link"
-        )["count"]
+        stats["total_tags"] = self._fetch_one("SELECT COUNT(DISTINCT tag) as count FROM books_tags_link")["count"]
 
         # Books by format
         stats["formats"] = self._fetch_all("""
@@ -408,4 +397,3 @@ class BookRepository(BaseRepository[Book]):
             "language": row.get("language"),
             "comments": row.get("comments"),
         }
-

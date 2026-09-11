@@ -111,10 +111,10 @@
 # In Calibre plugin, get current library path:
 db = self.gui.current_db
 # db.backend.library_path or:
-if hasattr(db, 'backend'):
+if hasattr(db, "backend"):
     lib_path = db.backend.library_path
 else:
-    lib_path = getattr(db, 'library_path', str(db.library_path))
+    lib_path = getattr(db, "library_path", str(db.library_path))
 ```
 
 ### User Data Dir (Match CalibreMCP)
@@ -122,6 +122,7 @@ else:
 ```python
 import os
 from pathlib import Path
+
 
 def get_mcp_user_data_dir():
     env = os.getenv("CALIBRE_MCP_USER_DATA_DIR")
@@ -132,6 +133,7 @@ def get_mcp_user_data_dir():
         return Path(appdata) / "calibre-mcp"
     home = Path.home()
     import platform
+
     if platform.system() == "Darwin":
         return home / "Library" / "Application Support" / "calibre-mcp"
     return home / ".local" / "share" / "calibre-mcp"

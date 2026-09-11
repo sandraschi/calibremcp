@@ -15,49 +15,27 @@ python -m calibre_mcp.server
 ### Step 2: Test author search (BROKEN)
 ```python
 # Using the query_books tool through Claude or direct API call
-result = await query_books(
-    operation="search",
-    author="Arthur Conan Doyle",
-    limit=20
-)
+result = await query_books(operation="search", author="Arthur Conan Doyle", limit=20)
 
 # BEFORE FIX: Result
-{
-    "success": False,
-    "total_found": 0,
-    "results": [],
-    "error": "No books found matching author filter"
-}
+{"success": False, "total_found": 0, "results": [], "error": "No books found matching author filter"}
 
 # ACTUAL BUG: Returns empty results even though library has books by Conan Doyle
 ```
 
 ### Step 3: Test series search (BROKEN)
 ```python
-result = await query_books(
-    operation="search",
-    series="Sherlock Holmes",
-    limit=20
-)
+result = await query_books(operation="search", series="Sherlock Holmes", limit=20)
 
 # BEFORE FIX: Result
-{
-    "success": False,
-    "total_found": 0,
-    "results": [],
-    "error": "Series filter not working"
-}
+{"success": False, "total_found": 0, "results": [], "error": "Series filter not working"}
 
 # Books in series exist but search returns nothing
 ```
 
 ### Step 4: Test tag search returning noise (BROKEN)
 ```python
-result = await query_books(
-    operation="search",
-    tag="mystery",
-    limit=20
-)
+result = await query_books(operation="search", tag="mystery", limit=20)
 
 # BEFORE FIX: Result might include:
 # - Books that mention "mystery" in their description
@@ -71,11 +49,7 @@ result = await query_books(
 
 ### Test 1: Author Search Now Works
 ```python
-result = await query_books(
-    operation="search",
-    author="Arthur Conan Doyle",
-    limit=20
-)
+result = await query_books(operation="search", author="Arthur Conan Doyle", limit=20)
 
 # AFTER FIX: Result
 {
@@ -88,7 +62,7 @@ result = await query_books(
             "authors": [{"id": 5, "name": "Arthur Conan Doyle"}],
             "series": {"id": 1, "name": "Sherlock Holmes"},
             "tags": [{"id": 12, "name": "mystery"}, {"id": 15, "name": "detective"}],
-            "year": 1887
+            "year": 1887,
         },
         {
             "id": 2,
@@ -96,10 +70,10 @@ result = await query_books(
             "authors": [{"id": 5, "name": "Arthur Conan Doyle"}],
             "series": {"id": 1, "name": "Sherlock Holmes"},
             "tags": [{"id": 12, "name": "mystery"}],
-            "year": 1890
-        }
+            "year": 1890,
+        },
     ],
-    "summary": "Found 2 books by Arthur Conan Doyle"
+    "summary": "Found 2 books by Arthur Conan Doyle",
 }
 
 # ✓ CORRECT: All returned books are by Arthur Conan Doyle
@@ -110,7 +84,7 @@ result = await query_books(
 result = await query_books(
     operation="search",
     author="Conan Doyle",  # Partial name
-    limit=20
+    limit=20,
 )
 
 # AFTER FIX: Result (same 2 books)
@@ -119,7 +93,7 @@ result = await query_books(
     "total_found": 2,
     "results": [
         # Same books as above
-    ]
+    ],
 }
 
 # ✓ CORRECT: Partial names work with AND logic (must contain both "Conan" AND "Doyle")
@@ -127,11 +101,7 @@ result = await query_books(
 
 ### Test 3: Series Search Now Works
 ```python
-result = await query_books(
-    operation="search",
-    series="Sherlock Holmes",
-    limit=20
-)
+result = await query_books(operation="search", series="Sherlock Holmes", limit=20)
 
 # AFTER FIX: Result
 {
@@ -149,8 +119,8 @@ result = await query_books(
             "title": "The Sign of the Four",
             "series": {"id": 1, "name": "Sherlock Holmes"},
             # ... other fields
-        }
-    ]
+        },
+    ],
 }
 
 # ✓ CORRECT: All books are in Sherlock Holmes series
@@ -158,12 +128,7 @@ result = await query_books(
 
 ### Test 4: Combined Author + Tag Search Works
 ```python
-result = await query_books(
-    operation="search",
-    author="Arthur Conan Doyle",
-    tag="mystery",
-    limit=20
-)
+result = await query_books(operation="search", author="Arthur Conan Doyle", tag="mystery", limit=20)
 
 # AFTER FIX: Result
 {
@@ -181,8 +146,8 @@ result = await query_books(
             "title": "The Sign of the Four",
             "authors": [{"id": 5, "name": "Arthur Conan Doyle"}],
             "tags": [{"id": 12, "name": "mystery"}],
-        }
-    ]
+        },
+    ],
 }
 
 # ✓ CORRECT: All results match BOTH author AND tag criteria
@@ -197,11 +162,7 @@ result = await query_books(
 # Old behavior would return this book when searching for "Arthur Conan Doyle"
 # because Conan Doyle's name appears in the description
 
-result = await query_books(
-    operation="search",
-    author="Arthur Conan Doyle",
-    limit=20
-)
+result = await query_books(operation="search", author="Arthur Conan Doyle", limit=20)
 
 # AFTER FIX: Result does NOT include the biography
 # Only returns actual books BY Arthur Conan Doyle, not books about him
@@ -214,7 +175,7 @@ result = await query_books(
 result = await query_books(
     operation="search",
     text="by Arthur Conan Doyle",  # Using text parameter with "by" keyword
-    limit=20
+    limit=20,
 )
 
 # AFTER FIX: Result
@@ -223,7 +184,7 @@ result = await query_books(
     "total_found": 2,
     "results": [
         # Same 2 books as before
-    ]
+    ],
 }
 
 # ✓ CORRECT: parse_intelligent_query extracts author name from "by" syntax

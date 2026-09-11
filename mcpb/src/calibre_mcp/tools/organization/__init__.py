@@ -7,7 +7,7 @@ Consolidates all library organization operations into a single unified interface
 - Organization plan management
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp
@@ -117,9 +117,7 @@ async def manage_organization(
                     "error": "plan parameter required for library organization",
                     "message": "Please provide an organization plan to apply to the library.",
                 }
-            return await library_organizer.organize_library(
-                library_path=library_path, plan=plan, book_ids=book_ids
-            )
+            return await library_organizer.organize_library(library_path=library_path, plan=plan, book_ids=book_ids)
 
         if operation == "organize_files":
             if not pattern or not target_dir:

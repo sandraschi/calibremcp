@@ -8,7 +8,7 @@ Consolidates all AI operations into a single unified interface:
 - LLM-powered summarization and cross-book querying
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp
@@ -134,9 +134,7 @@ async def manage_ai_operations(
 
         if operation == "get_recommendations":
             if book_id:
-                return await recommendation_engine.get_recommendations(
-                    book_id=book_id, options=recommendation_options
-                )
+                return await recommendation_engine.get_recommendations(book_id=book_id, options=recommendation_options)
             if user_preferences:
                 return await recommendation_engine.get_personalized_recommendations(
                     user_preferences=user_preferences, options=recommendation_options

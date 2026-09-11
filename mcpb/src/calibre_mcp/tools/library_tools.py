@@ -161,9 +161,7 @@ class LibraryTools(MCPTool):
         """
         return lib_service.get_library_stats(library_id=library_id)
 
-    async def handle_search(
-        self, library_id: int, query: str, limit: int = 50, offset: int = 0
-    ) -> dict[str, Any]:
+    async def handle_search(self, library_id: int, query: str, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         """
         Search within a library.
 
@@ -176,9 +174,7 @@ class LibraryTools(MCPTool):
         Returns:
             Search results with metadata
         """
-        return lib_service.search_across_library(
-            library_id=library_id, query=query, limit=limit, offset=offset
-        )
+        return lib_service.search_across_library(library_id=library_id, query=query, limit=limit, offset=offset)
 
 
 # Create an instance of the LibraryTools for MCP

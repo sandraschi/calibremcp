@@ -4,6 +4,7 @@ Database service for managing SQLAlchemy connections and sessions.
 
 import logging
 import os
+import pathlib
 from contextlib import contextmanager
 from typing import Any, TypeVar
 
@@ -68,15 +69,15 @@ class DatabaseService:
 
         # Convert path to SQLite URL if it's a file path
         try:
-            if "://" not in db_url and os.path.exists(db_url):
-                abs_path = os.path.abspath(db_url).replace("\\", "/")
+            if "://" not in db_url and pathlib.Path(db_url).exists():
+                abs_path = str(pathlib.Path(db_url).resolve()).replace("\\", "/")
                 db_url = f"sqlite:///{abs_path}"
                 self._current_db_path = abs_path
             else:
                 # Extract path from SQLite URL if it's already a URL
                 if db_url.startswith("sqlite:///"):
                     path_part = db_url.replace("sqlite:///", "").replace("/", os.sep)
-                    self._current_db_path = os.path.abspath(path_part).replace("\\", "/")
+                    self._current_db_path = str(pathlib.Path(path_part).resolve()).replace("\\", "/")
                 else:
                     # Store original URL if it's not a file path
                     self._current_db_path = db_url
@@ -103,9 +104,7 @@ class DatabaseService:
         )
 
         # Create session factory
-        self._session_factory = scoped_session(
-            sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
-        )
+        self._session_factory = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self._engine))
 
         # Initialize repositories
         self._repositories = {
@@ -119,6 +118,7 @@ class DatabaseService:
         # instead of raising OperationalError immediately.
         # Listener is scoped to THIS engine instance, not the Engine class globally.
         if "sqlite" in db_url:
+
             @event.listens_for(self._engine, "connect")
             def set_sqlite_pragma(dbapi_connection, connection_record):
                 cursor = dbapi_connection.cursor()

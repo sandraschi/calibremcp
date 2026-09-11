@@ -26,9 +26,7 @@ class BookNotFoundError(CalibreError):
     """Raised when a book is not found."""
 
     def __init__(self, book_id: str, **kwargs):
-        super().__init__(
-            f"Book with ID {book_id} not found", status_code=404, book_id=book_id, **kwargs
-        )
+        super().__init__(f"Book with ID {book_id} not found", status_code=404, book_id=book_id, **kwargs)
 
 
 class LibraryError(CalibreError):
@@ -63,9 +61,7 @@ def add_exception_handlers(app: FastAPI) -> None:
             }
         }
         logger.error(f"HTTP error: {exc}")
-        return JSONResponse(
-            status_code=exc.status_code, content=error_response, headers=exc.headers
-        )
+        return JSONResponse(status_code=exc.status_code, content=error_response, headers=exc.headers)
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -77,9 +73,7 @@ def add_exception_handlers(app: FastAPI) -> None:
             }
         }
         logger.error(f"Validation error: {exc}")
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
-        )
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response)
 
     @app.exception_handler(ValidationError)
     async def pydantic_validation_error_handler(request: Request, exc: ValidationError):
@@ -91,9 +85,7 @@ def add_exception_handlers(app: FastAPI) -> None:
             }
         }
         logger.error(f"Pydantic validation error: {exc}")
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
-        )
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response)
 
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
@@ -105,6 +97,4 @@ def add_exception_handlers(app: FastAPI) -> None:
                 "details": str(exc) if app.debug else None,
             }
         }
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_response
-        )
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_response)

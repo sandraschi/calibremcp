@@ -131,9 +131,7 @@ def chunk_books_text(
                     max_book_chars,
                 )
                 continue
-            for i, chunk_text in enumerate(
-                _split_into_chunks(raw, chunk_size=chunk_size, overlap=overlap)
-            ):
+            for i, chunk_text in enumerate(_split_into_chunks(raw, chunk_size=chunk_size, overlap=overlap)):
                 if not chunk_text.strip():
                     continue
                 yield {

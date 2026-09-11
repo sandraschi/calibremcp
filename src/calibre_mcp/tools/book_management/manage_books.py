@@ -78,13 +78,22 @@ async def manage_books(
                     related_tools=["manage_books"],
                 )
             try:
-                return await add_book_helper(
+                res = await add_book_helper(
                     file_path=file_path,
                     metadata=metadata,
                     fetch_metadata=fetch_metadata,
                     convert_to=convert_to,
                     library_path=library_path,
                 )
+                # Incremental LanceDB RAG sync
+                try:
+                    if isinstance(res, dict) and res.get("id"):
+                        from calibre_mcp.rag.metadata_rag import upsert_book_metadata
+
+                        upsert_book_metadata(res["id"], metadata_db_path=library_path)
+                except Exception as rag_err:
+                    logger.debug("Incremental RAG upsert skipped or failed: %s", rag_err)
+                return res
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -205,7 +214,7 @@ async def manage_books(
                     related_tools=["query_books", "manage_books"],
                 )
             try:
-                return await update_book_helper(
+                res = await update_book_helper(
                     book_id=book_id,
                     metadata=metadata,
                     status=status,
@@ -214,6 +223,13 @@ async def manage_books(
                     update_timestamp=update_timestamp,
                     library_path=library_path,
                 )
+                try:
+                    from calibre_mcp.rag.metadata_rag import upsert_book_metadata
+
+                    upsert_book_metadata(book_id, metadata_db_path=library_path)
+                except Exception as rag_err:
+                    logger.debug("Incremental RAG update skipped or failed: %s", rag_err)
+                return res
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -241,12 +257,19 @@ async def manage_books(
                     related_tools=["query_books", "manage_books"],
                 )
             try:
-                return await delete_book_helper(
+                res = await delete_book_helper(
                     book_id=book_id,
                     delete_files=delete_files,
                     force=force,
                     library_path=library_path,
                 )
+                try:
+                    from calibre_mcp.rag.metadata_rag import remove_book_metadata
+
+                    remove_book_metadata(book_id, metadata_db_path=library_path)
+                except Exception as rag_err:
+                    logger.debug("Incremental RAG remove skipped or failed: %s", rag_err)
+                return res
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

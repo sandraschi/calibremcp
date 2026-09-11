@@ -46,15 +46,12 @@ class RequestLoggingMiddleware:
             if hasattr(response, "status_code"):
                 status_code = response.status_code
 
-            logger.info(
-                f"{request.method} {request.url.path} {status_code} {formatted_process_time}ms"
-            )
+            logger.info(f"{request.method} {request.url.path} {status_code} {formatted_process_time}ms")
 
     async def _log_request(self, request: Request) -> None:
         """Log the incoming request."""
         logger.info(
-            f"{request.method} {request.url.path} - "
-            f"Client: {request.client.host if request.client else 'unknown'}"
+            f"{request.method} {request.url.path} - Client: {request.client.host if request.client else 'unknown'}"
         )
 
         # Log query parameters if present

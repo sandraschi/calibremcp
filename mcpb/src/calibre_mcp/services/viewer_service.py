@@ -7,7 +7,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..logging_config import get_logger
 from ..viewers import get_viewer
+
+logger = get_logger("calibremcp.services.viewer")
 
 
 class ViewerState(BaseModel):
@@ -17,17 +20,11 @@ class ViewerState(BaseModel):
     total_pages: int = Field(0, ge=0, description="Total number of pages")
     reading_direction: str = Field("ltr", description="Reading direction (ltr, rtl, vertical)")
     page_layout: str = Field("single", description="Page layout mode (single, double, auto)")
-    zoom_mode: str = Field(
-        "fit-width", description="Zoom mode (fit-width, fit-height, fit-both, original, custom)"
-    )
+    zoom_mode: str = Field("fit-width", description="Zoom mode (fit-width, fit-height, fit-both, original, custom)")
     zoom_level: float = Field(1.0, ge=0.1, le=5.0, description="Zoom level (1.0 = 100%)")
-    scroll_position: tuple[float, float] = Field(
-        (0, 0), description="Current scroll position (x, y)"
-    )
+    scroll_position: tuple[float, float] = Field((0, 0), description="Current scroll position (x, y)")
     bookmarks: list[dict[str, Any]] = Field(default_factory=list, description="List of bookmarks")
-    reading_progress: float = Field(
-        0.0, ge=0.0, le=100.0, description="Reading progress percentage"
-    )
+    reading_progress: float = Field(0.0, ge=0.0, le=100.0, description="Reading progress percentage")
     show_controls: bool = Field(True, description="Whether to show controls")
     show_thumbnails: bool = Field(True, description="Whether to show thumbnails")
     show_page_numbers: bool = Field(True, description="Whether to show page numbers")
@@ -148,7 +145,7 @@ class ViewerService:
                 first_page = viewer.render_page(0)
                 page_count = first_page.get("total_pages", 0)
             except Exception:
-                pass
+                logger.debug("Failed to get page count from rendering")
 
         # Update state with page count
         if book_id in self._states:
@@ -192,7 +189,7 @@ class ViewerService:
                 metadata = self.get_metadata(book_id, file_path)
                 state.total_pages = metadata.page_count
             except Exception:
-                pass
+                logger.debug("Failed to update total_pages from metadata")
 
         return state
 

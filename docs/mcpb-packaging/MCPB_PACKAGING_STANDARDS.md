@@ -1,8 +1,8 @@
 # MCPB Packaging Standards
 
-**Version:** 1.0  
-**Date:** 2025-10-24  
-**Status:** Official Standard  
+**Version:** 1.0
+**Date:** 2025-10-24
+**Status:** Official Standard
 **Applies to:** All MCP projects using MCPB packaging
 
 ---
@@ -253,25 +253,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-          
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           npm install -g @anthropic-ai/mcpb
-          
+
       - name: Run tests
         run: |
           pytest tests/
-          
+
       - name: Build MCPB package
         run: |
           mcpb pack . dist/package-name-v${{ github.ref_name }}.mcpb
-          
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -425,6 +425,6 @@ MIT License
 
 ---
 
-*Document created: October 24, 2025*  
-*Status: Official Standard*  
+*Document created: October 24, 2025*
+*Status: Official Standard*
 *Next Review: As needed for standards updates*

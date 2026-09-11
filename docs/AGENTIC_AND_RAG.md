@@ -60,7 +60,7 @@ When the server runs with **`--http`**, optional endpoints include semantic sear
 
 ## See also
 
-- [PROMPTS.md](./PROMPTS.md) — MCP prompt names × tools  
-- [COOKBOOK.md](./COOKBOOK.md) — recipes (lane picker, chains)  
-- [CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](./CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md) — `calibre-debug` JSON export, LanceDB alignment, implementation phases  
+- [PROMPTS.md](./PROMPTS.md) — MCP prompt names × tools
+- [COOKBOOK.md](./COOKBOOK.md) — recipes (lane picker, chains)
+- [CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md](./CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md) — `calibre-debug` JSON export, LanceDB alignment, implementation phases
 - Bundled skill: `skill://calibre-expert/SKILL.md`

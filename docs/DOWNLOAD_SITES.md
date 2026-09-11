@@ -4,7 +4,7 @@ CalibreMCP provides a unified **Import Hub** for acquiring books from three prim
 
 ## 1. Anna's Archive (Shadow Library)
 
-Anna's Archive acts as a metadata aggregator for shadow libraries. 
+Anna's Archive acts as a metadata aggregator for shadow libraries.
 
 ### Mirror Configuration
 By default, the server attempts to find the best mirror. You can override this using the `ANNAS_MIRRORS` environment variable:

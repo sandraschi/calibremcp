@@ -185,11 +185,9 @@ For complete documentation, see:
 
 ---
 
-*Quick Install Template*  
-*Copy to any repo for instant Serena setup*  
-*Time: 5 minutes*  
+*Quick Install Template*
+*Copy to any repo for instant Serena setup*
+*Time: 5 minutes*
 *Token savings: Up to 70%*
 
 **Happy coding with semantic understanding!** 🧠✨
-
-

@@ -347,5 +347,3 @@ read_only: true
 **Now go test it! Ask Cursor to find a function and watch the magic happen!** ✨
 
 **Dashboard**: http://localhost:24282 🎨
-
-

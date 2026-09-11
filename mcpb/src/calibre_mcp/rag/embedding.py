@@ -28,6 +28,7 @@ def _get_fastembed(model: str, cache_dir: str | None = None) -> Any:
         logger.info("[rag] FastEmbed device: %s", device)
     return _FASTEMBED_CACHE[key]
 
+
 OLLAMA_EMBED_DEFAULT = "http://127.0.0.1:11434"
 OLLAMA_EMBED_MODEL = "nomic-embed-text"
 
@@ -56,13 +57,11 @@ def _embed_via_ollama(texts: list[str], base_url: str, model: str) -> list[list[
     return out
 
 
-def _embed_via_fastembed(
-    texts: list[str], model: str, cache_dir: str | None = None
-) -> list[list[float]]:
-    try:
-        from fastembed import TextEmbedding
-    except ImportError:
-        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]") from None
+def _embed_via_fastembed(texts: list[str], model: str, cache_dir: str | None = None) -> list[list[float]]:
+    import importlib.util
+
+    if importlib.util.find_spec("fastembed") is None:
+        raise ImportError("Install RAG extras: pip install calibre-mcp[rag]")
     embedder = _get_fastembed(model, cache_dir)
     embeddings = list(embedder.embed(texts))
     return [list(e) for e in embeddings]
@@ -87,6 +86,4 @@ def embed_texts(
             return _embed_via_ollama(texts, ollama_base_url, ollama_model)
         except Exception as e:
             logger.info("Ollama embed unavailable (%s), falling back to FastEmbed", e)
-    return _embed_via_fastembed(
-        texts, fastembed_model, cache_dir=str(cache_dir) if cache_dir else None
-    )
+    return _embed_via_fastembed(texts, fastembed_model, cache_dir=str(cache_dir) if cache_dir else None)

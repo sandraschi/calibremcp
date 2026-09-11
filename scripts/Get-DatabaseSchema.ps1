@@ -20,37 +20,37 @@ $output += ""
 # Process each table
 foreach ($table in $tables -split '\s+') {
     if ([string]::IsNullOrWhiteSpace($table)) { continue }
-    
+
     $output += "## Table: $table"
     $output += ""
-    
+
     # Get table schema
     $schema = & sqlite3 $dbPath ".schema $table"
     $output += "```sql"
     $output += $schema
     $output += "```"
     $output += ""
-    
+
     # Get row count
     $count = & sqlite3 $dbPath "SELECT COUNT(*) FROM $table"
     $output += "**Row Count:** $count"
     $output += ""
-    
+
     # Get column info
     $columns = & sqlite3 -header -csv $dbPath "PRAGMA table_info($table)" | ConvertFrom-Csv
     $output += "### Columns"
     $output += "| Name | Type | Not Null | Default | PK |"
     $output += "|------|------|----------|---------|----|"
     foreach ($col in $columns) {
-        $output += ("| {0} | {1} | {2} | {3} | {4} |" -f 
-            $col.name, 
-            $col.type, 
-            $col.notnull, 
-            $col.dflt_value, 
+        $output += ("| {0} | {1} | {2} | {3} | {4} |" -f
+            $col.name,
+            $col.type,
+            $col.notnull,
+            $col.dflt_value,
             $col.pk)
     }
     $output += ""
-    
+
     # Get foreign keys
     $fks = & sqlite3 -header -csv $dbPath "PRAGMA foreign_key_list($table)" | ConvertFrom-Csv -ErrorAction SilentlyContinue
     if ($fks) {
@@ -58,16 +58,16 @@ foreach ($table in $tables -split '\s+') {
         $output += "| From | To Table | To Column | On Update | On Delete |"
         $output += "|------|----------|-----------|-----------|-----------|"
         foreach ($fk in $fks) {
-            $output += ("| {0} | {1} | {2} | {3} | {4} |" -f 
-                $fk.from, 
-                $fk.table, 
-                $fk.to, 
-                $fk.on_update, 
+            $output += ("| {0} | {1} | {2} | {3} | {4} |" -f
+                $fk.from,
+                $fk.table,
+                $fk.to,
+                $fk.on_update,
                 $key.on_delete)
         }
         $output += ""
     }
-    
+
     # Get sample data (first 2 rows)
     $sample = & sqlite3 -header -csv $dbPath "SELECT * FROM $table LIMIT 2" | ConvertFrom-Csv -ErrorAction SilentlyContinue
     if ($sample) {
@@ -77,7 +77,7 @@ foreach ($table in $tables -split '\s+') {
         $output += "```"
         $output += ""
     }
-    
+
     $output += "---"
     $output += ""
 }

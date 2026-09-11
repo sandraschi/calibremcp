@@ -21,7 +21,7 @@ foreach ($f in $filesNeedingPathlib) {
 $pers = "$src\calibre_mcp\storage\persistence.py"
 $c = Get-Content $pers -Raw
 
-# Replace try/except/pass with the 4-space-indented suppressions 
+# Replace try/except/pass with the 4-space-indented suppressions
 $c = $c -replace '(?m)^        try:\n            await self\._storage\.set\(([^)]+)\)\n        except Exception:\n            pass  # Graceful degradation', '        with contextlib.suppress(Exception):`n            await self._storage.set($1)'
 $c = $c -replace '(?m)^        try:\n            await self\._storage\.delete\(([^)]+)\)\n        except Exception:\n            pass  # Graceful degradation', '        with contextlib.suppress(Exception):`n            await self._storage.delete($1)'
 Set-Content $pers -Value $c -NoNewline

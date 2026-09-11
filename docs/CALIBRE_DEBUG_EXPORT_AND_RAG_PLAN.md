@@ -74,6 +74,6 @@ Use when you want Calibre’s **`new_api`** (same fields as the GUI), automation
 
 ## See also
 
-- [AGENTIC_AND_RAG.md](./AGENTIC_AND_RAG.md) — FTS vs RAG, `lancedb_*` layout  
-- [CONTENT_SERVER.md](./CONTENT_SERVER.md) — when HTTP API is enough vs direct DB  
+- [AGENTIC_AND_RAG.md](./AGENTIC_AND_RAG.md) — FTS vs RAG, `lancedb_*` layout
+- [CONTENT_SERVER.md](./CONTENT_SERVER.md) — when HTTP API is enough vs direct DB
 - **Fleet mirror:** `mcp-central-docs/projects/calibre-mcp/CALIBRE_DEBUG_EXPORT_AND_RAG_PLAN.md`

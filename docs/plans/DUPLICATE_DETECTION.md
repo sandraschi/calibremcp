@@ -147,6 +147,7 @@ def find_duplicate_clusters(library_path: Path) -> list[DupeCluster]:
 def _normalise_title(title: str) -> str:
     """Canonical form for matching."""
 
+
 def _classify_cluster(books: list[Book]) -> ClusterType:
     """Determine cluster type based on member differences."""
 ```
@@ -154,14 +155,14 @@ def _classify_cluster(books: list[Book]) -> ClusterType:
 ### Step 2 — Resolution actions
 
 ```python
-def merge_cluster(cluster_id: int, keep_book_id: int,
-                   field_choices: dict[str, int]) -> MergeResult:
+def merge_cluster(cluster_id: int, keep_book_id: int, field_choices: dict[str, int]) -> MergeResult:
     """Merge cluster: keep one book, apply chosen metadata from others,
     optionally delete the rest."""
 
-def delete_extras(cluster_id: int, keep_book_id: int,
-                   delete_files: bool = False) -> DeleteResult:
+
+def delete_extras(cluster_id: int, keep_book_id: int, delete_files: bool = False) -> DeleteResult:
     """Delete all non-kept members of cluster."""
+
 
 def mark_kept_all(cluster_id: int) -> None:
     """Mark cluster as resolved with no action."""

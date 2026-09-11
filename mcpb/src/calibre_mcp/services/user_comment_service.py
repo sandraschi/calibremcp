@@ -63,9 +63,7 @@ class UserCommentService:
                     "id": existing.id,
                     "book_id": book_id,
                     "library_path": lib_path,
-                    "comment_text": comment_text[:200] + "..."
-                    if len(comment_text) > 200
-                    else comment_text,
+                    "comment_text": comment_text[:200] + "..." if len(comment_text) > 200 else comment_text,
                     "updated": True,
                 }
             uc = UserComment(
@@ -80,9 +78,7 @@ class UserCommentService:
                 "id": uc.id,
                 "book_id": book_id,
                 "library_path": lib_path,
-                "comment_text": comment_text[:200] + "..."
-                if len(comment_text) > 200
-                else comment_text,
+                "comment_text": comment_text[:200] + "..." if len(comment_text) > 200 else comment_text,
                 "created": True,
             }
 

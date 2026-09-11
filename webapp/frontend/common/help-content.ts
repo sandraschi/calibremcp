@@ -1,9 +1,9 @@
 /** Structured help content for Calibre, Calibre MCP, and Webapp. */
 
 export const HELP_SECTIONS = {
-	calibre: {
-		title: "About Calibre",
-		content: `
+  calibre: {
+    title: 'About Calibre',
+    content: `
 ## What is Calibre?
 
 Calibre is a free, open-source e-book library management application by Kovid Goyal. It organizes, converts, syncs, and manages e-books across devices and formats. Used by millions for personal and institutional libraries.
@@ -38,10 +38,10 @@ Calibre is a free, open-source e-book library management application by Kovid Go
 - **Custom columns** - Extend metadata (dates, text, yes/no, etc.)
 - **Virtual libraries** - Saved searches as filtered views
 `,
-	},
-	calibreMcp: {
-		title: "Calibre MCP Server",
-		content: `
+  },
+  calibreMcp: {
+    title: 'Calibre MCP Server',
+    content: `
 ## Overview
 
 CalibreMCP is a Model Context Protocol (MCP) server that connects AI assistants (Claude, Cursor, etc.) to your Calibre library. Built on FastMCP 3.2.
@@ -103,10 +103,10 @@ Install: \`calibre-customize -b calibre_plugin\` or use the pre-built ZIP.
 - **MCPB**: drag calibre-mcp.mcpb into Claude Desktop
 - **Editable**: \`uv sync && uv run python -m calibre_mcp --stdio\`
 `,
-	},
-	webapp: {
-		title: "Webapp",
-		content: `
+  },
+  webapp: {
+    title: 'Webapp',
+    content: `
 ## Overview
 
 Browser UI for CalibreMCP. Backend (FastAPI, port 10720) + Frontend (Next.js, port 10721).
@@ -116,26 +116,32 @@ Start from repo root: \`webapp\\start.ps1\`
 
 ## Navigation
 
-- **Overview** — Dashboard with library stats
+- **Overview** — Dashboard with library stats, AI status, and direct Calibre Content Server (:8099) launch
 - **Libraries** — List, switch active, view stats
-- **Books** — Browse with cover thumbnails
+- **Books** — Browse with cover thumbnails and one-click Web Reader access
 - **Search** — Filter by author, tag, text, rating; "Search inside book content" for FTS
-- **Semantic Search** — RAG search over your library (see below)
+- **Semantic Search** — RAG search over your library with hybrid BM25 + LanceDB rank fusion
+- **Library Health** — Database integrity audits (PRAGMA integrity_check), missing files/covers detection, and repair advice
+- **Duplicates** — Group duplicate book candidates by title similarity, author match, and ISBN collisions
+- **Reading & Priorities** — Smart reading priority queue (weighted by ratings and series continuity) + reading analytics
+- **Collections** — Virtual shelves browser with 1-click presets ("5-Star Masterpieces", "Unread Sci-Fi", etc.) and custom rule builder
 - **Authors / Series / Tags / Publishers** — Browse and filter
 - **Series Analysis** — Reading order and completion for any series
 - **Import** — Add books from file path, arXiv ID, or Gutenberg
 - **Export** — CSV or JSON export with filters
 - **Chat** — AI chatbot (Ollama / LM Studio / OpenAI-compatible)
 - **Logs** — Live log tail with level filter
-- **Settings** — Mirror URLs, LLM provider
+- **Settings** — Mirror URLs, Content Server URL, LLM provider
 - **Help** — This page
 
-## Semantic Search (RAG)
+## Semantic Search & Hybrid RAG
 
 Four modes accessible from the Semantic Search page:
 
-**Metadata search** — semantic search over title, authors, tags, comments using LanceDB.
-Build the metadata index once (fast, seconds). e.g. "orbital megastructures with melancholy tone".
+**Hybrid search** — Reciprocal Rank Fusion (RRF with k=60) combining lexical BM25 matches from Calibre's FTS5 database (\`full-text-search.db\`) with semantic vectors from LanceDB. Returns unified fused scores.
+
+**Metadata search** — semantic search over title, authors, tags, comments using LanceDB with fastembed.
+Build the metadata index once (fast, seconds), updated incrementally when books are added, updated, or deleted. e.g. "orbital megastructures with melancholy tone".
 
 **Passage retrieval** — semantic search over full book text.
 Build the content index first (slow — minutes for large libraries).
@@ -151,7 +157,7 @@ Synthesises via LLM into a structured report: Overview, Author Context, Plot,
 Critical Reception, Themes & Tropes, Adaptations, Related Works, Your Library.
 Takes 10–30 seconds. Requires Claude Desktop or Cursor (LLM sampling).
 
-Indexes are per-library; rebuild after adding many books.
+Indexes are per-library; books update incrementally automatically on CRUD operations.
 
 ## Series Analysis
 
@@ -160,15 +166,18 @@ Series → Series Analysis (or sidebar). Enter a series name to get:
 - Reading order list with Owned / Missing badges
 - Direct links to owned books
 
-## Book Modal
+## Book Modal & In-Browser Reading
 
 Click any book card: cover, full metadata, tags, description.
-**Read** opens in system default app.
+- **Read book (Desktop)**: Opens the book in the local Calibre desktop reader.
+- **Read Here**: Launches the embedded Calibre Content Server web reader (\`viewer.js\`) inside an in-app overlay window without leaving CalibreMCP.
+- **New Tab**: Opens the book in a standalone browser tab on Calibre Content Server (\`http://goliath:8099/\`).
+- **Download metadata (online)**: Uses Calibre command-line tools on PATH to download fresh metadata and high-res covers.
 
 ## Environment
 
-Backend (\`webapp/backend/.env\`): CALIBRE_LIBRARY_PATH, LLM_PROVIDER, LLM_BASE_URL
-Frontend (\`webapp/frontend/.env.local\`): NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL
+Backend (\`webapp/backend/.env\`): CALIBRE_LIBRARY_PATH, LLM_PROVIDER, LLM_BASE_URL, CALIBRE_SERVER_URL
+Frontend (\`webapp/frontend/.env.local\`): NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL, NEXT_PUBLIC_CALIBRE_CONTENT_SERVER_URL
 `,
-	},
+  },
 } as const;

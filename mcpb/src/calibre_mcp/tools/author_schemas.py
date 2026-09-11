@@ -59,9 +59,7 @@ class AuthorStatsResult(BaseModel):
     authors_by_letter: list[LetterCount] = Field(
         description="Histogram: how many authors start with each letter A–Z (and other buckets)"
     )
-    top_authors: list[TopAuthor] = Field(
-        description="Up to 10 authors ranked by number of linked books"
-    )
+    top_authors: list[TopAuthor] = Field(description="Up to 10 authors ranked by number of linked books")
 
 
 class AuthorByLetterResult(BaseModel):
@@ -79,9 +77,7 @@ class StandardToolError(BaseModel):
     error: str = Field(description="Human-readable failure message")
     error_code: str = Field(description="Stable machine code, e.g. MISSING_AUTHOR_ID")
     error_type: str = Field(description="Exception class name or category")
-    operation: str | None = Field(
-        default=None, description="Portmanteau sub-operation if applicable"
-    )
+    operation: str | None = Field(default=None, description="Portmanteau sub-operation if applicable")
     parameters: dict[str, Any] | None = None
     suggestions: list[str] = Field(default_factory=list)
     related_tools: list[str] = Field(default_factory=list)
@@ -113,12 +109,8 @@ class ManageAuthorsMCPOutput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     # --- list / get_books (pagination) ---
-    items: list[dict[str, Any]] | None = Field(
-        default=None, description="operation=list: authors for this page"
-    )
-    total: int | None = Field(
-        default=None, description="list or get_books: total row count for the query"
-    )
+    items: list[dict[str, Any]] | None = Field(default=None, description="operation=list: authors for this page")
+    total: int | None = Field(default=None, description="list or get_books: total row count for the query")
     page: int | None = Field(default=None, description="1-based page index")
     per_page: int | None = Field(default=None, description="Page size (limit)")
     total_pages: int | None = Field(default=None, description="Total pages at current limit")
@@ -131,12 +123,8 @@ class ManageAuthorsMCPOutput(BaseModel):
     book_count: int | None = Field(default=None, description="operation=get: linked books")
 
     # --- get_books ---
-    author: dict[str, Any] | None = Field(
-        default=None, description="operation=get_books: author metadata"
-    )
-    books: list[dict[str, Any]] | None = Field(
-        default=None, description="operation=get_books: book rows for this page"
-    )
+    author: dict[str, Any] | None = Field(default=None, description="operation=get_books: author metadata")
+    books: list[dict[str, Any]] | None = Field(default=None, description="operation=get_books: book rows for this page")
 
     # --- stats ---
     total_authors: int | None = Field(default=None, description="operation=stats: author count")
@@ -148,22 +136,16 @@ class ManageAuthorsMCPOutput(BaseModel):
     )
 
     # --- by_letter ---
-    authors: list[dict[str, Any]] | None = Field(
-        default=None, description="operation=by_letter: matching authors"
-    )
+    authors: list[dict[str, Any]] | None = Field(default=None, description="operation=by_letter: matching authors")
     letter: str | None = Field(default=None, description="operation=by_letter: first letter")
     count: int | None = Field(default=None, description="operation=by_letter: len(authors)")
 
     # --- StandardToolError / handle_tool_error ---
-    success: bool | None = Field(
-        default=None, description="False on structured errors; may be absent on success"
-    )
+    success: bool | None = Field(default=None, description="False on structured errors; may be absent on success")
     error: str | None = Field(default=None, description="Error message when success is false")
     error_code: str | None = Field(default=None, description="Machine-readable error code")
     error_type: str | None = Field(default=None, description="Exception or category name")
-    operation: str | None = Field(
-        default=None, description="Sub-operation when returned by error helper"
-    )
+    operation: str | None = Field(default=None, description="Sub-operation when returned by error helper")
     parameters: dict[str, Any] | None = Field(default=None, description="Echo of bad inputs")
     suggestions: list[str] | None = Field(default=None, description="Recovery hints")
     related_tools: list[str] | None = Field(default=None, description="Suggested follow-up tools")

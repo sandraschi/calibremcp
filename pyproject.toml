@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "calibremcp"
-version = "1.8.6"
+version = "1.9.0"
 description = "Conversational Calibre e-book library management: search, metadata, tags, conversion, RAG"
 readme = "README.md"
 requires-python = ">=3.12"

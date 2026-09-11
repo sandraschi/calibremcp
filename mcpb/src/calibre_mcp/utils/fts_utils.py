@@ -95,7 +95,9 @@ def _sanitize_fts_table(fts_table: str) -> str:
     return "books_fts"
 
 
-_FTS_COUNT_SQL = """SELECT COUNT(DISTINCT books_text.book) FROM books_text JOIN {t} ON books_text.id = {t}.rowid WHERE {t} MATCH ?"""
+_FTS_COUNT_SQL = (
+    """SELECT COUNT(DISTINCT books_text.book) FROM books_text JOIN {t} ON books_text.id = {t}.rowid WHERE {t} MATCH ?"""
+)
 
 _FTS_SEL_SNIPPET = "books_text.book, snippet({t}, 0, '<mark>', '</mark>', '...', ?) AS snippet_text"
 _FTS_SEL_PLAIN = "books_text.book"
@@ -145,9 +147,7 @@ def _query_via_fts(
 
     sel = _build_sel_query(tbl, include_snippets)
     q = _build_full_query(tbl, sel)
-    args = (
-        (snippet_size, fts_query, limit, offset) if include_snippets else (fts_query, limit, offset)
-    )
+    args = (snippet_size, fts_query, limit, offset) if include_snippets else (fts_query, limit, offset)
     cursor.execute(q, args)
     rows = cursor.fetchall()
 

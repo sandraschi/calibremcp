@@ -1,3 +1,5 @@
+reports/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -271,3 +273,10 @@ _dashboard/
 # Runtime logs
 *.log
 logs/
+
+# Build caches & temp artifacts
+*.bak-*
+.qualitycheck-timestamp
+*.tsbuildinfo
+test-results/
+.vite/

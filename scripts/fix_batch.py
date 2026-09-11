@@ -68,7 +68,7 @@ def fix_a002_file(name, old, new):
                 line = re.sub(r'\b'"${old}"'\b', new, line)
             new_lines.append(line)
         return "\n".join(new_lines)
-    
+
     content = p.read_text(encoding="utf-8")
     new_content = _fix(content)
     if new_content != content:
@@ -173,7 +173,7 @@ def fix_b007():
     content = re.sub(r'for lib_name, lib_info in libraries\.items\(\):', 'for _lib_name, lib_info in libraries.items():', content)
     p.write_text(content, encoding="utf-8")
     print("  Fixed B007: config.py")
-    
+
     p = SRC / "calibre_mcp/tools/library_operations/extended_library_ops.py"
     content = p.read_text(encoding="utf-8")
     content = re.sub(r'for key, book_group in groups\.items\(\):', 'for _key, book_group in groups.items():', content)
@@ -206,7 +206,7 @@ def fix_up035():
     content = re.sub(r'from typing import List, Optional, Union', 'from typing import Union', content)
     p.write_text(content, encoding="utf-8")
     print("  Fixed UP035: storage/__init__.py")
-    
+
     p = SRC / "calibre_mcp/server_full.py"
     content = p.read_text(encoding="utf-8")
     content = re.sub(r'from typing import Any, AsyncContextManager', 'from typing import Any\nfrom contextlib import AbstractAsyncContextManager as AsyncContextManager', content)

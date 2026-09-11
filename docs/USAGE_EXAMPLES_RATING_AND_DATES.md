@@ -21,15 +21,15 @@ month_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 today = datetime.now().strftime("%Y-%m-%d")
 
 results = search_books(
-    rating=5,                    # Exactly 5 stars
-    added_after=month_ago,       # Added after 30 days ago
-    added_before=today,          # Added before today (inclusive)
-    format_table=True            # Pretty table output with descriptions
+    rating=5,  # Exactly 5 stars
+    added_after=month_ago,  # Added after 30 days ago
+    added_before=today,  # Added before today (inclusive)
+    format_table=True,  # Pretty table output with descriptions
 )
 
 print(f"Found {results['total']} five-star books added in the last month")
-if results.get('table'):
-    print(results['table'])
+if results.get("table"):
+    print(results["table"])
 ```
 
 ## Query: "Want a detective story with minimum 4 stars, locked room mystery"
@@ -39,32 +39,32 @@ This combines multiple filters - tag/genre, rating, and text search:
 ```python
 # Option 1: Search by tag and rating (recommended)
 results = search_books(
-    tag="detective",             # Detective stories
-    min_rating=4,                # Minimum 4 stars (4 or 5 stars)
-    text="locked room",          # Contains "locked room" in content/metadata
-    format_table=True
+    tag="detective",  # Detective stories
+    min_rating=4,  # Minimum 4 stars (4 or 5 stars)
+    text="locked room",  # Contains "locked room" in content/metadata
+    format_table=True,
 )
 
 # Option 2: Search by multiple tags
 results = search_books(
     tags=["detective", "mystery"],  # Books with either tag
-    min_rating=4,                   # Minimum 4 stars
-    text="locked room",             # Contains "locked room"
-    format_table=True
+    min_rating=4,  # Minimum 4 stars
+    text="locked room",  # Contains "locked room"
+    format_table=True,
 )
 
 # Option 3: More specific tag search
 results = search_books(
-    tag="locked room mystery",   # If you have this as a specific tag
+    tag="locked room mystery",  # If you have this as a specific tag
     min_rating=4,
-    format_table=True
+    format_table=True,
 )
 
 # Option 4: Text search across all fields
 results = search_books(
     text="detective locked room mystery",  # Searches title, author, tags, comments
     min_rating=4,
-    format_table=True
+    format_table=True,
 )
 ```
 
@@ -76,27 +76,24 @@ results = search_books(
 
 ```python
 from datetime import datetime, timedelta
+
 week_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
 today = datetime.now().strftime("%Y-%m-%d")
 
-results = search_books(
-    rating=5,
-    added_after=week_ago,
-    added_before=today,
-    format_table=True
-)
+results = search_books(rating=5, added_after=week_ago, added_before=today, format_table=True)
 ```
 
 ### Highly Rated Books (4-5 Stars) Added Recently
 
 ```python
 from datetime import datetime, timedelta
+
 month_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
 results = search_books(
-    min_rating=4,        # 4 or 5 stars
+    min_rating=4,  # 4 or 5 stars
     added_after=month_ago,
-    format_table=True
+    format_table=True,
 )
 ```
 
@@ -104,64 +101,38 @@ results = search_books(
 
 ```python
 # Find books rated 3-4 stars
-results = search_books(
-    min_rating=3,
-    max_rating=4,
-    format_table=True
-)
+results = search_books(min_rating=3, max_rating=4, format_table=True)
 ```
 
 ### Books Published in a Specific Year
 
 ```python
 # Books published in 2023
-results = search_books(
-    pubdate_start="2023-01-01",
-    pubdate_end="2023-12-31",
-    format_table=True
-)
+results = search_books(pubdate_start="2023-01-01", pubdate_end="2023-12-31", format_table=True)
 ```
 
 ### Books Added Between Two Dates
 
 ```python
 # Books added in January 2024
-results = search_books(
-    added_after="2024-01-01",
-    added_before="2024-01-31",
-    format_table=True
-)
+results = search_books(added_after="2024-01-01", added_before="2024-01-31", format_table=True)
 ```
 
 ### Combine Multiple Filters
 
 ```python
 from datetime import datetime, timedelta
+
 month_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
 # Highly rated mystery books added recently
-results = search_books(
-    min_rating=4,
-    tag="mystery",
-    added_after=month_ago,
-    format_table=True
-)
+results = search_books(min_rating=4, tag="mystery", added_after=month_ago, format_table=True)
 
 # 5-star books by specific author added this year
-results = search_books(
-    rating=5,
-    author="Haruki Murakami",
-    added_after="2024-01-01",
-    format_table=True
-)
+results = search_books(rating=5, author="Haruki Murakami", added_after="2024-01-01", format_table=True)
 
 # Quality detective novels (4+ stars) published in the last 5 years
-results = search_books(
-    min_rating=4,
-    tag="detective",
-    pubdate_start="2019-01-01",
-    format_table=True
-)
+results = search_books(min_rating=4, tag="detective", pubdate_start="2019-01-01", format_table=True)
 ```
 
 ## Library Switching
@@ -172,7 +143,7 @@ Always switch libraries before searching if you need a specific library:
 # List available libraries
 libraries = list_libraries()
 print("Available libraries:")
-for lib in libraries.get('libraries', []):
+for lib in libraries.get("libraries", []):
     print(f"  - {lib['name']}: {lib.get('book_count', 0)} books")
 
 # Switch to specific library
@@ -240,22 +211,14 @@ search_books(tag="detective", min_rating=4, format_table=True)
 ### "What's the best sci-fi book I added last month?"
 ```python
 from datetime import datetime, timedelta
+
 month_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-search_books(
-    tag="science fiction",
-    rating=5,
-    added_after=month_ago,
-    format_table=True
-)
+search_books(tag="science fiction", rating=5, added_after=month_ago, format_table=True)
 ```
 
 ### "Show me quality historical fiction from 2023"
 ```python
 search_books(
-    tag="historical fiction",
-    min_rating=4,
-    pubdate_start="2023-01-01",
-    pubdate_end="2023-12-31",
-    format_table=True
+    tag="historical fiction", min_rating=4, pubdate_start="2023-01-01", pubdate_end="2023-12-31", format_table=True
 )
 ```

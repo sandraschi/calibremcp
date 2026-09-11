@@ -130,4 +130,10 @@ build-native-debug:
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
 
-# Bootstrap: install dev deps + pre-commit hook
+# Triple-play release (mcpb + NSIS + GitHub upload)
+release:
+    pwsh -NoProfile -File scripts/release.ps1
+
+# Dry-run the release pipeline
+release-dry:
+    pwsh -NoProfile -File scripts/release.ps1 -DryRun

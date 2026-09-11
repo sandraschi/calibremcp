@@ -30,9 +30,7 @@ def build_export_records(*, strip_html: bool = True) -> list[dict[str, Any]]:
     db_svc = get_database()
     current = db_svc.get_current_path()
     if not current:
-        raise RuntimeError(
-            "Database not initialized. Use manage_libraries(operation='switch') first."
-        )
+        raise RuntimeError("Database not initialized. Use manage_libraries(operation='switch') first.")
 
     session = db_svc.session
     records: list[dict[str, Any]] = []
@@ -75,9 +73,7 @@ def build_export_records(*, strip_html: bool = True) -> list[dict[str, Any]]:
                     "authors": authors,
                     "tags": tags,
                     "series": series_name,
-                    "series_index": float(book.series_index)
-                    if book.series_index is not None
-                    else None,
+                    "series_index": float(book.series_index) if book.series_index is not None else None,
                     "publisher": publisher,
                     "comments": comments_out,
                     "formats": formats,

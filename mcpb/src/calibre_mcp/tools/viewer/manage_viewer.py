@@ -4,19 +4,17 @@ Viewer management portmanteau tool for CalibreMCP.
 Consolidates all book viewer operations into a single unified interface.
 """
 
-import os
 import platform
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
 from ...logging_config import get_logger
 from ...server import mcp
 from ...services.viewer_service import viewer_service
+from ...utils.subprocess_utils import _open_file
 from ..shared.error_handling import format_error_response, handle_tool_error
 
-_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+_NO_WINDOW = 0
 
 logger = get_logger("calibremcp.tools.viewer")
 
@@ -111,7 +109,7 @@ async def manage_viewer(
                     )
 
                 # Randomly select a book
-                selected_book = random.choice(books)
+                selected_book = random.SystemRandom().choice(books)
                 selected_book_id = selected_book["id"]
                 selected_title = selected_book.get("title", "Unknown")
                 authors_list = selected_book.get("authors", [])
@@ -124,10 +122,7 @@ async def manage_viewer(
                 db = get_database()
                 with db.session_scope() as session:
                     book_obj = (
-                        session.query(Book)
-                        .options(joinedload(Book.data))
-                        .filter(Book.id == selected_book_id)
-                        .first()
+                        session.query(Book).options(joinedload(Book.data)).filter(Book.id == selected_book_id).first()
                     )
                     if not book_obj:
                         return format_error_response(
@@ -181,11 +176,7 @@ async def manage_viewer(
 
                     # Build file path
                     file_format = format_obj.format.upper()
-                    file_name = (
-                        format_obj.name
-                        if format_obj.name
-                        else f"{book_obj.title}.{format_obj.format.lower()}"
-                    )
+                    file_name = format_obj.name if format_obj.name else f"{book_obj.title}.{format_obj.format.lower()}"
                     # Ensure filename has extension
                     if not file_name.lower().endswith(f".{format_obj.format.lower()}"):
                         file_name = f"{file_name}.{format_obj.format.lower()}"
@@ -213,14 +204,7 @@ async def manage_viewer(
 
                     # Open file with system default application
                     file_path_str = str(file_path.resolve())
-                    system = platform.system()
-
-                    if system == "Windows":
-                        os.startfile(file_path_str)
-                    elif system == "Darwin":  # macOS
-                        subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
-                    else:  # Linux and others
-                        subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
+                    _open_file(file_path_str)
 
                     return {
                         "success": True,
@@ -282,12 +266,7 @@ async def manage_viewer(
                     )
                 lib_path = str(Path(db._current_db_path).parent)
                 with db.session_scope() as session:
-                    book_obj = (
-                        session.query(Book)
-                        .options(joinedload(Book.data))
-                        .filter(Book.id == book_id)
-                        .first()
-                    )
+                    book_obj = session.query(Book).options(joinedload(Book.data)).filter(Book.id == book_id).first()
                     if not book_obj or not book_obj.data:
                         return format_error_response(
                             error_msg=f"Book {book_id} has no formats to open.",
@@ -298,18 +277,10 @@ async def manage_viewer(
                             related_tools=["manage_books"],
                         )
                     fmt = next(
-                        (
-                            f
-                            for f in book_obj.data
-                            if f.format.upper() in ("EPUB", "PDF", "MOBI", "AZW3")
-                        ),
+                        (f for f in book_obj.data if f.format.upper() in ("EPUB", "PDF", "MOBI", "AZW3")),
                         book_obj.data[0],
                     )
-                    fname = (
-                        fmt.name.strip()
-                        if fmt.name and fmt.name.strip()
-                        else f"{book_obj.id}.{fmt.format.lower()}"
-                    )
+                    fname = fmt.name.strip() if fmt.name and fmt.name.strip() else f"{book_obj.id}.{fmt.format.lower()}"
                     if not fname.lower().endswith(f".{fmt.format.lower()}"):
                         fname = f"{fname}.{fmt.format.lower()}"
                     fname = re.sub(r'[<>:"/\\|?*]', "_", fname)
@@ -540,9 +511,7 @@ async def manage_viewer(
 
                         db = get_database()
                         config = CalibreConfig()
-                        lib_path = (
-                            str(config.local_library_path) if config.local_library_path else None
-                        )
+                        lib_path = str(config.local_library_path) if config.local_library_path else None
                         if not lib_path:
                             libraries = config.discover_libraries()
                             if libraries:
@@ -578,10 +547,7 @@ async def manage_viewer(
                                             break
                                     if not format_obj:
                                         format_obj = book_obj.data[0]
-                                    fname = (
-                                        format_obj.name
-                                        or f"{book_obj.title}.{format_obj.format.lower()}"
-                                    )
+                                    fname = format_obj.name or f"{book_obj.title}.{format_obj.format.lower()}"
                                     if not fname.lower().endswith(f".{format_obj.format.lower()}"):
                                         fname = f"{fname}.{format_obj.format.lower()}"
                                     fname = re.sub(r'[<>:"/\\|?*]', "_", fname)
@@ -589,16 +555,9 @@ async def manage_viewer(
                                     if candidate.exists():
                                         file_path = str(candidate)
                                     elif (
-                                        format_obj.name
-                                        and (
-                                            Path(lib_path) / book_obj.path / format_obj.name
-                                        ).exists()
+                                        format_obj.name and (Path(lib_path) / book_obj.path / format_obj.name).exists()
                                     ):
-                                        file_path = str(
-                                            (
-                                                Path(lib_path) / book_obj.path / format_obj.name
-                                            ).resolve()
-                                        )
+                                        file_path = str((Path(lib_path) / book_obj.path / format_obj.name).resolve())
                     except Exception as e:
                         logger.warning(
                             f"Could not resolve file path for book_id={book_id}: {e}",
@@ -640,15 +599,7 @@ async def manage_viewer(
                         related_tools=["query_books"],
                     )
 
-                # Open file with system default application
-                system = platform.system()
-
-                if system == "Windows":
-                    os.startfile(file_path_str)
-                elif system == "Darwin":  # macOS
-                    subprocess.run(["open", file_path_str], check=False, creationflags=_NO_WINDOW)
-                else:  # Linux and others
-                    subprocess.run(["xdg-open", file_path_str], check=False, creationflags=_NO_WINDOW)
+                _open_file(file_path_str)
 
                 return {
                     "success": True,

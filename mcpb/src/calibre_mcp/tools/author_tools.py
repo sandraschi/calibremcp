@@ -11,7 +11,7 @@ Migration:
     get_authors_by_letter  →  manage_authors(operation="list"|"get"|...)
 """
 
-from .author_schemas import (  # noqa: F401
+from .author_schemas import (
     MANAGE_AUTHORS_OUTPUT_SCHEMA,
     AuthorBooksResult,
     AuthorByLetterResult,

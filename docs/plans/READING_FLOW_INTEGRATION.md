@@ -160,8 +160,7 @@ is considered ended.
 
 ```python
 # New tool: manage_viewer(operation='close_session')
-async def _close_session(session_id: int, duration_seconds: int | None = None,
-                          position_end: str | None = None) -> dict:
+async def _close_session(session_id: int, duration_seconds: int | None = None, position_end: str | None = None) -> dict:
     """Explicitly close an open reading session."""
 ```
 

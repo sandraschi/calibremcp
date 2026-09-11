@@ -1,11 +1,8 @@
 """
 Storage backends for Calibre MCP.
-
-Provides a unified interface for accessing both local and remote Calibre libraries.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
 
 from ..models.book import Book
 from ..models.library import LibraryInfo
@@ -30,7 +27,6 @@ class StorageBackend(ABC):
         pass
 
 
-# Import backends after base class is defined (intentional - prevents circular imports)
 from .local import LocalStorage  # noqa: E402
 from .remote import RemoteStorage  # noqa: E402
 

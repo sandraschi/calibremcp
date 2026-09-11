@@ -71,12 +71,8 @@ class AuthManager:
         """
         try:
             kr = _get_keyring()
-            username = kr.get_password(
-                service_name=self.service_name, username=f"{server_name}_username"
-            )
-            password = kr.get_password(
-                service_name=self.service_name, username=f"{server_name}_password"
-            )
+            username = kr.get_password(service_name=self.service_name, username=f"{server_name}_username")
+            password = kr.get_password(service_name=self.service_name, username=f"{server_name}_password")
 
             if username and password:
                 return username, password

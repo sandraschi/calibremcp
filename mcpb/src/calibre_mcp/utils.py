@@ -16,14 +16,12 @@ from pathlib import Path
 
 # Optional dependencies - imported only when needed
 try:
+    from contextlib import suppress
+
     import aiofiles
 
-    try:
+    with suppress(AttributeError):
         import aiofiles.os
-    except AttributeError:
-        # Windows compatibility: aiofiles.os fails on Windows due to missing statvfs
-        # We still have aiofiles for file operations, just not aiofiles.os
-        pass
 except ImportError:
     aiofiles = None  # Optional dependency
 
@@ -83,10 +81,7 @@ except ImportError:
 
 
 # Configure MIME type detection
-if magic is not None:
-    mime = magic.Magic(mime=True)
-else:
-    mime = None  # Fallback to mimetypes module
+mime = magic.Magic(mime=True) if magic is not None else None
 
 # Add custom MIME type mappings
 mimetypes.add_type("application/x-cbz", ".cbz")
@@ -224,7 +219,7 @@ async def extract_metadata(file_path: str | Path) -> BookMetadata:
 
     try:
         # Extract metadata using Calibre
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             calibre_metadata = get_metadata(f, mime_type=None, use_libprs_metadata=True)
 
         # Map Calibre metadata to our model
@@ -247,9 +242,7 @@ async def extract_metadata(file_path: str | Path) -> BookMetadata:
             metadata.series_index = float(calibre_metadata.series_index)
 
         if calibre_metadata.rating is not None:
-            metadata.rating = (
-                float(calibre_metadata.rating) / 2.0
-            )  # Convert from 10-point to 5-point scale
+            metadata.rating = float(calibre_metadata.rating) / 2.0  # Convert from 10-point to 5-point scale
 
         if calibre_metadata.tags:
             metadata.tags = list(calibre_metadata.tags)
@@ -406,9 +399,7 @@ async def convert_book(
             if metadata.series_index is not None:
                 args.extend(["--series-index", str(metadata.series_index)])
             if metadata.rating is not None:
-                args.extend(
-                    ["--rating", str(int(metadata.rating * 2))]
-                )  # Convert from 5-point to 10-point scale
+                args.extend(["--rating", str(int(metadata.rating * 2))])  # Convert from 5-point to 10-point scale
 
         # Run the conversion
         convert_cli(args)
@@ -473,9 +464,9 @@ def sanitize_filename(filename: str) -> str:
     # Truncate if too long (max 255 characters)
     max_length = 255
     if len(filename) > max_length:
-        name, ext = os.path.splitext(filename)
-        ext = ext[:10]  # Limit extension length
-        name = name[: (max_length - len(ext) - 1)]
+        p = Path(filename)
+        ext = p.suffix[:10]
+        name = p.stem[: (max_length - len(ext) - 1)]
         filename = f"{name}{ext}"
 
     return filename

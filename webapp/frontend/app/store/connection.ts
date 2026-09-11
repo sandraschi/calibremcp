@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
+import { create } from 'zustand';
 
-type ConnectionState = "connecting" | "connected" | "offline" | "error";
+type ConnectionState = 'connecting' | 'connected' | 'offline' | 'error';
 
 interface ConnectionStore {
-	state: ConnectionState;
-	lastError: string | null;
+  state: ConnectionState;
+  lastError: string | null;
 }
 
 export const useConnection = create<ConnectionStore>(() => ({
-	state: "connecting",
-	lastError: null,
+  state: 'connecting',
+  lastError: null,
 }));

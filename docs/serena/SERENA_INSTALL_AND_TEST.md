@@ -1,17 +1,17 @@
 # Serena MCP - Installation & Testing Guide for Sandra
 
-**Date:** 2025-10-09  
-**Target:** Test Serena on myai or veogen (large, half-built repos)  
+**Date:** 2025-10-09
+**Target:** Test Serena on myai or veogen (large, half-built repos)
 **Setup:** Claude Desktop + Cursor IDE
 
 ---
 
 ## 🔍 Quick Stats - Is This Worth It?
 
-**GitHub:** 13.8K stars (April 2025 release!)  
-**Developer:** Oraios AI (Germany, founder-driven)  
-**License:** MIT - **100% FOSS, NO paid tier**  
-**Business Model:** Sponsor-funded (Microsoft/VSCode contributed)  
+**GitHub:** 13.8K stars (April 2025 release!)
+**Developer:** Oraios AI (Germany, founder-driven)
+**License:** MIT - **100% FOSS, NO paid tier**
+**Business Model:** Sponsor-funded (Microsoft/VSCode contributed)
 **Reception:** "Game changer", "secret weapon", "70% token savings"
 
 **Why It's Interesting:**
@@ -559,7 +559,7 @@ Rationale:
 4. **Active community** - good for troubleshooting
 5. **Low risk** - can remove easily if not useful
 
-**Best case:** 70% token savings + useful visualizations = keep it  
+**Best case:** 70% token savings + useful visualizations = keep it
 **Worst case:** Not useful, waste of 2 hours setup = remove it
 
 **Either way, you learn about LSP integration and semantic code analysis - useful for your own MCP servers!**

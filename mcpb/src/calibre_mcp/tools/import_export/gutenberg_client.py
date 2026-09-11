@@ -3,6 +3,7 @@ Project Gutenberg client for CalibreMCP.
 Uses Gutendex (gutendex.com) for searching.
 """
 
+import pathlib
 import tempfile
 from typing import Any
 
@@ -119,7 +120,7 @@ async def download_gutenberg_book(
                     suffix = ".txt"
 
                 fd, path = tempfile.mkstemp(suffix=suffix)
-                with open(path, "wb") as f:
+                with pathlib.Path(path).open("wb") as f:
                     f.write(dl_resp.content)
                 return path
 

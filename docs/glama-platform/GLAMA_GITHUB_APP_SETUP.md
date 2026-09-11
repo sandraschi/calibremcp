@@ -192,8 +192,8 @@ name: "Glama.ai GitHub App Integration"
 
 ---
 
-**Setup Status**: ✅ Complete  
-**App Status**: 🏆 Gold Tier Integration  
-**Last Updated**: October 5, 2025  
-**Repository**: notepadpp-mcp  
+**Setup Status**: ✅ Complete
+**App Status**: 🏆 Gold Tier Integration
+**Last Updated**: October 5, 2025
+**Repository**: notepadpp-mcp
 **Platform**: Glama.ai GitHub App Integration

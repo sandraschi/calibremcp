@@ -32,7 +32,7 @@ async def manage_bulk_operations(
     batch_size: int = 10,
     # Export parameters
     export_path: str | None = None,
-    format: str = "directory",
+    fmt: str = "directory",
     # Delete parameters
     delete_files: bool = True,
     # Convert parameters
@@ -189,7 +189,7 @@ async def manage_bulk_operations(
                     book_ids=book_ids,
                     export_path=export_path,
                     library_path=library_path,
-                    format=format,
+                    format=fmt,
                 )
             except Exception as e:
                 return handle_tool_error(
@@ -202,9 +202,7 @@ async def manage_bulk_operations(
 
         elif operation == "delete":
             try:
-                return await delete_helper(
-                    book_ids=book_ids, library_path=library_path, delete_files=delete_files
-                )
+                return await delete_helper(book_ids=book_ids, library_path=library_path, delete_files=delete_files)
             except Exception as e:
                 return handle_tool_error(
                     exception=e,

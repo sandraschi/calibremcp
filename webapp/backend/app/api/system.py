@@ -98,6 +98,9 @@ async def get_api_docs_info():
         "note": "Open swagger_ui in a browser to explore and test all endpoints interactively.",
     }
 
+
+@router.get("/health-check")
+async def health_check():
     """Machine-readable health check for monitoring."""
     try:
         result = await mcp_client.call_tool(
@@ -109,3 +112,29 @@ async def get_api_docs_info():
         return result
     except Exception as e:
         raise handle_mcp_error(e)
+
+
+@router.get("/content-server")
+async def get_content_server_status():
+    """Check if Calibre Content Server is running and reachable."""
+    import os
+
+    import httpx
+
+    target_url = os.environ.get("CALIBRE_CONTENT_SERVER_URL", "http://127.0.0.1:8099").rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=1.5) as client:
+            resp = await client.get(f"{target_url}/")
+            server_header = resp.headers.get("server", "")
+            return {
+                "online": resp.status_code == 200,
+                "status_code": resp.status_code,
+                "server": server_header,
+                "url": target_url,
+            }
+    except Exception as e:
+        return {
+            "online": False,
+            "error": str(e),
+            "url": target_url,
+        }

@@ -23,9 +23,7 @@ class Rating(Base, BaseMixin):
     rating: Mapped[float] = mapped_column(Float, nullable=False, index=True)
 
     # Relationships
-    books: Mapped[list["Book"]] = relationship(
-        "Book", secondary="books_ratings_link", back_populates="ratings"
-    )
+    books: Mapped[list["Book"]] = relationship("Book", secondary="books_ratings_link", back_populates="ratings")
 
     def __repr__(self) -> str:
         return f"<Rating(id={self.id}, rating={self.rating})>"

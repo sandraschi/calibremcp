@@ -70,7 +70,7 @@ Calibre Content Server is not running or not accessible.
 # Windows
 netstat -an | findstr 8080
 
-# Linux/macOS  
+# Linux/macOS
 netstat -an | grep 8080
 lsof -i :8080
 ```
@@ -133,6 +133,7 @@ Incorrect server URL or port number.
 
 ```python
 from calibre_mcp.config import CalibreConfig
+
 config = CalibreConfig.load_config()
 print(f"Configured URL: {config.server_url}")
 ```
@@ -140,7 +141,7 @@ print(f"Configured URL: {config.server_url}")
 #### **Common URL Issues**
 
 - **Wrong port**: `http://localhost:8080` not `http://localhost:80`
-- **Missing protocol**: `http://localhost:8080` not `localhost:8080`  
+- **Missing protocol**: `http://localhost:8080` not `localhost:8080`
 - **HTTPS vs HTTP**: Check if server uses SSL
 - **IP vs hostname**: Try `127.0.0.1:8080` instead of `localhost:8080`
 
@@ -241,6 +242,7 @@ Special characters in password or encoding issues.
 
 ```python
 import urllib.parse
+
 password = "my@password#123"
 encoded = urllib.parse.quote(password)
 print(f"Encoded password: {encoded}")
@@ -306,7 +308,7 @@ calibre-debug --run-plugin="Optimize Database"
 # Use smaller limits
 await list_books(limit=25)  # instead of 100+
 
-# Use specific searches  
+# Use specific searches
 await search_books("python", ["title"])  # instead of all fields
 ```
 
@@ -485,6 +487,7 @@ await search_books("programming", ["title", "tags"], "OR")
 ```python
 # Enable debug logging
 import logging
+
 logging.getLogger("calibre_mcp").setLevel(logging.DEBUG)
 
 # Check what query is sent to Calibre
@@ -512,7 +515,7 @@ calibredb search "python" --library-path="your-library-path"
 # OR search: title:python OR tags:python
 await search_books("python", ["title", "tags"], "OR")
 
-# AND search: title:python AND tags:python  
+# AND search: title:python AND tags:python
 await search_books("python", ["title", "tags"], "AND")
 
 # Single field: only in title
@@ -544,7 +547,7 @@ await search_books("prog", ["title"])  # matches "Programming"
 {
   "mcpServers": {
     "calibre-mcp": {
-      "command": "python", 
+      "command": "python",
       "args": ["-m", "calibre_mcp.server"],
       "env": {
         "CALIBRE_SERVER_URL": "http://localhost:8080"
@@ -613,19 +616,21 @@ python -m calibre_mcp.server
 from calibre_mcp.server import list_books, get_book_details, search_books, test_calibre_connection
 import asyncio
 
+
 async def test_tools():
     # Test connection first
     conn = await test_calibre_connection()
     print(f"Connection: {conn.connected}")
-    
+
     if conn.connected:
         # Test each tool
         books = await list_books(limit=5)
         print(f"Books found: {len(books.results)}")
-        
+
         if books.results:
             details = await get_book_details(books.results[0].book_id)
             print(f"Book details: {details.title}")
+
 
 asyncio.run(test_tools())
 ```
@@ -645,6 +650,7 @@ LOG_LEVEL=DEBUG
 ```python
 # In code
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("calibre_mcp")
 logger.setLevel(logging.DEBUG)
@@ -680,14 +686,16 @@ import time
 import asyncio
 from calibre_mcp.server import list_books
 
+
 async def profile_search():
     start = time.time()
     result = await list_books("programming", limit=50)
     end = time.time()
-    
-    print(f"Search took: {(end-start)*1000:.0f}ms")
+
+    print(f"Search took: {(end - start) * 1000:.0f}ms")
     print(f"Results: {len(result.results)}")
     print(f"Server reported: {result.search_time_ms}ms")
+
 
 asyncio.run(profile_search())
 ```
@@ -759,7 +767,7 @@ In `setup_logging` or via logging level configuration, use `level="DEBUG"` for v
 ### **Austrian Efficiency Problem-Solving**
 
 - **Speed over perfection**: Start with simple tests
-- **Direct communication**: Provide exact error messages  
+- **Direct communication**: Provide exact error messages
 - **Practical solutions**: Test one change at a time
 - **Budget conscious**: Use built-in diagnostic tools
 

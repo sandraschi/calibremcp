@@ -98,7 +98,7 @@ CACHE_KEY = f"{STORAGE_PREFIX}cache"
 class YourMCPStorage:
     """
     Wrapper around FastMCP storage for persistent state.
-    
+
     Uses DiskStore to ensure data persists across Claude Desktop and OS restarts.
     Storage location is in AppData\Roaming on Windows, which persists across reboots.
     """
@@ -106,7 +106,7 @@ class YourMCPStorage:
     def __init__(self, mcp: FastMCP, use_disk_storage: bool = True):
         """
         Initialize storage with FastMCP instance.
-        
+
         Args:
             mcp: FastMCP server instance
             use_disk_storage: If True (default), use DiskStore for persistence.
@@ -116,7 +116,7 @@ class YourMCPStorage:
         self._storage = None
         self._initialized = False
         self._use_disk_storage = use_disk_storage
-        
+
         # Platform-appropriate storage directory that survives OS restarts
         if use_disk_storage:
             if os.name == "nt":  # Windows
@@ -128,7 +128,7 @@ class YourMCPStorage:
                     self._storage_dir = home / "Library" / "Application Support" / "your-app-name"
                 else:  # Linux
                     self._storage_dir = home / ".local" / "share" / "your-app-name"
-            
+
             # Create directory if it doesn't exist
             self._storage_dir.mkdir(parents=True, exist_ok=True)
         else:
@@ -137,7 +137,7 @@ class YourMCPStorage:
     async def initialize(self) -> None:
         """
         Initialize the storage backend.
-        
+
         For persistence across Claude Desktop restarts, we use DiskStore directly
         instead of relying on FastMCP's default in-memory storage.
         """
@@ -149,7 +149,7 @@ class YourMCPStorage:
             if self._use_disk_storage and self._storage_dir:
                 try:
                     from key_value.aio.stores.disk import DiskStore
-                    
+
                     # Create persistent disk storage
                     self._storage = DiskStore(directory=str(self._storage_dir))
                     self._initialized = True
@@ -172,7 +172,7 @@ class YourMCPStorage:
             self._initialized = False
 
     # ==================== EXAMPLE METHODS ====================
-    
+
     async def get_current_state(self) -> Optional[str]:
         """Get the current state from persistent storage."""
         await self.initialize()
@@ -310,19 +310,21 @@ In your tools:
 ```python
 from ...server import storage
 
+
 @mcp.tool()
 async def switch_database(db_name: str) -> Dict[str, Any]:
     """Switch active database and persist the selection."""
     try:
         # ... switch database logic ...
-        
+
         # Persist to storage (survives restarts!)
         if storage:
             await storage.set_current_state(db_name)
-        
+
         return {"success": True, "database": db_name}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
 
 @mcp.tool()
 async def get_preferences() -> Dict[str, Any]:
@@ -330,6 +332,7 @@ async def get_preferences() -> Dict[str, Any]:
     if storage:
         return await storage.get_user_preferences()
     return {}
+
 
 @mcp.tool()
 async def set_preferences(prefs: Dict[str, Any]) -> Dict[str, Any]:
@@ -372,11 +375,7 @@ Store user settings:
 
 ```python
 # Save preferences
-await storage.set_user_preferences({
-    "default_limit": 50,
-    "sort_order": "desc",
-    "show_metadata": True
-})
+await storage.set_user_preferences({"default_limit": 50, "sort_order": "desc", "show_metadata": True})
 
 # Load preferences
 prefs = await storage.get_user_preferences()
@@ -400,6 +399,7 @@ async def add_search_to_history(self, query: str, filters: Dict[str, Any], max_h
     history = history[:max_history]
     await self._storage.set(SEARCH_HISTORY_KEY, history)
 
+
 async def get_search_history(self, limit: int = 20) -> List[Dict[str, Any]]:
     """Get recent search history."""
     value = await self._storage.get(SEARCH_HISTORY_KEY)
@@ -415,6 +415,7 @@ async def get_progress(self, item_id: str) -> Optional[Dict[str, Any]]:
     """Get progress for a specific item."""
     key = f"{PROGRESS_KEY}:{item_id}"
     return await self._storage.get(key)
+
 
 async def set_progress(self, item_id: str, progress: Dict[str, Any]) -> None:
     """Save progress for an item."""
@@ -432,6 +433,7 @@ async def cache_library_stats(self, library_name: str, stats: Dict[str, Any], tt
     """Cache library statistics with TTL (default 1 hour)."""
     key = f"{CACHE_KEY}:{library_name}"
     await self._storage.set(key, stats, ttl=ttl)
+
 
 async def get_cached_stats(self, library_name: str) -> Optional[Dict[str, Any]]:
     """Get cached statistics if available and not expired."""
@@ -452,12 +454,12 @@ async def server_lifespan(mcp_instance: FastMCP):
     storage_instance = YourMCPStorage(mcp_instance)
     await storage_instance.initialize()
     set_storage(storage_instance)
-    
+
     # ✅ Restore state
     restored_state = await storage_instance.get_current_state()
-    
+
     yield
-    
+
     # ✅ Save state on shutdown
     await storage_instance.set_current_state("clean_shutdown")
 ```
@@ -471,7 +473,7 @@ async def get_state(self) -> Optional[str]:
     await self.initialize()
     if not self._storage:
         return None  # ✅ Return None, don't crash
-    
+
     try:
         return await self._storage.get(KEY)
     except Exception:
@@ -482,6 +484,7 @@ async def get_state(self) -> Optional[str]:
 
 ```python
 from typing import Optional, Any, Dict, List
+
 
 async def get_preferences(self) -> Dict[str, Any]:
     """Clear return type."""
@@ -589,18 +592,17 @@ print(f"Storage location: {storage_path}")
 
 This pattern provides:
 
-✅ **True persistence** across Claude Desktop restarts  
-✅ **OS-level persistence** across Windows/OS reboots  
-✅ **Platform-aware** storage directories  
-✅ **Simple API** for key-value operations  
-✅ **Production-ready** with graceful degradation  
-✅ **Easy to test** and verify  
+✅ **True persistence** across Claude Desktop restarts
+✅ **OS-level persistence** across Windows/OS reboots
+✅ **Platform-aware** storage directories
+✅ **Simple API** for key-value operations
+✅ **Production-ready** with graceful degradation
+✅ **Easy to test** and verify
 
 **Perfect for**: Database operations, library management, configuration persistence, user preferences, search history, reading progress, caching, and any state that should survive restarts.
 
 ---
 
-**Last Updated**: 2025-01-XX  
-**Pattern Version**: 1.0  
+**Last Updated**: 2025-01-XX
+**Pattern Version**: 1.0
 **FastMCP Version**: 2.13+
-

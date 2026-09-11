@@ -1,7 +1,7 @@
 # Robust Link Parser - Complete Solution
 
-**Date:** October 10, 2025  
-**Problem:** write_note fails on large notes with many links  
+**Date:** October 10, 2025
+**Problem:** write_note fails on large notes with many links
 **Solution:** Timeout-safe, limit-enforcing link parser
 
 ---
@@ -9,14 +9,14 @@
 ## The Problem
 
 **User report:**
-> "when trying to write very large notes that have many links,  
+> "when trying to write very large notes that have many links,
 > the link parser chokes and the write note fails"
 
 ### What Was Happening
 
 ```python
 # OLD: Catastrophic backtracking on complex patterns
-LINK_PATTERN = re.compile(r'\[\[(.+)\]\]')  # ❌ GREEDY!
+LINK_PATTERN = re.compile(r"\[\[(.+)\]\]")  # ❌ GREEDY!
 
 # On content like: [[Link1]] [[Link2]] ... [[Link1000]]
 # Regex engine tries ALL possible combinations
@@ -40,8 +40,8 @@ LINK_PATTERN = re.compile(r'\[\[(.+)\]\]')  # ❌ GREEDY!
 ```python
 # NEW: Non-greedy patterns
 WIKILINK_PATTERN = re.compile(
-    r'\[\[([^\[\]]+?)\]\]',  # +? is non-greedy, [^\[\]] excludes brackets
-    re.MULTILINE
+    r"\[\[([^\[\]]+?)\]\]",  # +? is non-greedy, [^\[\]] excludes brackets
+    re.MULTILINE,
 )
 
 # Time complexity: O(n) where n = content length
@@ -53,8 +53,8 @@ WIKILINK_PATTERN = re.compile(
 ```python
 parser = LinkParser(
     max_content_size=10 * 1024 * 1024,  # 10 MB max
-    max_links=10000,                     # 10,000 links max
-    max_parse_time=5.0,                  # 5 second timeout
+    max_links=10000,  # 10,000 links max
+    max_parse_time=5.0,  # 5 second timeout
 )
 ```
 
@@ -66,11 +66,11 @@ for match in pattern.finditer(content):
     if time.time() - start_time > max_parse_time:
         result.add_error("Timeout!")
         return  # Graceful exit
-    
+
     if len(links) >= max_links:
         result.add_warning("Link limit reached")
         return  # Graceful exit
-    
+
     # Parse link
     links.append(parse_link(match))
 ```
@@ -115,28 +115,25 @@ else:
 ```python
 from link_parser import parse_links_safe
 
+
 async def write_note(title: str, content: str, folder: str):
     """Write note with safe link parsing."""
-    
+
     # Parse links safely
     link_result = parse_links_safe(content)
-    
+
     if not link_result.is_valid:
         # Log but continue - content is still valid
-        logger.warning("link_parsing_failed",
-                      title=title,
-                      errors=link_result.errors)
+        logger.warning("link_parsing_failed", title=title, errors=link_result.errors)
         # Save note WITHOUT link extraction
         save_note(title, content, folder, links=[])
         return
-    
+
     # Check warnings
     if link_result.warnings:
         for warning in link_result.warnings:
-            logger.info("link_parsing_warning",
-                       title=title,
-                       warning=warning)
-    
+            logger.info("link_parsing_warning", title=title, warning=warning)
+
     # Save note WITH extracted links
     save_note(title, content, folder, links=link_result.links)
 ```
@@ -153,11 +150,7 @@ async def write_note(title: str, content: str, folder: str):
 
 **Parsed:**
 ```python
-Link(
-    type='wikilink',
-    target='PageName',
-    text='Display Text' or None
-)
+Link(type="wikilink", target="PageName", text="Display Text" or None)
 ```
 
 ### 2. Markdown Links
@@ -167,11 +160,7 @@ Link(
 
 **Parsed:**
 ```python
-Link(
-    type='markdown',
-    target='https://example.com',
-    text='Link Text'
-)
+Link(type="markdown", target="https://example.com", text="Link Text")
 ```
 
 ### 3. Images
@@ -182,11 +171,7 @@ Link(
 
 **Parsed:**
 ```python
-Link(
-    type='image',
-    target='image.png',
-    text='Alt Text' or None
-)
+Link(type="image", target="image.png", text="Alt Text" or None)
 ```
 
 ### 4. Raw URLs (Optional)
@@ -196,11 +181,7 @@ Visit https://example.com
 
 **Parsed (if extract_urls=True):**
 ```python
-Link(
-    type='url',
-    target='https://example.com',
-    text=None
-)
+Link(type="url", target="https://example.com", text=None)
 ```
 
 ---
@@ -272,10 +253,7 @@ result = old_parse_links(content)
 
 **After:**
 ```python
-parser = LinkParser(
-    max_links=10000,
-    max_parse_time=5.0
-)
+parser = LinkParser(max_links=10000, max_parse_time=5.0)
 result = parser.parse_links(content)
 
 # ✅ Completes in 200ms
@@ -301,15 +279,15 @@ print(stats)
 **Output:**
 ```python
 {
-    'total_links': 1247,
-    'wikilinks': 523,
-    'markdown_links': 412,
-    'images': 203,
-    'raw_urls': 109,
-    'unique_targets': 892,
-    'parse_time_ms': 187.3,
-    'errors': 0,
-    'warnings': 1  # "Large number of links"
+    "total_links": 1247,
+    "wikilinks": 523,
+    "markdown_links": 412,
+    "images": 203,
+    "raw_urls": 109,
+    "unique_targets": 892,
+    "parse_time_ms": 187.3,
+    "errors": 0,
+    "warnings": 1,  # "Large number of links"
 }
 ```
 
@@ -321,9 +299,9 @@ print(stats)
 ```python
 parser = LinkParser(
     max_content_size=10 * 1024 * 1024,  # 10 MB
-    max_links=10000,                     # 10,000 links
-    max_parse_time=5.0,                  # 5 seconds
-    extract_urls=False                   # Skip raw URLs (expensive)
+    max_links=10000,  # 10,000 links
+    max_parse_time=5.0,  # 5 seconds
+    extract_urls=False,  # Skip raw URLs (expensive)
 )
 ```
 
@@ -332,10 +310,10 @@ parser = LinkParser(
 ### Strict
 ```python
 parser = LinkParser(
-    max_content_size=1 * 1024 * 1024,   # 1 MB only
-    max_links=1000,                      # 1,000 links max
-    max_parse_time=1.0,                  # 1 second timeout
-    extract_urls=True                    # Extract everything
+    max_content_size=1 * 1024 * 1024,  # 1 MB only
+    max_links=1000,  # 1,000 links max
+    max_parse_time=1.0,  # 1 second timeout
+    extract_urls=True,  # Extract everything
 )
 ```
 
@@ -344,9 +322,9 @@ parser = LinkParser(
 ### Performance
 ```python
 parser = LinkParser(
-    max_links=100,                       # Very limited
-    max_parse_time=0.5,                  # Fast timeout
-    extract_urls=False                   # Skip URLs
+    max_links=100,  # Very limited
+    max_parse_time=0.5,  # Fast timeout
+    extract_urls=False,  # Skip URLs
 )
 ```
 
@@ -363,9 +341,7 @@ result = parser.parse_links(huge_content)
 if not result.is_valid:
     if any("timeout" in e.lower() for e in result.errors):
         # Parsing timed out
-        logger.warning("link_parse_timeout",
-                      content_size=len(content),
-                      links_found=len(result.links))
+        logger.warning("link_parse_timeout", content_size=len(content), links_found=len(result.links))
         # Use partial results or skip link extraction
 ```
 
@@ -373,9 +349,7 @@ if not result.is_valid:
 ```python
 if any("maximum" in w.lower() for w in result.warnings):
     # Hit link limit
-    logger.info("link_limit_reached",
-               links_extracted=len(result.links),
-               max_links=parser.max_links)
+    logger.info("link_limit_reached", links_extracted=len(result.links), max_links=parser.max_links)
     # Still valid, just incomplete
 ```
 
@@ -464,16 +438,16 @@ First 10 links:
 
 ## Integration Checklist
 
-✅ **Link parser module created**  
-✅ **Non-greedy regex patterns**  
-✅ **Timeout protection (5 seconds)**  
-✅ **Link limit enforcement (10,000)**  
-✅ **Content size limit (10 MB)**  
-✅ **Comprehensive tests (30+ cases)**  
-✅ **Safe wrapper function**  
-✅ **Statistics API**  
-✅ **CLI tool**  
-✅ **Complete documentation**  
+✅ **Link parser module created**
+✅ **Non-greedy regex patterns**
+✅ **Timeout protection (5 seconds)**
+✅ **Link limit enforcement (10,000)**
+✅ **Content size limit (10 MB)**
+✅ **Comprehensive tests (30+ cases)**
+✅ **Safe wrapper function**
+✅ **Statistics API**
+✅ **CLI tool**
+✅ **Complete documentation**
 
 ---
 
@@ -509,10 +483,10 @@ if result.parse_time_ms > 1000:
 ❌ **Don't use greedy regex**
 ```python
 # BAD
-r'\[\[(.+)\]\]'  # Greedy, causes backtracking
+r"\[\[(.+)\]\]"  # Greedy, causes backtracking
 
 # GOOD
-r'\[\[([^\[\]]+?)\]\]'  # Non-greedy, bracket exclusion
+r"\[\[([^\[\]]+?)\]\]"  # Non-greedy, bracket exclusion
 ```
 
 ❌ **Don't parse without limits**
@@ -624,7 +598,7 @@ Warnings: "Large number of links (2000)"
 async def write_note(title: str, content: str, folder: str):
     # Parse links (might hang/crash)
     links = extract_links(content)  # ❌ CATASTROPHIC BACKTRACKING
-    
+
     # Save note
     save_note_with_links(title, content, links)
 ```
@@ -634,28 +608,25 @@ async def write_note(title: str, content: str, folder: str):
 ```python
 from link_parser import parse_links_safe
 
+
 @mcp.tool()
 async def write_note(title: str, content: str, folder: str):
     # Parse links safely
     link_result = parse_links_safe(content)
-    
+
     if link_result.is_valid:
         # Normal path: links extracted
         save_note_with_links(title, content, link_result.links)
-        logger.info("note_saved_with_links",
-                   title=title,
-                   link_count=len(link_result.links))
+        logger.info("note_saved_with_links", title=title, link_count=len(link_result.links))
     else:
         # Fallback: save without links
-        logger.warning("saving_without_links",
-                      title=title,
-                      errors=link_result.errors)
+        logger.warning("saving_without_links", title=title, errors=link_result.errors)
         save_note_with_links(title, content, links=[])
-    
+
     # Log warnings
     for warning in link_result.warnings:
         logger.info("link_warning", warning=warning)
-    
+
     return f"Note saved: {title}"
 ```
 
@@ -693,10 +664,10 @@ test_small_file_performance       PASSED ⭐ (<0.1s)
 
 ```python
 # CATASTROPHIC:
-r'\[\[(.+)\]\]'      # Greedy .+ causes backtracking
+r"\[\[(.+)\]\]"  # Greedy .+ causes backtracking
 
 # SAFE:
-r'\[\[([^\[\]]+?)\]\]'  # Non-greedy +? with exclusion
+r"\[\[([^\[\]]+?)\]\]"  # Non-greedy +? with exclusion
 ```
 
 ### 2. **Always Have Limits**
@@ -765,4 +736,3 @@ save_note(content, links=result.links if result.is_valid else [])
 ---
 
 *From catastrophic backtracking to linear time - October 10, 2025*
-

@@ -53,4 +53,3 @@
     ExecWait 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\resources\install-mcp-clients.ps1" -Interactive'
   mcp_hook_done:
 !macroend
-

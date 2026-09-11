@@ -11,20 +11,20 @@ calibre:
   server_url: "http://localhost:8080"
   username: null  # Set in .env file or environment
   password: null  # Set in .env file or environment
-  
-  # Request Settings  
+
+  # Request Settings
   timeout: 30
   max_retries: 3
-  
+
   # Search Settings
   default_limit: 50
   max_limit: 200
   excerpt_length: 150
-  
+
   # Library Settings
   library_name: "Sandra's Library"
   auto_detect_library: true
-  
+
   # Performance Settings
   connection_pool_size: 10
   enable_caching: true
@@ -36,13 +36,13 @@ features:
   enable_metadata_retrieval: true
   enable_cover_images: true
   enable_downloads: true
-  
+
   # Advanced Features
   enable_format_conversion: false  # Phase 2
   enable_metadata_editing: false  # Phase 2
   enable_tag_management: false    # Phase 2
   enable_library_management: false # Phase 2
-  
+
   # Austrian Efficiency Features
   enable_quick_search: true
   enable_series_detection: true
@@ -54,11 +54,11 @@ performance:
   search_timeout: 15
   max_concurrent_requests: 5
   enable_search_indexing: false
-  
+
   # Memory Management
   max_cache_size_mb: 50
   cleanup_interval_minutes: 30
-  
+
   # Rate Limiting
   requests_per_minute: 60
   burst_limit: 10
@@ -75,12 +75,12 @@ austrian_efficiency:
   # Speed over perfection
   prefer_speed: true
   max_results_default: 50
-  
+
   # Sandra's workflow optimization
   weeb_friendly: true  # Handle Japanese characters
   academic_quality: true  # Comprehensive metadata
   budget_conscious: true  # Efficient API usage
-  
+
   # Direct communication
   clear_error_messages: true
   no_ai_platitudes: true
@@ -93,17 +93,17 @@ search_templates:
     query: ""
     sort: "date"
     limit: 20
-  
+
   programming:
     description: "Programming and computer science books"
     query: "programming OR computer OR software OR code"
     fields: ["title", "tags", "comments"]
-    
+
   fiction:
-    description: "Fiction books"  
+    description: "Fiction books"
     query: "fiction OR novel OR story"
     fields: ["tags", "comments"]
-    
+
   japanese:
     description: "Japanese language books and manga"
     query: "japanese OR manga OR anime"

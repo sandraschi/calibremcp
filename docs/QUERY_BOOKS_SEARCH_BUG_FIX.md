@@ -1,7 +1,7 @@
 ## CalibreMCP query_books Search Bug - Fix Report
 
-**Date**: 2025-01-30  
-**File**: `src/calibre_mcp/services/book_service.py`  
+**Date**: 2025-01-30
+**File**: `src/calibre_mcp/services/book_service.py`
 **Issue**: `query_books(operation="search", author="...")` and series searches fail to match books
 
 ---
@@ -19,7 +19,7 @@
 The bug was in the SQLAlchemy query construction in `book_service.get_all()` method:
 
 **Problem 1: JOIN Logic Issues**
-- When filtering by author/series/tags, the code used `.join()` followed by `.filter()` 
+- When filtering by author/series/tags, the code used `.join()` followed by `.filter()`
 - This created improper SQL joins that could result in duplicates or incorrect filtering
 - Multiple sequential joins caused cross-product issues in complex queries
 
@@ -61,7 +61,7 @@ elif author_name:
         for word in author_words:
             word_pattern = f"%{word}%"
             author_book_ids_subq = author_book_ids_subq.filter(Author.name.ilike(word_pattern))
-        
+
         author_book_ids_subq = author_book_ids_subq.distinct().subquery()
         query = query.filter(Book.id.in_(session.query(author_book_ids_subq.c.id)))
 ```
@@ -85,11 +85,7 @@ if series_name:
 if series_name:
     # Build a subquery that finds books matching the series name
     series_book_ids_subq = (
-        session.query(Book.id)
-        .join(Book.series)
-        .filter(Series.name.ilike(f"%{series_name}%"))
-        .distinct()
-        .subquery()
+        session.query(Book.id).join(Book.series).filter(Series.name.ilike(f"%{series_name}%")).distinct().subquery()
     )
     query = query.filter(Book.id.in_(session.query(series_book_ids_subq.c.id)))
 ```
@@ -169,7 +165,7 @@ The fix uses a **subquery-based filter composition** approach:
 # Step 1: Find books by author (subquery)
 author_book_ids = SELECT Book.id WHERE Book.authors contain "Conan" AND "Doyle"
 
-# Step 2: Find books with tags (subquery)  
+# Step 2: Find books with tags (subquery)
 tag_book_ids = SELECT Book.id WHERE Book.tags contain "mystery" OR "detective"
 
 # Step 3: Combine (AND logic between filters)
@@ -187,7 +183,7 @@ A comprehensive test suite has been added: `tests/test_query_books_search_bug.py
 
 Tests cover:
 - ✓ Author search by full name
-- ✓ Author search by partial name  
+- ✓ Author search by partial name
 - ✓ Two-part author names (AND logic)
 - ✓ Text parameter with "by Author" syntax
 - ✓ Series search by name
@@ -236,5 +232,5 @@ Expected: All tests pass with correct metadata matches.
 
 ## Backwards Compatibility
 
-✓ **Fully compatible** - All existing API signatures remain unchanged.  
+✓ **Fully compatible** - All existing API signatures remain unchanged.
 ✓ **Behavior fix** - Only fixes incorrect behavior; valid searches now work as expected.

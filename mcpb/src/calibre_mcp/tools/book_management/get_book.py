@@ -129,9 +129,7 @@ async def get_book_helper(
         # Extract authors list from the response
         authors_list = []
         if isinstance(book_data.get("authors"), list):
-            authors_list = [
-                a.get("name", "") if isinstance(a, dict) else str(a) for a in book_data["authors"]
-            ]
+            authors_list = [a.get("name", "") if isinstance(a, dict) else str(a) for a in book_data["authors"]]
         elif book_data.get("authors"):
             authors_list = [str(book_data["authors"])]
 
@@ -158,10 +156,7 @@ async def get_book_helper(
                     else book_data.get("series"),
                     "series_index": book_data.get("series_index"),
                     "rating": book_data.get("rating"),
-                    "tags": [
-                        t.get("name", "") if isinstance(t, dict) else str(t)
-                        for t in book_data.get("tags", [])
-                    ]
+                    "tags": [t.get("name", "") if isinstance(t, dict) else str(t) for t in book_data.get("tags", [])]
                     if isinstance(book_data.get("tags"), list)
                     else [],
                     "identifiers": book_data.get("identifiers", {}),

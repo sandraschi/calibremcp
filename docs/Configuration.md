@@ -9,7 +9,7 @@
 CalibreMCP uses a hierarchical configuration system with three priority levels:
 
 1. **Environment Variables** (highest priority)
-2. **YAML Configuration Files** (medium priority)  
+2. **YAML Configuration Files** (medium priority)
 3. **Default Values** (lowest priority)
 
 This allows flexible deployment while maintaining sane defaults.
@@ -58,7 +58,7 @@ austrian_efficiency:
   budget_conscious: true
 ```
 
-### **`config/calibre_config.yaml`**  
+### **`config/calibre_config.yaml`**
 
 Calibre-specific settings with presets and library management.
 
@@ -67,7 +67,7 @@ presets:
   local_development:
     server_url: "http://localhost:8080"
     timeout: 30
-    
+
   remote_server:
     server_url: "http://192.168.1.100:8080"
     timeout: 45
@@ -76,7 +76,7 @@ libraries:
   personal:
     name: "Personal Library"
     default_tags: ["personal", "to-read"]
-    
+
   academic:
     name: "Academic Library"
     default_tags: ["academic", "research"]
@@ -248,11 +248,11 @@ Create a custom config file and load it:
 ```python
 # custom_config.json
 {
-  "server_url": "http://localhost:8080",
-  "username": "sandra",
-  "timeout": 45,
-  "default_limit": 25,
-  "library_name": "Custom Library"
+    "server_url": "http://localhost:8080",
+    "username": "sandra",
+    "timeout": 45,
+    "default_limit": 25,
+    "library_name": "Custom Library",
 }
 ```
 
@@ -273,7 +273,7 @@ performance:
   search_timeout: 30
   max_concurrent_requests: 3
   enable_search_indexing: true
-  
+
 calibre:
   default_limit: 25  # Smaller results for faster response
   max_limit: 100
@@ -286,7 +286,7 @@ calibre:
 performance:
   search_timeout: 10
   max_concurrent_requests: 10
-  
+
 calibre:
   timeout: 15
   max_retries: 2
@@ -298,7 +298,7 @@ calibre:
 performance:
   search_timeout: 60
   max_concurrent_requests: 2
-  
+
 calibre:
   timeout: 120
   max_retries: 5
@@ -310,7 +310,7 @@ calibre:
 performance:
   max_cache_size_mb: 25  # Reduce for low-memory systems
   cleanup_interval_minutes: 15
-  
+
 calibre:
   default_limit: 20  # Smaller result sets
 ```
@@ -365,10 +365,10 @@ calibre-server --listen-on=192.168.1.100 --port=8080
 server {
     listen 443 ssl;
     server_name calibre.yourdomain.com;
-    
+
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
-    
+
     location / {
         proxy_pass http://localhost:8080;
         proxy_set_header Host $host;
@@ -516,6 +516,7 @@ grep "timeout\|slow\|retry" calibremcp.log
 ```python
 # Enable performance logging
 import logging
+
 logging.getLogger("calibre_mcp").setLevel(logging.DEBUG)
 
 # Metrics to monitor:
