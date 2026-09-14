@@ -70,6 +70,7 @@ L:\Multimedia Files\Written Word\
 | Library Name | Purpose | Content Type |
 |--------------|---------|--------------|
 | **Calibre-Bibliothek** | Main collection | General books, literature, non-fiction |
+| **Calibre-Bibliothek Bullshit** | Local quarantine | Fringe/edgy titles — not shared or bundled (reads wrong out of context) |
 | **Calibre-Bibliothek IT** | Technology books | Programming, software, technical manuals |
 | **Calibre-Bibliothek Japanisch** | Japanese content | Japanese literature, language learning |
 | **Calibre-Bibliothek Manga** | Manga collection | Japanese comics and graphic novels |
