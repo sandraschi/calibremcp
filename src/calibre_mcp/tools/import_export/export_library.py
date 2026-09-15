@@ -1,5 +1,6 @@
 """Tool for exporting Calibre library data and books."""
 
+import asyncio
 import json
 import shutil
 from datetime import datetime
@@ -100,7 +101,7 @@ class ExportLibraryTool(MCPTool):
                         src_path = storage.get_book_path(book.id, fmt)
                         if src_path and src_path.exists():
                             dst_path = book_dir / f"{book.id}.{fmt.lower()}"
-                            shutil.copy2(src_path, dst_path)
+                            await asyncio.to_thread(shutil.copy2, src_path, dst_path)
                             results["exported_books"] += 1
 
                 # Export cover
@@ -110,7 +111,7 @@ class ExportLibraryTool(MCPTool):
                         cover_dir = export_path / "covers"
                         cover_dir.mkdir(exist_ok=True)
                         dst_path = cover_dir / f"{book.id}.jpg"
-                        shutil.copy2(cover_path, dst_path)
+                        await asyncio.to_thread(shutil.copy2, cover_path, dst_path)
                         results["exported_covers"] += 1
 
             except Exception as e:
@@ -134,8 +135,9 @@ class ExportLibraryTool(MCPTool):
         # Package if requested
         if fmt.lower() == "zip":
             self._update_progress(progress_callback, 0, 1, "Creating archive...")
-            shutil.make_archive(str(export_path), "zip", export_path)
-            shutil.rmtree(export_path)
+            # Zip-compressing a whole library is CPU+I/O heavy — off the loop.
+            await asyncio.to_thread(shutil.make_archive, str(export_path), "zip", export_path)
+            await asyncio.to_thread(shutil.rmtree, export_path)
             results["export_path"] = f"{export_path}.zip"
 
         self._update_progress(progress_callback, total_books, total_books, "Export complete!")

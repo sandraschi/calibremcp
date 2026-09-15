@@ -1,5 +1,6 @@
 """Extended library operations for CalibreMCP."""
 
+import asyncio
 import os
 import re
 import shutil
@@ -373,6 +374,7 @@ class ExtendedLibraryOperations(MCPTool):
             else:
                 backup_path = str(pathlib.Path(backup_path) / pathlib.Path(library_path).name)
 
+                # NOTE: whole-tree copy runs in a thread at the call site below.
                 def copy_dir(src, dst):
                     if not pathlib.Path(src).is_dir():
                         return
@@ -389,11 +391,17 @@ class ExtendedLibraryOperations(MCPTool):
                 metadata_db = pathlib.Path(library_path) / "metadata.db"
                 if pathlib.Path(metadata_db).exists():
                     pathlib.Path(pathlib.Path(backup_path).parent).mkdir(exist_ok=True, parents=True)
-                    shutil.copy2(metadata_db, pathlib.Path(backup_path) / "metadata.db")
+                    await asyncio.to_thread(
+                        shutil.copy2, metadata_db, pathlib.Path(backup_path) / "metadata.db"
+                    )
 
-                # Copy books and covers
-                copy_dir(pathlib.Path(library_path) / "books", pathlib.Path(backup_path) / "books")
-                copy_dir(pathlib.Path(library_path) / "covers", pathlib.Path(backup_path) / "covers")
+                # Copy books and covers (whole trees — off the loop)
+                await asyncio.to_thread(
+                    copy_dir, pathlib.Path(library_path) / "books", pathlib.Path(backup_path) / "books"
+                )
+                await asyncio.to_thread(
+                    copy_dir, pathlib.Path(library_path) / "covers", pathlib.Path(backup_path) / "covers"
+                )
 
             # Clean up old backups
             if max_backups > 0:
@@ -490,7 +498,7 @@ class ExtendedLibraryOperations(MCPTool):
 
         try:
             # Create a backup of the database
-            shutil.copy2(metadata_db, backup_db)
+            await asyncio.to_thread(shutil.copy2, metadata_db, backup_db)
 
             # Connect to the database and run integrity check
             conn = sqlite3.connect(metadata_db)
@@ -523,7 +531,7 @@ class ExtendedLibraryOperations(MCPTool):
                         pathlib.Path(metadata_db).unlink()
 
                         # Restore from backup
-                        shutil.copy2(backup_db, metadata_db)
+                        await asyncio.to_thread(shutil.copy2, backup_db, metadata_db)
 
                         # Reconnect to the restored database
                         conn = sqlite3.connect(metadata_db)
