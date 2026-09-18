@@ -17,11 +17,7 @@ lint:
 
 # Execute Ruff SOTA v13.1 fix and formatting
 fix:
-    Set-Location '{{justfile_directory()}}'
-    uv run ruff check . --fix --unsafe-fixes
-    uv run ruff format .
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npx @biomejs/biome check --write .
+    Set-Location '{{justfile_directory()}}'; uv run ruff check . --fix --unsafe-fixes; uv run ruff format .; Set-Location '{{justfile_directory()}}\webapp\frontend'; npx @biomejs/biome check --write .
 
 # --- Hardening ---
 
@@ -59,8 +55,7 @@ bootstrap:
 
 # Build webapp frontend for production
 build-webapp:
-    Set-Location '{{justfile_directory()}}\webapp\frontend'
-    npm run build
+    Set-Location '{{justfile_directory()}}\webapp\frontend'; npm run build
 
 # Start webapp in production mode (builds first if needed)
 start-webapp:
@@ -121,14 +116,10 @@ build-sidecar:
 
 # Primary end-user deliverable: Next static export + embedded backend + NSIS
 build-native install-desktop:
-    Set-Location '{{justfile_directory()}}\native'
-    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-    .\build.ps1
+    Set-Location '{{justfile_directory()}}\native'; $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; .\build.ps1
 
 build-native-debug:
-    Set-Location '{{justfile_directory()}}\native'
-    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-    npx @tauri-apps/cli build --debug
+    Set-Location '{{justfile_directory()}}\native'; $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; npx @tauri-apps/cli build --debug
 
 # Triple-play release (mcpb + NSIS + GitHub upload)
 release:
