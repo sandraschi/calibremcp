@@ -123,8 +123,8 @@ build-native-debug:
 
 # Triple-play release (mcpb + NSIS + GitHub upload)
 release:
-    pwsh -NoProfile -File scripts/release.ps1
+    powershell.exe -NoProfile -File scripts/release.ps1
 
 # Dry-run the release pipeline
 release-dry:
-    pwsh -NoProfile -File scripts/release.ps1 -DryRun
+    powershell.exe -NoProfile -File scripts/release.ps1 -DryRun
