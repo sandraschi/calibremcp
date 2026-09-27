@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Fleet release script: mcpb bundle + NSIS installer + GitHub release upload.
