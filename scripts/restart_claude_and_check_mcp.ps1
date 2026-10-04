@@ -111,8 +111,19 @@ if (-not $NoRestart) {
     $ClaudeProcess = Get-Process -Name "Claude" -ErrorAction SilentlyContinue
     if ($ClaudeProcess) {
         Stop-Process -Name "Claude" -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-        Write-Host "[OK] Claude Desktop stopped" -ForegroundColor Green
+        # HARDENED 2026-09-17: was a blind Start-Sleep -Seconds 2 then declared
+        # "stopped" unconditionally (TRAPS_AND_PITFALLS.md #36). Poll instead.
+        $stopWaitSec = 10
+        $stopElapsed = 0
+        while ($stopElapsed -lt $stopWaitSec -and (Get-Process -Name "Claude" -ErrorAction SilentlyContinue)) {
+            Start-Sleep -Milliseconds 500
+            $stopElapsed += 0.5
+        }
+        if (Get-Process -Name "Claude" -ErrorAction SilentlyContinue) {
+            Write-Host "[WARN] Claude Desktop still running after ${stopWaitSec}s" -ForegroundColor DarkYellow
+        } else {
+            Write-Host "[OK] Claude Desktop stopped" -ForegroundColor Green
+        }
     } else {
         Write-Host "[INFO] Claude Desktop was not running" -ForegroundColor Gray
     }
@@ -161,7 +172,17 @@ if (-not $NoRestart) {
         Start-Process -FilePath $ClaudePath -ErrorAction Stop
         Write-Host "[OK] Started Claude Desktop from: $ClaudePath" -ForegroundColor Green
         Write-Host "[INFO] Waiting for Claude to initialize..." -ForegroundColor Gray
-        Start-Sleep -Seconds 5
+        # HARDENED 2026-09-17: was a blind Start-Sleep -Seconds 5 with no check
+        # that Claude actually came up (TRAPS_AND_PITFALLS.md #36). Poll instead.
+        $startWaitSec = 15
+        $startElapsed = 0
+        while ($startElapsed -lt $startWaitSec -and -not (Get-Process -Name "Claude" -ErrorAction SilentlyContinue)) {
+            Start-Sleep -Milliseconds 500
+            $startElapsed += 0.5
+        }
+        if (-not (Get-Process -Name "Claude" -ErrorAction SilentlyContinue)) {
+            Write-Host "[WARN] Claude process not detected after ${startWaitSec}s - it may still be starting" -ForegroundColor DarkYellow
+        }
         Write-Host ""
     } catch {
         Write-Host "[FAIL] Error starting Claude: $_" -ForegroundColor Red

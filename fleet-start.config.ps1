@@ -1,4 +1,4 @@
-﻿# Per-repo fleet start config for calibre-mcp
+# Per-repo fleet start config for calibre-mcp
 # Edit ports/backend target here - start.ps1 is fleet-standard.
 @{
     Name         = 'calibre-mcp'
@@ -12,6 +12,7 @@
         WorkDir       = 'webapp\backend'
         PythonPath    = 'webapp\backend;src'
         SyncExtras    = @('dev')
+        SyncOnStart  = $true
         Env           = @{ WEB_PORT = '10720' }
     }
     Frontend = @{
