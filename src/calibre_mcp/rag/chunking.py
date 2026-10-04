@@ -107,7 +107,8 @@ def chunk_books_text(
             max_book_chars,
         )
 
-    conn = sqlite3.connect(str(fts_path))
+    conn = sqlite3.connect(str(fts_path), timeout=30)
+    conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep: full scan
     conn.row_factory = sqlite3.Row
     try:
         cur = conn.execute(

@@ -152,7 +152,8 @@ def _get_extended_metadata_text(book_id: int, library_path: str) -> str:
         if not Path(db_path).exists():
             return ""
 
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(db_path, timeout=10)
+        conn.execute("PRAGMA busy_timeout = 10000")  # BUG-062 sweep
         conn.row_factory = sqlite3.Row
         try:
             row = conn.execute(

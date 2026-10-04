@@ -64,7 +64,8 @@ def get_library_metadata(library_path: Path) -> dict[str, any]:
         try:
             import sqlite3
 
-            conn = sqlite3.connect(str(metadata_db))
+            conn = sqlite3.connect(str(metadata_db), timeout=10)
+            conn.execute("PRAGMA busy_timeout = 10000")  # BUG-062 sweep
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM books")
             metadata["book_count"] = cursor.fetchone()[0] or 0

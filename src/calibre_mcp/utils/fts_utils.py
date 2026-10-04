@@ -249,7 +249,8 @@ def query_fts(
     fts_table = FTS_TABLE_STEMMED if use_stemming else FTS_TABLE
 
     try:
-        conn = sqlite3.connect(str(fts_db_path))
+        conn = sqlite3.connect(str(fts_db_path), timeout=30)
+        conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
         try:
             # Ensure tables exist
             cursor = conn.cursor()
@@ -448,7 +449,8 @@ def query_fts_detailed(
     fts_table = FTS_TABLE_STEMMED if use_stemming else FTS_TABLE
 
     try:
-        conn = sqlite3.connect(str(fts_db_path))
+        conn = sqlite3.connect(str(fts_db_path), timeout=30)
+        conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
         conn.row_factory = sqlite3.Row
         try:
             cursor = conn.cursor()

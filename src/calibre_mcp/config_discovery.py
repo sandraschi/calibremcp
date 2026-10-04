@@ -442,7 +442,8 @@ class CalibreConfigDiscovery:
             # Try to read the database
             import sqlite3
 
-            conn = sqlite3.connect(str(library.metadata_db))
+            conn = sqlite3.connect(str(library.metadata_db), timeout=10)
+            conn.execute("PRAGMA busy_timeout = 10000")  # BUG-062 sweep
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='books'")
             result = cursor.fetchone()
