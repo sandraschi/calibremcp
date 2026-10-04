@@ -105,7 +105,7 @@ class MangaViewer:
 
     def _initialize_database(self) -> None:
         """Initialize the SQLite database for bookmarks and reading progress."""
-        self._db_conn = sqlite3.connect(self._db_path, check_same_thread=False)
+        self._db_conn = sqlite3.connect(self._db_path, check_same_thread=False, timeout=10)  # BUG-062 sweep
         cursor = self._db_conn.cursor()
 
         cursor.execute("""

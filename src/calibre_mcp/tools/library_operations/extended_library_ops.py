@@ -501,7 +501,8 @@ class ExtendedLibraryOperations(MCPTool):
             await asyncio.to_thread(shutil.copy2, metadata_db, backup_db)
 
             # Connect to the database and run integrity check
-            conn = sqlite3.connect(metadata_db)
+            conn = sqlite3.connect(metadata_db, timeout=30)
+            conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
             cursor = conn.cursor()
 
             # Check integrity
@@ -534,7 +535,8 @@ class ExtendedLibraryOperations(MCPTool):
                         await asyncio.to_thread(shutil.copy2, backup_db, metadata_db)
 
                         # Reconnect to the restored database
-                        conn = sqlite3.connect(metadata_db)
+                        conn = sqlite3.connect(metadata_db, timeout=30)
+                        conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
                         cursor = conn.cursor()
 
                         # Run VACUUM to rebuild the database file
