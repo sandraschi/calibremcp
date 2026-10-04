@@ -75,7 +75,7 @@ class LocalStorage(StorageBackend):
 
     def _get_connection(self):
         """Get a database connection"""
-        return sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        return sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True, timeout=30)  # BUG-062 sweep
 
     async def list_books(self, **filters) -> list[Book]:
         """List books with optional filtering"""

@@ -27,7 +27,7 @@ class CalibreIngestor:
     def _get_db_connection(self) -> sqlite3.Connection:
         """Get a read-only connection to the Calibre metadata.db."""
         uri = f"file:{self.db_path}?mode=ro"
-        return sqlite3.connect(uri, uri=True)
+        return sqlite3.connect(uri, uri=True, timeout=30)  # BUG-062 sweep
 
     def extract_books(self) -> list[dict[str, Any]]:
         """
