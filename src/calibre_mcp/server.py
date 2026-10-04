@@ -16,8 +16,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
-from fastmcp import FastMCP
-from fastmcp.server import create_proxy
+from fastmcp import Client, FastMCP
+from fastmcp.server.providers.proxy import FastMCPProxy
 from pydantic import BaseModel
 
 from calibre_mcp.calibre_api import CalibreAPIClient
@@ -252,7 +252,13 @@ if bridge_urls:
         url = url.strip()
         if url:
             try:
-                mcp.add_provider(create_proxy(url))
+                # Same timeout hardening as the stdio-proxy fix below:
+                # never forward through a timeout-less client.
+                mcp.add_provider(
+                    FastMCPProxy(
+                        client_factory=lambda u=url: Client(u, timeout=55),
+                    )
+                )
                 _bridge_proxies.append(url)
             except Exception:
                 logger.warning("Failed to add bridge proxy %s", url)
@@ -702,7 +708,24 @@ async def main():
         if _resp.status_code == 200:
             _log = logging.getLogger("calibremcp.server")
             _log.info("HTTP daemon found at %s -- proxying tool calls", _probe_url)
-            _proxy = create_proxy(_probe_url, name="CalibreMCP")
+            # NOTE (2026-10-04, proxy-wedge fix): create_proxy() builds a
+            # client with no read timeout, so one stalled daemon call
+            # wedges this stdio session forever -- every later call queues
+            # behind it, even static ones, until the host kills us.
+            # Verified in venv FastMCP 3.4.4: ProxyTool.run calls
+            # call_tool_mcp with no timeout of its own, so the Client-level
+            # timeout is what bounds forwarded calls -- Client(timeout=)
+            # lands in _session_kwargs["read_timeout_seconds"] and becomes
+            # the httpx read timeout on the stream (client.py /
+            # transports/http.py). 55s sits just under the host's 60s MCP
+            # timeout so a stall surfaces as a clean error instead of a
+            # hung session. Fresh Client per call mirrors FastMCP's own
+            # _create_client_factory behaviour for URL targets.
+            # Do NOT "simplify" to sse_read_timeout: deprecated no-op.
+            _proxy = FastMCPProxy(
+                client_factory=lambda: Client(_probe_url, timeout=55),
+                name="CalibreMCP",
+            )
             await _proxy.run_stdio_async()
             return
     except Exception:
