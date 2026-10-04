@@ -778,9 +778,13 @@ async def search_books_helper(
         try:
             db = get_database()
             with db.session_scope() as session:
-                from sqlalchemy import text
+                # Aliased: `text` is this function's own search-query parameter.
+                # `from sqlalchemy import text` here would shadow it for the rest
+                # of the function body (Python locals are function-scoped, not
+                # block-scoped), silently dropping every free-text search.
+                from sqlalchemy import text as sa_text
 
-                session.execute(text("SELECT id FROM books LIMIT 1"))
+                session.execute(sa_text("SELECT id FROM books LIMIT 1"))
         except Exception as db_error:
             logger.warning(
                 f"Database issue: {db_error}",
@@ -875,8 +879,11 @@ async def search_books_helper(
         if parsed["rating"] and not rating:
             rating = parsed["rating"]
 
-        # Use remaining query text (after removing structured params) for text search
-        if parsed["author"] or parsed["tag"] or parsed["series"] or parsed["pubdate"] or parsed["rating"]:
+        # Use remaining query text (after removing structured params) for text search.
+        # Must fire for plain free-text queries too (parsed["text"] == original text when
+        # no structured hint was found) -- gating this on structured params alone dropped
+        # the text filter entirely for a bare query like "murakami".
+        if search_text:
             search_text = parsed["text"] if parsed["text"] else None
 
             # Handle text search across specified fields
