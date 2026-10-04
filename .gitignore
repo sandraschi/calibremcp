@@ -249,6 +249,9 @@ docs-private/
 # Test files that should be in tests/ or scripts/ directories
 test_*.py
 !tests/test_*.py
+!tests/unit/test_*.py
+!tests/integration/test_*.py
+!tests/portmanteau/test_*.py
 !scripts/test_*.py
 
 # Scripts that should be in scripts/ directory

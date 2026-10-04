@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from calibre_mcp.logging_config import get_logger
 from calibre_mcp.services.book_service import BookSearchResult, book_service
+from calibre_mcp.utils.db_async import run_db_blocking
 
 from .shared.query_parsing import parse_intelligent_query
 
@@ -1193,7 +1194,10 @@ async def search_books_helper(
         )
 
         try:
-            result = book_service.get_all(
+            # BUG-062 follow-up: get_all is sync SQLAlchemy (LIKE scans over
+            # metadata.db); never run it on the event loop.
+            result = await run_db_blocking(
+                book_service.get_all,
                 skip=offset,
                 limit=limit,
                 search=search_text,

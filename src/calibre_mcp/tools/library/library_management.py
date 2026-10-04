@@ -16,6 +16,7 @@ from ...server import LibraryListResponse, LibrarySearchResponse, LibraryStatsRe
 
 # Import services and utilities
 from ...services.book_service import book_service
+from ...utils.db_async import run_db_blocking
 from ...utils.library_utils import discover_calibre_libraries, get_library_metadata
 
 logger = get_logger("calibremcp.tools.library_management")
@@ -449,7 +450,10 @@ async def get_library_stats_helper(library_name: str | None = None) -> LibrarySt
 
             if row is None:
                 try:
-                    row = _stats_from_ephemeral_db(metadata_db, total_books)
+                    # BUG-062 follow-up: ephemeral open + full stats scan are
+                    # blocking; keep them off the event loop. (Global-db path
+                    # above stays on-loop: shared session, not thread-safe.)
+                    row = await run_db_blocking(_stats_from_ephemeral_db, metadata_db, total_books)
                     logger.debug(
                         "Library stats used ephemeral connection to %s (global=%s)",
                         metadata_db,
