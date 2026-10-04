@@ -155,10 +155,19 @@ async def manage_books(
                     related_tools=["query_books", "manage_books"],
                 )
             try:
-                from ...server import BookDetailResponse, current_library, get_api_client
+                from ...server import BookDetailResponse, current_library
 
-                client = await get_api_client()
-                book_data = await client.get_book_details(int(book_id))
+                # Local-first: get_book_helper tries the remote API client when
+                # configured and falls back to direct SQLite (BookService).
+                # The old code dereferenced the remote client unconditionally,
+                # which is None for local libraries -> AttributeError.
+                book_data = await get_book_helper(
+                    book_id=book_id,
+                    include_metadata=include_metadata,
+                    include_formats=include_formats,
+                    include_cover=include_cover,
+                    library_path=library_path,
+                )
 
                 if not book_data:
                     return {
@@ -167,22 +176,40 @@ async def manage_books(
                         "book_id": book_id,
                     }
 
+                series = book_data.get("series")
+                if isinstance(series, dict):
+                    series = series.get("name")
+
+                def _as_str(value):
+                    if value is None or isinstance(value, str):
+                        return value
+                    if hasattr(value, "isoformat"):
+                        return value.isoformat()
+                    return str(value)
+
+                published = _as_str(book_data.get("pubdate") or book_data.get("published"))
+                last_modified = _as_str(book_data.get("last_modified"))
+
+                formats = book_data.get("formats", [])
+                if formats and isinstance(formats[0], dict):
+                    formats = [f.get("format", "") for f in formats]
+
                 return {
                     "success": True,
                     "book": BookDetailResponse(
-                        book_id=int(book_id),
+                        book_id=int(book_data.get("id", book_id)),
                         title=book_data.get("title", "Unknown"),
                         authors=book_data.get("authors", []),
-                        series=book_data.get("series"),
+                        series=series,
                         series_index=book_data.get("series_index"),
                         rating=book_data.get("rating"),
                         tags=book_data.get("tags", []),
                         comments=book_data.get("comments"),
-                        published=book_data.get("published"),
+                        published=published,
                         languages=book_data.get("languages", ["en"]),
-                        formats=book_data.get("formats", []),
+                        formats=formats,
                         identifiers=book_data.get("identifiers", {}),
-                        last_modified=book_data.get("last_modified"),
+                        last_modified=last_modified,
                         cover_url=book_data.get("cover_url"),
                         download_links=book_data.get("download_links", {}),
                         library_name=current_library,

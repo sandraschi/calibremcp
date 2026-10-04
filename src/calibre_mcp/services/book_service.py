@@ -1219,7 +1219,9 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                     "format": data.format.upper(),
                     "size": data.uncompressed_size,
                     "name": data.name,
-                    "mtime": data.mtime.isoformat() if data.mtime else None,
+                    # No mtime column in Calibre metadata.db `data` table
+                    # (verified Calibre 9.14: id/book/format/uncompressed_size/name).
+                    "mtime": None,
                 }
                 for data in book.data
             ]
