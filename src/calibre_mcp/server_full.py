@@ -534,10 +534,10 @@ async def main():
     """Main server entry point"""
     try:
         # Import heavy modules only when actually running the server
-        from .logging_config import get_logger, log_error, log_operation, setup_logging
+        from .logging_config import DEFAULT_LOG_FILE, get_logger, log_error, log_operation, setup_logging
 
         # Initialize logging (stderr is OK for MCP servers, stdout reserved for JSON-RPC)
-        log_file_path = Path("logs/calibremcp.log")
+        log_file_path = DEFAULT_LOG_FILE
         setup_logging(
             level="INFO",
             log_file=log_file_path,

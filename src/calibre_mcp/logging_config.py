@@ -11,11 +11,16 @@ Implements the monitoring standards from central docs:
 import json
 import logging
 import logging.config
+import os
 import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+# Absolute, never cwd-relative: Claude Desktop spawns stdio servers with
+# cwd=C:\Windows\System32, where a relative "logs/" is not writable (BUG-063).
+DEFAULT_LOG_FILE = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "calibre-mcp" / "logs" / "calibremcp.log"
 
 
 def _is_mcp_server() -> bool:
@@ -264,7 +269,7 @@ def initialize_logging() -> None:
     # Auto-disable console for MCP servers (stdio transport)
     setup_logging(
         level="INFO",
-        log_file=Path("logs/calibremcp.log"),
+        log_file=DEFAULT_LOG_FILE,
         enable_console=None,  # Auto-detect based on MCP server mode
     )
 

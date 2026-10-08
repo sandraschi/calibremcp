@@ -741,6 +741,7 @@ async def main():
         try:
             logger.info("Importing logging_config...")
             from calibre_mcp.logging_config import (
+                DEFAULT_LOG_FILE,
                 get_logger,
                 log_error,
                 log_operation,
@@ -760,7 +761,7 @@ async def main():
 
         # PHASE 2: Initialize logging with timeout protection
         try:
-            log_file_path = Path("logs/calibremcp.log")
+            log_file_path = DEFAULT_LOG_FILE
 
             import asyncio
 
