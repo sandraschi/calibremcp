@@ -13,7 +13,7 @@ from typing import Any
 
 # Import the MCP server instance
 # Import response models
-from ...server import ConversionRequest, ConversionResponse
+from ...server_models import ConversionRequest, ConversionResponse
 
 
 # NOTE: @mcp.tool() decorator removed - use manage_files portmanteau tool instead

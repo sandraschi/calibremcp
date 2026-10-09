@@ -27,7 +27,9 @@ from ...db.database import DatabaseService
 from ...logging_config import get_logger, log_error, log_operation
 
 # Import the MCP server instance and helper functions
-from ...server import current_library, get_api_client, mcp
+# NOTE: get_api_client is defined in ...server after register_tools(), so it
+# is imported lazily at the call sites below (top-level import = cycle).
+from ...server import current_library, mcp
 
 logger = get_logger("calibremcp.tools.system")
 
@@ -361,6 +363,8 @@ async def status(level: StatusLevel = StatusLevel.BASIC, focus: str | None = Non
 
         # Get Calibre connection status
         try:
+            from ...server import get_api_client  # lazy (cycle)
+
             client = await get_api_client()
             if client:
                 connection_test = await client.test_connection()
@@ -965,6 +969,8 @@ async def health_check() -> dict[str, Any]:
 
         # Check Calibre connection
         try:
+            from ...server import get_api_client  # lazy (cycle)
+
             client = await get_api_client()
             await client.test_connection()
             health_status["checks"]["calibre_connection"] = {
@@ -1044,6 +1050,8 @@ async def ping() -> str:
         "pong" if successful, or an error message.
     """
     try:
+        from ...server import get_api_client  # lazy (cycle)
+
         client = await get_api_client()
         await client.test_connection()
         return "pong"

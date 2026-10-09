@@ -104,3 +104,62 @@ class TagStatsResponse(BaseModel):
     duplicate_tags: list[dict[str, Any]]
     unused_tags: list[str]
     suggestions: list[dict[str, Any]]
+
+
+class DuplicatesResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    duplicate_groups: list[dict[str, Any]]
+    total_duplicates: int
+    confidence_scores: dict[str, float]
+
+
+class SeriesAnalysisResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    incomplete_series: list[dict[str, Any]]
+    reading_order_suggestions: list[dict[str, Any]]
+    series_statistics: dict[str, Any]
+
+
+class LibraryHealthResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    health_score: float
+    issues_found: list[dict[str, Any]]
+    recommendations: list[str]
+    database_integrity: bool
+
+
+class UnreadPriorityResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    prioritized_books: list[dict[str, Any]]
+    priority_reasons: dict[str, str]
+    total_unread: int
+
+
+class ReadingStats(BaseModel):
+    model_config = {"from_attributes": True}
+    total_books_read: int
+    average_rating: float
+    favorite_genres: list[str]
+    reading_patterns: dict[str, Any]
+
+
+class JapaneseBookOrganization(BaseModel):
+    model_config = {"from_attributes": True}
+    manga_series: list[dict[str, Any]]
+    light_novels: list[dict[str, Any]]
+    language_learning: list[dict[str, Any]]
+    reading_recommendations: list[str]
+
+
+class ITBookCuration(BaseModel):
+    model_config = {"from_attributes": True}
+    programming_languages: dict[str, list[dict[str, Any]]]
+    outdated_books: list[dict[str, Any]]
+    learning_paths: list[dict[str, Any]]
+
+
+class ReadingRecommendations(BaseModel):
+    model_config = {"from_attributes": True}
+    recommendations: list[dict[str, Any]]
+    reasoning: dict[str, str]
+    confidence_scores: dict[str, float]

@@ -16,7 +16,7 @@ from ...logging_config import get_logger
 
 # Import the MCP server instance
 # Import response models
-from ...server import MetadataUpdateRequest, MetadataUpdateResponse, TagStatsResponse
+from ...server_models import MetadataUpdateRequest, MetadataUpdateResponse, TagStatsResponse
 
 # Import services
 from ...services.book_service import book_service

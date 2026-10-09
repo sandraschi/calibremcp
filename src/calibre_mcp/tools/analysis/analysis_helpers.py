@@ -9,7 +9,7 @@ are kept for backward compatibility but are no longer registered as tools.
 """
 
 from ...logging_config import get_logger
-from ...server import (
+from ...server_models import (
     DuplicatesResponse,
     LibraryHealthResponse,
     ReadingStats,

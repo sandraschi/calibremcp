@@ -12,7 +12,7 @@ from typing import Any
 
 from ...config import CalibreConfig
 from ...logging_config import get_logger
-from ...server import LibraryListResponse, LibrarySearchResponse, LibraryStatsResponse
+from ...server_models import LibraryListResponse, LibrarySearchResponse, LibraryStatsResponse
 
 # Import services and utilities
 from ...services.book_service import book_service

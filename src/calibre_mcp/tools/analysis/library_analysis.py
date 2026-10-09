@@ -23,14 +23,14 @@ from ...logging_config import get_logger
 from ...models.tag import Tag
 
 # Import the MCP server instance
-from ...server import (
+from ...server import mcp
+from ...server_models import (
     DuplicatesResponse,
     LibraryHealthResponse,
     ReadingStats,
     SeriesAnalysisResponse,
     TagStatsResponse,
     UnreadPriorityResponse,
-    mcp,
 )
 
 logger = get_logger("calibremcp.tools.library_analysis")

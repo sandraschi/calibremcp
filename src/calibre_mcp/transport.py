@@ -270,7 +270,14 @@ async def run_server_async(mcp_app, args: argparse.Namespace | None = None, serv
 
             app.routes.append(Route("/health", endpoint=health, methods=["GET"]))
 
-            await mcp_app.run_http_async(host=host, port=port, path=path)
+            # Serve via uvicorn on mcp.http_app() so the CORSMiddleware above
+            # actually applies. mcp_app.run_http_async() drops middleware
+            # (it serves its own internal app) — silent CORS failure class.
+            import uvicorn
+
+            _uv_config = uvicorn.Config(app, host=host, port=port, log_level="warning")
+            _uv_server = uvicorn.Server(_uv_config)
+            await _uv_server.serve()
 
         elif transport == "sse":
             host = config["host"]

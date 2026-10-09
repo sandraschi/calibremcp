@@ -247,7 +247,7 @@ _tauri_desktop = os.environ.get("CALIBRE_TAURI", "").lower() in ("1", "true", "y
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
-    allow_origin_regex=r"https?://tauri\.localhost(:\d+)?" if _tauri_desktop else None,
+    allow_origin_regex=r"https?://(?:[a-zA-Z0-9-]+\.ts\.net|.*?\.tail-[a-f0-9]+\.ts\.net|tauri\.localhost|localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?$|^tauri://localhost$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -436,6 +436,55 @@ async def get_cua_diagnostics():
             "tools": {"total": _count_tools(), "categories": ["calibre"]},
             "errors": {"count": 0, "recent": []},
             "cua_status": {"window_found": window, "backend_reachable": True, "tesseract_available": tesseract},
+        },
+    }
+
+
+@app.post("/api/shutdown")
+async def orderly_shutdown():
+    """Orderly exit for the fleet launcher (Restart-Service path).
+
+    Responds 200 immediately, then exits the process ~500 ms later so
+    in-flight flows can checkpoint. The launcher calls this before
+    Restart-Service; without it a bounce is a hard kill mid-write.
+    """
+    import threading
+
+    def _late_exit():
+        os._exit(0)
+
+    threading.Timer(0.5, _late_exit).start()
+    return {"success": True, "message": "calibre-mcp backend shutting down in ~500 ms"}
+
+
+@app.get("/api/capabilities")
+async def get_capabilities():
+    """Standard capability shape consumed by the webapp (WEBAPP_STANDARDS §1.4)."""
+    return {
+        "success": True,
+        "data": {
+            "server": "calibre-mcp",
+            "version": settings.API_VERSION,
+            "transports": ["http"],
+            "endpoints": [
+                "/health",
+                "/api/health",
+                "/metrics",
+                "/api/v1/diagnostics",
+                "/api/shutdown",
+                "/api/capabilities",
+                "/api/skills",
+                "/api/llm/models",
+                "/api/llm/chat",
+                "/docs",
+            ],
+            "features": {
+                "webapp": True,
+                "skills": True,
+                "llm_chat": True,
+                "diagnostics": True,
+                "orderly_shutdown": True,
+            },
         },
     }
 

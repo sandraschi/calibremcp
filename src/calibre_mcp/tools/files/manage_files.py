@@ -7,7 +7,8 @@ Consolidates all file-related operations into a single unified interface.
 from typing import Any
 
 from ...logging_config import get_logger
-from ...server import ConversionRequest, mcp
+from ...server import mcp
+from ...server_models import ConversionRequest
 from ..shared.error_handling import format_error_response, handle_tool_error
 
 # Import helper functions (NOT registered as MCP tools)

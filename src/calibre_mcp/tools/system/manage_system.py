@@ -69,10 +69,12 @@ async def manage_system(
     - list_tools: Catalog of all available operations organized by category.
     - hello_world: Simple reachability test and server identity confirmation.
     - health_check: Deep-dive diagnostic for database and service integrity.
+    - shutdown: Graceful self-termination (responds, then exits ~500 ms later).
 
     Example:
     - manage_system(operation="status", focus="library")
     - manage_system(operation="tool_help", tool_name="manage_books")
+    - manage_system(operation="shutdown")
     """
     try:
         if operation == "help":
@@ -160,7 +162,7 @@ async def manage_system(
         elif operation == "hello_world":
             try:
                 result = await system_tools.hello_world_helper()
-                return {"message": result}
+                return result if isinstance(result, dict) else {"message": result}
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
@@ -183,11 +185,30 @@ async def manage_system(
                     context="Health check",
                 )
 
+        elif operation == "shutdown":
+            try:
+                import os
+                import threading
+
+                threading.Timer(0.5, lambda: os._exit(0)).start()
+                return {
+                    "success": True,
+                    "message": "calibre-mcp server shutting down in ~500 ms (self-termination requested via manage_system)",
+                }
+            except Exception as e:
+                return handle_tool_error(
+                    exception=e,
+                    operation=operation,
+                    parameters={},
+                    tool_name="manage_system",
+                    context="Self-termination",
+                )
+
         else:
             return format_error_response(
                 error_msg=(
                     f"Invalid operation: '{operation}'. Must be one of: "
-                    "'help', 'status', 'tool_help', 'list_tools', 'hello_world', 'health_check'"
+                    "'help', 'status', 'tool_help', 'list_tools', 'hello_world', 'health_check', 'shutdown'"
                 ),
                 error_code="INVALID_OPERATION",
                 error_type="ValueError",

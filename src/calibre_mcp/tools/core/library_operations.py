@@ -8,13 +8,17 @@ and retrieving book information from Calibre libraries.
 import asyncio
 
 from ...logging_config import get_logger, log_error
-from ...server import (
+from ...server import current_library
+from ...server_models import (
     BookDetailResponse,
     ConnectionTestResponse,
     LibrarySearchResponse,
-    current_library,
-    get_api_client,
 )
+
+# NOTE: get_api_client lives in ...server *after* the register_tools() call,
+# so a top-level import re-creates the circular ImportError this module just
+# escaped (server_models holds the models; this holds the live client).
+# It is imported lazily at the three call sites below instead.
 
 logger = get_logger("calibremcp.tools.core")
 
@@ -38,6 +42,8 @@ async def list_books_helper(query: str | None = None, limit: int = 50, sort: str
     """
     try:
         start_time = asyncio.get_event_loop().time()
+        from ...server import get_api_client  # lazy: defined after register_tools(); top-level import re-arms the cycle
+
         client = await get_api_client()
 
         # Validate limit
@@ -84,6 +90,8 @@ async def get_book_details_helper(book_id: int) -> BookDetailResponse:
         BookDetailResponse: Complete book metadata and file information
     """
     try:
+        from ...server import get_api_client  # lazy: defined after register_tools(); top-level import re-arms the cycle
+
         client = await get_api_client()
         book_data = await client.get_book_details(book_id)
 
@@ -138,6 +146,8 @@ async def test_calibre_connection_helper() -> ConnectionTestResponse:
     """Helper for connection test. Use manage_libraries(operation='test_connection') or test_calibre_connection."""
     try:
         start_time = asyncio.get_event_loop().time()
+        from ...server import get_api_client  # lazy: defined after register_tools(); top-level import re-arms the cycle
+
         client = await get_api_client()
 
         # Check if using local library mode (client is None)

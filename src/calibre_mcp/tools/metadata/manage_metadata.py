@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from ...logging_config import get_logger
-from ...server import MetadataUpdateRequest, mcp
+from ...server import mcp
+from ...server_models import MetadataUpdateRequest
 from ...utils.subprocess_utils import _open_file
 from ..shared.error_handling import format_error_response, handle_tool_error
 
