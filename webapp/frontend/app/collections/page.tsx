@@ -1,6 +1,16 @@
 'use client';
 
-import { type SmartCollection, createSmartCollection, getSmartCollections } from '@/common/api';
+import {
+  type SmartCollection,
+  createAiRecommendedCollection,
+  createRecentlyAddedCollection,
+  createSeriesCollection,
+  createSmartCollection,
+  createUnreadCollection,
+  deleteSmartCollection,
+  getSmartCollections,
+  querySmartCollection,
+} from '@/common/api';
 import {
   AlertCircle,
   BookmarkCheck,
@@ -52,6 +62,15 @@ export default function CollectionsPage() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
+  // Generators + per-collection actions
+  const [genSeries, setGenSeries] = useState('');
+  const [genDays, setGenDays] = useState('30');
+  const [genBusy, setGenBusy] = useState<string | null>(null);
+  const [genError, setGenError] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedCount, setExpandedCount] = useState<Record<string, number>>({});
+  const [actingId, setActingId] = useState<string | null>(null);
+
   async function loadCollections() {
     setLoading(true);
     setError(null);
@@ -69,6 +88,57 @@ export default function CollectionsPage() {
     loadCollections();
   }, []);
 
+  async function handleGenerate(kind: 'series' | 'recent' | 'unread' | 'ai') {
+    setGenBusy(kind);
+    setGenError(null);
+    try {
+      if (kind === 'series') {
+        if (!genSeries.trim()) throw new Error('Enter a series name');
+        await createSeriesCollection(`${genSeries.trim()} Shelf`, genSeries.trim());
+        setGenSeries('');
+      } else if (kind === 'recent') {
+        await createRecentlyAddedCollection(undefined, Number(genDays) || 30);
+      } else if (kind === 'unread') {
+        await createUnreadCollection();
+      } else {
+        await createAiRecommendedCollection();
+      }
+      await loadCollections();
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : 'Generator failed');
+    } finally {
+      setGenBusy(null);
+    }
+  }
+
+  async function handleView(col: SmartCollection) {
+    if (expandedId === col.id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(col.id);
+    if (expandedCount[col.id] === undefined) {
+      try {
+        const res = await querySmartCollection(col.id, { limit: 1 });
+        setExpandedCount((m) => ({ ...m, [col.id]: res.total ?? 0 }));
+      } catch {
+        setExpandedCount((m) => ({ ...m, [col.id]: -1 }));
+      }
+    }
+  }
+
+  async function handleDelete(col: SmartCollection) {
+    if (!window.confirm(`Delete collection "${col.name}"?`)) return;
+    setActingId(col.id);
+    try {
+      await deleteSmartCollection(col.id);
+      await loadCollections();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
+    } finally {
+      setActingId(null);
+    }
+  }
   async function handleCreate(template?: (typeof PRESET_TEMPLATES)[0]) {
     setCreating(true);
     setCreateError(null);
@@ -138,6 +208,64 @@ export default function CollectionsPage() {
           <span className="text-sm">{error}</span>
         </div>
       )}
+
+      {/* Auto Generators (series / recently-added / unread / ai-recommended) */}
+      <div className="p-5 rounded-xl bg-slate-800/50 border border-slate-700/80 space-y-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <Sparkles className="w-4 h-4 text-amber" />
+          <span>Auto-generate shelves</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            value={genSeries}
+            onChange={(e) => setGenSeries(e.target.value)}
+            placeholder="Series name…"
+            className="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-amber"
+          />
+          <button
+            type="button"
+            disabled={genBusy !== null}
+            onClick={() => handleGenerate('series')}
+            className="px-3 py-2 rounded-lg bg-slate-700 text-slate-200 text-sm hover:bg-slate-600 disabled:opacity-50"
+          >
+            {genBusy === 'series' ? '…' : 'Series shelf'}
+          </button>
+          <input
+            type="number"
+            min={1}
+            value={genDays}
+            onChange={(e) => setGenDays(e.target.value)}
+            title="Days for recently-added"
+            className="w-20 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-amber"
+          />
+          <button
+            type="button"
+            disabled={genBusy !== null}
+            onClick={() => handleGenerate('recent')}
+            className="px-3 py-2 rounded-lg bg-slate-700 text-slate-200 text-sm hover:bg-slate-600 disabled:opacity-50"
+          >
+            {genBusy === 'recent' ? '…' : 'Recently added'}
+          </button>
+          <button
+            type="button"
+            disabled={genBusy !== null}
+            onClick={() => handleGenerate('unread')}
+            className="px-3 py-2 rounded-lg bg-slate-700 text-slate-200 text-sm hover:bg-slate-600 disabled:opacity-50"
+          >
+            {genBusy === 'unread' ? '…' : 'Unread'}
+          </button>
+          <button
+            type="button"
+            disabled={genBusy !== null}
+            onClick={() => handleGenerate('ai')}
+            className="px-3 py-2 rounded-lg bg-slate-700 text-slate-200 text-sm hover:bg-slate-600 disabled:opacity-50"
+          >
+            {genBusy === 'ai' ? '…' : 'AI recommended'}
+          </button>
+        </div>
+        {genError && <p className="text-xs text-red-400">{genError}</p>}
+      </div>
 
       {/* Presets Bar */}
       <div className="p-5 rounded-xl bg-slate-800/50 border border-slate-700/80 space-y-3">
@@ -212,13 +340,37 @@ export default function CollectionsPage() {
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between">
-                <Link
-                  href={`/books?tag=${encodeURIComponent(col.name)}`}
-                  className="text-xs font-semibold text-amber hover:underline"
-                >
-                  Browse Books →
-                </Link>
-                <span className="text-[10px] font-mono text-slate-500">Dynamic Rule</span>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href={`/books?tag=${encodeURIComponent(col.name)}`}
+                    className="text-xs font-semibold text-amber hover:underline"
+                  >
+                    Browse Books →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleView(col)}
+                    className="text-xs text-slate-400 hover:text-slate-200"
+                  >
+                    {expandedId === col.id ? 'Hide count' : 'Count'}
+                  </button>
+                  {expandedId === col.id && expandedCount[col.id] !== undefined && (
+                    <span className="text-xs text-slate-500">
+                      {expandedCount[col.id] >= 0 ? `${expandedCount[col.id]} books` : 'n/a'}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-slate-500">Dynamic Rule</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(col)}
+                    disabled={actingId === col.id}
+                    className="text-[11px] text-red-400/80 hover:text-red-300 disabled:opacity-50"
+                  >
+                    {actingId === col.id ? '…' : 'Delete'}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -18,7 +18,14 @@ export async function setAnnasMirrors(mirrors: string | string[]): Promise<void>
   await updateSettings({ annas_mirrors });
 }
 
-export const API_BASE = process.env.NODE_ENV === 'development' ? '' : 'http://127.0.0.1:10720';
+/** Backend base URL.
+ * - `NEXT_PUBLIC_API_BASE` wins when set (LAN / Tailscale / reverse-proxy setups).
+ * - Dev defaults to '' (same-origin; Next.js rewrites /api to the backend — LAN-safe).
+ * - Non-dev (incl. Tauri, which has no rewrite server) defaults to loopback backend.
+ */
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE ??
+  (process.env.NODE_ENV === 'development' ? '' : 'http://127.0.0.1:10720');
 
 /** Base URL for fetch. Server needs absolute URL; client uses relative in dev. */
 export function getBaseUrl(): string {
@@ -76,21 +83,55 @@ export interface BookListResponse {
   per_page?: number;
 }
 
-export async function getBooks(params?: {
+export type BookSortBy = 'title' | 'author' | 'series' | 'rating' | 'timestamp' | 'pubdate';
+export type SortOrder = 'asc' | 'desc';
+
+export interface BookQueryParams {
   limit?: number;
   offset?: number;
   author?: string;
   tag?: string;
   publisher?: string;
+  series?: string;
   text?: string;
-}): Promise<BookListResponse> {
+  title?: string;
+  rating?: number;
+  min_rating?: number;
+  max_rating?: number;
+  unrated?: boolean;
+  formats?: string;
+  pubdate_start?: string;
+  pubdate_end?: string;
+  added_after?: string;
+  added_before?: string;
+  has_publisher?: boolean;
+  sort_by?: BookSortBy;
+  sort_order?: SortOrder;
+}
+
+export async function getBooks(params?: BookQueryParams): Promise<BookListResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set('limit', params.limit.toString());
   if (params?.offset) searchParams.set('offset', params.offset.toString());
   if (params?.author) searchParams.set('author', params.author);
   if (params?.tag) searchParams.set('tag', params.tag);
   if (params?.publisher) searchParams.set('publisher', params.publisher);
+  if (params?.series) searchParams.set('series', params.series);
   if (params?.text) searchParams.set('text', params.text);
+  if (params?.title) searchParams.set('title', params.title);
+  if (params?.rating) searchParams.set('rating', params.rating.toString());
+  if (params?.min_rating) searchParams.set('min_rating', params.min_rating.toString());
+  if (params?.max_rating) searchParams.set('max_rating', params.max_rating.toString());
+  if (params?.unrated) searchParams.set('unrated', '1');
+  if (params?.formats) searchParams.set('formats', params.formats);
+  if (params?.pubdate_start) searchParams.set('pubdate_start', params.pubdate_start);
+  if (params?.pubdate_end) searchParams.set('pubdate_end', params.pubdate_end);
+  if (params?.added_after) searchParams.set('added_after', params.added_after);
+  if (params?.added_before) searchParams.set('added_before', params.added_before);
+  if (params?.has_publisher === true) searchParams.set('has_publisher', '1');
+  if (params?.has_publisher === false) searchParams.set('has_publisher', '0');
+  if (params?.sort_by) searchParams.set('sort_by', params.sort_by);
+  if (params?.sort_order) searchParams.set('sort_order', params.sort_order);
 
   const response = await fetch(`${getBaseUrl()}/api/books?${searchParams}`);
   if (!response.ok) {
@@ -704,6 +745,11 @@ export async function listTags(params?: {
   search?: string;
   limit?: number;
   offset?: number;
+  sort_by?: 'name' | 'book_count';
+  sort_order?: 'asc' | 'desc';
+  unused_only?: boolean;
+  min_book_count?: number;
+  max_book_count?: number;
 }): Promise<{
   items: TagItem[];
   total: number;
@@ -714,6 +760,11 @@ export async function listTags(params?: {
   if (params?.search) searchParams.set('search', params.search);
   if (params?.limit) searchParams.set('limit', params.limit.toString());
   if (params?.offset) searchParams.set('offset', params.offset.toString());
+  if (params?.sort_by) searchParams.set('sort_by', params.sort_by);
+  if (params?.sort_order) searchParams.set('sort_order', params.sort_order);
+  if (params?.unused_only) searchParams.set('unused_only', 'true');
+  if (params?.min_book_count) searchParams.set('min_book_count', String(params.min_book_count));
+  if (params?.max_book_count) searchParams.set('max_book_count', String(params.max_book_count));
   const response = await fetch(`${getBaseUrl()}/api/tags?${searchParams}`);
   if (!response.ok) {
     let detail = '';
@@ -1138,4 +1189,814 @@ export async function createSmartCollection(data: {
   });
   if (!response.ok) throw new Error('Failed to create smart collection');
   return response.json();
+}
+
+// ── Search: advanced + smart (previously unsurfaced) ─────────────────────────
+
+export interface AdvancedSearchParams {
+  query?: string;
+  text?: string;
+  title?: string;
+  author?: string;
+  tag?: string;
+  series?: string;
+  publisher?: string;
+  rating?: number;
+  min_rating?: number;
+  max_rating?: number;
+  unrated?: boolean;
+  pubdate_start?: string;
+  pubdate_end?: string;
+  added_after?: string;
+  added_before?: string;
+  formats?: string[];
+  comment?: string;
+  limit?: number;
+  offset?: number;
+}
+
+async function postJson<T>(url: string, body: unknown, errMsg: string): Promise<T> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(
+      (err as { detail?: string }).detail ??
+        (err as { error?: string }).error ??
+        `${errMsg} (${response.status})`,
+    );
+  }
+  return response.json();
+}
+
+export async function advancedSearch(params: AdvancedSearchParams): Promise<BookListResponse> {
+  return postJson(`${getBaseUrl()}/api/search/advanced`, params, 'Advanced search failed');
+}
+
+export type SmartSearchMode = 'auto' | 'keyword' | 'advanced' | 'semantic' | 'fulltext';
+
+export async function smartSearch(
+  params: AdvancedSearchParams & { mode?: SmartSearchMode },
+): Promise<BookListResponse & { engine?: string; message?: string }> {
+  return postJson(`${getBaseUrl()}/api/search/smart`, params, 'Smart search failed');
+}
+
+// ── Authors: detail routes (previously unsurfaced) ───────────────────────────
+
+export async function getAuthor(authorId: number): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/authors/${authorId}`);
+  if (!response.ok) throw new Error('Failed to fetch author');
+  return response.json();
+}
+
+export async function getAuthorBooks(
+  authorId: number,
+  params?: { limit?: number; offset?: number },
+): Promise<BookListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.limit) sp.set('limit', String(params.limit));
+  if (params?.offset) sp.set('offset', String(params.offset));
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/authors/${authorId}/books${q ? `?${q}` : ''}`);
+  if (!response.ok) throw new Error('Failed to fetch author books');
+  return response.json();
+}
+
+export async function getAuthorsStats(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/authors/stats/summary`);
+  if (!response.ok) throw new Error('Failed to fetch author stats');
+  return response.json();
+}
+
+export async function listAuthorsByLetter(
+  letter: string,
+): Promise<{ items: AuthorItem[]; total: number }> {
+  const response = await fetch(`${getBaseUrl()}/api/authors/by-letter/${letter}`);
+  if (!response.ok) throw new Error('Failed to fetch authors by letter');
+  const data = await response.json();
+  return { items: data.items ?? data.authors ?? [], total: data.total ?? 0 };
+}
+
+// ── Series: stats + completion + detail (previously unsurfaced) ──────────────
+
+export async function getSeriesStats(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/series/stats`);
+  if (!response.ok) throw new Error('Failed to fetch series stats');
+  return response.json();
+}
+
+export async function getSeriesCompletion(params?: {
+  min_books?: number;
+  incomplete_only?: boolean;
+}): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams();
+  if (params?.min_books) sp.set('min_books', String(params.min_books));
+  if (params?.incomplete_only === false) sp.set('incomplete_only', 'false');
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/series/completion${q ? `?${q}` : ''}`);
+  if (!response.ok) throw new Error('Failed to fetch series completion');
+  return response.json();
+}
+
+export async function getSeries(seriesId: number): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/series/${seriesId}`);
+  if (!response.ok) throw new Error('Failed to fetch series');
+  return response.json();
+}
+
+// ── Analysis extras (previously unsurfaced) ──────────────────────────────────
+
+export async function getTagStatistics(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/analysis/tag-statistics`);
+  if (!response.ok) throw new Error('Failed to fetch tag statistics');
+  return response.json();
+}
+
+export async function getLibrarySeriesAnalysis(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/analysis/series`);
+  if (!response.ok) throw new Error('Failed to fetch series analysis');
+  return response.json();
+}
+
+// ── Books: write ops + details + file path (previously unsurfaced) ──────────
+
+export async function getBookDetails(bookId: number): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/books/${bookId}/details`);
+  if (!response.ok) throw new Error('Failed to fetch book details');
+  return response.json();
+}
+
+export async function getBookFilePath(
+  bookId: number,
+  formatPreference = 'EPUB',
+): Promise<Record<string, unknown>> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/books/${bookId}/file?format_preference=${formatPreference}`,
+  );
+  if (!response.ok) throw new Error('Failed to fetch book file path');
+  return response.json();
+}
+
+export async function addBook(data: {
+  file_path?: string;
+  metadata?: Record<string, unknown>;
+  tags?: string[];
+  fetch_metadata?: boolean;
+  convert_to?: string;
+  library_path?: string;
+}): Promise<Record<string, unknown>> {
+  return postJson(`${getBaseUrl()}/api/books/`, data, 'Failed to add book');
+}
+
+export async function updateBook(
+  bookId: number,
+  data: {
+    metadata?: Record<string, unknown>;
+    status?: string;
+    progress?: number;
+    cover_path?: string;
+  },
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/books/${bookId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to update book');
+  return response.json();
+}
+
+export async function deleteBook(
+  bookId: number,
+  deleteFiles = true,
+): Promise<Record<string, unknown>> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/books/${bookId}?delete_files=${deleteFiles ? 'true' : 'false'}`,
+    { method: 'DELETE' },
+  );
+  if (!response.ok) throw new Error('Failed to delete book');
+  return response.json();
+}
+
+// ── Tags: management (previously list-only) ──────────────────────────────────
+
+export async function createTag(name: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/tags/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(name),
+  });
+  if (!response.ok) throw new Error('Failed to create tag');
+  return response.json();
+}
+
+export async function renameTag(tagId: number, newName: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/tags/${tagId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newName),
+  });
+  if (!response.ok) throw new Error('Failed to rename tag');
+  return response.json();
+}
+
+export async function deleteTag(tagId: number, force = false): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/tags/${tagId}${force ? '?force=true' : ''}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Failed to delete tag');
+  return response.json();
+}
+
+export async function findDuplicateTags(
+  similarityThreshold = 0.8,
+): Promise<Record<string, unknown>> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/tags/duplicates/find?similarity_threshold=${similarityThreshold}`,
+  );
+  if (!response.ok) throw new Error('Failed to find duplicate tags');
+  return response.json();
+}
+
+export async function mergeTags(
+  sourceTagIds: number[],
+  targetTagId: number,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/tags/merge`,
+    { source_tag_ids: sourceTagIds, target_tag_id: targetTagId },
+    'Failed to merge tags',
+  );
+}
+
+export async function getUnusedTags(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/tags/unused/list`);
+  if (!response.ok) throw new Error('Failed to fetch unused tags');
+  return response.json();
+}
+
+export async function deleteUnusedTags(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/tags/unused/all`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Failed to delete unused tags');
+  return response.json();
+}
+
+// ── Collections: full CRUD + generators (previously list/create only) ────────
+
+export async function getSmartCollection(collectionId: string): Promise<SmartCollection> {
+  const response = await fetch(`${getBaseUrl()}/api/collections/${collectionId}`);
+  if (!response.ok) throw new Error('Failed to fetch collection');
+  return response.json();
+}
+
+export async function querySmartCollection(
+  collectionId: string,
+  params?: { limit?: number; offset?: number },
+): Promise<BookListResponse> {
+  const sp = new URLSearchParams();
+  if (params?.limit) sp.set('limit', String(params.limit));
+  if (params?.offset) sp.set('offset', String(params.offset));
+  const q = sp.toString();
+  const response = await fetch(
+    `${getBaseUrl()}/api/collections/${collectionId}/query${q ? `?${q}` : ''}`,
+  );
+  if (!response.ok) throw new Error('Failed to query collection');
+  return response.json();
+}
+
+export async function updateSmartCollection(
+  collectionId: string,
+  updates: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/collections/${collectionId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!response.ok) throw new Error('Failed to update collection');
+  return response.json();
+}
+
+export async function deleteSmartCollection(
+  collectionId: string,
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/collections/${collectionId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Failed to delete collection');
+  return response.json();
+}
+
+export async function createSeriesCollection(
+  name: string,
+  seriesName: string,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/collections/series`,
+    { name, series_name: seriesName },
+    'Failed to create series collection',
+  );
+}
+
+export async function createRecentlyAddedCollection(
+  name?: string,
+  days = 30,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/collections/recently-added`,
+    { name: name ?? null, days },
+    'Failed to create recently-added collection',
+  );
+}
+
+export async function createUnreadCollection(name?: string): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/collections/unread`,
+    { name: name ?? null },
+    'Failed to create unread collection',
+  );
+}
+
+export async function createAiRecommendedCollection(
+  name?: string,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/collections/ai-recommended`,
+    { name: name ?? null },
+    'Failed to create AI collection',
+  );
+}
+
+// ── Export: HTML + Pandoc (previously CSV/JSON only) ─────────────────────────
+
+export async function exportBooks(
+  format: 'csv' | 'json' | 'html' | 'pandoc',
+  options?: {
+    output_path?: string;
+    book_ids?: number[];
+    author?: string;
+    tag?: string;
+    limit?: number;
+    include_fields?: string[];
+    open_file?: boolean;
+    format_type?: string;
+    html_style?: string;
+  },
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/export/${format}`,
+    {
+      output_path: options?.output_path ?? null,
+      book_ids: options?.book_ids ?? null,
+      author: options?.author ?? null,
+      tag: options?.tag ?? null,
+      limit: options?.limit ?? 1000,
+      include_fields: options?.include_fields ?? null,
+      open_file: options?.open_file ?? false,
+      ...(format === 'pandoc' ? { format_type: options?.format_type ?? 'docx' } : {}),
+      ...(format === 'html' ? { html_style: options?.html_style ?? 'gallery' } : {}),
+    },
+    `Export to ${format} failed`,
+  );
+}
+
+// ── Viewer: session ops + random (previously open-file only) ─────────────────
+
+export async function openRandomBook(params?: {
+  author?: string;
+  tag?: string;
+  series?: string;
+  format_preference?: string;
+}): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams();
+  if (params?.author) sp.set('author', params.author);
+  if (params?.tag) sp.set('tag', params.tag);
+  if (params?.series) sp.set('series', params.series);
+  if (params?.format_preference) sp.set('format_preference', params.format_preference);
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/viewer/open-random${q ? `?${q}` : ''}`, {
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('Failed to open random book');
+  return response.json();
+}
+
+export async function viewerOpen(
+  bookId: number,
+  filePath?: string,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/viewer/open`,
+    { book_id: bookId, file_path: filePath ?? null },
+    'Failed to open viewer session',
+  );
+}
+
+export async function viewerPage(
+  bookId: number,
+  filePath: string,
+  pageNumber = 0,
+): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams({
+    book_id: String(bookId),
+    file_path: filePath,
+    page_number: String(pageNumber),
+  });
+  const response = await fetch(`${getBaseUrl()}/api/viewer/page?${sp}`);
+  if (!response.ok) throw new Error('Failed to fetch viewer page');
+  return response.json();
+}
+
+export async function viewerMetadata(
+  bookId: number,
+  filePath: string,
+): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams({ book_id: String(bookId), file_path: filePath });
+  const response = await fetch(`${getBaseUrl()}/api/viewer/metadata?${sp}`);
+  if (!response.ok) throw new Error('Failed to fetch viewer metadata');
+  return response.json();
+}
+
+export async function viewerGetState(
+  bookId: number,
+  filePath: string,
+): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams({ book_id: String(bookId), file_path: filePath });
+  const response = await fetch(`${getBaseUrl()}/api/viewer/state?${sp}`);
+  if (!response.ok) throw new Error('Failed to fetch viewer state');
+  return response.json();
+}
+
+export async function viewerSaveState(state: {
+  book_id: number;
+  file_path: string;
+  current_page?: number;
+  reading_direction?: string;
+  page_layout?: string;
+  zoom_mode?: string;
+  zoom_level?: number;
+}): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/viewer/state`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(state),
+  });
+  if (!response.ok) throw new Error('Failed to save viewer state');
+  return response.json();
+}
+
+export async function viewerClose(
+  bookId: number,
+  filePath?: string,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/viewer/close`,
+    { book_id: bookId, file_path: filePath ?? null },
+    'Failed to close viewer session',
+  );
+}
+
+// ── Comments (previously entirely unsurfaced) ────────────────────────────────
+
+export async function getBookComment(bookId: number | string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/comments/${bookId}`);
+  if (!response.ok) throw new Error('Failed to fetch comment');
+  return response.json();
+}
+
+async function sendCommentText(
+  method: string,
+  bookId: number | string,
+  text: string,
+  errMsg: string,
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/comments/${bookId}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(text),
+  });
+  if (!response.ok) throw new Error(errMsg);
+  return response.json();
+}
+
+export async function createBookComment(
+  bookId: number | string,
+  text: string,
+): Promise<Record<string, unknown>> {
+  return sendCommentText('POST', bookId, text, 'Failed to create comment');
+}
+
+export async function replaceBookComment(
+  bookId: number | string,
+  text: string,
+): Promise<Record<string, unknown>> {
+  return sendCommentText('PUT', bookId, text, 'Failed to update comment');
+}
+
+export async function appendBookComment(
+  bookId: number | string,
+  text: string,
+): Promise<Record<string, unknown>> {
+  return sendCommentText('PATCH', bookId, text, 'Failed to append comment');
+}
+
+export async function deleteBookComment(bookId: number | string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/comments/${bookId}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('Failed to delete comment');
+  return response.json();
+}
+
+// ── Metadata tools (previously entirely unsurfaced) ──────────────────────────
+
+export async function showMetadata(params?: {
+  query?: string;
+  author?: string;
+}): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams();
+  if (params?.query) sp.set('query', params.query);
+  if (params?.author) sp.set('author', params.author);
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/metadata/show${q ? `?${q}` : ''}`);
+  if (!response.ok) throw new Error('Failed to show metadata');
+  return response.json();
+}
+
+export async function bulkUpdateMetadata(
+  updates: { book_id: number; field: string; value: unknown }[],
+): Promise<Record<string, unknown>> {
+  return postJson(`${getBaseUrl()}/api/metadata/update`, updates, 'Metadata update failed');
+}
+
+export async function organizeTags(): Promise<Record<string, unknown>> {
+  return postJson(`${getBaseUrl()}/api/metadata/organize-tags`, {}, 'Tag organization failed');
+}
+
+export async function fixMetadataIssues(): Promise<Record<string, unknown>> {
+  return postJson(`${getBaseUrl()}/api/metadata/fix-issues`, {}, 'Metadata fix failed');
+}
+
+// ── Files + bulk (previously entirely unsurfaced) ────────────────────────────
+
+export async function convertBookFile(
+  conversionRequests: { book_id: number; target_format: string }[],
+): Promise<Record<string, unknown>> {
+  return postJson(`${getBaseUrl()}/api/files/convert`, conversionRequests, 'File convert failed');
+}
+
+export async function downloadBookFile(
+  bookId: number,
+  formatPreference = 'EPUB',
+): Promise<Record<string, unknown>> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/files/${bookId}/download?format_preference=${formatPreference}`,
+  );
+  if (!response.ok) throw new Error('Failed to download book file');
+  return response.json();
+}
+
+export async function bulkFileOperation(
+  operationType: 'convert' | 'validate' | 'cleanup',
+  options?: { target_format?: string; book_ids?: number[] },
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/files/bulk`,
+    {
+      operation_type: operationType,
+      target_format: options?.target_format ?? null,
+      book_ids: options?.book_ids ?? null,
+    },
+    'Bulk file operation failed',
+  );
+}
+
+export async function bulkUpdateBooksMetadata(
+  bookIds: number[],
+  updates: Record<string, unknown>,
+  batchSize = 10,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/bulk/metadata/update`,
+    { book_ids: bookIds, updates, batch_size: batchSize },
+    'Bulk metadata update failed',
+  );
+}
+
+export async function bulkExportBooks(
+  bookIds: number[],
+  exportPath: string,
+  format: 'directory' | 'zip' = 'directory',
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/bulk/export`,
+    { book_ids: bookIds, export_path: exportPath, format },
+    'Bulk export failed',
+  );
+}
+
+export async function bulkDeleteBooks(
+  bookIds: number[],
+  deleteFiles = true,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/bulk/delete`,
+    { book_ids: bookIds, delete_files: deleteFiles },
+    'Bulk delete failed',
+  );
+}
+
+export async function bulkConvertBooks(
+  bookIds: number[],
+  targetFormat: string,
+  outputPath?: string,
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/bulk/convert`,
+    { book_ids: bookIds, target_format: targetFormat, output_path: outputPath ?? null },
+    'Bulk convert failed',
+  );
+}
+
+// ── Specialized curation (previously entirely unsurfaced) ────────────────────
+
+export async function getJapaneseOrganizer(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/specialized/japanese-organizer`);
+  if (!response.ok) throw new Error('Japanese organizer failed');
+  return response.json();
+}
+
+export async function getItCurator(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/specialized/it-curator`);
+  if (!response.ok) throw new Error('IT curation failed');
+  return response.json();
+}
+
+export async function getReadingRecommendations(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/specialized/reading-recommendations`);
+  if (!response.ok) throw new Error('Reading recommendations failed');
+  return response.json();
+}
+
+// ── RAG extras (previously unsurfaced) ───────────────────────────────────────
+
+export async function ragCombinedSearch(
+  query: string,
+  topK = 10,
+  mode: 'auto' | 'metadata' | 'content' = 'auto',
+): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams({ q: query, top_k: String(topK), mode });
+  const response = await fetch(`${getBaseUrl()}/api/rag/search?${sp}`, { method: 'POST' });
+  if (!response.ok) throw new Error('Combined RAG search failed');
+  return response.json();
+}
+
+export async function ragCriticalReception(bookId: number): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/rag/critical-reception/${bookId}`, {
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('Critical reception failed');
+  return response.json();
+}
+
+export async function ragDeepResearch(topic: string, limit = 5): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams({ topic, limit: String(limit) });
+  const response = await fetch(`${getBaseUrl()}/api/rag/deep-research?${sp}`, { method: 'POST' });
+  if (!response.ok) throw new Error('Deep research failed');
+  return response.json();
+}
+
+export async function ragMetadataExport(outputPath?: string): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams();
+  if (outputPath) sp.set('output_path', outputPath);
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/rag/metadata/export${q ? `?${q}` : ''}`, {
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('RAG metadata export failed');
+  return response.json();
+}
+
+// ── Libraries: cross-search / discover / connection (new backend routes) ─────
+
+export async function crossLibrarySearch(
+  query: string,
+  libraries?: string[],
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/libraries/search`,
+    { query, libraries: libraries ?? null },
+    'Cross-library search failed',
+  );
+}
+
+export async function discoverLibraries(options?: {
+  wizfile_allowed?: boolean;
+  calibre_cli_allowed?: boolean;
+  common_paths_allowed?: boolean;
+}): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/libraries/discover`,
+    {
+      wizfile_allowed: options?.wizfile_allowed ?? false,
+      calibre_cli_allowed: options?.calibre_cli_allowed ?? false,
+      common_paths_allowed: options?.common_paths_allowed ?? true,
+    },
+    'Library discovery failed',
+  );
+}
+
+export async function testLibraryConnection(): Promise<Record<string, unknown>> {
+  return postJson(`${getBaseUrl()}/api/libraries/test-connection`, {}, 'Connection test failed');
+}
+
+// ── System extras (previously unsurfaced) ────────────────────────────────────
+
+export async function listTools(category?: string): Promise<Record<string, unknown>> {
+  const sp = new URLSearchParams();
+  if (category) sp.set('category', category);
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/system/tools${q ? `?${q}` : ''}`);
+  if (!response.ok) throw new Error('Failed to list tools');
+  return response.json();
+}
+
+export async function getToolHelp(
+  toolName: string,
+  level: 'basic' | 'intermediate' | 'advanced' | 'expert' = 'basic',
+): Promise<Record<string, unknown>> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/system/tools/${toolName}/help?tool_help_level=${level}`,
+  );
+  if (!response.ok) throw new Error('Failed to fetch tool help');
+  return response.json();
+}
+
+export async function getApiDocsInfo(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/system/api-docs-info`);
+  if (!response.ok) throw new Error('Failed to fetch API docs info');
+  return response.json();
+}
+
+export async function getHealthCheck(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/system/health-check`);
+  if (!response.ok) throw new Error('Health check failed');
+  return response.json();
+}
+
+export async function getContentServerStatus(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getBaseUrl()}/api/system/content-server`);
+  if (!response.ok) throw new Error('Content server check failed');
+  return response.json();
+}
+
+// ── LLM chat (previously unsurfaced: chat page never called /llm/*) ──────────
+
+export async function listLlmModels(params?: {
+  provider?: string;
+  base_url?: string;
+}): Promise<{ models: string[]; provider?: string; error?: string }> {
+  const sp = new URLSearchParams();
+  if (params?.provider) sp.set('provider', params.provider);
+  if (params?.base_url) sp.set('base_url', params.base_url);
+  const q = sp.toString();
+  const response = await fetch(`${getBaseUrl()}/api/llm/models${q ? `?${q}` : ''}`);
+  if (!response.ok) throw new Error('Failed to list LLM models');
+  return response.json();
+}
+
+export async function llmChat(
+  messages: { role: string; content: string }[],
+  model = 'llama3.2',
+  options?: { provider?: string; base_url?: string },
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/llm/chat`,
+    {
+      messages,
+      model,
+      stream: false,
+      provider: options?.provider ?? null,
+      base_url: options?.base_url ?? null,
+    },
+    'LLM chat failed',
+  );
+}
+
+export async function llmAgenticChat(
+  messages: { role: string; content: string }[],
+  model = 'llama3.2',
+  options?: { provider?: string; base_url?: string },
+): Promise<Record<string, unknown>> {
+  return postJson(
+    `${getBaseUrl()}/api/llm/agentic`,
+    {
+      messages,
+      model,
+      provider: options?.provider ?? null,
+      base_url: options?.base_url ?? null,
+    },
+    'Agentic chat failed',
+  );
 }

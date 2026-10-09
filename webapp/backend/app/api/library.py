@@ -52,3 +52,45 @@ async def switch_library(data: dict = Body(...)):
         return result
     except Exception as e:
         raise handle_mcp_error(e)
+
+
+@router.post("/search")
+async def cross_library_search(data: dict = Body(...)):
+    """Search for books across multiple libraries simultaneously."""
+    try:
+        args: dict = {"operation": "search", "query": data.get("query")}
+        if data.get("libraries"):
+            args["libraries"] = data.get("libraries")
+        result = await mcp_client.call_tool("manage_libraries", args)
+        return result
+    except Exception as e:
+        raise handle_mcp_error(e)
+
+
+@router.post("/discover")
+async def discover_libraries(data: dict | None = Body(None)):
+    """Scan filesystem/CLI to find new Calibre libraries."""
+    try:
+        data = data or {}
+        result = await mcp_client.call_tool(
+            "manage_libraries",
+            {
+                "operation": "discover",
+                "wizfile_allowed": data.get("wizfile_allowed", False),
+                "calibre_cli_allowed": data.get("calibre_cli_allowed", False),
+                "common_paths_allowed": data.get("common_paths_allowed", True),
+            },
+        )
+        return result
+    except Exception as e:
+        raise handle_mcp_error(e)
+
+
+@router.post("/test-connection")
+async def test_library_connection():
+    """Diagnostic check for library accessibility."""
+    try:
+        result = await mcp_client.call_tool("manage_libraries", {"operation": "test_connection"})
+        return result
+    except Exception as e:
+        raise handle_mcp_error(e)

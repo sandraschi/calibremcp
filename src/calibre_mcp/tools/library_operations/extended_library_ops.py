@@ -391,9 +391,7 @@ class ExtendedLibraryOperations(MCPTool):
                 metadata_db = pathlib.Path(library_path) / "metadata.db"
                 if pathlib.Path(metadata_db).exists():
                     pathlib.Path(pathlib.Path(backup_path).parent).mkdir(exist_ok=True, parents=True)
-                    await asyncio.to_thread(
-                        shutil.copy2, metadata_db, pathlib.Path(backup_path) / "metadata.db"
-                    )
+                    await asyncio.to_thread(shutil.copy2, metadata_db, pathlib.Path(backup_path) / "metadata.db")
 
                 # Copy books and covers (whole trees — off the loop)
                 await asyncio.to_thread(

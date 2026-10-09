@@ -101,31 +101,79 @@ async def list_books(
     author: str | None = None,
     tag: str | None = None,
     publisher: str | None = None,
+    series: str | None = None,
     text: str | None = None,
+    title: str | None = None,
+    rating: int | None = Query(None, ge=1, le=5),
+    min_rating: int | None = Query(None, ge=1, le=5),
+    max_rating: int | None = Query(None, ge=1, le=5),
+    unrated: bool | None = None,
+    formats: str | None = Query(None, description="Comma-separated formats, e.g. EPUB,PDF"),
+    pubdate_start: str | None = None,
+    pubdate_end: str | None = None,
+    added_after: str | None = None,
+    added_before: str | None = None,
+    has_publisher: bool | None = None,
+    sort_by: str = Query("title", pattern="^(title|author|series|rating|timestamp|pubdate)$"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$"),
 ):
-    """List books with optional filters. Unfiltered browse cached 30s."""
+    """List books with optional filters and sorting. Unfiltered browse cached 30s."""
     from ..cache import _ttl_key, get_libraries_cache, get_ttl_cached, set_ttl_cached
 
     lib = get_libraries_cache().get("current_library") or ""
-    unfiltered = not (author or tag or publisher or text)
+    format_list = [f.strip().upper() for f in formats.split(",") if f.strip()] if formats else None
+    unfiltered = not (
+        author
+        or tag
+        or publisher
+        or series
+        or text
+        or title
+        or rating
+        or min_rating
+        or max_rating
+        or unrated
+        or format_list
+        or pubdate_start
+        or pubdate_end
+        or added_after
+        or added_before
+        or (has_publisher is not None)
+        or sort_by != "title"
+        or sort_order != "asc"
+    )
     if unfiltered:
         key = _ttl_key("books", lib=lib, limit=limit, offset=offset)
         cached = get_ttl_cached(key)
         if cached is not None:
             return cached
     try:
-        result = await mcp_client.call_tool(
-            "query_books",
-            {
-                "operation": "search",
-                "limit": limit,
-                "offset": offset,
-                "author": author,
-                "tag": tag,
-                "publisher": publisher,
-                "text": text,
-            },
-        )
+        args: dict = {
+            "operation": "search",
+            "limit": limit,
+            "offset": offset,
+            "author": author,
+            "tag": tag,
+            "publisher": publisher,
+            "series": series,
+            "text": text,
+            "title": title,
+            "rating": rating,
+            "min_rating": min_rating,
+            "max_rating": max_rating,
+            "unrated": unrated,
+            "formats": format_list,
+            "pubdate_start": pubdate_start,
+            "pubdate_end": pubdate_end,
+            "added_after": added_after,
+            "added_before": added_before,
+            "has_publisher": has_publisher,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+        }
+        # Drop Nones so MCP defaults apply cleanly
+        args = {k: v for k, v in args.items() if v is not None}
+        result = await mcp_client.call_tool("query_books", args)
         # Normalize for frontend: expect { items, total }; tool may return results/total_found or books/total_count
         if isinstance(result, dict) and "items" not in result:
             if "results" in result:

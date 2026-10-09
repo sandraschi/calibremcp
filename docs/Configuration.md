@@ -118,6 +118,18 @@ formats:
 | `CALIBRE_DEBUG` | Enable debug logging | `0` | `1` |
 | `LOG_LEVEL` | Logging level | `INFO` | `DEBUG` |
 
+### **Webapp Remote Access (LAN / Tailscale)**
+
+| Variable | Where | Description | Default |
+|----------|-------|-------------|---------|
+| `CALIBRE_BIND` | `start.ps1` env / `fleet-start.config.ps1` | Backend bind address (`0.0.0.0` for LAN; `webapp/start-lan.ps1` sets it) | `127.0.0.1` |
+| `NEXT_PUBLIC_API_BASE` | frontend env | Backend base URL (unset = same-origin `/api` rewrites, LAN-safe) | loopback in prod |
+| `CALIBRE_DEV_ORIGINS` | frontend env | Extra hosts allowed to load dev frontend (auto-set by `start-lan.ps1`) | `goliath,localhost,127.0.0.1` + extras |
+| `CALIBRE_CORS_EXTRA` | backend `.env` | Extra CORS origins, comma-separated (only needed for absolute-base setups) | empty |
+| `NEXT_PUBLIC_CALIBRE_CONTENT_SERVER_URL` | frontend env | Kovid `calibre-server` reader URL for Read Here / New Tab links | `http://goliath:8099` |
+
+Full guide (firewall rule, Tailscale/MagicDNS, no-auth warning): [webapp README](../webapp/README.md#remote-access-lan--tailscale).
+
 ---
 
 ## 🔧 Setup Scenarios

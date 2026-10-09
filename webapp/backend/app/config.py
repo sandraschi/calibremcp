@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> list[str]:
         origins = [x.strip() for x in self.CORS_ORIGINS.split(",") if x.strip()]
+        # Extra origins for LAN / Tailscale access, e.g.
+        # CALIBRE_CORS_EXTRA=http://192.168.1.10:10721,http://goliath.tail12345.ts.net:10721
+        extra = os.environ.get("CALIBRE_CORS_EXTRA", "")
+        for x in extra.split(","):
+            x = x.strip()
+            if x and x not in origins:
+                origins.append(x)
         if os.environ.get("CALIBRE_TAURI", "").lower() in ("1", "true", "yes"):
             for extra in (
                 "http://tauri.localhost",

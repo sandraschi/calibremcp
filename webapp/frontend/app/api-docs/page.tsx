@@ -1,5 +1,6 @@
 'use client';
 
+import { getContentServerStatus, getHealthCheck, listTools } from '@/common/api';
 import { BookOpen, Code2, ExternalLink, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -60,6 +61,9 @@ const SWAGGER_DARK_CSS = `
 export default function ApiDocsPage() {
   const [view, setView] = useState<DocsView>('swagger');
   const [loading, setLoading] = useState(true);
+  const [sysOpen, setSysOpen] = useState(false);
+  const [sysData, setSysData] = useState<{ label: string; body: string } | null>(null);
+  const [sysBusy, setSysBusy] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Inject dark CSS into the iframe once it loads
@@ -180,7 +184,60 @@ export default function ApiDocsPage() {
         ))}
         <span className="text-zinc-700 mx-1">·</span>
         <span className="text-xs text-zinc-600 shrink-0 italic">+{20 - 6} more — see Swagger</span>
+        <span className="text-zinc-700 mx-1">·</span>
+        <button
+          type="button"
+          onClick={() => setSysOpen((o) => !o)}
+          className="text-xs text-amber-400 hover:text-amber-300 shrink-0"
+        >
+          {sysOpen ? 'Hide MCP tools & health' : 'MCP tools & health'}
+        </button>
       </div>
+
+      {sysOpen && (
+        <div className="px-5 py-3 border-b border-zinc-800 shrink-0 bg-zinc-900/40">
+          <div className="flex flex-wrap gap-2 mb-2">
+            {(
+              [
+                ['Tools', () => listTools()],
+                ['Health', getHealthCheck],
+                ['Content server', getContentServerStatus],
+              ] as [string, () => Promise<unknown>][]
+            ).map(([label, fn]) => (
+              <button
+                key={label}
+                type="button"
+                disabled={sysBusy}
+                onClick={async () => {
+                  setSysBusy(true);
+                  try {
+                    const res = await fn();
+                    setSysData({ label, body: JSON.stringify(res, null, 1).slice(0, 4000) });
+                  } catch (e) {
+                    setSysData({
+                      label,
+                      body: `Failed: ${e instanceof Error ? e.message : 'unknown'}`,
+                    });
+                  } finally {
+                    setSysBusy(false);
+                  }
+                }}
+                className="px-3 py-1.5 text-xs rounded-md bg-zinc-800 border border-zinc-700 text-zinc-200 hover:border-amber-500/50 disabled:opacity-50"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {sysData && (
+            <div className="rounded-md bg-zinc-950 border border-zinc-800 p-3">
+              <p className="text-xs font-semibold text-amber-400 mb-1">{sysData.label}</p>
+              <pre className="text-xs text-zinc-300 whitespace-pre-wrap font-mono max-h-64 overflow-auto">
+                {sysData.body}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Iframe */}
       <div className="flex-1 relative min-h-0">

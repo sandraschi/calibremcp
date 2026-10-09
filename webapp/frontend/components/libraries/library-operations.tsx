@@ -7,9 +7,14 @@ import { useState } from 'react';
 interface LibraryOperationsProps {
   libraries: Library[];
   currentLibrary?: string;
+  onSwitched?: (name: string) => void;
 }
 
-export function LibraryOperations({ libraries, currentLibrary }: LibraryOperationsProps) {
+export function LibraryOperations({
+  libraries,
+  currentLibrary,
+  onSwitched,
+}: LibraryOperationsProps) {
   const router = useRouter();
   const [selectedLibrary, setSelectedLibrary] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -34,6 +39,7 @@ export function LibraryOperations({ libraries, currentLibrary }: LibraryOperatio
           type: 'success',
           text: `Switched to ${result.library_name}`,
         });
+        onSwitched?.(result.library_name || selectedLibrary);
         router.refresh();
       } else {
         setMessage({

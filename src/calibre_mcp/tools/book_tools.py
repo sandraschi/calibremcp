@@ -335,6 +335,8 @@ async def search_books_helper(
     min_size: int | None = None,
     max_size: int | None = None,
     formats: list[str] | None = None,
+    sort_by: str = "title",
+    sort_order: str = "asc",
     limit: int = 50,
     offset: int = 0,
     format_table: bool = False,
@@ -823,6 +825,10 @@ async def search_books_helper(
                 extra={"service": "book_tools", "action": "validation_error", "offset": offset},
             )
             raise ValueError("Offset cannot be negative")
+        if sort_order.lower() not in ("asc", "desc"):
+            raise ValueError("sort_order must be 'asc' or 'desc'")
+        if sort_by.lower() not in {"title", "author", "series", "rating", "timestamp", "pubdate"}:
+            raise ValueError("sort_by must be one of {title, author, series, rating, timestamp, pubdate}")
 
         # Convert filters to the format expected by book_service.search
         filters = {}
@@ -1211,6 +1217,8 @@ async def search_books_helper(
                 series_name=series_name,
                 exclude_series_list=exclude_series_list,
                 comment=comment,
+                sort_by=sort_by,
+                sort_order=sort_order,
                 **get_all_filters,
             )
             logger.info(

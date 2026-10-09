@@ -653,12 +653,19 @@ The Calibre webapp backend exposes REST endpoints (reservoir port **10720**). Se
 
 ### **Core Endpoints**
 
-- `/api/books/` - List, add books
-- `/api/authors/`, `/api/series/`, `/api/tags/` - List with pagination
-- `/api/libraries/list`, `/api/libraries/switch`, `/api/libraries/stats`
-- `/api/search/` - Search books
-- `/api/viewer/open-file` - Open book in system default app
-- `/api/export/csv`, `/api/export/json` - Export books
+- `/api/books/` - List (rich filters + `sort_by`/`sort_order`), add books; `/{id}`, `/{id}/details`, `/{id}/file`, comments, metadata fetch
+- `/api/authors/` (+ `/{id}`, `/{id}/books`, `/stats/summary`, `/by-letter/{letter}`), `/api/series/` (+ `/stats`, `/completion`, `/{id}`), `/api/tags/` (list/sort + full CRUD, merge, duplicates, unused), `/api/publishers/`
+- `/api/libraries/` (+ `/stats`, `/switch`, `/search` cross-library, `/discover`, `/test-connection`)
+- `/api/search/` (keyword), `/api/search/advanced`, `/api/search/smart` (auto/keyword/advanced/semantic/fulltext)
+- `/api/viewer/` - `open-random`, session open/page/metadata/state/close, `open-file`
+- `/api/export/csv|json|html|pandoc`, `/api/files/*`, `/api/bulk/*` (metadata/export/delete/convert)
+- `/api/collections/` - full smart-collection CRUD + series/recently-added/unread/ai-recommended generators
+- `/api/rag/` - metadata/content build, search, retrieve, synopsis, research, combined search, deep-research, critical-reception, metadata export
+- `/api/analysis/` - tag-statistics, duplicates, series, health, unread-priority, reading-stats
+- `/api/metadata/` - show/update/organize-tags/fix-issues; `/api/comments/` - full CRUD
+- `/api/specialized/` - japanese-organizer, it-curator, reading-recommendations
+- `/api/system/` - status, tools list + per-tool help, health-check, content-server, api-docs-info
+- Full per-endpoint reference: [webapp/backend/ENDPOINTS.md](../webapp/backend/ENDPOINTS.md)
 
 ---
 

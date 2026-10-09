@@ -1,10 +1,14 @@
 'use client';
 
-import { getBaseUrl } from '@/common/api';
+import { exportBooks } from '@/common/api';
 import { useState } from 'react';
 
+type ExportFormat = 'csv' | 'json' | 'html' | 'pandoc';
+
 export default function ExportPage() {
-  const [format, setFormat] = useState<'csv' | 'json'>('csv');
+  const [format, setFormat] = useState<ExportFormat>('csv');
+  const [pandocType, setPandocType] = useState('docx');
+  const [htmlStyle, setHtmlStyle] = useState('gallery');
   const [author, setAuthor] = useState('');
   const [tag, setTag] = useState('');
   const [limit, setLimit] = useState(1000);
@@ -20,29 +24,23 @@ export default function ExportPage() {
     setLoading(true);
     setResult(null);
     try {
-      const endpoint =
-        format === 'csv' ? `${getBaseUrl()}/api/export/csv` : `${getBaseUrl()}/api/export/json`;
-      const body: Record<string, unknown> = {
+      const data = await exportBooks(format, {
+        author: author.trim() || undefined,
+        tag: tag.trim() || undefined,
         limit,
         open_file: false,
-      };
-      if (author.trim()) body.author = author.trim();
-      if (tag.trim()) body.tag = tag.trim();
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        format_type: format === 'pandoc' ? pandocType : undefined,
+        html_style: format === 'html' ? htmlStyle : undefined,
       });
-      const data = await res.json();
-      if (res.ok && data.success !== false) {
+      if ((data as { success?: boolean }).success === false) {
+        setResult({ success: false, error: (data as { error?: string }).error ?? 'Export failed' });
+      } else {
+        const d = data as { message?: string; count?: number; output_path?: string; file?: string };
         setResult({
           success: true,
-          message: data.message ?? `Exported ${data.count ?? 'books'} to ${format.toUpperCase()}`,
-        });
-      } else {
-        setResult({
-          success: false,
-          error: data.detail ?? data.error ?? 'Export failed',
+          message:
+            d.message ??
+            `Exported ${d.count ?? 'books'} to ${format.toUpperCase()}${d.output_path ? ` → ${d.output_path}` : ''}${d.file ? ` → ${d.file}` : ''}`,
         });
       }
     } catch (e) {
@@ -59,7 +57,8 @@ export default function ExportPage() {
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-slate-100">Export</h1>
       <p className="text-slate-400 mb-6">
-        Export books to CSV or JSON. Filter by author or tag. Output is returned from the server.
+        Export books to CSV, JSON, HTML catalog, or Pandoc documents. Filter by author or tag.
+        Output is written server-side; the result shows the file path.
       </p>
       <form onSubmit={handleSubmit} className="max-w-xl space-y-4">
         <div>
@@ -69,13 +68,51 @@ export default function ExportPage() {
           <select
             id="format"
             value={format}
-            onChange={(e) => setFormat(e.target.value as 'csv' | 'json')}
+            onChange={(e) => setFormat(e.target.value as ExportFormat)}
             className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber"
           >
             <option value="csv">CSV</option>
             <option value="json">JSON</option>
+            <option value="html">HTML catalog</option>
+            <option value="pandoc">Pandoc document</option>
           </select>
         </div>
+        {format === 'pandoc' && (
+          <div>
+            <label htmlFor="pandocType" className="block text-sm font-medium text-slate-300 mb-2">
+              Pandoc target type
+            </label>
+            <select
+              id="pandocType"
+              value={pandocType}
+              onChange={(e) => setPandocType(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber"
+            >
+              <option value="docx">DOCX</option>
+              <option value="pdf">PDF</option>
+              <option value="epub">EPUB</option>
+              <option value="rtf">RTF</option>
+              <option value="md">Markdown</option>
+            </select>
+          </div>
+        )}
+        {format === 'html' && (
+          <div>
+            <label htmlFor="htmlStyle" className="block text-sm font-medium text-slate-300 mb-2">
+              HTML style
+            </label>
+            <select
+              id="htmlStyle"
+              value={htmlStyle}
+              onChange={(e) => setHtmlStyle(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber"
+            >
+              <option value="gallery">Gallery</option>
+              <option value="catalog">Catalog</option>
+              <option value="dashboard">Dashboard</option>
+            </select>
+          </div>
+        )}
         <div>
           <label htmlFor="author" className="block text-sm font-medium text-slate-300 mb-2">
             Author filter (optional)

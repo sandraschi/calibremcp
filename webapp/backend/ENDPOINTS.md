@@ -158,6 +158,32 @@ Switch to a different library.
 
 **Response:** Success status with new library information
 
+### POST `/api/libraries/search`
+Search for books across multiple libraries simultaneously (cross-library search).
+
+**Request Body:**
+```json
+{
+  "query": "string (required)",
+  "libraries": ["optional library names (default: all)"]
+}
+```
+
+### POST `/api/libraries/discover`
+Scan filesystem/CLI to find new Calibre libraries.
+
+**Request Body (all optional):**
+```json
+{
+  "wizfile_allowed": false,
+  "calibre_cli_allowed": false,
+  "common_paths_allowed": true
+}
+```
+
+### POST `/api/libraries/test-connection`
+Diagnostic check for library accessibility. No body.
+
 ## Viewer API (`/api/viewer`)
 
 ### POST `/api/viewer/open-random`

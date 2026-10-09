@@ -16,7 +16,20 @@ const nextConfig = {
     unoptimized: isTauri,
     domains: ['localhost'],
   },
-  allowedDevOrigins: ['goliath', 'localhost', '127.0.0.1'],
+  // LAN / Tailscale dev access: Next.js blocks cross-host page loads without an
+  // explicit allow-list. Extra hosts via CALIBRE_DEV_ORIGINS (comma-separated,
+  // e.g. "192.168.1.10,goliath.tail12345.ts.net"). webapp/start-lan.ps1 sets it
+  // automatically from detected interface addresses.
+  allowedDevOrigins: [
+    'goliath',
+    'localhost',
+    '127.0.0.1',
+    ...(process.env.CALIBRE_DEV_ORIGINS
+      ? process.env.CALIBRE_DEV_ORIGINS.split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []),
+  ],
   turbopack: {
     root: path.resolve(__dirname),
   },

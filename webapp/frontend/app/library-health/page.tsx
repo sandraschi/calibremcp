@@ -1,6 +1,6 @@
 'use client';
 
-import { type LibraryHealthResult, getLibraryHealth } from '@/common/api';
+import { type LibraryHealthResult, fixMetadataIssues, getLibraryHealth } from '@/common/api';
 import {
   Activity,
   AlertCircle,
@@ -19,6 +19,8 @@ export default function LibraryHealthPage() {
   const [health, setHealth] = useState<LibraryHealthResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fixing, setFixing] = useState(false);
+  const [fixResult, setFixResult] = useState<string | null>(null);
 
   async function loadHealth() {
     setLoading(true);
@@ -58,16 +60,45 @@ export default function LibraryHealthPage() {
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={loadHealth}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Re-scan Library
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              setFixing(true);
+              setFixResult(null);
+              try {
+                const res = await fixMetadataIssues();
+                setFixResult(JSON.stringify(res, null, 1).slice(0, 1500));
+                await loadHealth();
+              } catch (err) {
+                setFixResult(`Failed: ${err instanceof Error ? err.message : 'unknown'}`);
+              } finally {
+                setFixing(false);
+              }
+            }}
+            disabled={loading || fixing}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber hover:bg-amber/90 text-slate-950 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            {fixing ? 'Fixing…' : 'Auto-fix issues'}
+          </button>
+          <button
+            type="button"
+            onClick={loadHealth}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Re-scan Library
+          </button>
+        </div>
       </div>
+
+      {fixResult && (
+        <pre className="p-4 rounded-lg bg-slate-800/60 border border-slate-700 text-xs text-slate-300 whitespace-pre-wrap font-sans max-h-64 overflow-auto">
+          {fixResult}
+        </pre>
+      )}
 
       {error && (
         <div className="p-4 rounded-lg bg-red-950/40 border border-red-800 text-red-300 flex items-center gap-3">

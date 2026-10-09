@@ -5,9 +5,13 @@ import {
   type RagMetadataSearchHit,
   type RagPassageHit,
   type RagResearchResult,
+  ragCombinedSearch,
   ragContentBuild,
+  ragCriticalReception,
+  ragDeepResearch,
   ragMetadataBuild,
   ragMetadataBuildStatus,
+  ragMetadataExport,
   ragMetadataSearch,
   ragResearchBook,
   ragRetrieve,
@@ -19,7 +23,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const POLL_INTERVAL_MS = 1500;
 
-type SearchMode = 'metadata' | 'passages' | 'synopsis' | 'research';
+type SearchMode =
+  | 'metadata'
+  | 'passages'
+  | 'synopsis'
+  | 'research'
+  | 'combined'
+  | 'deep'
+  | 'reception';
 
 // ── Small reusable components ─────────────────────────────────────────────────
 
@@ -77,6 +88,10 @@ export default function RagPage() {
   const [synopsis, setSynopsis] = useState<string | null>(null);
   const [synopsisTitle, setSynopsisTitle] = useState<string | null>(null);
   const [researchResult, setResearchResult] = useState<RagResearchResult | null>(null);
+  const [combinedResults, setCombinedResults] = useState<Record<string, unknown> | null>(null);
+  const [deepReport, setDeepReport] = useState<string | null>(null);
+  const [reception, setReception] = useState<string | null>(null);
+  const [combinedMode, setCombinedMode] = useState<'auto' | 'metadata' | 'content'>('auto');
 
   const [searching, setSearching] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -104,7 +119,15 @@ export default function RagPage() {
     const m = params.get('mode');
     const bid = params.get('bookId');
     const q = params.get('query');
-    const modes: SearchMode[] = ['metadata', 'passages', 'synopsis', 'research'];
+    const modes: SearchMode[] = [
+      'metadata',
+      'passages',
+      'synopsis',
+      'research',
+      'combined',
+      'deep',
+      'reception',
+    ];
     if (m && (modes as string[]).includes(m)) setMode(m as SearchMode);
     if (bid != null && /^\d+$/.test(bid.trim())) setBookId(bid.trim());
     if (q != null && q.length > 0) setQuery(q);
@@ -177,6 +200,9 @@ export default function RagPage() {
     setSynopsis(null);
     setSynopsisTitle(null);
     setResearchResult(null);
+    setCombinedResults(null);
+    setDeepReport(null);
+    setReception(null);
     setSearching(true);
 
     try {
@@ -218,6 +244,35 @@ export default function RagPage() {
         const res = await ragResearchBook(id, spoilers);
         if (!res.success) setError(res.error ?? 'Research failed');
         else setResearchResult(res);
+      } else if (mode === 'combined') {
+        if (!query.trim()) return;
+        const res = await ragCombinedSearch(query.trim(), topK, combinedMode);
+        setCombinedResults(res);
+        if ((res as { error?: string }).error) setError((res as { error?: string }).error ?? null);
+      } else if (mode === 'deep') {
+        if (!query.trim()) return;
+        const res = await ragDeepResearch(query.trim(), Math.min(topK, 20));
+        const report =
+          (res as { report?: string }).report ??
+          (res as { essay?: string }).essay ??
+          JSON.stringify(res, null, 1);
+        if ((res as { error?: string }).error) setError((res as { error?: string }).error ?? null);
+        else setDeepReport(typeof report === 'string' ? report : JSON.stringify(report));
+      } else if (mode === 'reception') {
+        const id = Number.parseInt(bookId.trim());
+        if (!id || isNaN(id)) {
+          setError('Enter a numeric book ID.');
+          return;
+        }
+        const res = await ragCriticalReception(id);
+        if ((res as { error?: string }).error) setError((res as { error?: string }).error ?? null);
+        else {
+          const text =
+            (res as { reception?: string }).reception ??
+            (res as { report?: string }).report ??
+            JSON.stringify(res, null, 1);
+          setReception(typeof text === 'string' ? text : JSON.stringify(text));
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Request failed');
@@ -227,7 +282,9 @@ export default function RagPage() {
   }
 
   const canSearch =
-    mode === 'synopsis' || mode === 'research' ? bookId.trim().length > 0 : query.trim().length > 0;
+    mode === 'synopsis' || mode === 'research' || mode === 'reception'
+      ? bookId.trim().length > 0
+      : query.trim().length > 0;
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -297,11 +354,45 @@ export default function RagPage() {
         {(buildingMeta || buildingContent) && buildStatus && <BuildProgress status={buildStatus} />}
         {buildMessage && <p className="mt-2 text-sm text-slate-300">{buildMessage}</p>}
         {buildError && <p className="mt-2 text-sm text-red-300">{buildError}</p>}
+        <div className="mt-3 pt-3 border-t border-slate-700/60 flex flex-wrap items-center gap-2">
+          <p className="text-sm text-slate-400">
+            <span className="text-slate-200 font-medium">Metadata export</span> — JSON dump for
+            external RAG pipelines.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              setBuildError(null);
+              setBuildMessage(null);
+              try {
+                const res = await ragMetadataExport();
+                setBuildMessage(
+                  (res as { message?: string }).message ?? 'Metadata export started.',
+                );
+              } catch (e) {
+                setBuildError(e instanceof Error ? e.message : 'Export failed');
+              }
+            }}
+            className="px-3 py-1.5 rounded-lg bg-slate-600 text-slate-200 text-sm hover:bg-slate-500"
+          >
+            Export JSON
+          </button>
+        </div>
       </SectionBox>
 
       {/* ── Mode tabs ── */}
-      <div className="flex gap-1 border border-slate-600 rounded-lg p-1 bg-slate-800/50 w-fit">
-        {(['metadata', 'passages', 'synopsis', 'research'] as SearchMode[]).map((m) => (
+      <div className="flex gap-1 border border-slate-600 rounded-lg p-1 bg-slate-800/50 w-fit flex-wrap">
+        {(
+          [
+            'metadata',
+            'passages',
+            'combined',
+            'synopsis',
+            'research',
+            'deep',
+            'reception',
+          ] as SearchMode[]
+        ).map((m) => (
           <button
             key={m}
             type="button"
@@ -318,9 +409,15 @@ export default function RagPage() {
               ? 'Metadata'
               : m === 'passages'
                 ? 'Passages'
-                : m === 'synopsis'
-                  ? 'Synopsis'
-                  : 'Research'}
+                : m === 'combined'
+                  ? 'Combined'
+                  : m === 'synopsis'
+                    ? 'Synopsis'
+                    : m === 'deep'
+                      ? 'Deep topic'
+                      : m === 'reception'
+                        ? 'Reception'
+                        : 'Research'}
           </button>
         ))}
       </div>
@@ -332,12 +429,18 @@ export default function RagPage() {
             ? 'Semantic metadata search'
             : mode === 'passages'
               ? 'Passage retrieval'
-              : mode === 'synopsis'
-                ? 'Book synopsis'
-                : 'Deep book research'
+              : mode === 'combined'
+                ? 'Combined RAG search (metadata + content)'
+                : mode === 'synopsis'
+                  ? 'Book synopsis'
+                  : mode === 'deep'
+                    ? 'Multi-book thematic essay'
+                    : mode === 'reception'
+                      ? 'Critical reception'
+                      : 'Deep book research'
         }
       >
-        {mode === 'synopsis' || mode === 'research' ? (
+        {mode === 'synopsis' || mode === 'research' || mode === 'reception' ? (
           <div className="space-y-3">
             <div>
               <label className="text-sm text-slate-400 block mb-1">Book ID</label>
@@ -372,7 +475,9 @@ export default function RagPage() {
             <p className="text-sm text-slate-400">
               {mode === 'metadata'
                 ? 'e.g. "orbital megastructures with melancholy tone", "Japanese mystery light novels"'
-                : 'e.g. "Zakalwe manipulated into accepting a mission", "the ship minds discussing ethics"'}
+                : mode === 'deep'
+                  ? 'e.g. "loyalty tested by war", "unreliable narrators in gothic fiction"'
+                  : 'e.g. "Zakalwe manipulated into accepting a mission", "the ship minds discussing ethics"'}
             </p>
             <input
               type="text"
@@ -408,6 +513,22 @@ export default function RagPage() {
                 </div>
               </div>
             )}
+            {mode === 'combined' && (
+              <div className="pt-1">
+                <label className="text-xs text-slate-500 block mb-1">Index</label>
+                <select
+                  value={combinedMode}
+                  onChange={(e) =>
+                    setCombinedMode(e.target.value as 'auto' | 'metadata' | 'content')
+                  }
+                  className="rounded border border-slate-600 bg-slate-900 text-slate-200 px-2 py-1.5 text-sm"
+                >
+                  <option value="auto">Auto (pick index)</option>
+                  <option value="metadata">Metadata only</option>
+                  <option value="content">Content only</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 
@@ -424,9 +545,13 @@ export default function RagPage() {
                 ? 'Generate synopsis'
                 : mode === 'research'
                   ? 'Research book'
-                  : 'Search'}
+                  : mode === 'deep'
+                    ? 'Write essay'
+                    : mode === 'reception'
+                      ? 'Fetch reception'
+                      : 'Search'}
           </button>
-          {mode !== 'synopsis' && mode !== 'research' && (
+          {mode !== 'synopsis' && mode !== 'research' && mode !== 'reception' && (
             <label className="flex items-center gap-2 text-sm text-slate-400">
               <span>Results</span>
               <select
@@ -524,6 +649,33 @@ export default function RagPage() {
           {synopsisTitle && <h3 className="font-semibold text-slate-100 mb-3">{synopsisTitle}</h3>}
           <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{synopsis}</p>
           {spoilers && <p className="text-xs text-amber/60 mt-3">⚠ Synopsis includes spoilers</p>}
+        </div>
+      )}
+
+      {/* ── Combined results ── */}
+      {mode === 'combined' && combinedResults && (
+        <div className="rounded-lg border border-slate-600 bg-slate-800/50 p-4">
+          <pre className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-sans max-h-96 overflow-auto">
+            {JSON.stringify(combinedResults, null, 1).slice(0, 6000)}
+          </pre>
+        </div>
+      )}
+
+      {/* ── Deep topic essay ── */}
+      {mode === 'deep' && deepReport && (
+        <div className="rounded-lg border border-slate-600 bg-slate-800/50 p-5">
+          <pre className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+            {deepReport}
+          </pre>
+        </div>
+      )}
+
+      {/* ── Critical reception ── */}
+      {mode === 'reception' && reception && (
+        <div className="rounded-lg border border-slate-600 bg-slate-800/50 p-5">
+          <pre className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+            {reception}
+          </pre>
         </div>
       )}
 

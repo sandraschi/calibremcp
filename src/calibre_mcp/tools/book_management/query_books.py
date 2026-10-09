@@ -54,6 +54,9 @@ async def query_books(
     formats: list[str] | None = None,
     comment: str | None = None,
     has_empty_comments: bool | None = None,
+    # Sorting (forwarded to book_service.get_all via search_books_helper)
+    sort_by: str = "title",
+    sort_order: str = "asc",
     # Display/formatting
     format_table: bool = False,
     limit: int = 50,
@@ -189,6 +192,9 @@ async def query_books(
                 # Comments
                 comment=comment,
                 has_empty_comments=has_empty_comments,
+                # Sorting
+                sort_by=sort_by,
+                sort_order=sort_order,
                 # Display/pagination
                 format_table=format_table,
                 limit=limit,

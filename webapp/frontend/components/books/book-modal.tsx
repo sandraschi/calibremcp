@@ -16,6 +16,7 @@ import {
   ragToolHref,
 } from '@/common/book-external-links';
 import { AuthorLinks } from '@/components/authors/author-links';
+import { BookManagePanel } from '@/components/books/book-manage-panel';
 import {
   BookOpen,
   ExternalLink,
@@ -372,7 +373,7 @@ export function BookModal({ book, onClose }: BookModalProps) {
                         <dt className="text-slate-400 text-xs">Series</dt>
                         <dd className="text-slate-200">
                           <Link
-                            href={`/books?search=${encodeURIComponent(`series:"${seriesName}"`)}`}
+                            href={`/books?series=${encodeURIComponent(seriesName)}`}
                             onClick={(e) => e.stopPropagation()}
                             className="text-amber-400 hover:text-amber-300 hover:underline"
                           >
@@ -387,7 +388,7 @@ export function BookModal({ book, onClose }: BookModalProps) {
                         <dt className="text-slate-400">Publisher</dt>
                         <dd className="text-slate-200 text-right">
                           <Link
-                            href={`/books?search=${encodeURIComponent(`publisher:"${displayBook.publisher}"`)}`}
+                            href={`/books?publisher=${encodeURIComponent(displayBook.publisher)}`}
                             onClick={(e) => e.stopPropagation()}
                             className="text-amber-400 hover:text-amber-300 hover:underline"
                           >
@@ -486,7 +487,7 @@ export function BookModal({ book, onClose }: BookModalProps) {
                       {tags.map((t, i) => (
                         <Link
                           key={i}
-                          href={`/books?search=${encodeURIComponent(`tags:"${t}"`)}`}
+                          href={`/books?tag=${encodeURIComponent(t)}`}
                           onClick={(e) => e.stopPropagation()}
                           className="text-[10px] uppercase font-bold bg-slate-700 border border-slate-600 px-2 py-0.5 rounded-sm text-slate-300 hover:bg-amber/20 hover:text-amber hover:border-amber/40 transition-colors"
                         >
@@ -513,6 +514,18 @@ export function BookModal({ book, onClose }: BookModalProps) {
                       ))}
                     </div>
                   </div>
+                )}
+
+                {!loading && (
+                  <BookManagePanel
+                    bookId={displayBook.id}
+                    onChanged={() => {
+                      getBook(book.id)
+                        .then(setDetails)
+                        .catch(() => {});
+                    }}
+                    onDeleted={onClose}
+                  />
                 )}
               </div>
             )}
