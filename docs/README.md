@@ -11,7 +11,7 @@ Hub for **calibre-mcp** — FastMCP 3.2 server for Calibre libraries. Root overv
 | [INSTALL.md](../INSTALL.md) | **Tauri desktop** (primary), uv, MCPB |
 | [TAURI.md](TAURI.md) | Maintainer build, ports, fleet Tauri pitfalls |
 | [ABOUT_CALIBRE.md](ABOUT_CALIBRE.md) | What Calibre is, `metadata.db`, access |
-| [ABOUT_MCP_TOOLS.md](ABOUT_MCP_TOOLS.md) | 21 portmanteau tools |
+| [ABOUT_MCP_TOOLS.md](ABOUT_MCP_TOOLS.md) | 31 portmanteau tools |
 | [ABOUT_AI_WORKFLOWS.md](ABOUT_AI_WORKFLOWS.md) | RAG, FTS, skills, agentic flows |
 | [COOKBOOK.md](COOKBOOK.md) | Goal-oriented recipes |
 | [Configuration.md](Configuration.md) | Env vars and library paths |

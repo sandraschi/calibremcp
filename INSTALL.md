@@ -1,10 +1,12 @@
 # Installing calibre-mcp
 
+> First time? Read [docs/ONBOARDING.md](docs/ONBOARDING.md) — wrappee install, costs, sanity check.
+
 ## Option A — Desktop app (recommended)
 
 **Download, double-click, done.** No Git, no Python, no `just`, no build step.
 
-1. Go to [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest)
+1. Go to [Releases](https://github.com/sandraschi/calibremcp/releases/latest)
 2. Download **`Calibre MCP_*_x64-setup.exe`**
 3. Double-click the installer → finish the wizard
 4. Launch **Calibre MCP** from the Start menu
@@ -33,7 +35,7 @@ Python **3.12+** for source installs.
 
 ## Option B — MCPB drag and drop
 
-1. Go to [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest)
+1. Go to [Releases](https://github.com/sandraschi/calibremcp/releases/latest)
 2. Download `calibre-mcp*.mcpb` (or build with `just mcpb-pack`)
 3. Claude Desktop → Settings → MCP Servers → Install from file
 
@@ -44,8 +46,8 @@ MCP tools only — no desktop UI.
 ## Option C — Fastest from source (webapp)
 
 ```powershell
-git clone https://github.com/sandraschi/calibre-mcp
-cd calibre-mcp
+git clone https://github.com/sandraschi/calibremcp
+cd calibremcp
 .\webapp\start.bat
 ```
 
@@ -56,8 +58,8 @@ Or from PowerShell: `.\webapp\start.ps1` (starts backend **10720**, frontend **1
 ## Option D — MCP stdio only
 
 ```powershell
-git clone https://github.com/sandraschi/calibre-mcp
-cd calibre-mcp
+git clone https://github.com/sandraschi/calibremcp
+cd calibremcp
 uv sync
 uv run calibre-mcp
 ```
@@ -70,8 +72,8 @@ Or: `just mcp`
 
 ```powershell
 winget install Casey.Just
-git clone https://github.com/sandraschi/calibre-mcp
-cd calibre-mcp
+git clone https://github.com/sandraschi/calibremcp
+cd calibremcp
 just sync-dev
 just start-webapp-dev
 ```

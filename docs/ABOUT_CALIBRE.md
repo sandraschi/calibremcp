@@ -45,6 +45,6 @@ MyLibrary/
 
 ## calibre-mcp vs Calibre
 
-Calibre is the **library engine**. calibre-mcp is the **AI bridge** — it reads Calibre's databases, indexes metadata for semantic search, and exposes 21 portmanteau MCP tools so AI assistants (Claude Desktop, Cursor, etc.) can search, browse, and manage your library using natural language.
+Calibre is the **library engine**. calibre-mcp is the **AI bridge** — it reads Calibre's databases, indexes metadata for semantic search, and exposes 31 portmanteau MCP tools so AI assistants (Claude Desktop, Cursor, etc.) can search, browse, and manage your library using natural language.
 
 > **Next:** [About Calibre Web](ABOUT_CALIBRE_WEB.md) | **Back:** [README](../README.md)

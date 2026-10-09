@@ -1,6 +1,11 @@
+---
+name: calibre-session-context
+description: Calibre MCP tool-awareness prompt for OpenCode sessions (search first, save at end).
+---
+
 ## Session Context (Calibre MCP)
 
-You have access to a Calibre e-book library server with 21+ portmanteau tools for search, management, export, and RAG.
+You have access to a Calibre e-book library server with 31 portmanteau tools for search, management, export, and RAG.
 
 **Before starting work:**
 1. Search your library: `query_books(operation="search_books", query="<query>")`

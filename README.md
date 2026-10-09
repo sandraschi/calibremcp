@@ -5,7 +5,7 @@
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
   <a href="https://biomejs.dev"><img src="https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat-square&logo=biome&logoColor=white" alt="Biome"></a>
-  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.4-7c5cfc?style=flat-square" alt="FastMCP"></a>
   <a href="https://tauri.app"><img src="https://img.shields.io/badge/Tauri-2.0-ffc131?style=flat-square&logo=tauri&logoColor=white" alt="Tauri"></a>
   <a href="https://github.com/sandraschi/calibremcp/releases"><img src="https://img.shields.io/github/v/release/sandraschi/calibremcp?style=flat-square&logo=github" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License"></a>
@@ -18,13 +18,15 @@
 
 ## Quick Start
 
-Download **`Calibre MCP_*_x64-setup.exe`** from [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest) → double-click → launch **Calibre MCP**. [Install guide](INSTALL.md).
+Download **`Calibre MCP_*_x64-setup.exe`** from [Releases](https://github.com/sandraschi/calibremcp/releases/latest) → double-click → launch **Calibre MCP**. [Install guide](INSTALL.md).
+
+Claude Desktop one-liner (MCPB bundle): download `calibre-mcp.mcpb` from [Releases](https://github.com/sandraschi/calibremcp/releases/latest/download/install.ps1) and install via Settings → MCP Servers → Install from file.
 
 Developers from source:
 
 ```powershell
-git clone https://github.com/sandraschi/calibre-mcp
-cd calibre-mcp
+git clone https://github.com/sandraschi/calibremcp
+cd calibremcp
 just sync
 just start-webapp
 ```
@@ -44,7 +46,7 @@ Then ask Claude: *"Find unread sci-fi books"*, *"Open a random Banks novel"*, or
 
 ## What is this?
 
-calibre-mcp bridges your Calibre e-book library and AI assistants (Claude Desktop, Cursor, etc.) via the Model Context Protocol. It reads Calibre's `metadata.db` directly, indexes metadata for semantic search (LanceDB RAG), and exposes 21 portmanteau tools for natural-language library management.
+calibre-mcp bridges your Calibre e-book library and AI assistants (Claude Desktop, Cursor, etc.) via the Model Context Protocol. It reads Calibre's `metadata.db` directly, indexes metadata for semantic search (LanceDB RAG), and exposes 31 portmanteau tools for natural-language library management.
 
 ### Full Architecture & Technology Stack
 
@@ -94,6 +96,7 @@ In a production Calibre environment, two distinct web applications operate side-
 2. **CalibreMCP WebApp (`http://localhost:10721/`, backend `:10720`)**:
    - **How it is served**: Modern Next.js 15 App Router (React 19, TypeScript, Tailwind CSS) backed by a FastAPI async server (`app.main:app`) running FastMCP 3.2.
    - **Core strengths**: **AI-native intelligence**: conversational AI librarian (Ollama, LM Studio, OpenAI), hybrid semantic search (Reciprocal Rank Fusion combining FTS5 lexical ranking with LanceDB vector embeddings), automated library health scans, duplicate book candidate clustering, smart dynamic virtual shelves, and direct embedded reading overlays.
+   - **Remote access**: loopback-only by default (`start.ps1`); run `webapp/start-lan.ps1` for LAN / Tailscale access from phone, tablet, or a second PC (no auth — trusted networks only). See [Remote Access](webapp/README.md#remote-access-lan--tailscale).
 
 Together, Calibre Content Server provides the high-performance reading and distribution engine, while CalibreMCP provides the conversational AI, semantic discovery, and automated library maintenance engine.
 
@@ -104,7 +107,7 @@ Together, Calibre Content Server provides the high-performance reading and distr
 | [About Calibre](docs/ABOUT_CALIBRE.md) | What Calibre is, how it stores data, access methods |
 | [About Calibre Web](docs/ABOUT_CALIBRE_WEB.md) | Calibre Content Server (modern SPA) vs calibre-web vs CalibreMCP |
 | [About Plugins](docs/ABOUT_PLUGINS.md) | CalibreMCP Integration plugin, calibreops-bridge, roadmap |
-| [About MCP Tools](docs/ABOUT_MCP_TOOLS.md) | 21 portmanteau tools, architecture, agentic flows |
+| [About MCP Tools](docs/ABOUT_MCP_TOOLS.md) | 31 portmanteau tools, architecture, agentic flows |
 | [About AI Workflows](docs/ABOUT_AI_WORKFLOWS.md) | RAG, FTS, skills, prompts, sampling, agentic chaining |
 
 ## Key links
@@ -124,8 +127,8 @@ Together, Calibre Content Server provides the high-performance reading and distr
 
 ```powershell
 # Development install
-git clone https://github.com/sandraschi/calibre-mcp.git
-cd calibre-mcp
+git clone https://github.com/sandraschi/calibremcp.git
+cd calibremcp
 uv sync
 
 # Or via MCPB package
@@ -135,12 +138,12 @@ npx mcpb install calibre-mcp
 ## Features
 
 - **FastMCP 3.2** — Universal connect (stdio + HTTP), sampling, agentic tool chaining
-- **21 portmanteau tools** — Consolidated operations (search, manage, export, OCR, viewer)
+- **31 portmanteau tools** — Consolidated operations (search, manage, export, OCR, viewer)
 - **Metadata RAG (LanceDB)** — Semantic search over title, authors, tags, comments
 - **Full-text chunk RAG** — FTS-driven book content retrieval
 - **Calibre FTS** — Phrase search with PDF page / EPUB spine locations
 - **Calibre plugin** — Extended metadata editor + VL from query in Calibre GUI
-- **Webapp** — Next.js dashboard with AI chat, Semantic Search, Skills, Smart Import
+- **Webapp** — Next.js dashboard with AI chat, Semantic Search, Skills, Smart Import, tag management, bulk ops, and LAN/Tailscale remote access via `start-lan.ps1`
 - **Skills & prompts** — Reusable agentic workflows (recommendations, library health, etc.)
 - **Concurrency-safe** — Thread-safe DB operations for multi-client access
 - **Windows-native** — Unicode-safe, runs reliably on Windows

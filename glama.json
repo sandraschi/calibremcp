@@ -4,14 +4,14 @@
         "sandraschi"
     ],
     "name": "calibre-mcp",
-    "description": "FastMCP 3.4.2+ server for Calibre e-book library management. Features full webapp UI, AI chat, and natural language search via sampling.",
+    "description": "FastMCP 3.4.4+ server for Calibre e-book library management. Features full webapp UI, AI chat, and natural language search via sampling.",
     "type": "mcp_server",
     "status": "production",
-    "framework": "FastMCP 3.4.2+",
+    "framework": "FastMCP 3.4.4+",
     "version": "1.9.0",
     "icon": "book",
     "homeUrl": "https://github.com/sandraschi/calibre-mcp",
-    "tools": 21,
+    "tools": 31,
     "transport": [
         "stdio",
         "http"

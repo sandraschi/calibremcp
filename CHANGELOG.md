@@ -1,4 +1,16 @@
 
+## [Unreleased] — 2026-10-09 (assfix)
+
+### Fixed
+- **MCPB manifest**: `mcpb/manifest.json` `${PWD}/src` → `${__dirname}/src` (Claude Desktop never expands `${PWD}`; bundle would not start).
+- **mcpb/src untracked**: 226-file staged copy removed from git index (derived artifact, regenerated every pack; `.gitignore` already covered it).
+- **CORS**: webapp backend `allow_origin_regex` unconditional (was gated on `CALIBRE_TAURI`); MCP transport serves via `uvicorn.Server` on `mcp.http_app()` so CORSMiddleware applies (was `run_http_async`, which drops it); `uvicorn` promoted to direct dependency.
+- **Self-termination**: `manage_system(operation="shutdown")` MCP op + `POST /api/shutdown` (200-then-exit) for the fleet launcher; `GET /api/capabilities` standard shape added.
+- **hello_world double-wrap**: returns helper dict directly (matches list_tools/health_check pattern); fixed 2 stale unit asserts.
+- **Docs/naming**: README/INSTALL GitHub URLs corrected to `sandraschi/calibremcp` (the real remote); FastMCP badge 3.2→3.4; added `docs/ONBOARDING.md` + MCPB one-liner.
+- **CI**: added Pyright (informational, `continue-on-error` — 866-error backlog) + `npm run check` (tsc) gates; `just mcpb-pack` + `just cua-nsis-test` recipes; `scripts/mcpb-pack.ps1` fleet shim.
+- **Ruff**: `T20` print-ban enforced with per-file-ignores for tests/tools/root scripts; 1 unformatted file reformatted.
+
 ## [1.9.0] — 2026-09-11
 
 ### Added

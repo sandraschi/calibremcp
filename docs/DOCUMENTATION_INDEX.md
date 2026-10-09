@@ -67,7 +67,7 @@ New to the project? Start here:
 | [`ABOUT_CALIBRE.md`](ABOUT_CALIBRE.md) | What Calibre is, how it stores data, access methods |
 | [`ABOUT_CALIBRE_WEB.md`](ABOUT_CALIBRE_WEB.md) | calibre-web vs Calibre Content Server, coexistence |
 | [`ABOUT_PLUGINS.md`](ABOUT_PLUGINS.md) | Plugin architecture, calibreops-bridge, roadmap |
-| [`ABOUT_MCP_TOOLS.md`](ABOUT_MCP_TOOLS.md) | 21 portmanteau tools, architecture, agentic flows |
+| [`ABOUT_MCP_TOOLS.md`](ABOUT_MCP_TOOLS.md) | 31 portmanteau tools, architecture, agentic flows |
 | [`ABOUT_AI_WORKFLOWS.md`](ABOUT_AI_WORKFLOWS.md) | RAG, FTS, skills, prompts, sampling, agentic chaining |
 
 ## Core reference (repo root `docs/`)

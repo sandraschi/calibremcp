@@ -1,6 +1,6 @@
 # About MCP Server Tools
 
-calibre-mcp exposes **21 portmanteau tools** via FastMCP 3.2, giving AI assistants structured, concurrency-safe access to your Calibre library. Tools register at import time via `@mcp.tool` decorators and support simultaneous stdio + HTTP (universal connect).
+calibre-mcp exposes **31 portmanteau tools** via FastMCP 3.4, giving AI assistants structured, concurrency-safe access to your Calibre library. Tools register at import time via `@mcp.tool` decorators and support simultaneous stdio + HTTP (universal connect).
 
 ## What are portmanteau tools?
 
@@ -78,8 +78,8 @@ All tools return a consistent schema:
 ```
 Claude Desktop / Cursor / AI Client
   ↓ stdio or HTTP
-FastMCP 3.2 Server (src/calibre_mcp/)
-  ├── 21 portmanteau tools
+FastMCP 3.4 Server (src/calibre_mcp/)
+  ├── 31 portmanteau tools
   ├── LanceDB RAG engine (rag/)
   ├── FTS resolver (utils/fts_location_resolver.py)
   ├── Calibre DB adapter (read/write metadata.db)
