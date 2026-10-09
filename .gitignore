@@ -52,6 +52,8 @@ coverage-report-*/
 *.sqlite
 *.sqlite3
 *.db-journal
+*.db-shm
+*.db-wal
 # Exception: Allow test fixtures (small test files for CI/CD)
 !tests/fixtures/**/*.db
 !tests/fixtures/**/*.epub
@@ -248,10 +250,8 @@ docs-private/
 
 # Test files that should be in tests/ or scripts/ directories
 test_*.py
-!tests/test_*.py
-!tests/unit/test_*.py
-!tests/integration/test_*.py
-!tests/portmanteau/test_*.py
+!tests/**/test_*.py
+!tests/**/conftest.py
 !scripts/test_*.py
 
 # Scripts that should be in scripts/ directory

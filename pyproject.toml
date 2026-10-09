@@ -25,6 +25,7 @@ classifiers = [
 dependencies = [
     "fastmcp>=3.4.4,<4",
     "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
     "httpx>=0.27.0",
     "pydantic>=2.9.0",
     "python-dotenv>=1.0.1",
@@ -100,6 +101,7 @@ dev = [
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
     "pywinauto>=0.6.9",
+    "pyright>=1.1.390",
 ]
 
 [tool.ruff]
@@ -108,7 +110,7 @@ target-version = "py312"
 exclude = ["mcpb", "webapp/frontend", "node_modules", "dist", ".venv", "calibre_plugin", "calibre-plugins", "scripts", "repro_*.py"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "C4", "B", "N"]
+select = ["E", "F", "I", "UP", "C4", "B", "N", "T20"]
 ignore = [
     "E501",    # Line too long
     "E722",    # Bare except (common pattern)
@@ -121,6 +123,13 @@ ignore = [
     "N806",    # Variable name uppercase (legacy compat)
     "N999",    # Module name (calibre-plugins bridge)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["T20"]          # tests may print diagnostics
+"tools/**/*" = ["T20"]          # repo tooling scripts (not server runtime)
+"test_*.py" = ["T20"]           # root-level repro/test scripts (gitignored, not shipped)
+"debug_*.py" = ["T20"]
+"repro_*.py" = ["T20"]
 
 [tool.ruff.format]
 quote-style = "double"

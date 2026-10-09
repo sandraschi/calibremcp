@@ -10,7 +10,8 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "biome:ci": "biome ci .",
-    "biome": "biome check --write ."
+    "biome": "biome check --write .",
+    "check": "tsc --noEmit"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

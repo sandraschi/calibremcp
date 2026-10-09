@@ -11,8 +11,7 @@ default:
 
 # Execute Ruff SOTA v13.1 linting
 lint:
-    Set-Location '{{justfile_directory()}}'
-    C:\Users\sandr\AppData\Local\Programs\Python\Python313\Scripts\ruff.exe check .
+    Set-Location '{{justfile_directory()}}'; C:\Users\sandr\AppData\Local\Programs\Python\Python313\Scripts\ruff.exe check .
     & "C:\Users\sandr\.local\bin\biome.exe" check --config-path="{{justfile_directory()}}\webapp\frontend" "{{justfile_directory()}}\webapp\frontend\app" "{{justfile_directory()}}\webapp\frontend\components" "{{justfile_directory()}}\webapp\frontend\common" "{{justfile_directory()}}\webapp\frontend\e2e"
 
 # Execute Ruff SOTA v13.1 fix and formatting
@@ -23,20 +22,17 @@ fix:
 
 # Execute Bandit security audit
 check-sec:
-    Set-Location '{{justfile_directory()}}'
-    uv run bandit -r src/
+    Set-Location '{{justfile_directory()}}'; uv run bandit -r src/
 
 # Execute safety audit of dependencies
 audit-deps:
-    Set-Location '{{justfile_directory()}}'
-    uv run safety check
+    Set-Location '{{justfile_directory()}}'; uv run safety check
 
 # --- CalibreMCP  fleet justfile  mcp-central-docs PACKAGING_STANDARDS ---
 # https://github.com/sandraschi/mcp-central-docs/blob/master/standards/PACKAGING_STANDARDS.md
 
 stats:
-    Set-Location '{{justfile_directory()}}'
-    uv run python tools/repo_stats.py
+    Set-Location '{{justfile_directory()}}'; uv run python tools/repo_stats.py
 
 # Install deps from lockfile (run after clone at repo root)
 sync:
@@ -128,3 +124,11 @@ release:
 # Dry-run the release pipeline
 release-dry:
     powershell.exe -NoProfile -File scripts/release.ps1 -DryRun
+
+# MCPB bundle via the fleet shim (central pack pipeline, not a vendored copy)
+mcpb-pack:
+    powershell.exe -NoProfile -File '{{justfile_directory()}}\scripts\mcpb-pack.ps1'
+
+# CUA NSIS smoke (install -> launch -> health -> nav walk -> uninstall)
+cua-nsis-test:
+    uv run python scripts/cua-smoke.py --config scripts/cua-nsis-config.json

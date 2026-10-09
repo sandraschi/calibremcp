@@ -11,7 +11,7 @@
       "command": "python",
       "args": ["-m", "calibre_mcp"],
       "env": {
-        "PYTHONPATH": "${PWD}/src",
+        "PYTHONPATH": "${__dirname}/src",
         "PYTHONUNBUFFERED": "1"
       }
     }

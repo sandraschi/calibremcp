@@ -44,9 +44,20 @@ jobs:
       - name: Pytest
         run: uv run python -m pytest tests/ -q --tb=short --no-cov
 
+      - name: Pyright
+        # Informational until the 866-error backlog (assess-2026-10-09) is cleared.
+        # First-ever run: codebase was never type-gated; mostly legacy viewers/utils
+        # + missing optional imports (torch, calibre, rarfile, magic).
+        run: uv run pyright src
+        continue-on-error: true
+
       - name: Install web dependencies
         run: npm ci
         working-directory: webapp/frontend
       - name: Biome check
         run: npm run biome:ci
+        working-directory: webapp/frontend
+
+      - name: Typecheck webapp
+        run: npm run check
         working-directory: webapp/frontend
