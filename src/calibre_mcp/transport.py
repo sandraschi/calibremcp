@@ -128,7 +128,7 @@ def resolve_transport(args: argparse.Namespace) -> TransportType:
         return "stdio"
     if env_transport == "sse":
         logger.warning("SSE transport is deprecated. Consider using MCP_TRANSPORT=http instead.")
-    return env_transport  # type: ignore
+    return env_transport  # type: ignore[return-value]
 
 
 def resolve_config(args: argparse.Namespace) -> dict:

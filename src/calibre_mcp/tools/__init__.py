@@ -47,7 +47,7 @@ def tool(name: str, description: str, parameters: dict[str, Any] | None = None, 
 
     def decorator(func: T) -> T:
         # Add tool metadata to the function
-        func._mcp_tool = {  # type: ignore
+        func._mcp_tool = {  # type: ignore[attr-defined]
             "name": name,
             "description": description,
             "parameters": parameters or {},
@@ -56,7 +56,7 @@ def tool(name: str, description: str, parameters: dict[str, Any] | None = None, 
         }
 
         # Register the tool
-        TOOL_REGISTRY[name] = func._mcp_tool  # type: ignore
+        TOOL_REGISTRY[name] = func._mcp_tool  # type: ignore[attr-defined]
 
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:

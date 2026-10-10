@@ -56,25 +56,25 @@ if initialize_converters is not None:
 # Import models with error handling
 try:
     # Try importing from models.py (flat structure)
-    from ..models import BookFormat, BookIdentifier, BookMetadata  # type: ignore
+    from ..models import BookFormat, BookIdentifier, BookMetadata  # type: ignore[import-not-found]
 except ImportError:
     try:
         # Try importing from models package
-        from .models import BookFormat, BookIdentifier, BookMetadata  # type: ignore
+        from .models import BookFormat, BookIdentifier, BookMetadata  # type: ignore[import-not-found]
     except ImportError:
         # Models not available - define minimal types
         from enum import Enum
 
-        class BookFormat(Enum):  # type: ignore
+        class BookFormat(Enum):  # type: ignore[no-redef]
             EPUB = "epub"
             PDF = "pdf"
 
-        class BookMetadata:  # type: ignore
+        class BookMetadata:  # type: ignore[no-redef]
             def __init__(self, **kwargs):
                 for k, v in kwargs.items():
                     setattr(self, k, v)
 
-        class BookIdentifier:  # type: ignore
+        class BookIdentifier:  # type: ignore[no-redef]
             def __init__(self, **kwargs):
                 for k, v in kwargs.items():
                     setattr(self, k, v)

@@ -125,10 +125,10 @@ release:
 release-dry:
     powershell.exe -NoProfile -File scripts/release.ps1 -DryRun
 
-# MCPB bundle via the fleet shim (central pack pipeline, not a vendored copy)
-mcpb-pack:
-    powershell.exe -NoProfile -File '{{justfile_directory()}}\scripts\mcpb-pack.ps1'
+# NOTE: mcpb-pack, cua-nsis-test, cua-webapp-test come from
+# scripts/just/fleet.just (imported at top). Do NOT redefine them here —
+# duplicate recipes hard-error `just --list` (found 2026-10-10).
 
-# CUA NSIS smoke (install -> launch -> health -> nav walk -> uninstall)
-cua-nsis-test:
-    uv run python scripts/cua-smoke.py --config scripts/cua-nsis-config.json
+# Serve the FastAPI backend locally (fleet ports: backend 10720)
+serve:
+    Set-Location '{{justfile_directory()}}\webapp\backend'; uv run uvicorn app.main:app --host 127.0.0.1 --port 10720
