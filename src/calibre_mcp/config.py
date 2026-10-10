@@ -138,8 +138,20 @@ class CalibreConfig(BaseModel):
         Returns:
             Initialized CalibreConfig instance
         """
-        # Load environment variables
-        load_dotenv()
+        # Load environment variables — SINGLE SOURCE: repo-root .env.
+        # Bare load_dotenv() is cwd-dependent (breaks when backend runs with
+        # WorkDir=webapp/backend), so resolve the repo root from this file first.
+        try:
+            _here = Path(__file__).resolve()
+            for _cand in [_here.parent.parent, _here.parent, Path.cwd()]:
+                _env = _cand / ".env"
+                if _env.is_file():
+                    load_dotenv(dotenv_path=_env, override=False)
+                    break
+            else:
+                load_dotenv()
+        except Exception:
+            load_dotenv()
 
         # Start with default config
         config_data = {}

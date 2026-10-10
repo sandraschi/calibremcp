@@ -49,8 +49,25 @@ if os.name == "nt":  # Windows only
 _is_stdio_mode = not sys.stdin.isatty() if hasattr(sys.stdin, "isatty") else True
 logger.debug(f"Stdio mode detection: {_is_stdio_mode}")
 
-# Load environment variables
-load_dotenv()
+
+# Load environment variables — SINGLE SOURCE: repo-root .env (no webapp/backend duplicates).
+# Resolves the repo root from this file so backend WorkDir=webapp/backend still finds it.
+def _load_repo_root_env() -> None:
+    try:
+        from pathlib import Path as _Path
+
+        _root = _Path(__file__).resolve()
+        for _cand in [_root.parent.parent.parent, _root.parent.parent, _Path.cwd()]:
+            _env = _cand / ".env"
+            if _env.is_file():
+                load_dotenv(dotenv_path=_env, override=False)
+                return
+    except Exception:
+        pass
+    load_dotenv()
+
+
+_load_repo_root_env()
 
 
 # DevNullStdout class for stdio mode suppression
