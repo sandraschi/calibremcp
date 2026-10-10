@@ -52,7 +52,14 @@ def _add_dialogic_fields(
     return result
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
+)
 async def manage_libraries(
     operation: str,
     library_name: str | None = None,
@@ -82,6 +89,20 @@ async def manage_libraries(
     FastMCP 3.1+ dialogic response: success, operation, result or error,
     recommendations, next_steps, and execution_time_ms.
     Enables conversational follow-ups for library navigation.
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str,
+    "execution_time_ms": int, "recommendations": [...]}` — `list`
+    adds `libraries: [...]`; `stats` adds library metrics; `switch`
+    adds `active_library: str`. On failure `{"success": False,
+    "error": str, "error_code": str, "suggestions": [...],
+    "related_tools": [...]}`.
+
+    ## Examples
+    `manage_libraries(operation="list")`
+    `manage_libraries(operation="switch", library_name="Main Library")`
+    `manage_libraries(operation="stats")`
+    `manage_libraries(operation="discover")`
     """
     start_ms = int(time.time() * 1000)
     if ctx:

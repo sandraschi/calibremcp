@@ -18,7 +18,14 @@ logger = get_logger("calibremcp.tools.system")
 BACKEND_PORT = 10720  # fleet-registered port
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
+)
 async def show_api_docs() -> dict[str, Any]:
     """
     Return Swagger UI, ReDoc, and OpenAPI schema URLs for the calibre-mcp REST API.
@@ -28,6 +35,13 @@ async def show_api_docs() -> dict[str, Any]:
     user to the right place without them needing to remember the port.
 
     Returns: dict with swagger_ui, redoc, openapi_json URLs and a usage note.
+
+    ## Return Format
+    `{"swagger_ui": str, "redoc": str, "openapi_json": str,
+    "backend_port": int, "webapp_url": str, "note": str}`.
+
+    ## Examples
+    `show_api_docs()`
     """
     base = f"http://localhost:{BACKEND_PORT}"
     return {
@@ -44,7 +58,14 @@ async def show_api_docs() -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    }
+)
 async def manage_system(
     operation: str,
     # Help operation parameters
@@ -75,6 +96,18 @@ async def manage_system(
     - manage_system(operation="status", focus="library")
     - manage_system(operation="tool_help", tool_name="manage_books")
     - manage_system(operation="shutdown")
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, "content": ...}` —
+    `status`/`health_check` return health diagnostics; `list_tools`
+    returns the tool catalog; `shutdown` returns `{"success": True,
+    "message": "shutting down"}` before the process exits.
+
+    ## Examples
+    `manage_system(operation="status")`
+    `manage_system(operation="health_check")`
+    `manage_system(operation="list_tools", category="books")`
+    `manage_system(operation="shutdown")`
     """
     try:
         if operation == "help":

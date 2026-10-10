@@ -20,7 +20,14 @@ from .update_book import update_book_helper
 logger = get_logger("calibremcp.tools.book_management")
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    }
+)
 async def manage_books(
     operation: str,
     book_id: str | None = None,
@@ -57,6 +64,19 @@ async def manage_books(
     FastMCP 3.1+ dialogic response: success, operation, result or error,
     recommendations, next_steps, and execution_time_ms.
     Enables iterative refinement of book metadata and library content.
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, ...book fields}` —
+    `get`/`details` return the book record; `add`/`update` return the
+    affected `book_id`; `delete` returns `{"success": True,
+    "book_id": str}`. On failure `{"success": False, "error": str,
+    "error_code": str, "suggestions": [...], "related_tools": [...]}`.
+
+    ## Examples
+    `manage_books(operation="get", book_id="123")`
+    `manage_books(operation="details", book_id="123", include_formats=True)`
+    `manage_books(operation="update", book_id="123", metadata={"title": "New Title"})`
+    `manage_books(operation="delete", book_id="123")`
     """
     try:
         if operation == "add":
