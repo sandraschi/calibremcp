@@ -22,7 +22,14 @@ from .comment_helpers import (
 logger = get_logger("calibremcp.tools.comments")
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    }
+)
 async def manage_comments(
     operation: str,
     book_id: str | None = None,
@@ -41,6 +48,18 @@ async def manage_comments(
     Example:
     - manage_comments(operation="create", book_id="123", text="Initial review.")
     - manage_comments(operation="append", book_id="123", text="Update: still loving it.")
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, "book_id": str,
+    ...comment fields}` — `read` returns the comment text; mutating
+    operations return the updated record. On failure `{"success": False,
+    "error": str, "error_code": str, "suggestions": [...],
+    "related_tools": [...]}`.
+
+    ## Examples
+    `manage_comments(operation="read", book_id="123")`
+    `manage_comments(operation="create", book_id="123", text="Initial review.")`
+    `manage_comments(operation="append", book_id="123", text="Update: still loving it.")`
     """
     try:
         # Validate operation

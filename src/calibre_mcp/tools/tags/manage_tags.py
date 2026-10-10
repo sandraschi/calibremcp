@@ -27,7 +27,14 @@ from .tag_helpers import (
 logger = get_logger("calibremcp.tools.tags")
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    }
+)
 async def manage_tags(
     operation: str,
     # List operation parameters
@@ -70,6 +77,18 @@ async def manage_tags(
     Examples:
     - manage_tags(operation="list", search="mystery", sort_by="book_count")
     - manage_tags(operation="find_duplicates", similarity_threshold=0.9)
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, ...payload}` —
+    `list` returns `tags: [...]` with pagination; `statistics` returns
+    usage metrics; mutating operations return the affected tag record.
+    On failure `{"success": False, "error": str, "error_code": str,
+    "suggestions": [...], "related_tools": [...]}`.
+
+    ## Examples
+    `manage_tags(operation="list", search="mystery")`
+    `manage_tags(operation="statistics")`
+    `manage_tags(operation="find_duplicates", similarity_threshold=0.9)`
     """
     try:
         if operation == "list":

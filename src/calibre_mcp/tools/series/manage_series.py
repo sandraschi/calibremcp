@@ -21,7 +21,14 @@ from .series_helpers import (
 logger = get_logger("calibremcp.tools.series")
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
+)
 async def manage_series(
     operation: str,
     query: str | None = None,
@@ -43,6 +50,18 @@ async def manage_series(
     Example:
     - manage_series(operation="list", query="foundation")
     - manage_series(operation="get_books", series_id=12)
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, ...payload}` —
+    `list` returns `series: [...]` with pagination; `get_books`
+    returns the books in reading order. On failure `{"success": False,
+    "error": str, "error_code": str, "suggestions": [...],
+    "related_tools": [...]}`.
+
+    ## Examples
+    `manage_series(operation="list", query="foundation")`
+    `manage_series(operation="get", series_id=12)`
+    `manage_series(operation="get_books", series_id=12)`
     """
     try:
         if operation == "list":

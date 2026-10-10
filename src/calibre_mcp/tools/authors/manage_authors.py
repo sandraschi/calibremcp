@@ -23,7 +23,15 @@ from .author_helpers import (
 logger = get_logger("calibremcp.tools.authors")
 
 
-@mcp.tool(output_schema=MANAGE_AUTHORS_OUTPUT_SCHEMA)
+@mcp.tool(
+    output_schema=MANAGE_AUTHORS_OUTPUT_SCHEMA,
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    },
+)
 async def manage_authors(
     operation: str,
     # List operation parameters
@@ -52,6 +60,19 @@ async def manage_authors(
     Example:
     - manage_authors(operation="list", query="martin")
     - manage_authors(operation="get_books", author_id=42)
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, ...payload}` —
+    `list` returns `authors: [...]` with pagination; `get` returns the
+    author record with book counts; `stats` returns library-wide
+    distributions. On failure `{"success": False, "error": str,
+    "error_code": str, "suggestions": [...], "related_tools": [...]}`.
+
+    ## Examples
+    `manage_authors(operation="list", query="martin")`
+    `manage_authors(operation="get", author_id=42)`
+    `manage_authors(operation="get_books", author_id=42)`
+    `manage_authors(operation="stats")`
     """
     try:
         if operation == "list":
