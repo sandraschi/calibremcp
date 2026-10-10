@@ -10,8 +10,8 @@ async def main():
     # Register all tools with the MCP server
     register_tools(mcp)
 
-    # Get tools
-    tools = await mcp.get_tools()
+    # Get tools (FastMCP 3.x API returns a sequence; index by name)
+    tools = {t.name: t for t in await mcp.list_tools()}
     for _i, _name in enumerate(sorted(tools.keys()), 1):
         pass
 

@@ -12,7 +12,7 @@ from calibre_mcp.tools import book_tools  # noqa: F401
 
 
 async def check_tools():
-    tools_dict = await mcp.get_tools()
+    tools_dict = {t.name: t for t in await mcp.list_tools()}
     [k for k in tools_dict if "search" in k.lower() or "book" in k.lower()]
 
 

@@ -36,16 +36,16 @@ class TestCalibreMCPServer:
         os.environ["CALIBRE_USERNAME"] = config.username or ""
         os.environ["CALIBRE_PASSWORD"] = config.password or ""
 
-        # Get all registered tools from the FastMCP instance
-        tools = await mcp.get_tools()
+        # Get all registered tools from the FastMCP instance (3.x API)
+        tools = {t.name: t for t in await mcp.list_tools()}
         for _tool_name in tools:
             pass
 
         # Create a test client that calls MCP tools through the FastMCP instance
         async def call_method(method: str, params: dict = None) -> dict:
             try:
-                # Get the tool from the FastMCP instance
-                tools = await mcp.get_tools()
+                # Get the tool from the FastMCP instance (3.x API)
+                tools = {t.name: t for t in await mcp.list_tools()}
                 if method not in tools:
                     return {
                         "error": f"Tool '{method}' not found in FastMCP instance. Available tools: {', '.join(tools.keys())}"
