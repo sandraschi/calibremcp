@@ -21,7 +21,14 @@ from ..shared.query_parsing import parse_intelligent_query, strip_inventory_ques
 logger = get_logger("calibremcp.tools.book_management")
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    }
+)
 async def query_books(
     operation: str,
     # Search parameters (all passed through to search_books_helper)
@@ -83,6 +90,19 @@ async def query_books(
     FastMCP 3.1+ dialogic response: success, operation, result or error,
     recommendations, next_steps, and execution_time_ms.
     Enables deep discovery and iterative filtering of library content.
+
+    ## Return Format
+    `{"success": bool, "message": str, "operation": str, "items": [...],
+    "total": int, "limit": int, "offset": int}` — on failure
+    `{"success": False, "error": str, "error_code": str,
+    "suggestions": [...], "related_tools": [...]}`.
+
+    ## Examples
+    `query_books(operation="search", author="Agatha Christie", limit=10)`
+    `query_books(operation="search", text="murder on the orient express")`
+    `query_books(operation="list", limit=50, offset=0)`
+    `query_books(operation="recent", limit=10)`
+    `query_books(operation="by_author", author_id=42)`
     """
     try:
         if operation == "search":

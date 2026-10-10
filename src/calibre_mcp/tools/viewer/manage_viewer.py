@@ -19,7 +19,14 @@ _NO_WINDOW = 0
 logger = get_logger("calibremcp.tools.viewer")
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    }
+)
 async def manage_viewer(
     operation: str,
     book_id: int | None = None,
@@ -53,6 +60,17 @@ async def manage_viewer(
     Example:
     - manage_viewer(operation="open_file", book_id=123)
     - manage_viewer(operation="get_page", book_id=123, page_number=5)
+
+    ## Return Format
+    `{"success": bool, "message": str, ...operation fields}` — on success
+    `book_id`, `file_path`, plus `metadata`/`state`/`page` payload per
+    operation; on failure `{"success": False, "error": str,
+    "error_code": str, "suggestions": [...], "related_tools": [...]}`.
+
+    ## Examples
+    `manage_viewer(operation="open", book_id=123, file_path="L:/lib/Author/Book/book.epub")`
+    `manage_viewer(operation="get_page", book_id=123, file_path="L:/lib/Author/Book/book.epub", page_number=5)`
+    `manage_viewer(operation="open_random", author="Agatha Christie")`
     """
     try:
         # Handle open_random operation first (doesn't require book_id/file_path)
@@ -67,7 +85,7 @@ async def manage_viewer(
                 from ...tools.book_tools import search_books_helper
 
                 # Build search parameters
-                search_params = {"limit": 100}  # Get up to 100 books for random selection
+                search_params: dict[str, Any] = {"limit": 100}  # Get up to 100 books for random selection
                 if author:
                     search_params["author"] = author
                 if tag:
@@ -184,15 +202,15 @@ async def manage_viewer(
                     import re
 
                     file_name = re.sub(r'[<>:"/\\|?*]', "_", file_name)
-                    file_path = Path(first_lib_path) / book_obj.path / file_name
+                    resolved_path: Path = Path(first_lib_path) / book_obj.path / file_name
 
                     # If file doesn't exist, try without extension
-                    if not file_path.exists():
+                    if not resolved_path.exists():
                         file_path_no_ext = Path(first_lib_path) / book_obj.path / format_obj.name
                         if file_path_no_ext.exists():
-                            file_path = file_path_no_ext
+                            resolved_path = file_path_no_ext
 
-                    if not file_path.exists():
+                    if not resolved_path.exists():
                         return format_error_response(
                             error_msg=f"File not found: {file_path}",
                             error_code="FILE_NOT_FOUND",
@@ -203,7 +221,7 @@ async def manage_viewer(
                         )
 
                     # Open file with system default application
-                    file_path_str = str(file_path.resolve())
+                    file_path_str = str(resolved_path.resolve())
                     _open_file(file_path_str)
 
                     return {

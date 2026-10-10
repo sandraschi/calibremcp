@@ -134,3 +134,12 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--cov=src/calibre_mcp --cov-report=term-missing --cov-fail-under=30"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["src/calibre_mcp"]
+omit = ["*/tests/*", "*/test_*", "*/__pycache__/*"]
