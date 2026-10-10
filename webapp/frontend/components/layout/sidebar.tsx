@@ -69,6 +69,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Discover',
     icon: Search,
     items: [
+      { href: '/inbox', label: 'Inbox', icon: FileText },
       { href: '/search', label: 'Search', icon: Search },
       { href: '/rag', label: 'Semantic Search', icon: Sparkles },
       { href: '/collections', label: 'Collections', icon: BookmarkCheck },
@@ -86,6 +87,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/chat', label: 'Chat', icon: MessageSquare },
       { href: '/agentic', label: 'Agentic', icon: GitBranch },
       { href: '/skills', label: 'Skills', icon: ListChecks },
+      { href: '/tools', label: 'Tools', icon: Wrench },
     ],
   },
   {
