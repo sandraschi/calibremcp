@@ -83,7 +83,9 @@ class ExportLibraryTool(MCPTool):
         # Export each book
         for i, book in enumerate(books, 1):
             try:
-                self._update_progress(progress_callback, i, total_books, f"Exporting {book.title}")
+                await asyncio.to_thread(
+                    self._update_progress, progress_callback, i, total_books, f"Exporting {book.title}"
+                )
 
                 # Export metadata
                 if include_metadata:
@@ -134,13 +136,13 @@ class ExportLibraryTool(MCPTool):
 
         # Package if requested
         if fmt.lower() == "zip":
-            self._update_progress(progress_callback, 0, 1, "Creating archive...")
+            await asyncio.to_thread(self._update_progress, progress_callback, 0, 1, "Creating archive...")
             # Zip-compressing a whole library is CPU+I/O heavy — off the loop.
             await asyncio.to_thread(shutil.make_archive, str(export_path), "zip", export_path)
             await asyncio.to_thread(shutil.rmtree, export_path)
             results["export_path"] = f"{export_path}.zip"
 
-        self._update_progress(progress_callback, total_books, total_books, "Export complete!")
+        await asyncio.to_thread(self._update_progress, progress_callback, total_books, total_books, "Export complete!")
         return results
 
     def _update_progress(self, callback_url: str | None, current: int, total: int, message: str) -> None:

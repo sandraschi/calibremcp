@@ -104,7 +104,7 @@ async def webapp_launch(body: WebappLaunchRequest) -> WebappLaunchResponse:
     if port not in ALLOWED_PORTS:
         raise HTTPException(status_code=400, detail=f"Port {port} is not allowed for launch")
     url = f"http://127.0.0.1:{port}/"
-    if _check_port_up(port):
+    if await asyncio.to_thread(_check_port_up, port):
         return WebappLaunchResponse(already_running=True, started=False, url=url)
     repo_dir, script_rel = WEBAPP_LAUNCH_MAP[port]
     try:
@@ -119,7 +119,7 @@ async def webapp_launch(body: WebappLaunchRequest) -> WebappLaunchResponse:
     deadline = time.monotonic() + POLL_TIMEOUT
     while time.monotonic() < deadline:
         await asyncio.sleep(POLL_INTERVAL)
-        if _check_port_up(port):
+        if await asyncio.to_thread(_check_port_up, port):
             return WebappLaunchResponse(already_running=False, started=True, url=url)
     return WebappLaunchResponse(
         already_running=False, started=False, url=url, error="Timeout waiting for webapp to start"

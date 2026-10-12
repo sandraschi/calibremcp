@@ -1,5 +1,6 @@
 """FastAPI application for Calibre webapp."""
 
+import asyncio
 import contextlib
 import logging
 import logging.handlers
@@ -416,11 +417,13 @@ async def get_cua_diagnostics():
         import subprocess
 
         tesseract = (
-            subprocess.run(
-                [r"C:\Program Files\Tesseract-OCR\tesseract.exe", "--version"], capture_output=True, timeout=5
-            ).returncode
-            == 0
-        )
+            await asyncio.to_thread(
+                subprocess.run,
+                [r"C:\Program Files\Tesseract-OCR\tesseract.exe", "--version"],
+                capture_output=True,
+                timeout=5,
+            )
+        ).returncode == 0
     with contextlib.suppress(Exception):
         import pywinauto
 
