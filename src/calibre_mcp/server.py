@@ -699,6 +699,7 @@ def get_mcp_instance() -> FastMCP:
 
 async def main():
     """Main server entry point with comprehensive error handling and logging"""
+    import asyncio
     import logging
     import os
 
@@ -707,7 +708,8 @@ async def main():
     try:
         import httpx
 
-        _resp = httpx.post(
+        _resp = await asyncio.to_thread(
+            httpx.post,
             _probe_url,
             json={
                 "jsonrpc": "2.0",
