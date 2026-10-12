@@ -17,6 +17,7 @@ from ..db.models import (  # Use db.models for query models
     Rating,
     Series,
     Tag,
+    first_series,
 )
 from ..logging_config import get_logger
 from ..models.book import (
@@ -149,6 +150,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         has_cover: bool | None = None,
         sort_by: str = "title",
         sort_order: str = "asc",
+        max_results: int = 20,
         **filters: Any,
     ) -> dict[str, Any]:
         """
@@ -178,6 +180,14 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             ValueError: If invalid parameters are provided
         """
         start_time = time.time()
+        # Cap the result pool: full-text fetch stops at max_results instead of
+        # scanning everything (default 20). Page fetch is clamped below too.
+        try:
+            max_results = int(max_results or 20)
+        except (TypeError, ValueError):
+            max_results = 20
+        max_results = max(1, min(max_results, 500))
+        page_limit = min(limit, max(0, max_results - skip)) if skip < max_results else 0
         logger.info(
             "Starting get_all query",
             extra={
@@ -359,14 +369,15 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                                 "fts_path": str(fts_db_path),
                             },
                         )
-                        # Use FTS search - get all matching IDs first (we'll paginate later)
+                        # Use FTS search - fetch at most max_results IDs (stop early,
+                        # never the old unbounded 10000-row scan with snippets).
                         # query_fts catches exceptions internally and returns ([], 0) on failure
                         # So we check if we got results - if not, fall back to LIKE
                         try:
                             book_ids, total_fts, fts_snippets = query_fts(
                                 fts_db_path,
                                 search,
-                                limit=10000,  # Get all matches, we'll paginate in SQLAlchemy
+                                limit=max_results,
                                 offset=0,
                                 include_snippets=True,
                             )
@@ -826,54 +837,54 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             for field, value in filters.items():
                 if field == "publisher":
                     # Publisher might be in identifiers table or custom columns
-                    # Try identifiers first
-                    from ..models.identifier import Identifier
+                    # Try identifiers first (db.models universe: must match Book's join)
+                    from ..db.models import Identifier as DbIdentifier
 
                     if value:
                         publisher_filter = f"%{value}%"
                         query = (
-                            query.join(Identifier, Book.identifiers)
-                            .filter(Identifier.type == "publisher")
-                            .filter(Identifier.val.ilike(publisher_filter))
+                            query.join(DbIdentifier, Book.identifiers)
+                            .filter(DbIdentifier.type == "publisher")
+                            .filter(DbIdentifier.val.ilike(publisher_filter))
                             .distinct()
                         )
                 elif field == "publishers":
                     # Multiple publishers - OR within publishers list, AND with other filters
-                    from ..models.identifier import Identifier
+                    from ..db.models import Identifier as DbIdentifier
 
                     if value and isinstance(value, (list, tuple)):
                         publisher_conditions = []
                         for pub in value:
                             pub_filter = f"%{pub}%"
-                            publisher_conditions.append(Identifier.val.ilike(pub_filter))
+                            publisher_conditions.append(DbIdentifier.val.ilike(pub_filter))
                         if publisher_conditions:
                             query = (
-                                query.join(Identifier, Book.identifiers)
-                                .filter(Identifier.type == "publisher")
+                                query.join(DbIdentifier, Book.identifiers)
+                                .filter(DbIdentifier.type == "publisher")
                                 .filter(or_(*publisher_conditions))
                                 .distinct()
                             )
                 elif field == "has_publisher":
-                    from ..models.identifier import Identifier
+                    from ..db.models import Identifier as DbIdentifier
 
                     if value is True:
                         # Has publisher
                         query = (
-                            query.join(Identifier, Book.identifiers)
-                            .filter(Identifier.type == "publisher")
-                            .filter(Identifier.val.isnot(None))
-                            .filter(Identifier.val != "")
+                            query.join(DbIdentifier, Book.identifiers)
+                            .filter(DbIdentifier.type == "publisher")
+                            .filter(DbIdentifier.val.isnot(None))
+                            .filter(DbIdentifier.val != "")
                             .distinct()
                         )
                     elif value is False:
                         # No publisher - use subquery
                         subquery = (
-                            session.query(Identifier)
+                            session.query(DbIdentifier)
                             .filter(
-                                Identifier.book_id == Book.id,
-                                Identifier.type == "publisher",
-                                Identifier.val.isnot(None),
-                                Identifier.val != "",
+                                DbIdentifier.book == Book.id,
+                                DbIdentifier.type == "publisher",
+                                DbIdentifier.val.isnot(None),
+                                DbIdentifier.val != "",
                             )
                             .exists()
                         )
@@ -951,7 +962,7 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 },
             )
             try:
-                books = query.offset(skip).limit(limit).all()
+                books = query.offset(skip).limit(page_limit).all()
                 logger.debug(
                     "Query executed successfully",
                     extra={
@@ -1016,6 +1027,17 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 "page_size": limit,
                 "total_pages": (total + limit - 1) // limit if limit > 0 else 1,
             }
+            if total == 0:
+                terms = [t for t in [search, title, author_name] if t]
+                hint = f" for '{', '.join(terms)}'" if terms else ""
+                result["message"] = (
+                    f"No matching books found{hint}. Try fewer words, an author= filter, "
+                    "or raise max_results (default 20)."
+                )
+            elif total > max_results and skip + page_limit >= max_results:
+                result["message"] = (
+                    f"Showing first {max_results} of {total} matches. Narrow the query or raise max_results for more."
+                )
 
             logger.info(
                 "get_all query completed successfully",
@@ -1323,11 +1345,9 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
             {"id": a.id, "name": a.name} for a in (book.authors if hasattr(book, "authors") else [])
         ]
         book_dict["tags"] = [{"id": t.id, "name": t.name} for t in (book.tags if hasattr(book, "tags") else [])]
-        # Handle series - db.models.Book has series as relationship
-        if hasattr(book, "series") and book.series:
-            book_dict["series"] = {"id": book.series[0].id, "name": book.series[0].name} if book.series else None
-        else:
-            book_dict["series"] = None
+        # Handle series - tolerant of both Book mappings (scalar property vs list).
+        series_obj = first_series(book)
+        book_dict["series"] = {"id": series_obj.id, "name": series_obj.name} if series_obj else None
 
         # Rating from ratings relationship
         if hasattr(book, "ratings") and book.ratings:
@@ -1368,10 +1388,16 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
         # 1. Descriptive filename from data.name if available
         # 2. Numeric format {data.id}.{format.lower()} if data.name is empty
         formats = []
-        if hasattr(book, "data") and book.data:
+        try:
+            data_rows = book.data if hasattr(book, "data") else []
+        except Exception as e:
+            # Data model may not match this database's schema (book vs book_id)
+            logger.debug(f"Could not load formats for book {book.id}: {e}")
+            data_rows = []
+        if data_rows:
             # Get library base path from database URL
             library_path = self._get_library_base_path()
-            for data in book.data:
+            for data in data_rows:
                 # Use descriptive filename if available, otherwise use numeric format
                 if data.name and data.name.strip():
                     # Descriptive filename: name may include extension, or we add it

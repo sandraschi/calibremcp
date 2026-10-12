@@ -248,3 +248,33 @@ Index("idx_authors_name", Author.name)
 Index("idx_series_name", Series.name)
 Index("idx_tags_name", Tag.name)
 Index("idx_publishers_name", Publisher.name)
+
+
+def first_series(book) -> "Series | None":
+    """First Series for a book, tolerant of both Book mappings in this codebase.
+
+    db.models.Book exposes ``series`` as a many-to-many list; models/book.py::Book
+    exposes ``series`` as a scalar property (first series or None). Indexing either
+    shape blindly crashes (TypeError: 'Series' object is not subscriptable), so every
+    formatter must go through here instead of ``book.series[0]``.
+    """
+    series = getattr(book, "series", None)
+    if series is None:
+        return None
+    if isinstance(series, (list, tuple)):
+        return series[0] if series else None
+    return series
+
+
+def first_comment(book) -> "Comment | None":
+    """First Comment for a book, tolerant of both Book mappings.
+
+    db.models.Book exposes ``comments`` as scalar (uselist=False);
+    models/book.py::Book exposes a list. Mirrors first_series().
+    """
+    comments = getattr(book, "comments", None)
+    if comments is None:
+        return None
+    if isinstance(comments, (list, tuple)):
+        return comments[0] if comments else None
+    return comments

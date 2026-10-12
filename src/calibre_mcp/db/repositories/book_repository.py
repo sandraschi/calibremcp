@@ -10,6 +10,7 @@ from sqlalchemy.orm import joinedload
 
 from ...db.base_repository import BaseRepository
 from ...models import Author, Book, Comment, Data, Rating, Series, Tag
+from ..models import first_comment, first_series
 
 
 class BookRepository(BaseRepository[Book]):
@@ -225,6 +226,8 @@ class BookRepository(BaseRepository[Book]):
             return None
 
         idents = {i.type: i.val for i in (book.identifiers or [])}
+        series_obj = first_series(book)
+        comment_obj = first_comment(book)
         return {
             "id": book.id,
             "title": book.title,
@@ -240,10 +243,10 @@ class BookRepository(BaseRepository[Book]):
             "last_modified": book.last_modified.isoformat() if book.last_modified else None,
             "authors": [{"id": a.id, "name": a.name} for a in book.authors],
             "tags": [{"id": t.id, "name": t.name} for t in book.tags],
-            "series": book.series[0].name if book.series else None,
-            "series_id": book.series[0].id if book.series else None,
+            "series": series_obj.name if series_obj else None,
+            "series_id": series_obj.id if series_obj else None,
             "rating": book.ratings[0].rating if book.ratings else 0,
-            "comment": book.comments[0].text if book.comments else None,
+            "comment": comment_obj.text if comment_obj else None,
             "formats": [{"format": d.format, "size": d.uncompressed_size, "name": d.name} for d in book.data],
             "identifiers": idents,
         }

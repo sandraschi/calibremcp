@@ -11,6 +11,7 @@ from ...db.base_repository import BaseRepository
 from ...models.author import Author
 from ...models.book import Book
 from ...models.series import Series
+from ..models import first_series
 
 
 class AuthorRepository(BaseRepository[Author]):
@@ -195,7 +196,7 @@ class AuthorRepository(BaseRepository[Author]):
                 session.query(Book)
                 .options(
                     joinedload(Book.authors),
-                    joinedload(Book.series),
+                    joinedload(Book.series_rel),
                     joinedload(Book.ratings),
                     joinedload(Book.tags),
                 )
@@ -213,19 +214,21 @@ class AuthorRepository(BaseRepository[Author]):
             if hasattr(book_repo, "_format_book"):
                 formatted_books = [book_repo._format_book(book) for book in books]
             else:
-                formatted_books = [
-                    {
-                        "id": book.id,
-                        "title": book.title,
-                        "authors": [{"id": a.id, "name": a.name} for a in book.authors],
-                        "series": book.series[0].name if book.series else None,
-                        "series_id": book.series[0].id if book.series else None,
-                        "series_index": book.series_index,
-                        "rating": book.ratings[0].rating if book.ratings else 0,
-                        "tags": [{"id": t.id, "name": t.name} for t in book.tags],
-                    }
-                    for book in books
-                ]
+                formatted_books = []
+                for book in books:
+                    series_obj = first_series(book)
+                    formatted_books.append(
+                        {
+                            "id": book.id,
+                            "title": book.title,
+                            "authors": [{"id": a.id, "name": a.name} for a in book.authors],
+                            "series": series_obj.name if series_obj else None,
+                            "series_id": series_obj.id if series_obj else None,
+                            "series_index": book.series_index,
+                            "rating": book.ratings[0].rating if book.ratings else 0,
+                            "tags": [{"id": t.id, "name": t.name} for t in book.tags],
+                        }
+                    )
 
             return formatted_books, total
 

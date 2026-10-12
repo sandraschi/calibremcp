@@ -15,16 +15,42 @@ we fall back to LIKE on books_text.searchable_text.
 
 import logging
 import sqlite3
+import time
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 FTS_DB_FILENAME = "full-text-search.db"
+# Wall-clock budget per FTS content query. The content index can be tens of GB
+# on network storage (and may be actively indexed); without a budget a single
+# MATCH+snippets query hangs the MCP call. On abort the caller falls back to
+# fast metadata LIKE search, so a timeout degrades instead of hanging.
+FTS_QUERY_BUDGET_S = 20.0
+# VM instructions between budget checks (progress handler granularity).
+_FTS_PROGRESS_EVERY_OPS = 10000
 # Calibre FTS5 table names (content tables linked to books_text)
 FTS_TABLE = "books_fts"
 FTS_TABLE_STEMMED = "books_fts_stemmed"
 BOOKS_TEXT_TABLE = "books_text"
+
+
+def _budgeted_connection(fts_db_path: Path, budget_s: float = FTS_QUERY_BUDGET_S) -> sqlite3.Connection:
+    """Open the FTS db with a wall-clock query budget.
+
+    sqlite3 has no query-timeout pragma; the progress handler aborts runaway
+    MATCH/snippet queries by returning non-zero, surfacing as OperationalError
+    ("interrupted"), which callers already translate into the LIKE fallback.
+    """
+    conn = sqlite3.connect(str(fts_db_path), timeout=30)
+    conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
+    deadline = time.monotonic() + max(1.0, budget_s)
+
+    def _check_budget() -> int:
+        return 1 if time.monotonic() >= deadline else 0
+
+    conn.set_progress_handler(_check_budget, _FTS_PROGRESS_EVERY_OPS)
+    return conn
 
 
 def find_fts_database(metadata_db_path: Path) -> Path | None:
@@ -249,8 +275,7 @@ def query_fts(
     fts_table = FTS_TABLE_STEMMED if use_stemming else FTS_TABLE
 
     try:
-        conn = sqlite3.connect(str(fts_db_path), timeout=30)
-        conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
+        conn = _budgeted_connection(fts_db_path)
         try:
             # Ensure tables exist
             cursor = conn.cursor()
@@ -449,8 +474,7 @@ def query_fts_detailed(
     fts_table = FTS_TABLE_STEMMED if use_stemming else FTS_TABLE
 
     try:
-        conn = sqlite3.connect(str(fts_db_path), timeout=30)
-        conn.execute("PRAGMA busy_timeout = 30000")  # BUG-062 sweep
+        conn = _budgeted_connection(fts_db_path)
         conn.row_factory = sqlite3.Row
         try:
             cursor = conn.cursor()

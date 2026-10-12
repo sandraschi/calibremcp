@@ -68,6 +68,7 @@ async def query_books(
     format_table: bool = False,
     limit: int = 50,
     offset: int = 0,
+    max_results: int = 20,
     # Auto-open functionality
     auto_open: bool = False,
     auto_open_format: str = "EPUB",
@@ -219,6 +220,7 @@ async def query_books(
                 format_table=format_table,
                 limit=limit,
                 offset=offset,
+                max_results=max_results,
             )
 
             if parsed.get("prefer_semantic_search") and isinstance(result, dict):

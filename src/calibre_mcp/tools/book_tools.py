@@ -339,6 +339,7 @@ async def search_books_helper(
     sort_order: str = "asc",
     limit: int = 50,
     offset: int = 0,
+    max_results: int = 20,
     format_table: bool = False,
 ) -> dict[str, Any]:
     """
@@ -1206,6 +1207,7 @@ async def search_books_helper(
                 book_service.get_all,
                 skip=offset,
                 limit=limit,
+                max_results=max_results,
                 search=search_text,
                 title=title,  # NEW: Direct title search
                 author_name=author_name if not authors_list else None,
