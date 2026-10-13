@@ -53,5 +53,5 @@ When [molthub.com](https://molthub.com) launches:
 
 ## Related
 
-- [CalibreMCP](https://github.com/sandraschi/calibre-mcp) – MCP server with AI tools, extended metadata, Anna's Archive import
+- [CalibreMCP](https://github.com/sandraschi/calibremcp) – MCP server with AI tools, extended metadata, Anna's Archive import
 - [Calibre manual – calibredb](https://manual.calibre-ebook.com/generated/en/calibredb.html)

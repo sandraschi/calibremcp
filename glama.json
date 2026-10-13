@@ -10,7 +10,7 @@
     "framework": "FastMCP 3.4.4+",
     "version": "1.9.0",
     "icon": "book",
-    "homeUrl": "https://github.com/sandraschi/calibre-mcp",
+    "homeUrl": "https://github.com/sandraschi/calibremcp",
     "tools": 31,
     "transport": [
         "stdio",

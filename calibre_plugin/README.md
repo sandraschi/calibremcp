@@ -1,7 +1,7 @@
 # CalibreMCP Integration — Calibre Plugin
 
 A Calibre plugin that surfaces CalibreMCP capabilities inside the Calibre GUI.
-Part of the [calibre-mcp](https://github.com/sandraschi/calibre-mcp) project.
+Part of the [calibre-mcp](https://github.com/sandraschi/calibremcp) project.
 
 ---
 

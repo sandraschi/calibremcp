@@ -30,8 +30,8 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/your-username/calibre-mcp.git
-   cd calibre-mcp
+   git clone https://github.com/your-username/calibremcp.git
+   cd calibremcp
    ```
 
 2. **Install Dependencies**
@@ -348,7 +348,7 @@ asyncio.run(test())
 1. **Import Errors**
    ```bash
    # Ensure you're in the project directory
-   cd calibre-mcp
+   cd calibremcp
 
    # Check Python path
    uv run python -c "import sys; print(sys.path)"

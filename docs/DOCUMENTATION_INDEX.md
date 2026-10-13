@@ -199,7 +199,7 @@ Fleet Tauri installer pitfalls: [mcp-central-docs TAURI_PRODUCTION_PITFALLS](htt
 
 ## Getting help
 
-- **Issues:** [github.com/sandraschi/calibre-mcp/issues](https://github.com/sandraschi/calibre-mcp/issues)
+- **Issues:** [github.com/sandraschi/calibremcp/issues](https://github.com/sandraschi/calibremcp/issues)
 - **Docs wrong or stale:** open an issue or PR against this file or the specific doc.
 
 ---

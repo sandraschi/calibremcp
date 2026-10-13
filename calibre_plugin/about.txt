@@ -10,4 +10,4 @@ Features:
 - Config: Override user data dir, MCP HTTP URL for future AI features
 
 Requires: Calibre 6+, CalibreMCP (optional, for AI features)
-Docs: https://github.com/sandraschi/calibre-mcp
+Docs: https://github.com/sandraschi/calibremcp

@@ -1,6 +1,6 @@
 # Tauri 2.0 Native Desktop App
 
-> **End users:** download `Calibre MCP_*_x64-setup.exe` from [Releases](https://github.com/sandraschi/calibre-mcp/releases/latest) and double-click. This page is for **maintainers** building the installer.
+> **End users:** download `Calibre MCP_*_x64-setup.exe` from [Releases](https://github.com/sandraschi/calibremcp/releases/latest) and double-click. This page is for **maintainers** building the installer.
 
 Calibre MCP ships with a Tauri 2.0 native wrapper — **one** installer, **one** shortcut. Python backend embedded in the bundle.
 

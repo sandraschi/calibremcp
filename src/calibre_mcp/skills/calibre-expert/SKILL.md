@@ -89,7 +89,7 @@ Prefer **structured returns** (`success`, `message`, data) for chaining. On erro
 
 ## Prompts
 
-MCP **prompts** (`reading_recommendations`, `library_health`, `calibre_semantic_search`, etc.) are **intent templates** — pair them with the tools in [docs/PROMPTS.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/PROMPTS.md). Do not invent tool names; use the server’s registered list.
+MCP **prompts** (`reading_recommendations`, `library_health`, `calibre_semantic_search`, etc.) are **intent templates** — pair them with the tools in [docs/PROMPTS.md](https://github.com/sandraschi/calibremcp/blob/main/docs/PROMPTS.md). Do not invent tool names; use the server’s registered list.
 
 ---
 
@@ -97,10 +97,10 @@ MCP **prompts** (`reading_recommendations`, `library_health`, `calibre_semantic_
 
 Works from the repo clone or from GitHub (skill resource has no local `docs/` sibling).
 
-- [docs/PROMPTS.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/PROMPTS.md) — prompt × tool pairing
-- [docs/COOKBOOK.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/COOKBOOK.md) — recipes
-- [docs/AGENTIC_AND_RAG.md](https://github.com/sandraschi/calibre-mcp/blob/main/docs/AGENTIC_AND_RAG.md) — RAG/FTS design, HTTP chat
-- [README.md](https://github.com/sandraschi/calibre-mcp/blob/main/README.md) — env, examples, webapp
+- [docs/PROMPTS.md](https://github.com/sandraschi/calibremcp/blob/main/docs/PROMPTS.md) — prompt × tool pairing
+- [docs/COOKBOOK.md](https://github.com/sandraschi/calibremcp/blob/main/docs/COOKBOOK.md) — recipes
+- [docs/AGENTIC_AND_RAG.md](https://github.com/sandraschi/calibremcp/blob/main/docs/AGENTIC_AND_RAG.md) — RAG/FTS design, HTTP chat
+- [README.md](https://github.com/sandraschi/calibremcp/blob/main/README.md) — env, examples, webapp
 
 ---
 

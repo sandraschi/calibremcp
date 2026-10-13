@@ -33,7 +33,7 @@ arXiv provides open-access to 2M+ scholarly articles in physics, mathematics, co
 ### Stability Hardening
 To prevent `HTTP 429` (Too Many Requests) errors, CalibreMCP implements:
 - **Exponential Backoff**: Up to 5 retries with increasing delay when rate-limited.
-- **User-Agent Compliance**: All requests identify as `CalibreMCP/1.5.0 (+https://github.com/sandraschi/calibre-mcp)` to follow arXiv's robot policy.
+- **User-Agent Compliance**: All requests identify as `CalibreMCP/1.5.0 (+https://github.com/sandraschi/calibremcp)` to follow arXiv's robot policy.
 
 ### Metadata Extraction
 The arXiv client automatically maps:
