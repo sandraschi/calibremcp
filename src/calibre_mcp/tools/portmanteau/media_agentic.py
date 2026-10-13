@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 # ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 _HEADERS = {
-    "User-Agent": ("CalibreMCP/1.6 (https://github.com/sandraschi/calibre-mcp; research-tool/book-deep-research)")
+    "User-Agent": ("CalibreMCP/1.6 (https://github.com/sandraschi/calibremcp; research-tool/book-deep-research)")
 }
 _FETCH_TIMEOUT = 12.0
 

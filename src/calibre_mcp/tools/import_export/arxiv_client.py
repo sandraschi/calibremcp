@@ -43,7 +43,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> dict[str, Any]:
         retry_delay = 5.0  # arXiv suggests 3s, but we use 5s + backoff for safety
 
         headers = {
-            "User-Agent": "CalibreMCP/1.0 (https://github.com/sandraschi/calibre-mcp; mailto:contact@example.com)"
+            "User-Agent": "CalibreMCP/1.0 (https://github.com/sandraschi/calibremcp; mailto:contact@example.com)"
         }
 
         async with httpx.AsyncClient(timeout=30.0, headers=headers) as client:
