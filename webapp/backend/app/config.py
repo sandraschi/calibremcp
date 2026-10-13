@@ -26,7 +26,11 @@ class Settings(BaseSettings):
     RELOAD: bool = True
 
     # Configuration Path (Mirror settings persistence)
-    CALIBRE_CONFIG_PATH: str = "D:/Dev/repos/calibre-mcp/config.json"
+    # Repo root (webapp/backend/app/config.py -> parents[3]); was hardcoded to the
+    # author's D:/Dev/repos checkout.
+    CALIBRE_CONFIG_PATH: str = os.path.normpath(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "config.json")
+    )
 
     # CORS Configuration (comma-separated string in .env)
     CORS_ORIGINS: str = (
