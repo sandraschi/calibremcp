@@ -1,45 +1,42 @@
+# Managed by mcp-central-docs/scripts/set_fleet_dependabot.py (GITHUB_TRIAGE_STANDARD.md):
+# weekly, grouped, low noise. Edit the generator, not this file.
 version: 2
 updates:
-  # Python dependencies
+
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "sandra"
-    assignees:
-      - "sandra"
+      time: "05:00"
+      timezone: "Europe/Vienna"
+    open-pull-requests-limit: 3
+    groups:
+      pip-updates:
+        applies-to: version-updates
+        patterns: ["*"]
+      pip-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    labels: ["dependencies"]
     commit-message:
-      prefix: "deps"
-      include: "scope"
-    labels:
-      - "dependencies"
-      - "python"
-    ignore:
-      # Ignore major version updates for critical dependencies
-      - dependency-name: "fastmcp"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "pydantic"
-        update-types: ["version-update:semver-major"]
+      prefix: "chore(deps)"
 
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
+      time: "05:00"
+      timezone: "Europe/Vienna"
     open-pull-requests-limit: 3
-    reviewers:
-      - "sandra"
-    assignees:
-      - "sandra"
+    groups:
+      github-actions-updates:
+        applies-to: version-updates
+        patterns: ["*"]
+      github-actions-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    labels: ["dependencies"]
     commit-message:
-      prefix: "ci"
-      include: "scope"
-    labels:
-      - "dependencies"
-      - "github-actions"
+      prefix: "chore(ci)"
