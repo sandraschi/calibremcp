@@ -9,9 +9,10 @@ import {
   canonGutenbergTop100,
   canonNobelLaureates,
 } from '@/common/api';
+import { DelphiAuthorModal } from '@/components/canon/delphi-author-modal';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 type CanonId = 'gutenberg' | 'nobel' | 'delphi' | 'paste';
 
@@ -138,58 +139,249 @@ function MissingTable({ rows, showGutenberg }: { rows: CanonEntry[]; showGutenbe
 }
 
 function DelphiMissingTable({ result }: { result: DelphiResult }) {
+  const [letter, setLetter] = useState<string>('');
+  const [view, setView] = useState<'list' | 'cards'>('list');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [whois, setWhois] = useState<{ author: string; url?: string } | null>(null);
+
+  const initialOf = (name: string) => {
+    const toks = name.trim().split(/\s+/);
+    return (toks[toks.length - 1]?.[0] ?? '#').toUpperCase();
+  };
+
+  const letters = useMemo(() => {
+    const s = new Set(result.missing.map((a) => initialOf(a.author)));
+    return [...s].sort();
+  }, [result.missing]);
+
+  const rows = useMemo(() => {
+    const filtered = letter
+      ? result.missing.filter((a) => initialOf(a.author) === letter)
+      : result.missing;
+    return [...filtered].sort((a, b) =>
+      order === 'asc' ? a.author.localeCompare(b.author) : b.author.localeCompare(a.author),
+    );
+  }, [result.missing, letter, order]);
+
   const shopUrl = (editions: { url: string; us_variant: boolean }[]) =>
     (editions.find((e) => !e.us_variant) ?? editions[0])?.url;
+
+  const inputCls =
+    'px-3 py-1.5 bg-slate-700 border border-slate-600 rounded-md text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber';
+
   return (
     <>
-      <p className="text-xs text-slate-500 mb-2">
+      <p className="text-xs text-slate-500 mb-3">
         Catalog snapshot {result.catalog_date} · {result.catalog_editions} editions ·{' '}
-        {result.owned_library_volumes} Delphi volumes owned
+        {result.owned_library_volumes} Delphi volumes owned · both Complete Works and Collected
+        Works editions count
       </p>
-      <div className="overflow-x-auto rounded-lg border border-slate-700">
+
+      <h3 className="text-base font-semibold text-slate-200 mb-2">
+        Owned Delphi authors ({result.owned_count})
+      </h3>
+      <div className="overflow-x-auto rounded-lg border border-slate-700 mb-6">
         <table className="w-full text-sm">
           <thead className="bg-slate-800">
             <tr>
               <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
-                Missing author
+                Author
               </th>
               <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
-                Editions
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
-                Get it
+                In your library
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/60">
-            {result.missing.map((a, i) => {
-              const url = shopUrl(a.editions);
-              return (
+            {[...result.owned]
+              .sort((a, b) => a.author.localeCompare(b.author))
+              .map((a, i) => (
                 <tr key={`${a.author}-${i}`}>
                   <td className="px-3 py-2 text-slate-200">{a.author}</td>
                   <td className="px-3 py-2 text-slate-500 text-xs">
-                    {a.editions.length} edition{a.editions.length === 1 ? '' : 's'}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {url ? (
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-3 py-1.5 text-xs rounded-md bg-amber text-slate-900 font-medium hover:bg-amber/90"
-                      >
-                        Delphi shop
-                      </a>
-                    ) : (
-                      <span className="text-xs text-slate-500">—</span>
-                    )}
+                    {(a.evidence ?? []).map((b) => b.title).join('; ') || '—'}
                   </td>
                 </tr>
-              );
-            })}
+              ))}
           </tbody>
         </table>
       </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+        <h3 className="text-base font-semibold text-slate-200">
+          Missing ({letter ? `${rows.length} · ${letter}` : result.missing_count})
+        </h3>
+        <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-1 p-1 rounded-md bg-slate-800 border border-slate-700"
+            role="group"
+            aria-label="View"
+          >
+            {(['list', 'cards'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                className={`px-3 py-1 text-xs rounded-md font-medium capitalize transition-colors ${
+                  view === v ? 'bg-amber text-slate-900' : 'text-slate-300 hover:text-slate-100'
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+          <select
+            value={order}
+            onChange={(e) => setOrder(e.target.value as 'asc' | 'desc')}
+            className={inputCls}
+            title="Sort"
+          >
+            <option value="asc">A–Z</option>
+            <option value="desc">Z–A</option>
+          </select>
+        </div>
+      </div>
+
+      <div
+        className="flex flex-wrap gap-1 mb-3"
+        role="group"
+        aria-label="Filter by surname initial"
+      >
+        <button
+          type="button"
+          onClick={() => setLetter('')}
+          aria-pressed={letter === ''}
+          className={`px-2 py-1 text-xs rounded-md font-medium ${
+            letter === ''
+              ? 'bg-amber text-slate-900'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          All
+        </button>
+        {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((l) => {
+          const active = letters.includes(l);
+          return (
+            <button
+              key={l}
+              type="button"
+              disabled={!active}
+              onClick={() => setLetter(active && letter !== l ? l : '')}
+              aria-pressed={letter === l}
+              className={`px-2 py-1 text-xs rounded-md font-medium ${
+                letter === l
+                  ? 'bg-amber text-slate-900'
+                  : active
+                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    : 'bg-slate-800/40 text-slate-600 cursor-not-allowed'
+              }`}
+            >
+              {l}
+            </button>
+          );
+        })}
+      </div>
+
+      {view === 'list' ? (
+        <div className="overflow-x-auto rounded-lg border border-slate-700">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-800">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
+                  Missing author
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
+                  Editions
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
+                  Get it
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/60">
+              {rows.map((a, i) => {
+                const url = shopUrl(a.editions);
+                return (
+                  <tr key={`${a.author}-${i}`}>
+                    <td className="px-3 py-2 text-slate-200">
+                      {a.author}{' '}
+                      <button
+                        type="button"
+                        onClick={() => setWhois({ author: a.author, url })}
+                        className="ml-1 text-[11px] text-amber/80 hover:text-amber hover:underline"
+                        title={`Who is ${a.author}?`}
+                      >
+                        who is that?
+                      </button>
+                    </td>
+                    <td className="px-3 py-2 text-slate-500 text-xs">
+                      {a.editions.length} edition{a.editions.length === 1 ? '' : 's'}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {url ? (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 text-xs rounded-md bg-amber text-slate-900 font-medium hover:bg-amber/90"
+                        >
+                          Delphi shop
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-500">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {rows.map((a, i) => {
+            const url = shopUrl(a.editions);
+            return (
+              <div
+                key={`${a.author}-${i}`}
+                className="p-4 rounded-lg bg-slate-800 border border-slate-600"
+              >
+                <p className="text-slate-200 font-medium">{a.author}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {a.editions.length} edition{a.editions.length === 1 ? '' : 's'} · Delphi
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setWhois({ author: a.author, url })}
+                    className="px-3 py-1.5 text-xs rounded-md bg-slate-700 text-slate-200 hover:bg-slate-600"
+                  >
+                    Who is that?
+                  </button>
+                  {url && (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 text-xs rounded-md bg-amber text-slate-900 font-medium hover:bg-amber/90"
+                    >
+                      Delphi shop
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {whois && (
+        <DelphiAuthorModal
+          author={whois.author}
+          shopUrl={whois.url}
+          onClose={() => setWhois(null)}
+        />
+      )}
     </>
   );
 }
