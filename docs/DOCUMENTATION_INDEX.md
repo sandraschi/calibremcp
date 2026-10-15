@@ -27,6 +27,7 @@
 | Troubleshooting | [`Troubleshooting.md`](Troubleshooting.md), [`VERIFY_SERVER_LOAD.md`](VERIFY_SERVER_LOAD.md) |
 | Content Server setup, integration, watchlist | [`CONTENT_SERVER.md`](CONTENT_SERVER.md), in-app Help → Content Server |
 | Ebook sources, stores, communities, bibliography | [`EBOOKS_GUIDE.md`](EBOOKS_GUIDE.md), in-app Help → Ebooks Guide |
+| Meta essay: how reading went electric | [`READING_ESSAY.md`](READING_ESSAY.md), in-app Help → Why E-Reading |
 | Contribute | [`CONTRIBUTING.md`](../CONTRIBUTING.md), [`development/README.md`](development/README.md) |
 
 ---

@@ -270,6 +270,47 @@ they are: convenient, legally grey, and periodically vanishing (check SLUM befor
 Deeper map: [EBOOKS_GUIDE.md](https://github.com/sandraschi/calibremcp/blob/master/docs/EBOOKS_GUIDE.md) · voices: [Authors Guild](https://authorsguild.org) · [Society of Authors](https://societyofauthors.org) · [EFF](https://www.eff.org/issues/ai-and-copyright).
 `,
   },
+  reading: {
+    title: 'Why E-Reading',
+    content: `
+## How reading went electric (condensed)
+
+In 1971 Michael Hart typed the Declaration of Independence into a mainframe and
+gave it away — [Project Gutenberg](https://www.gutenberg.org) was born, thirty years early.
+The nineties paraded almosts (Palm readers, Rocket eBook 1998), until the Kindle (Nov 2007)
+nailed the three things that mattered: one-minute buying, a real store, E Ink at scale.
+
+## Why it stuck
+
+EPUB won everywhere but Amazon; DRM taught a generation that they rent, not own —
+which is why DRM-free sellers and Calibre-as-your-shelf thrived. E Ink owns the couch,
+glass owns the commute. Self-publishing (70% royalties), BookTok, and library lending
+(Libby) rewired who gets paid; Germany's *Buchpreisbindung* kept its bookshops standing.
+
+## What screens do to readers
+
+Small but real print edge for long-form comprehension and mental maps of a text —
+plus worse self-calibration on screens. Counterweights: the effect shrinks with familiar
+devices and short texts, and accessibility (type size, dyslexia fonts, TTS, dictionaries)
+makes ebooks strictly better for millions.
+
+## The quiet superpowers
+
+Dictionary, full-text search, adjustable type, night mode, one-hand reading, 200-gram
+libraries, instant delivery, sync, TTS. Each minor; together the reason even paper
+loyalists carry a reader. This webapp leans into them: search-inside, semantic search,
+reading queues, one-click reader.
+
+## The full essay
+
+Ten chapters — mainframes, wilderness years, Kindle detonation, DRM saga, E-ink vs glass,
+psychology, commerce, culture, QoL, and where AI takes it:
+[READING_ESSAY.md](https://github.com/sandraschi/calibremcp/blob/master/docs/READING_ESSAY.md).
+
+Talk back: [GitHub Discussions](https://github.com/sandraschi/calibremcp/discussions) for
+corrections and arguments; Discord and blog are coming soon.
+`,
+  },
   calibre: {
     title: 'About Calibre',
     content: `
