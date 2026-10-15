@@ -86,7 +86,16 @@ _RUNTIME_CONTEXT'
             Write-Host "  Patched opentelemetry context StopIteration fallback" -ForegroundColor Yellow
         }
     }
-    uv run pyinstaller "$specFile" --clean --noconfirm
+    # NOTE: never `uv run pyinstaller` — uv sync rewrites the venv entry-point
+    # exes and dies on os error 32 while any server holds them open. Use the
+    # venv's own pyinstaller (install without sync if missing).
+    $pyiExe = "$Root\.venv\Scripts\pyinstaller.exe"
+    if (-not (Test-Path -LiteralPath $pyiExe)) {
+        Write-Host "  Installing pyinstaller into project venv (no sync)..." -ForegroundColor Yellow
+        uv pip install --python "$Root\.venv\Scripts\python.exe" pyinstaller
+        if ($LASTEXITCODE -ne 0) { throw "pyinstaller install failed with exit code $LASTEXITCODE" }
+    }
+    & $pyiExe "$specFile" --clean --noconfirm
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
     Pop-Location
 } else {
