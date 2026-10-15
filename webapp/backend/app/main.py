@@ -59,6 +59,7 @@ from .api import (  # noqa: E402, I001
     authors,
     books,
     bulk,
+    canon,
     collections,
     comments,
     export,
@@ -276,6 +277,7 @@ app.include_router(specialized.router, prefix="/api/specialized", tags=["special
 app.include_router(bulk.router, prefix="/api/bulk", tags=["bulk"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
+app.include_router(canon.router, prefix="/api/canon", tags=["canon"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
 app.include_router(webapp_launch.router, prefix="/api", tags=["webapp-launch"])
 app.include_router(fleet.router, prefix="/api", tags=["fleet"])

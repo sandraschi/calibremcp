@@ -243,6 +243,8 @@ class MCPClient:
                     "manage_tags": "calibre_mcp.tools.tags.manage_tags",
                     "manage_publishers": "calibre_mcp.tools.publishers.manage_publishers",
                     "manage_comments": "calibre_mcp.tools.comments.manage_comments",
+                    # Canon coverage (gap analysis)
+                    "canon_coverage": "calibre_mcp.tools.canon.manage_canon:canon_coverage",
                     # File operations
                     "manage_files": "calibre_mcp.tools.files.manage_files",
                     # Analysis
@@ -542,6 +544,8 @@ def _preload_tools():
         "manage_tags": "calibre_mcp.tools.tags.manage_tags",
         "manage_publishers": "calibre_mcp.tools.publishers.manage_publishers",
         "manage_comments": "calibre_mcp.tools.comments.manage_comments",
+        # Canon coverage (gap analysis)
+        "canon_coverage": "calibre_mcp.tools.canon.manage_canon:canon_coverage",
         # File operations
         "manage_files": "calibre_mcp.tools.files.manage_files",
         # Analysis
