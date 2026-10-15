@@ -18,6 +18,8 @@ async def list_authors_helper(
     query: str | None = None,
     limit: int = 50,
     offset: int = 0,
+    sort_by: str = "name",
+    sort_order: str = "asc",
 ) -> dict[str, Any]:
     """
     Helper function to list authors with filtering and pagination.
@@ -26,6 +28,8 @@ async def list_authors_helper(
         query: Search term to filter authors by name (case-insensitive partial match)
         limit: Maximum number of results (1-1000, default: 50)
         offset: Results offset for pagination (default: 0)
+        sort_by: Sort field ('name' or 'book_count', default: 'name')
+        sort_order: Sort order ('asc' or 'desc', default: 'asc')
 
     Returns:
         Dictionary with paginated author results
@@ -33,12 +37,16 @@ async def list_authors_helper(
     try:
         # Use search_authors method which handles async wrapper
         # The service method is sync, but we're calling it from async context
+        if sort_by not in ("name", "book_count"):
+            sort_by = "name"
+        if sort_order not in ("asc", "desc"):
+            sort_order = "asc"
         return author_service.get_all(
             skip=offset,
             limit=limit,
             search=query,
-            sort_by="name",
-            sort_order="asc",
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     except Exception as e:
         logger.error(f"Error listing authors: {e}", exc_info=True)

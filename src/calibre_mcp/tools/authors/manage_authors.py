@@ -38,6 +38,8 @@ async def manage_authors(
     query: str | None = None,
     limit: int = 50,
     offset: int = 0,
+    sort_by: str = "name",
+    sort_order: str = "asc",
     # Get operation parameters
     author_id: int | None = None,
     # Get books operation parameters
@@ -51,7 +53,7 @@ async def manage_authors(
     Comprehensive author management for Calibre.
 
     Operations:
-    - list: List authors with filtering (query) and pagination.
+    - list: List authors with filtering (query), sorting (sort_by/sort_order) and pagination.
     - get: Get detailed author information and book counts.
     - get_books: Get all books by a specific author.
     - stats: Library-wide author statistics (top authors, distributions).
@@ -77,12 +79,20 @@ async def manage_authors(
     try:
         if operation == "list":
             try:
-                return await list_authors_helper(query=query, limit=limit, offset=offset)
+                return await list_authors_helper(
+                    query=query, limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+                )
             except Exception as e:
                 return handle_tool_error(
                     exception=e,
                     operation=operation,
-                    parameters={"query": query, "limit": limit, "offset": offset},
+                    parameters={
+                        "query": query,
+                        "limit": limit,
+                        "offset": offset,
+                        "sort_by": sort_by,
+                        "sort_order": sort_order,
+                    },
                     tool_name="manage_authors",
                     context="Listing authors",
                 )

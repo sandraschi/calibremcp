@@ -34,6 +34,8 @@ async def manage_series(
     query: str | None = None,
     limit: int = 50,
     offset: int = 0,
+    sort_by: str = "name",
+    sort_order: str = "asc",
     series_id: int | None = None,
     letter: str | None = None,
 ) -> dict[str, Any]:
@@ -41,7 +43,7 @@ async def manage_series(
     Comprehensive series management for Calibre.
 
     Operations:
-    - list: List series with filtering and pagination.
+    - list: List series with filtering, sorting (sort_by/sort_order) and pagination.
     - get: Get series details by ID.
     - get_books: Get all books in a series.
     - stats: Library-wide series statistics.
@@ -65,7 +67,9 @@ async def manage_series(
     """
     try:
         if operation == "list":
-            return await list_series_helper(query=query, limit=limit, offset=offset)
+            return await list_series_helper(
+                query=query, limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+            )
 
         if operation == "get":
             if series_id is None:
