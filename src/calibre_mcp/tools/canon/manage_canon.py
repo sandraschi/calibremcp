@@ -173,6 +173,38 @@ async def _check_title_entries(
         is_owned, evidence = await _owns_title(e.get("title", ""), e.get("author", ""))
         record = {**e, "owned": is_owned, "evidence": evidence}
         (owned if is_owned else missing).append(record)
+    # Fallback: contained works inside indexed collections (Delphi volumes
+    # etc.) count as owned, attributed to their host volume.
+    if missing:
+        try:
+            from ...config import CalibreConfig
+            from ..contents.manage_contents import search_contents_rows
+
+            lib = str(CalibreConfig.load_config().local_library_path or "")
+            still_missing: list[dict[str, Any]] = []
+            for e in missing:
+                hits = search_contents_rows(e.get("title", ""), lib, limit=3) if lib else []
+                if hits:
+                    h = hits[0]
+                    owned.append(
+                        {
+                            **e,
+                            "owned": True,
+                            "evidence": [
+                                {
+                                    "via_contents": True,
+                                    "book_id": h["book_id"],
+                                    "book_title": h["book_title"],
+                                    "work_title": h["work_title"],
+                                }
+                            ],
+                        }
+                    )
+                else:
+                    still_missing.append(e)
+            missing = still_missing
+        except Exception as exc:
+            logger.warning("Contents fallback failed: %s", exc)
     return owned, missing
 
 
