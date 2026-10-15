@@ -317,11 +317,17 @@ if (-not $SkipSidecar -and -not $SkipNsis) {
             }
             Write-Ok '/health -> 200'
 
-            # Feature route check
+            # Feature route check (60s: cold frozen sidecar + DB open is slow)
             try {
-                $feature = Invoke-WebRequest "http://127.0.0.1:$Port$SmokeRoute" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+                $feature = Invoke-WebRequest "http://127.0.0.1:$Port$SmokeRoute" -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
             } catch [System.Net.WebException] {
-                $respCode = [int]$_.Exception.Response.StatusCode
+                $resp = $_.Exception.Response
+                if (-not $resp) {
+                    Write-Fail "$SmokeRoute request failed (no HTTP response)" `
+                        'Connection dropped or timed out after 60s.' `
+                        'Check server logs for a crash in the route handler.'
+                }
+                $respCode = [int]$resp.StatusCode
                 if ($respCode -eq 404) {
                     Write-Host ''
                     Write-Host '  +---------------------------------------------------------+' -ForegroundColor Red
