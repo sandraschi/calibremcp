@@ -18,8 +18,10 @@ async def list_publishers_helper(
     query: str | None = None,
     limit: int = 50,
     offset: int = 0,
+    sort_by: str = "name",
+    sort_order: str = "asc",
 ) -> dict[str, Any]:
-    """List publishers with filtering and pagination. Uses DatabaseService (same as books/authors/tags)."""
+    """List publishers with filtering, sorting and pagination. Uses DatabaseService (same as books/authors/tags)."""
     try:
         if not database_singleton._engine or not database_singleton._current_db_path:
             return {
@@ -31,13 +33,17 @@ async def list_publishers_helper(
                 "per_page": limit,
                 "total_pages": 0,
             }
+        if sort_by not in ("name", "book_count"):
+            sort_by = "name"
+        if sort_order not in ("asc", "desc"):
+            sort_order = "asc"
         svc = get_publisher_service()
         return svc.get_all(
             skip=offset,
             limit=limit,
             search=query,
-            sort_by="name",
-            sort_order="asc",
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     except Exception as e:
         logger.error(f"Error listing publishers: {e}", exc_info=True)

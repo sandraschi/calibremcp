@@ -84,8 +84,21 @@ class PublisherService:
         if search:
             query = query.filter(publisher_model.name.ilike(f"%{search}%"))
         total = query.count()
-        sort_field = getattr(publisher_model, sort_by, publisher_model.name)
-        query = query.order_by(desc(sort_field)) if sort_order.lower() == "desc" else query.order_by(asc(sort_field))
+        if sort_by == "book_count":
+            query = (
+                query.outerjoin(books_publishers_link, books_publishers_link.c.publisher == publisher_model.id)
+                .group_by(publisher_model.id)
+                .order_by(
+                    desc(func.count(books_publishers_link.c.book))
+                    if sort_order.lower() == "desc"
+                    else asc(func.count(books_publishers_link.c.book))
+                )
+            )
+        else:
+            sort_field = publisher_model.name
+            query = (
+                query.order_by(desc(sort_field)) if sort_order.lower() == "desc" else query.order_by(asc(sort_field))
+            )
         publishers = query.offset(skip).limit(limit).all()
         items = []
         for p in publishers:

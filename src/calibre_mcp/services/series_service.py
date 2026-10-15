@@ -42,11 +42,22 @@ class SeriesService:
 
             total = query.count()
 
-            sort_field = getattr(Series, sort_by, Series.name)
-            if sort_order.lower() == "desc":
-                query = query.order_by(desc(sort_field))
+            if sort_by == "book_count":
+                query = (
+                    query.outerjoin(books_series_link, books_series_link.c.series == Series.id)
+                    .group_by(Series.id)
+                    .order_by(
+                        desc(func.count(books_series_link.c.book))
+                        if sort_order.lower() == "desc"
+                        else asc(func.count(books_series_link.c.book))
+                    )
+                )
             else:
-                query = query.order_by(asc(sort_field))
+                sort_field = getattr(Series, sort_by, Series.name)
+                if sort_order.lower() == "desc":
+                    query = query.order_by(desc(sort_field))
+                else:
+                    query = query.order_by(asc(sort_field))
 
             series_list = query.offset(skip).limit(limit).all()
 

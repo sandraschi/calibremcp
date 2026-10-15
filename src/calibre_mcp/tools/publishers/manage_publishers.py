@@ -28,6 +28,8 @@ async def manage_publishers(
     query: str | None = None,
     limit: int = 50,
     offset: int = 0,
+    sort_by: str = "name",
+    sort_order: str = "asc",
     publisher_id: int | None = None,
     publisher_name: str | None = None,
     letter: str | None = None,
@@ -36,7 +38,7 @@ async def manage_publishers(
     Comprehensive publisher management for Calibre.
 
     Operations:
-    - list: List publishers with filtering and pagination.
+    - list: List publishers with filtering, sorting (sort_by/sort_order) and pagination.
     - get: Get detailed publisher information by ID or name.
     - get_books: Get all books assigned to a specific publisher.
     - stats: Library-wide publisher statistics (top publishers).
@@ -48,7 +50,9 @@ async def manage_publishers(
     """
     try:
         if operation == "list":
-            return await list_publishers_helper(query=query, limit=limit, offset=offset)
+            return await list_publishers_helper(
+                query=query, limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+            )
 
         if operation == "get":
             if publisher_id is None and not publisher_name:
