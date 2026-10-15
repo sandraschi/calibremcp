@@ -2,7 +2,8 @@
 
 import { getHelp } from '@/common/api';
 import { HELP_SECTIONS } from '@/common/help-content';
-import { Book, ExternalLink, Globe, Server } from 'lucide-react';
+import { HelpMarkdown } from '@/components/help/help-markdown';
+import { Book, Compass, ExternalLink, Globe, Server } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 
@@ -11,11 +12,12 @@ type SectionKey = keyof typeof HELP_SECTIONS;
 const SECTION_ICONS: Record<SectionKey, React.ElementType> = {
   calibre: Book,
   calibreMcp: Server,
+  guides: Compass,
   webapp: Globe,
 };
 
-/** Modal order: Webapp first (primary), then Calibre, then MCP with drilldown */
-const MODAL_TABS: SectionKey[] = ['webapp', 'calibre', 'calibreMcp'];
+/** Modal order: Webapp first (primary), then Guides, Calibre, then MCP with drilldown */
+const MODAL_TABS: SectionKey[] = ['webapp', 'guides', 'calibre', 'calibreMcp'];
 
 interface HelpModalProps {
   onClose: () => void;
@@ -101,8 +103,8 @@ export function HelpModal({ onClose }: HelpModalProps) {
             <Icon className="w-5 h-5 text-amber shrink-0" />
             <h3 className="text-base font-semibold text-slate-200">{section.title}</h3>
           </div>
-          <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-sans mb-4">
-            {section.content.trim()}
+          <div className="mb-4">
+            <HelpMarkdown content={section.content} />
           </div>
 
           {tab === 'calibreMcp' && (
