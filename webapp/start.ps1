@@ -75,7 +75,10 @@ if (-not $FrontendOnly -and $backendPort -gt 0 -and $cfg.Backend.Kind -ne 'none'
         "uvicorn $target --host 127.0.0.1 --port $backendPort"
     }
 
-    $bCmd = "`$env:PYTHONPATH = '$pyPath'; `$env:WEB_PORT = '$backendPort'; Set-Location '$bWorkDir'; uv run --project '$repoRoot' $backendExec"
+    # NOTE: --no-sync is deliberate. Plain `uv run` re-syncs and dies when a
+    # venv entry-point exe is locked by a running server (os error 32);
+    # dep sync is handled (best-effort) by Invoke-FleetUvSync before this.
+    $bCmd = "`$env:PYTHONPATH = '$pyPath'; `$env:WEB_PORT = '$backendPort'; Set-Location '$bWorkDir'; uv run --no-sync --project '$repoRoot' $backendExec"
     Start-Process powershell.exe -ArgumentList @('-NoProfile', '-NoExit', '-Command', $bCmd) -WorkingDirectory $bWorkDir
 }
 
