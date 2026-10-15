@@ -376,7 +376,7 @@ async def health():
     return {
         "status": "ok",
         "server": "calibre-mcp",
-        "version": "1.9.0",
+        "version": "1.10.0",
         "uptime_seconds": int(_time_module.time() - _start_time),
         "tool_count": _count_tools(),
         "providers": {"calibre": _get_calibre_status()},
@@ -401,7 +401,7 @@ async def diagnostics():
     return {
         "status": "ok",
         "server": "calibre-mcp",
-        "version": "1.9.0",
+        "version": "1.10.0",
         "uptime_seconds": int(_time_module.time() - _start_time),
         "tool_count": len(tool_list),
         "tools": tool_list,

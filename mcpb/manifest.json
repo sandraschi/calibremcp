@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.2",
   "name": "calibremcp",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "SOTA April 2026 industrialized FastMCP 3.2.0 server for conversational Calibre e-book library management with sampling, agentic workflows, skills, prompts, and LanceDB metadata RAG",
   "author": { "name": "sandraschi" },
   "server": {
