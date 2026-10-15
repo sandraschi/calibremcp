@@ -26,7 +26,7 @@ Start from repo root: \`webapp\\start.ps1\`
 - **Series Analysis** — Reading order and completion for any series
 - **Import** — Add books from file path, arXiv ID, or Gutenberg (works while the Calibre GUI is open)
 - **Export** — CSV or JSON export with filters
-- **Chat** — AI chatbot (Ollama / LM Studio / OpenAI-compatible)
+- **Chat** — AI chatbot ([Ollama](https://ollama.com) / [LM Studio](https://lmstudio.ai) / OpenAI-compatible)
 - **Logs** — Live log tail with level filter
 - **Settings** — Mirror URLs, Content Server URL, LLM provider
 - **Help** — This page
@@ -151,7 +151,7 @@ Reads never contend: search, browse, RAG, and exports work regardless of what Ca
 | Semantic search empty | Index not built | Build metadata index (seconds) / content index (minutes) on the RAG page |
 | Slow imports | Network drive / huge PDF | Normal for 30 MB+ files; content-server route has a 180 s budget |
 
-Full write-ups: \`docs/Troubleshooting.md\`, \`docs/ONBOARDING.md\`, \`docs/Configuration.md\`.
+Full write-ups: [Troubleshooting](https://github.com/sandraschi/calibremcp/blob/master/docs/Troubleshooting.md), [ONBOARDING](https://github.com/sandraschi/calibremcp/blob/master/docs/ONBOARDING.md), [Configuration](https://github.com/sandraschi/calibremcp/blob/master/docs/Configuration.md).
 `,
   },
   contentServer: {
@@ -185,7 +185,7 @@ Newly-added shelf within seconds.
 
 Browse/read at the server URL from any device on your network. With
 \`calibredb --with-library <url> --username … --password …\` you get the same
-add/update/delete verbs the tools use — see \`docs/CONTENT_SERVER.md\` for recipes,
+add/update/delete verbs the tools use — see [CONTENT_SERVER.md](https://github.com/sandraschi/calibremcp/blob/master/docs/CONTENT_SERVER.md) for recipes,
 the full fallback table, and the UI ideas we are watching to copy back.
 `,
   },
@@ -194,29 +194,80 @@ the full fallback table, and the UI ideas we are watching to copy back.
     content: `
 ## Free sources
 
-**Project Gutenberg** (70k+ public-domain), **Standard Ebooks** (polished Gutenberg editions),
-**Internet Archive texts**, **Open Library** (borrowable scans + metadata), **Wikisource**,
-**Projekt Gutenberg-DE** and **Zeno.org** for German texts. Our Import page fetches
+**[Project Gutenberg](https://www.gutenberg.org)** (70k+ public-domain), **[Standard Ebooks](https://standardebooks.org)** (polished Gutenberg editions),
+**[Internet Archive texts](https://archive.org/details/texts)**, **[Open Library](https://openlibrary.org)** (borrowable scans + metadata), **[Wikisource](https://wikisource.org)**,
+**[Projekt Gutenberg-DE](https://www.projekt-gutenberg.org)** and **[Zeno.org](http://www.zeno.org)** for German texts. Our Import page fetches
 Gutenberg books directly from ebook number or URL.
 
 ## Commercial stores
 
-Kindle (largest, DRM-friction), Kobo, Google Play Books, Apple Books, Thalia/Hugendubel/ebook.de
-for DE. Prefer **DRM-free** when possible: O'Reilly, No Starch, Manning, Leanpub,
-Smashwords/D2D, Tor/Forge — buy, download, import, done.
+[Kindle](https://www.amazon.com/Kindle-eBooks) (largest, DRM-friction), [Kobo](https://www.kobo.com), [Google Play Books](https://play.google.com/store/books), [Apple Books](https://www.apple.com/apple-books/), [Thalia](https://www.thalia.de), [Hugendubel](https://www.hugendubel.de)/[ebook.de](https://www.ebook.de) for DE. Prefer **DRM-free** when possible: [O'Reilly](https://www.oreilly.com), [No Starch](https://nostarch.com), [Manning](https://www.manning.com), [Leanpub](https://leanpub.com),
+[Smashwords](https://www.smashwords.com)/[D2D](https://draft2digital.com), [Tor/Forge](https://publishing.tor.com) — buy, download, import, done.
 
 ## Communities
 
-**MobileRead Forums** (Calibre's nerve center), r/ebooks, Goodreads (+ export your shelves),
-LibraryThing, BookWyrm (federated), Hardcover.app, **ISFDB** for SF/F series data,
-Grand Comics Database for comics.
+**[MobileRead Forums](https://www.mobileread.com/forums)** (Calibre's nerve center), [r/ebooks](https://www.reddit.com/r/ebooks), [Goodreads](https://www.goodreads.com) (+ export your shelves),
+[LibraryThing](https://www.librarything.com), [BookWyrm](https://joinbookwyrm.com) (federated), [Hardcover.app](https://hardcover.app), **[ISFDB](https://www.isfdb.org)** for SF/F series data,
+[Grand Comics Database](https://www.comics.org) for comics.
 
 ## Bibliography tools
 
-Open Library API, Google Books API, WorldCat, DNB (German publishing), Library of Congress,
-VIAF, Crossref/DOI. The "Download metadata" button and \`media_research_book\` query several.
+[Open Library API](https://openlibrary.org/developers/api), [Google Books API](https://developers.google.com/books), [WorldCat](https://www.worldcat.org), [DNB](https://www.dnb.de) (German publishing), [Library of Congress](https://www.loc.gov),
+[VIAF](https://viaf.org), [Crossref](https://www.crossref.org)/[DOI](https://www.doi.org). The "Download metadata" button and \`media_research_book\` query several.
 
-Full map with import notes: \`docs/EBOOKS_GUIDE.md\`.
+Full map with import notes: [EBOOKS_GUIDE.md](https://github.com/sandraschi/calibremcp/blob/master/docs/EBOOKS_GUIDE.md).
+`,
+  },
+  law: {
+    title: 'Copyright & AI',
+    content: `
+## Grey libraries ("shadow libraries")
+
+Searchable mega-collections assembled without rightsholder permission. The big names:
+
+- **[Z-Library](https://en.wikipedia.org/wiki/Z-Library)** — FBI seized its domains in Nov 2022 and arrested two alleged operators; mirrors keep resurfacing.
+- **[Anna's Archive](https://en.wikipedia.org/wiki/Anna%27s_Archive)** — meta-search over Z-Lib, Sci-Hub and LibGen dumps (~61M books claimed); its \`.org\` domain was suspended (serverHold) in Jan 2026 and it resurfaced via mirrors.
+- **Library Genesis / Sci-Hub** — the older dumps underneath much of it all (Sci-Hub is papers-focused).
+- **[SLUM](https://open-slum.org)** — independent uptime monitor tracking which mirrors are alive.
+
+No links to live mirrors here — they move weekly and their legality depends on where you stand.
+Status above is October 2026.
+
+## Copyright basics for library owners
+
+- Owning a **file** is not owning the **rights**: you may read, lend within limits, and (jurisdiction-dependent) format-shift for personal use.
+- Germany's *Privatkopie* allows private copies from lawful sources; breaking DRM to get there is its own legal question — check local law, not forums.
+- Keep receipts: store invoices with your library (or as book notes). If a file's origin ever matters, "bought at Thalia 2024-03-11" ends the discussion.
+
+## The great book gobble (AI training data)
+
+Why books: edited long-form prose is the highest-signal training text there is. Known corpora
+included **Books3** (~196k pirated books, part of The Pile) and LibGen dumps — which is why
+the labs ended up in court over *where they got the books*, not just how they trained.
+
+## The court cases (US, as of Oct 2026)
+
+| Case | What happened | Why it matters |
+|---|---|---|
+| **Bartz v. Anthropic** | $1.5B class settlement, final approval 20 July 2026 (~482k works, ~$3k each) | Largest US copyright settlement ever; training ruled transformative fair use, but *pirated sourcing* created the liability |
+| **Kadrey v. Meta** (June 2025) | Fair-use win for Meta on Llama training — on technical grounds (plaintiffs failed the market-dilution argument); judge warned most such training likely infringes; separate torrenting claim | Wins turn on evidence quality, not principle |
+| **NYT v. OpenAI/Microsoft** (Dec 2023) | Core claims survived dismissal; at summary judgment Oct 2026, folded into multi-district litigation | The marquee training-data case still running |
+| **Authors Guild** | Class counsel in Bartz; claim portal + webinars for members | Where working authors go for leverage |
+
+## Writer anger, summarized fairly
+
+Authors see years of work vacuumed into products that compete with them, via copies nobody
+paid for — plaintiffs include names like Sarah Silverman (Kadrey). Labs reply that training is
+transformative reading, like a human studying books. Courts so far: *how you learned* can be
+fair use; *stealing the textbooks* still costs $1.5B.
+
+## What this means in this app
+
+Nothing adjudicates a file's provenance — not metadata, not covers, not RAG. Prefer DRM-free
+stores (see Ebooks Guide), keep purchase notes, and treat grey-library files as exactly what
+they are: convenient, legally grey, and periodically vanishing (check SLUM before citing one).
+
+Deeper map: [EBOOKS_GUIDE.md](https://github.com/sandraschi/calibremcp/blob/master/docs/EBOOKS_GUIDE.md) · voices: [Authors Guild](https://authorsguild.org) · [Society of Authors](https://societyofauthors.org) · [EFF](https://www.eff.org/issues/ai-and-copyright).
 `,
   },
   calibre: {
@@ -230,7 +281,7 @@ Calibre is a free, open-source e-book library management application by Kovid Go
 
 - **31 Oct 2006** — Sony launches the PRS-500 reader; the same day Kovid Goyal starts
   **libprs500**, Linux tools for the new device, reverse-engineering Sony's BBeB format
-  with help from the MobileRead forums.
+  with help from the [MobileRead forums](https://www.mobileread.com/forums).
 - **2008** — Renamed **calibre** as it outgrows "a collection of routines" into a full
   library system with a graphical interface.
 - **The 1.x–6.x years** — Becomes the universal e-book Swiss knife: conversion between
@@ -239,7 +290,7 @@ Calibre is a free, open-source e-book library management application by Kovid Go
   readable website (see the Content Server tab).
 - **June 2026 (9.10)** — The Content Server gets its modern UI + PWA support; the
   "suspiciously good" redesign we keep stealing ideas from.
-- **Now (9.16, Oct 2026)** — The version this repo integrates with.
+- **Now (9.16, Oct 2026)** — The version this repo integrates with ([calibre-ebook.com](https://calibre-ebook.com)).
 
 Twenty years, one maintainer-led project, no acquisition, no pivot: the reason your
 library still opens.
@@ -249,12 +300,12 @@ library still opens.
 No one covers Calibre's full scope (manage + convert + edit + serve + sync) in one
 open-source app. Partial alternatives by job:
 
-- **Same job, commercial**: Alfa Ebooks Manager (Windows, paid) — the only direct analogue.
-- **Serve a Calibre library**: calibre-web / COPS — companions, not replacements (they sit on your library).
-- **Comics-first servers**: Kavita, Komga, Stump.
-- **Audiobooks**: Audiobookshelf.
+- **Same job, commercial**: [Alfa Ebooks Manager](https://www.alfaebooks.com) (Windows, paid) — the only direct analogue.
+- **Serve a Calibre library**: [calibre-web](https://github.com/janeczku/calibre-web) / [COPS](https://blog.slucas.fr/en/oss/calibre-opds-php-server) — companions, not replacements (they sit on your library).
+- **Comics-first servers**: [Kavita](https://www.kavitareader.com), [Komga](https://komga.org), [Stump](https://www.stumpapp.dev).
+- **Audiobooks**: [Audiobookshelf](https://www.audiobookshelf.org).
 - **Store silos**: Kindle / Kobo / Apple Books apps — reading endpoints, not managers.
-- **Readers only**: KOReader (devices), Thorium, Foliate, SumatraPDF.
+- **Readers only**: [KOReader](https://koreader.rocks) (devices), [Thorium](https://www.edrlab.org/software/thorium-reader), [Foliate](https://johnfactotum.github.io/foliate), [SumatraPDF](https://www.sumatrapdfreader.org).
 
 ## Library Structure
 
@@ -298,7 +349,7 @@ paths do automatically (see the Guides tab).
     content: `
 ## Overview
 
-CalibreMCP is a Model Context Protocol (MCP) server that connects AI assistants (Claude, Cursor, etc.) to your Calibre library. Built on FastMCP 3.2.
+CalibreMCP is a Model Context Protocol (MCP) server that connects AI assistants (Claude, Cursor, etc.) to your Calibre library. Built on [FastMCP 3.2](https://github.com/jlowin/fastmcp).
 
 Runs simultaneously as stdio (for Claude Desktop / Cursor) and HTTP (for the webapp) on the same process — no separate server needed.
 

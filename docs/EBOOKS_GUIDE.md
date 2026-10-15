@@ -70,6 +70,55 @@ PDF (fixed layout, poor on e-ink) · CBZ/CBR (comics) · TXT/HTML (universal fal
 Calibre converts between nearly all of them; keep the original file on import
 and convert copies for devices.
 
+## Grey libraries ("shadow libraries")
+
+Searchable mega-collections assembled without rightsholder permission. What they
+are, factually (status: October 2026):
+
+- **Z-Library** — FBI seized its domains in November 2022; two alleged operators
+  arrested. Mirrors keep resurfacing; uptime varies week to week.
+- **Anna's Archive** — meta-search over Z-Lib, Sci-Hub, and LibGen dumps
+  (~61M books / ~95M papers claimed). Its `.org` domain was put on serverHold in
+  January 2026; it resurfaced via mirrors.
+- **Library Genesis / Sci-Hub** — the older dumps underneath much of it all;
+  Sci-Hub is papers-focused (Elbakyan).
+- **[SLUM](https://open-slum.org)** (Shadow Library Uptime Monitor) — independent
+  tracker of which mirrors are currently alive.
+
+No mirror URLs are listed here on purpose: they move constantly, and their
+legality depends on your jurisdiction. Treat grey-library files as exactly what
+they are — convenient, legally grey, and periodically vanishing.
+
+## Copyright basics for library owners
+
+- Owning a **file** is not owning the **rights**. Reading, limited lending, and
+  personal format-shifting depend on local law.
+- Germany's *Privatkopie* permits private copies from lawful sources; whether
+  defeating DRM to make one is lawful is a separate question — check local law.
+- **Keep receipts**: store invoices as book notes ("bought at Thalia 2024-03-11").
+  If a file's origin ever matters, that ends the discussion.
+
+## The great book gobble (AI training data)
+
+Edited long-form prose is the highest-signal training text available, so books
+ended up at the center of AI copyright litigation. Known corpora included
+**Books3** (~196k pirated books, via The Pile) and LibGen dumps — which is why
+the labs were sued over *where they got the books*, not just how they trained.
+
+| Case | Status (Oct 2026) | The point |
+|---|---|---|
+| **Bartz v. Anthropic** | $1.5B class settlement, final approval 20 July 2026 (~482k works, ~$3k each) — largest US copyright settlement ever | Training ruled transformative fair use; *pirated sourcing* created the liability |
+| **Kadrey v. Meta** | Fair-use win for Meta, 25 June 2025 — on technical grounds (no market-dilution record); judge warned most such training likely infringes; torrenting claim separate | Outcomes turn on evidence, not principle |
+| **NYT v. OpenAI/Microsoft** | Filed Dec 2023; core claims survived; at summary judgment, consolidated into multi-district litigation | The marquee training-data case, still running |
+| **Authors Guild** | Class counsel in Bartz; claim portal + webinars | Where working authors go for leverage |
+
+Writer side, fairly put: years of work vacuumed into competing products via
+unpaid copies (plaintiffs include Sarah Silverman in Kadrey). Lab side: training
+is transformative reading, like a human studying books. Courts so far: *how you
+learned* can be fair use; *stealing the textbooks* costs $1.5B.
+
+Voices: [Authors Guild](https://authorsguild.org) · [Society of Authors](https://societyofauthors.org) · [EFF on AI and copyright](https://www.eff.org/issues/ai-and-copyright).
+
 ## See also
 
 - `docs/ONBOARDING.md` — first import walkthrough

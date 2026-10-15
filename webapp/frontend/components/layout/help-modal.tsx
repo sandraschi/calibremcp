@@ -3,7 +3,7 @@
 import { getHelp } from '@/common/api';
 import { HELP_SECTIONS } from '@/common/help-content';
 import { HelpMarkdown } from '@/components/help/help-markdown';
-import { Book, BookOpen, Compass, ExternalLink, Globe, Server, Share2 } from 'lucide-react';
+import { Book, BookOpen, Compass, ExternalLink, Globe, Scale, Server, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 
@@ -15,14 +15,16 @@ const SECTION_ICONS: Record<SectionKey, React.ElementType> = {
   contentServer: Share2,
   ebooks: BookOpen,
   guides: Compass,
+  law: Scale,
   webapp: Globe,
 };
 
-/** Modal order: Webapp first (primary), then Guides, Ebooks, Content Server, Calibre, then MCP with drilldown */
+/** Modal order: Webapp first, then Guides, Ebooks, Law, Content Server, Calibre, then MCP with drilldown */
 const MODAL_TABS: SectionKey[] = [
   'webapp',
   'guides',
   'ebooks',
+  'law',
   'contentServer',
   'calibre',
   'calibreMcp',

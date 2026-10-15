@@ -2,7 +2,7 @@
 
 import { HELP_SECTIONS } from '@/common/help-content';
 import { HelpMarkdown } from '@/components/help/help-markdown';
-import { Book, BookOpen, Compass, Globe, Server, Share2 } from 'lucide-react';
+import { Book, BookOpen, Compass, Globe, Scale, Server, Share2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type SectionKey = keyof typeof HELP_SECTIONS;
@@ -11,6 +11,7 @@ const SECTION_ICONS: Record<SectionKey, React.ElementType> = {
   webapp: Globe,
   guides: Compass,
   ebooks: BookOpen,
+  law: Scale,
   contentServer: Share2,
   calibre: Book,
   calibreMcp: Server,
@@ -20,6 +21,7 @@ const HELP_TAB_ORDER: SectionKey[] = [
   'webapp',
   'guides',
   'ebooks',
+  'law',
   'contentServer',
   'calibre',
   'calibreMcp',
