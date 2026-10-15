@@ -41,6 +41,15 @@ async def nobel_laureates():
         raise handle_mcp_error(e)
 
 
+@router.get("/delphi-coverage")
+async def delphi_coverage():
+    """Delphi Classics catalog snapshot vs owned Delphi editions (author level)."""
+    try:
+        return await mcp_client.call_tool("canon_coverage", {"operation": "delphi_coverage"})
+    except Exception as e:
+        raise handle_mcp_error(e)
+
+
 @router.post("/check-list")
 async def check_list(body: CheckListBody):
     """Check caller-supplied [{title, author?}] against holdings (max 200)."""

@@ -14,6 +14,9 @@ real sources or supplied by the caller — nothing is hardcoded from memory:
   neither do we).
 - check_list: caller-supplied [{title, author?}] — e.g. an LLM-generated
   Mustich-1000 slice. No invention, just matching.
+- delphi_coverage: Delphi Classics complete-catalog snapshot
+  (scraped from delphiclassics.com, dated) vs owned Delphi editions,
+  author-level matching.
 - list_canons: enumerate the available canons.
 """
 
@@ -22,6 +25,7 @@ from __future__ import annotations
 import json
 import re
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 from ...logging_config import get_logger
@@ -34,6 +38,7 @@ logger = get_logger("calibremcp.tools.canon")
 
 GUTENBERG_TOP_URL = "https://www.gutenberg.org/browse/scores/top"
 NOBEL_URL = "https://api.nobelprize.org/2.1/laureates?limit=1000"
+DELPHI_SNAPSHOT = Path(__file__).with_name("delphi_catalog.json")
 NETWORK_TIMEOUT = 25
 _MAX_CHECK_ITEMS = 200
 
@@ -154,6 +159,81 @@ def _owns_author(name: str) -> tuple[bool, list[dict[str, Any]]]:
     return bool(hits), hits
 
 
+def _load_delphi_catalog() -> dict[str, Any]:
+    """Load the snapshot scraped from delphiclassics.com/complete-catalogue/."""
+    try:
+        return json.loads(DELPHI_SNAPSHOT.read_text(encoding="utf-8"))
+    except Exception as e:
+        return {"error": f"Delphi snapshot unreadable: {e}", "entries": []}
+
+
+def _delphi_authors(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Dedupe US variants: one row per author with its editions."""
+    by_author: dict[str, dict[str, Any]] = {}
+    for e in entries:
+        author = (e.get("author") or "").strip()
+        if not author:
+            continue
+        row = by_author.setdefault(author, {"author": author, "editions": []})
+        row["editions"].append(
+            {"slug": e.get("slug", ""), "url": e.get("url", ""), "us_variant": bool(e.get("us_variant"))}
+        )
+    return sorted(by_author.values(), key=lambda r: _norm(r["author"]))
+
+
+def _is_delphi_book(b: dict[str, Any]) -> bool:
+    """Delphi-edition markers: Delphi* series, Delphi tags, Delphi publisher."""
+    series = b.get("series")
+    sname = series.get("name", "") if isinstance(series, dict) else str(series or "")
+    if sname.lower().startswith("delphi"):
+        return True
+    for t in b.get("tags", []) or []:
+        tl = (t.get("name", "") if isinstance(t, dict) else str(t)).lower()
+        if tl == "delphi classics" or tl.startswith("dcs"):
+            return True
+    pub = b.get("publisher", "") or ""
+    if isinstance(pub, dict):
+        pub = pub.get("name", "")
+    if "delphi" in str(pub).lower():
+        return True
+    return False
+
+
+def _canon_author_matches_lib(canon_author: str, lib_author: str) -> bool:
+    """Surname must match; initials must be compatible when both sides have them."""
+
+    def parts(name: str) -> tuple[str, set[str]]:
+        toks = [t for t in _norm(name).split() if t]
+        if not toks:
+            return "", set()
+        return toks[-1], {t[0] for t in toks[:-1] if t}
+
+    cs, ci = parts(canon_author)
+    ls, li = parts(lib_author)
+    if not cs or not ls or cs != ls:
+        return False
+    if len(cs) < 3:
+        return False
+    if ci and li and not (ci & li):
+        return False
+    return True
+
+
+async def _library_delphi_books() -> list[dict[str, Any]]:
+    """Find owned Delphi editions via indexed lookups (never full-text)."""
+    seen: dict[int, dict[str, Any]] = {}
+    for kwargs in ({"tag": "Delphi Classics"}, {"series": "Delphi"}, {"title": "Delphi"}):
+        try:
+            result = await _search_books_helper(limit=1000, **kwargs)
+        except Exception as e:
+            logger.warning("Delphi holdings search failed for %r: %s", kwargs, e)
+            continue
+        for b in result.get("items") or []:
+            if isinstance(b, dict) and b.get("id") is not None and _is_delphi_book(b):
+                seen[b["id"]] = b
+    return list(seen.values())
+
+
 def _nobel_year(prize: dict[str, Any]) -> int | None:
     for key in ("awardYear", "prizeYear", "year"):
         try:
@@ -232,6 +312,8 @@ async def canon_coverage(
       (any owned work by the laureate counts).
     - check_list: caller-supplied [{"title": ..., "author" (optional): ...}],
       e.g. an LLM-generated Mustich slice. Max 200 entries.
+    - delphi_coverage: Delphi Classics complete-catalog snapshot vs owned
+      Delphi editions, author-level match. No network (uses dated snapshot).
 
     ## Return Format
     `{"success": bool, "operation": str, "canon": str, "total": int,
@@ -269,6 +351,13 @@ async def canon_coverage(
                         "name": "Your own list (paste titles)",
                         "source": "caller-supplied",
                         "level": "title",
+                        "live": False,
+                    },
+                    {
+                        "id": "delphi_coverage",
+                        "name": "Delphi Classics complete catalog vs owned",
+                        "source": "snapshot of delphiclassics.com/complete-catalogue/",
+                        "level": "author",
                         "live": False,
                     },
                 ],
@@ -390,11 +479,61 @@ async def canon_coverage(
                 "truncated": len(items) > _MAX_CHECK_ITEMS,
             }
 
+        if operation == "delphi_coverage":
+            snap = _load_delphi_catalog()
+            if snap.get("error"):
+                return {
+                    "success": False,
+                    "operation": operation,
+                    "error": snap["error"],
+                    "error_code": "CANON_SNAPSHOT_ERROR",
+                }
+            authors = _delphi_authors(snap.get("entries") or [])
+            owned_books = await _library_delphi_books()
+            # author names present in owned Delphi editions
+            lib_authors: list[str] = []
+            for b in owned_books:
+                for a in b.get("authors", []) or []:
+                    lib_authors.append(a.get("name", "") if isinstance(a, dict) else str(a))
+            owned: list[dict[str, Any]] = []
+            missing: list[dict[str, Any]] = []
+            for row in authors:
+                evidence: list[dict[str, Any]] = []
+                for la in lib_authors:
+                    if _canon_author_matches_lib(row["author"], la):
+                        evidence.append({"library_author": la})
+                        break
+                # attach owned book ids/titles for the matched author
+                books_ev: list[dict[str, Any]] = []
+                if evidence:
+                    for b in owned_books:
+                        ba = [x.get("name", "") if isinstance(x, dict) else str(x) for x in b.get("authors", []) or []]
+                        if any(_canon_author_matches_lib(row["author"], x) for x in ba):
+                            books_ev.append({"id": b.get("id"), "title": b.get("title")})
+                record = {**row, "owned": bool(evidence), "evidence": books_ev}
+                (owned if evidence else missing).append(record)
+            total = len(authors)
+            return {
+                "success": True,
+                "operation": operation,
+                "canon": "delphi_coverage",
+                "catalog_source": snap.get("source", ""),
+                "catalog_date": snap.get("scraped_at", ""),
+                "catalog_editions": snap.get("count", 0),
+                "total": total,
+                "owned_count": len(owned),
+                "missing_count": len(missing),
+                "coverage_pct": round(100 * len(owned) / total, 1) if total else 0.0,
+                "owned_library_volumes": len(owned_books),
+                "owned": owned,
+                "missing": missing,
+            }
+
         return {
             "success": False,
             "operation": operation,
             "error": f"Invalid operation: '{operation}'. Must be one of: "
-            "'list_canons', 'gutenberg_top100', 'nobel_laureates', 'check_list'.",
+            "'list_canons', 'gutenberg_top100', 'nobel_laureates', 'check_list', 'delphi_coverage'.",
             "error_code": "INVALID_OPERATION",
         }
     except Exception as e:

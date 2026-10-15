@@ -614,6 +614,34 @@ export async function searchContents(
   return response.json();
 }
 
+export interface DelphiAuthorRow {
+  author: string;
+  editions: { slug: string; url: string; us_variant: boolean }[];
+  owned: boolean;
+  evidence?: { id?: number | null; title?: string }[];
+}
+
+export interface DelphiResult {
+  success: boolean;
+  operation: string;
+  canon: string;
+  catalog_source: string;
+  catalog_date: string;
+  catalog_editions: number;
+  total: number;
+  owned_count: number;
+  missing_count: number;
+  coverage_pct: number;
+  owned_library_volumes: number;
+  owned: DelphiAuthorRow[];
+  missing: DelphiAuthorRow[];
+  error?: string;
+}
+
+export function canonDelphiCoverage(): Promise<DelphiResult> {
+  return fetchCanon('/api/canon/delphi-coverage') as Promise<DelphiResult>;
+}
+
 export async function getSeriesBooks(
   seriesId: number,
   params?: { limit?: number; offset?: number },

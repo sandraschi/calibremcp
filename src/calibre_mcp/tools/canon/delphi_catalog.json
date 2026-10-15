@@ -1,0 +1,6127 @@
+{
+ "source": "https://www.delphiclassics.com/complete-catalogue/",
+ "scraped_at": "2026-10-15",
+ "count": 1020,
+ "entries": [
+  {
+   "slug": "a-a-milne",
+   "author": "A. A. Milne",
+   "url": "https://www.delphiclassics.com/shop/a-a-milne/",
+   "us_variant": false
+  },
+  {
+   "slug": "a-a-milne-us-version",
+   "author": "A. A. Milne",
+   "url": "https://www.delphiclassics.com/shop/a-a-milne-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "a-e-housman-2",
+   "author": "A. E. Housman",
+   "url": "https://www.delphiclassics.com/shop/a-e-housman-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "a-e-w-mason",
+   "author": "A. E. W. Mason",
+   "url": "https://www.delphiclassics.com/shop/a-e-w-mason/",
+   "us_variant": false
+  },
+  {
+   "slug": "a-e-w-mason-us-version",
+   "author": "A. E. W. Mason",
+   "url": "https://www.delphiclassics.com/shop/a-e-w-mason-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "a-merritt",
+   "author": "A. Merritt",
+   "url": "https://www.delphiclassics.com/shop/a-merritt/",
+   "us_variant": false
+  },
+  {
+   "slug": "abraham-lincoln",
+   "author": "Abraham Lincoln",
+   "url": "https://www.delphiclassics.com/shop/abraham-lincoln/",
+   "us_variant": false
+  },
+  {
+   "slug": "achilles-tatius-2",
+   "author": "Achilles Tatius",
+   "url": "https://www.delphiclassics.com/shop/achilles-tatius-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "adam-mickiewicz-2",
+   "author": "Adam Mickiewicz",
+   "url": "https://www.delphiclassics.com/shop/adam-mickiewicz-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "adam-smith-2",
+   "author": "Adam Smith",
+   "url": "https://www.delphiclassics.com/shop/adam-smith-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "adelaide-anne-procter",
+   "author": "Adelaide Anne Procter",
+   "url": "https://www.delphiclassics.com/shop/adelaide-anne-procter/",
+   "us_variant": false
+  },
+  {
+   "slug": "adelaide-crapsey",
+   "author": "Adelaide Crapsey",
+   "url": "https://www.delphiclassics.com/shop/adelaide-crapsey/",
+   "us_variant": false
+  },
+  {
+   "slug": "aelfric-of-eynsham",
+   "author": "Aelfric of Eynsham",
+   "url": "https://www.delphiclassics.com/shop/aelfric-of-eynsham/",
+   "us_variant": false
+  },
+  {
+   "slug": "aeschines",
+   "author": "Aeschines",
+   "url": "https://www.delphiclassics.com/shop/aeschines/",
+   "us_variant": false
+  },
+  {
+   "slug": "aeschylus-3",
+   "author": "Aeschylus",
+   "url": "https://www.delphiclassics.com/shop/aeschylus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "al-ghazali",
+   "author": "Al-Ghazali",
+   "url": "https://www.delphiclassics.com/shop/al-ghazali/",
+   "us_variant": false
+  },
+  {
+   "slug": "albert-camus",
+   "author": "Albert Camus",
+   "url": "https://www.delphiclassics.com/shop/albert-camus/",
+   "us_variant": false
+  },
+  {
+   "slug": "albert-einstein",
+   "author": "Albert Einstein",
+   "url": "https://www.delphiclassics.com/shop/albert-einstein/",
+   "us_variant": false
+  },
+  {
+   "slug": "albert-einstein-us-version",
+   "author": "Albert Einstein",
+   "url": "https://www.delphiclassics.com/shop/albert-einstein-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "albrecht-durer-2",
+   "author": "Albrecht Dürer",
+   "url": "https://www.delphiclassics.com/shop/albrecht-durer-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "alcaeus",
+   "author": "Alcaeus",
+   "url": "https://www.delphiclassics.com/shop/alcaeus/",
+   "us_variant": false
+  },
+  {
+   "slug": "alciphron",
+   "author": "Alciphron",
+   "url": "https://www.delphiclassics.com/shop/alciphron/",
+   "us_variant": false
+  },
+  {
+   "slug": "alcman",
+   "author": "Alcman",
+   "url": "https://www.delphiclassics.com/shop/alcman/",
+   "us_variant": false
+  },
+  {
+   "slug": "aldous-huxley",
+   "author": "Aldous Huxley",
+   "url": "https://www.delphiclassics.com/shop/aldous-huxley/",
+   "us_variant": false
+  },
+  {
+   "slug": "alesandro-manzoni-italiane",
+   "author": "Alessandro Manzoni (italiane)",
+   "url": "https://www.delphiclassics.com/shop/alesandro-manzoni-italiane/",
+   "us_variant": false
+  },
+  {
+   "slug": "alexander-pope-2",
+   "author": "Alexander Pope",
+   "url": "https://www.delphiclassics.com/shop/alexander-pope-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "alexander-pushkin-2",
+   "author": "Alexander Pushkin",
+   "url": "https://www.delphiclassics.com/shop/alexander-pushkin-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "alexandre-dumas-english-2",
+   "author": "Alexandre Dumas (English)",
+   "url": "https://www.delphiclassics.com/shop/alexandre-dumas-english-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "alexandre-dumas-francais",
+   "author": "Alexandre Dumas (français)",
+   "url": "https://www.delphiclassics.com/shop/alexandre-dumas-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "alexis-de-tocqueville",
+   "author": "Alexis de Tocqueville",
+   "url": "https://www.delphiclassics.com/shop/alexis-de-tocqueville/",
+   "us_variant": false
+  },
+  {
+   "slug": "alfred-de-musset",
+   "author": "Alfred de Musset",
+   "url": "https://www.delphiclassics.com/shop/alfred-de-musset/",
+   "us_variant": false
+  },
+  {
+   "slug": "alfred-lord-tennyson-2",
+   "author": "Alfred, Lord Tennyson",
+   "url": "https://www.delphiclassics.com/shop/alfred-lord-tennyson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "alfred-sisley",
+   "author": "Alfred Sisley",
+   "url": "https://www.delphiclassics.com/shop/alfred-sisley/",
+   "us_variant": false
+  },
+  {
+   "slug": "algernon-blackwood",
+   "author": "Algernon Blackwood",
+   "url": "https://www.delphiclassics.com/shop/algernon-blackwood/",
+   "us_variant": false
+  },
+  {
+   "slug": "algernon-blackwood-us-version",
+   "author": "Algernon Blackwood",
+   "url": "https://www.delphiclassics.com/shop/algernon-blackwood-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "algernon-charles-swinburne-2",
+   "author": "Algernon Charles Swinburne",
+   "url": "https://www.delphiclassics.com/shop/algernon-charles-swinburne-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "alice-meynell",
+   "author": "Alice Meynell",
+   "url": "https://www.delphiclassics.com/shop/alice-meynell/",
+   "us_variant": false
+  },
+  {
+   "slug": "alphonse-daudet",
+   "author": "Alphonse Daudet",
+   "url": "https://www.delphiclassics.com/shop/alphonse-daudet/",
+   "us_variant": false
+  },
+  {
+   "slug": "alphonse-mucha",
+   "author": "Alphonse Mucha",
+   "url": "https://www.delphiclassics.com/shop/alphonse-mucha/",
+   "us_variant": false
+  },
+  {
+   "slug": "ambrose",
+   "author": "Ambrose",
+   "url": "https://www.delphiclassics.com/shop/ambrose/",
+   "us_variant": false
+  },
+  {
+   "slug": "ambrose-bierce-2",
+   "author": "Ambrose Bierce",
+   "url": "https://www.delphiclassics.com/shop/ambrose-bierce-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "amedeo-modigliani-2",
+   "author": "Amedeo Modigliani",
+   "url": "https://www.delphiclassics.com/shop/amedeo-modigliani-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ammianus-marcellinus-3",
+   "author": "Ammianus Marcellinus",
+   "url": "https://www.delphiclassics.com/shop/ammianus-marcellinus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "amy-lowell",
+   "author": "Amy Lowell",
+   "url": "https://www.delphiclassics.com/shop/amy-lowell/",
+   "us_variant": false
+  },
+  {
+   "slug": "anacreon",
+   "author": "Anacreon",
+   "url": "https://www.delphiclassics.com/shop/anacreon/",
+   "us_variant": false
+  },
+  {
+   "slug": "anatole-france-2",
+   "author": "Anatole France",
+   "url": "https://www.delphiclassics.com/shop/anatole-france-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ancient-classics-super-set",
+   "author": "Ancient Classics Super Set",
+   "url": "https://www.delphiclassics.com/shop/ancient-classics-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "andocides",
+   "author": "Andocides",
+   "url": "https://www.delphiclassics.com/shop/andocides/",
+   "us_variant": false
+  },
+  {
+   "slug": "andrea-del-sarto",
+   "author": "Andrea del Sarto",
+   "url": "https://www.delphiclassics.com/shop/andrea-del-sarto/",
+   "us_variant": false
+  },
+  {
+   "slug": "andrea-mantegna",
+   "author": "Andrea Mantegna",
+   "url": "https://www.delphiclassics.com/shop/andrea-mantegna/",
+   "us_variant": false
+  },
+  {
+   "slug": "andrew-lang-2",
+   "author": "Andrew Lang",
+   "url": "https://www.delphiclassics.com/shop/andrew-lang-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "andrew-marvell-2",
+   "author": "Andrew Marvell",
+   "url": "https://www.delphiclassics.com/shop/andrew-marvell-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "angela-brazil",
+   "author": "Angela Brazil",
+   "url": "https://www.delphiclassics.com/shop/angela-brazil/",
+   "us_variant": false
+  },
+  {
+   "slug": "anglo-saxon-chronicle",
+   "author": "Anglo-Saxon Chronicle",
+   "url": "https://www.delphiclassics.com/shop/anglo-saxon-chronicle/",
+   "us_variant": false
+  },
+  {
+   "slug": "ann-radcliffe-2",
+   "author": "Ann Radcliffe",
+   "url": "https://www.delphiclassics.com/shop/ann-radcliffe-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "anna-katharine-green-2",
+   "author": "Anna Katharine Green",
+   "url": "https://www.delphiclassics.com/shop/anna-katharine-green-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "anna-komnene",
+   "author": "Anna Komnene",
+   "url": "https://www.delphiclassics.com/shop/anna-komnene/",
+   "us_variant": false
+  },
+  {
+   "slug": "anne-bradstreet",
+   "author": "Anne Bradstreet",
+   "url": "https://www.delphiclassics.com/shop/anne-bradstreet/",
+   "us_variant": false
+  },
+  {
+   "slug": "anne-thackeray-ritchie",
+   "author": "Anne Thackeray Ritchie",
+   "url": "https://www.delphiclassics.com/shop/anne-thackeray-ritchie/",
+   "us_variant": false
+  },
+  {
+   "slug": "anselm-of-canterbury",
+   "author": "Anselm of Canterbury",
+   "url": "https://www.delphiclassics.com/shop/anselm-of-canterbury/",
+   "us_variant": false
+  },
+  {
+   "slug": "anthony-hope-2",
+   "author": "Anthony Hope",
+   "url": "https://www.delphiclassics.com/shop/anthony-hope-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "anthony-trollope-2",
+   "author": "Anthony Trollope",
+   "url": "https://www.delphiclassics.com/shop/anthony-trollope-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "anthony-van-dyck",
+   "author": "Anthony van Dyck",
+   "url": "https://www.delphiclassics.com/shop/anthony-van-dyck/",
+   "us_variant": false
+  },
+  {
+   "slug": "antipater-of-sidon",
+   "author": "Antipater of Sidon",
+   "url": "https://www.delphiclassics.com/shop/antipater-of-sidon/",
+   "us_variant": false
+  },
+  {
+   "slug": "antiphon",
+   "author": "Antiphon",
+   "url": "https://www.delphiclassics.com/shop/antiphon/",
+   "us_variant": false
+  },
+  {
+   "slug": "anton-chekhov-2",
+   "author": "Anton Chekhov",
+   "url": "https://www.delphiclassics.com/shop/anton-chekhov-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "antonio-vivaldi",
+   "author": "Antonio Vivaldi",
+   "url": "https://www.delphiclassics.com/shop/antonio-vivaldi/",
+   "us_variant": false
+  },
+  {
+   "slug": "aphra-behn-2",
+   "author": "Aphra Behn",
+   "url": "https://www.delphiclassics.com/shop/aphra-behn-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "apollodorus-3",
+   "author": "Apollodorus",
+   "url": "https://www.delphiclassics.com/shop/apollodorus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "apollonius-of-rhodes-3",
+   "author": "Apollonius of Rhodes",
+   "url": "https://www.delphiclassics.com/shop/apollonius-of-rhodes-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "appian-2",
+   "author": "Appian",
+   "url": "https://www.delphiclassics.com/shop/appian-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "apuleius-3",
+   "author": "Apuleius",
+   "url": "https://www.delphiclassics.com/shop/apuleius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "aratus",
+   "author": "Aratus",
+   "url": "https://www.delphiclassics.com/shop/aratus/",
+   "us_variant": false
+  },
+  {
+   "slug": "archilochus",
+   "author": "Archilochus",
+   "url": "https://www.delphiclassics.com/shop/archilochus/",
+   "us_variant": false
+  },
+  {
+   "slug": "aristophanes-3",
+   "author": "Aristophanes",
+   "url": "https://www.delphiclassics.com/shop/aristophanes-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "aristotle-3",
+   "author": "Aristotle",
+   "url": "https://www.delphiclassics.com/shop/aristotle-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "aristoxenus",
+   "author": "Aristoxenus",
+   "url": "https://www.delphiclassics.com/shop/aristoxenus/",
+   "us_variant": false
+  },
+  {
+   "slug": "arnold-bennett",
+   "author": "Arnold Bennett",
+   "url": "https://www.delphiclassics.com/shop/arnold-bennett/",
+   "us_variant": false
+  },
+  {
+   "slug": "arnold-bennett-us-version",
+   "author": "Arnold Bennett &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/arnold-bennett-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "arrian-3",
+   "author": "Arrian",
+   "url": "https://www.delphiclassics.com/shop/arrian-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "artemisia-gentileschi-2",
+   "author": "Artemisia Gentileschi",
+   "url": "https://www.delphiclassics.com/shop/artemisia-gentileschi-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-conan-doyle-deutsche",
+   "author": "Arthur Conan Doyle (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/arthur-conan-doyle-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-machen-2",
+   "author": "Arthur Machen",
+   "url": "https://www.delphiclassics.com/shop/arthur-machen-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-morrison-2",
+   "author": "Arthur Morrison",
+   "url": "https://www.delphiclassics.com/shop/arthur-morrison-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-quiller-couch",
+   "author": "Arthur Quiller-Couch",
+   "url": "https://www.delphiclassics.com/shop/arthur-quiller-couch/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-ransome",
+   "author": "Arthur Ransome",
+   "url": "https://www.delphiclassics.com/shop/arthur-ransome/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-ransome-us-version",
+   "author": "Arthur Ransome",
+   "url": "https://www.delphiclassics.com/shop/arthur-ransome-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "arthur-schnitzler",
+   "author": "Arthur Schnitzler",
+   "url": "https://www.delphiclassics.com/shop/arthur-schnitzler/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-schnitzler-deutsche",
+   "author": "Arthur Schnitzler (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/arthur-schnitzler-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthur-schopenhauer-2",
+   "author": "Arthur Schopenhauer",
+   "url": "https://www.delphiclassics.com/shop/arthur-schopenhauer-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "arthurian-literary-cycle",
+   "author": "Arthurian Literary Cycle",
+   "url": "https://www.delphiclassics.com/shop/arthurian-literary-cycle/",
+   "us_variant": false
+  },
+  {
+   "slug": "asser",
+   "author": "Asser",
+   "url": "https://www.delphiclassics.com/shop/asser/",
+   "us_variant": false
+  },
+  {
+   "slug": "athanasius-of-alexandria",
+   "author": "Athanasius of Alexandria",
+   "url": "https://www.delphiclassics.com/shop/athanasius-of-alexandria/",
+   "us_variant": false
+  },
+  {
+   "slug": "athenaeus-2",
+   "author": "Athenaeus",
+   "url": "https://www.delphiclassics.com/shop/athenaeus-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "august-strindberg",
+   "author": "August Strindberg",
+   "url": "https://www.delphiclassics.com/shop/august-strindberg/",
+   "us_variant": false
+  },
+  {
+   "slug": "august-strindberg-europe-version",
+   "author": "August Strindberg &#8211; Europe version",
+   "url": "https://www.delphiclassics.com/shop/august-strindberg-europe-version/",
+   "us_variant": false
+  },
+  {
+   "slug": "auguste-rodin",
+   "author": "Auguste Rodin",
+   "url": "https://www.delphiclassics.com/shop/auguste-rodin/",
+   "us_variant": false
+  },
+  {
+   "slug": "augustine-of-hippo-2",
+   "author": "Augustine of Hippo",
+   "url": "https://www.delphiclassics.com/shop/augustine-of-hippo-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "aulus-gellius-2",
+   "author": "Aulus Gellius",
+   "url": "https://www.delphiclassics.com/shop/aulus-gellius-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ausonius",
+   "author": "Ausonius",
+   "url": "https://www.delphiclassics.com/shop/ausonius/",
+   "us_variant": false
+  },
+  {
+   "slug": "averroes",
+   "author": "Averroes",
+   "url": "https://www.delphiclassics.com/shop/averroes/",
+   "us_variant": false
+  },
+  {
+   "slug": "bacchylides",
+   "author": "Bacchylides",
+   "url": "https://www.delphiclassics.com/shop/bacchylides/",
+   "us_variant": false
+  },
+  {
+   "slug": "baldassare-castiglione",
+   "author": "Baldassare Castiglione",
+   "url": "https://www.delphiclassics.com/shop/baldassare-castiglione/",
+   "us_variant": false
+  },
+  {
+   "slug": "baroness-emma-orczy-2",
+   "author": "Baroness Emma Orczy",
+   "url": "https://www.delphiclassics.com/shop/baroness-emma-orczy-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "baroness-emma-orczy-us-version",
+   "author": "Baroness Emma Orczy &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/baroness-emma-orczy-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "baruch-spinoza",
+   "author": "Baruch Spinoza",
+   "url": "https://www.delphiclassics.com/shop/baruch-spinoza/",
+   "us_variant": false
+  },
+  {
+   "slug": "basil-of-caesarea",
+   "author": "Basil of Caesarea",
+   "url": "https://www.delphiclassics.com/shop/basil-of-caesarea/",
+   "us_variant": false
+  },
+  {
+   "slug": "beatrix-potter-2",
+   "author": "Beatrix Potter",
+   "url": "https://www.delphiclassics.com/shop/beatrix-potter-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "beatrix-potter-us-version",
+   "author": "Beatrix Potter &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/beatrix-potter-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "beaumont-and-fletcher-2",
+   "author": "Beaumont and Fletcher",
+   "url": "https://www.delphiclassics.com/shop/beaumont-and-fletcher-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "bede-3",
+   "author": "Bede",
+   "url": "https://www.delphiclassics.com/shop/bede-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "ben-jonson-2",
+   "author": "Ben Jonson",
+   "url": "https://www.delphiclassics.com/shop/ben-jonson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "benedict-of-nursia",
+   "author": "Benedict of Nursia",
+   "url": "https://www.delphiclassics.com/shop/benedict-of-nursia/",
+   "us_variant": false
+  },
+  {
+   "slug": "benito-perez-galdos",
+   "author": "Benito Pérez Galdós",
+   "url": "https://www.delphiclassics.com/shop/benito-perez-galdos/",
+   "us_variant": false
+  },
+  {
+   "slug": "benjamin-disraeli-2",
+   "author": "Benjamin Disraeli",
+   "url": "https://www.delphiclassics.com/shop/benjamin-disraeli-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "benjamin-franklin",
+   "author": "Benjamin Franklin",
+   "url": "https://www.delphiclassics.com/shop/benjamin-franklin/",
+   "us_variant": false
+  },
+  {
+   "slug": "beowulf-2",
+   "author": "Beowulf",
+   "url": "https://www.delphiclassics.com/shop/beowulf-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "berthe-morisot",
+   "author": "Berthe Morisot",
+   "url": "https://www.delphiclassics.com/shop/berthe-morisot/",
+   "us_variant": false
+  },
+  {
+   "slug": "bertrand-russell",
+   "author": "Bertrand Russell",
+   "url": "https://www.delphiclassics.com/shop/bertrand-russell/",
+   "us_variant": false
+  },
+  {
+   "slug": "bertrand-russell-us-version",
+   "author": "Bertrand Russell",
+   "url": "https://www.delphiclassics.com/shop/bertrand-russell-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "blaise-pascal",
+   "author": "Blaise Pascal",
+   "url": "https://www.delphiclassics.com/shop/blaise-pascal/",
+   "us_variant": false
+  },
+  {
+   "slug": "boethius",
+   "author": "Boethius",
+   "url": "https://www.delphiclassics.com/shop/boethius/",
+   "us_variant": false
+  },
+  {
+   "slug": "booth-tarkington",
+   "author": "Booth Tarkington",
+   "url": "https://www.delphiclassics.com/shop/booth-tarkington/",
+   "us_variant": false
+  },
+  {
+   "slug": "booth-tarkington-us-version",
+   "author": "Booth Tarkington",
+   "url": "https://www.delphiclassics.com/shop/booth-tarkington-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "botticelli-2",
+   "author": "Botticelli",
+   "url": "https://www.delphiclassics.com/shop/botticelli-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "bram-stoker-2",
+   "author": "Bram Stoker",
+   "url": "https://www.delphiclassics.com/shop/bram-stoker-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "bret-harte-2",
+   "author": "Bret Harte",
+   "url": "https://www.delphiclassics.com/shop/bret-harte-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "brothers-grimm-2",
+   "author": "Brothers Grimm",
+   "url": "https://www.delphiclassics.com/shop/brothers-grimm-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "bruder-grimm-deutsche",
+   "author": "Brüder Grimm (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/bruder-grimm-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "c-day-lewis",
+   "author": "C. Day-Lewis",
+   "url": "https://www.delphiclassics.com/shop/c-day-lewis/",
+   "us_variant": false
+  },
+  {
+   "slug": "c-s-forester",
+   "author": "C. S. Forester",
+   "url": "https://www.delphiclassics.com/shop/c-s-forester/",
+   "us_variant": false
+  },
+  {
+   "slug": "c-s-lewis-2",
+   "author": "C. S. Lewis",
+   "url": "https://www.delphiclassics.com/shop/c-s-lewis-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "callimachus-2",
+   "author": "Callimachus",
+   "url": "https://www.delphiclassics.com/shop/callimachus-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "callistratus",
+   "author": "Callistratus",
+   "url": "https://www.delphiclassics.com/shop/callistratus/",
+   "us_variant": false
+  },
+  {
+   "slug": "camille-pissarro-2",
+   "author": "Camille Pissarro",
+   "url": "https://www.delphiclassics.com/shop/camille-pissarro-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "canaletto-2",
+   "author": "Canaletto",
+   "url": "https://www.delphiclassics.com/shop/canaletto-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "captain-mayne-reid-2",
+   "author": "Captain Mayne Reid",
+   "url": "https://www.delphiclassics.com/shop/captain-mayne-reid-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "caravaggio-2",
+   "author": "Caravaggio",
+   "url": "https://www.delphiclassics.com/shop/caravaggio-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "carolyn-wells",
+   "author": "Carolyn Wells",
+   "url": "https://www.delphiclassics.com/shop/carolyn-wells/",
+   "us_variant": false
+  },
+  {
+   "slug": "carolyn-wells-us-version",
+   "author": "Carolyn Wells &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/carolyn-wells-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "carson-mccullers",
+   "author": "Carson McCullers",
+   "url": "https://www.delphiclassics.com/shop/carson-mccullers/",
+   "us_variant": false
+  },
+  {
+   "slug": "caspar-david-friedrich-2",
+   "author": "Caspar David Friedrich",
+   "url": "https://www.delphiclassics.com/shop/caspar-david-friedrich-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "cassiodorus",
+   "author": "Cassiodorus",
+   "url": "https://www.delphiclassics.com/shop/cassiodorus/",
+   "us_variant": false
+  },
+  {
+   "slug": "cassius-dio-3",
+   "author": "Cassius Dio",
+   "url": "https://www.delphiclassics.com/shop/cassius-dio-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "catherine-of-siena",
+   "author": "Catherine of Siena",
+   "url": "https://www.delphiclassics.com/shop/catherine-of-siena/",
+   "us_variant": false
+  },
+  {
+   "slug": "cato-the-elder-2",
+   "author": "Cato the Elder",
+   "url": "https://www.delphiclassics.com/shop/cato-the-elder-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "catullus-3",
+   "author": "Catullus",
+   "url": "https://www.delphiclassics.com/shop/catullus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-and-mary-lamb-2",
+   "author": "Charles and Mary Lamb",
+   "url": "https://www.delphiclassics.com/shop/charles-and-mary-lamb-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-baudelaire",
+   "author": "Charles Baudelaire",
+   "url": "https://www.delphiclassics.com/shop/charles-baudelaire/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-brockden-brown",
+   "author": "Charles Brockden Brown",
+   "url": "https://www.delphiclassics.com/shop/charles-brockden-brown/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-darwin-2",
+   "author": "Charles Darwin",
+   "url": "https://www.delphiclassics.com/shop/charles-darwin-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-dickens",
+   "author": "Charles Dickens",
+   "url": "https://www.delphiclassics.com/shop/charles-dickens/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-dickens-deutsche",
+   "author": "Charles Dickens (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/charles-dickens-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-kingsley-2",
+   "author": "Charles Kingsley",
+   "url": "https://www.delphiclassics.com/shop/charles-kingsley-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-lever-2",
+   "author": "Charles Lever",
+   "url": "https://www.delphiclassics.com/shop/charles-lever-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-reade-2",
+   "author": "Charles Reade",
+   "url": "https://www.delphiclassics.com/shop/charles-reade-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-sorley",
+   "author": "Charles Sorley",
+   "url": "https://www.delphiclassics.com/shop/charles-sorley/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-w-chesnutt",
+   "author": "Charles W. Chesnutt",
+   "url": "https://www.delphiclassics.com/shop/charles-w-chesnutt/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-williams",
+   "author": "Charles Williams",
+   "url": "https://www.delphiclassics.com/shop/charles-williams/",
+   "us_variant": false
+  },
+  {
+   "slug": "charles-williams-us-version",
+   "author": "Charles Williams",
+   "url": "https://www.delphiclassics.com/shop/charles-williams-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "charlotte-mary-yonge-2",
+   "author": "Charlotte Mary Yonge",
+   "url": "https://www.delphiclassics.com/shop/charlotte-mary-yonge-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charlotte-perkins-gilman-2",
+   "author": "Charlotte Perkins Gilman",
+   "url": "https://www.delphiclassics.com/shop/charlotte-perkins-gilman-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "charlotte-perkins-gilman-us-version",
+   "author": "Charlotte Perkins Gilman &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/charlotte-perkins-gilman-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "charlotte-smith-2",
+   "author": "Charlotte Smith",
+   "url": "https://www.delphiclassics.com/shop/charlotte-smith-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "christian-morgenstern-deutsche",
+   "author": "Christian Morgenstern (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/christian-morgenstern-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "christina-rossetti-2",
+   "author": "Christina Rossetti",
+   "url": "https://www.delphiclassics.com/shop/christina-rossetti-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "christine-de-pizan",
+   "author": "Christine de Pizan",
+   "url": "https://www.delphiclassics.com/shop/christine-de-pizan/",
+   "us_variant": false
+  },
+  {
+   "slug": "christopher-marlowe-2",
+   "author": "Christopher Marlowe",
+   "url": "https://www.delphiclassics.com/shop/christopher-marlowe-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "cicero-3",
+   "author": "Cicero",
+   "url": "https://www.delphiclassics.com/shop/cicero-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "clark-ashton-smith",
+   "author": "Clark Ashton Smith",
+   "url": "https://www.delphiclassics.com/shop/clark-ashton-smith/",
+   "us_variant": false
+  },
+  {
+   "slug": "claude-lorrain-2",
+   "author": "Claude Lorrain",
+   "url": "https://www.delphiclassics.com/shop/claude-lorrain-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "claude-monet-2",
+   "author": "Claude Monet",
+   "url": "https://www.delphiclassics.com/shop/claude-monet-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "claudian-2",
+   "author": "Claudian",
+   "url": "https://www.delphiclassics.com/shop/claudian-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "clement-of-alexandria-2",
+   "author": "Clement of Alexandria",
+   "url": "https://www.delphiclassics.com/shop/clement-of-alexandria-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "clement-of-rome",
+   "author": "Clement of Rome",
+   "url": "https://www.delphiclassics.com/shop/clement-of-rome/",
+   "us_variant": false
+  },
+  {
+   "slug": "coluthus",
+   "author": "Coluthus",
+   "url": "https://www.delphiclassics.com/shop/coluthus/",
+   "us_variant": false
+  },
+  {
+   "slug": "confucius-2",
+   "author": "Confucius",
+   "url": "https://www.delphiclassics.com/shop/confucius-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "corinna",
+   "author": "Corinna",
+   "url": "https://www.delphiclassics.com/shop/corinna/",
+   "us_variant": false
+  },
+  {
+   "slug": "cornelius-nepos-2",
+   "author": "Cornelius Nepos",
+   "url": "https://www.delphiclassics.com/shop/cornelius-nepos-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "cornell-woolrich",
+   "author": "Cornell Woolrich",
+   "url": "https://www.delphiclassics.com/shop/cornell-woolrich/",
+   "us_variant": false
+  },
+  {
+   "slug": "correggio",
+   "author": "Correggio",
+   "url": "https://www.delphiclassics.com/shop/correggio/",
+   "us_variant": false
+  },
+  {
+   "slug": "cyprian-of-carthage",
+   "author": "Cyprian of Carthage",
+   "url": "https://www.delphiclassics.com/shop/cyprian-of-carthage/",
+   "us_variant": false
+  },
+  {
+   "slug": "cyril-of-jerusalem",
+   "author": "Cyril of Jerusalem",
+   "url": "https://www.delphiclassics.com/shop/cyril-of-jerusalem/",
+   "us_variant": false
+  },
+  {
+   "slug": "d-h-lawrence-2",
+   "author": "D. H. Lawrence",
+   "url": "https://www.delphiclassics.com/shop/d-h-lawrence-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "d-h-lawrence-poetry-2",
+   "author": "D. H Lawrence (poetry)",
+   "url": "https://www.delphiclassics.com/shop/d-h-lawrence-poetry-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "d-h-lawrence-us-version-2",
+   "author": "D. H. Lawrence &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/d-h-lawrence-us-version-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "daniel-defoe-2",
+   "author": "Daniel Defoe",
+   "url": "https://www.delphiclassics.com/shop/daniel-defoe-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "dante-alighieri-english",
+   "author": "Dante Alighieri (English)",
+   "url": "https://www.delphiclassics.com/shop/dante-alighieri-english/",
+   "us_variant": false
+  },
+  {
+   "slug": "dante-alighieri-italiane",
+   "author": "Dante Alighieri (italiane)",
+   "url": "https://www.delphiclassics.com/shop/dante-alighieri-italiane/",
+   "us_variant": false
+  },
+  {
+   "slug": "dante-gabriel-rossetti-2",
+   "author": "Dante Gabriel Rossetti",
+   "url": "https://www.delphiclassics.com/shop/dante-gabriel-rossetti-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "dante-gabriel-rossetti-art-2",
+   "author": "Dante Gabriel Rossetti (Art)",
+   "url": "https://www.delphiclassics.com/shop/dante-gabriel-rossetti-art-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "dashiell-hammett",
+   "author": "Dashiell Hammett",
+   "url": "https://www.delphiclassics.com/shop/dashiell-hammett/",
+   "us_variant": false
+  },
+  {
+   "slug": "david-hume-2",
+   "author": "David Hume",
+   "url": "https://www.delphiclassics.com/shop/david-hume-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "delphi-christmas-collection-i",
+   "author": "Delphi Christmas Collection I",
+   "url": "https://www.delphiclassics.com/shop/delphi-christmas-collection-i/",
+   "us_variant": false
+  },
+  {
+   "slug": "delphi-christmas-collection-ii",
+   "author": "Delphi Christmas Collection II",
+   "url": "https://www.delphiclassics.com/shop/delphi-christmas-collection-ii/",
+   "us_variant": false
+  },
+  {
+   "slug": "delphi-christmas-collection-iii",
+   "author": "Delphi Christmas Collection III",
+   "url": "https://www.delphiclassics.com/shop/delphi-christmas-collection-iii/",
+   "us_variant": false
+  },
+  {
+   "slug": "delphi-collection-of-ghost-stories",
+   "author": "Delphi Collection of Ghost Stories",
+   "url": "https://www.delphiclassics.com/shop/delphi-collection-of-ghost-stories/",
+   "us_variant": false
+  },
+  {
+   "slug": "delphi-poetry-anthology",
+   "author": "Delphi Poetry Anthology",
+   "url": "https://www.delphiclassics.com/shop/delphi-poetry-anthology/",
+   "us_variant": false
+  },
+  {
+   "slug": "delphi-poets-series-super-set-3",
+   "author": "Delphi Poets Series Super Set",
+   "url": "https://www.delphiclassics.com/shop/delphi-poets-series-super-set-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "demosthenes-3",
+   "author": "Demosthenes",
+   "url": "https://www.delphiclassics.com/shop/demosthenes-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "denis-diderot",
+   "author": "Denis Diderot",
+   "url": "https://www.delphiclassics.com/shop/denis-diderot/",
+   "us_variant": false
+  },
+  {
+   "slug": "desiderius-erasmus",
+   "author": "Desiderius Erasmus",
+   "url": "https://www.delphiclassics.com/shop/desiderius-erasmus/",
+   "us_variant": false
+  },
+  {
+   "slug": "dickensiana-volume-i-2",
+   "author": "Dickensiana Volume I",
+   "url": "https://www.delphiclassics.com/shop/dickensiana-volume-i-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "diego-velazquez-2",
+   "author": "Diego Velázquez",
+   "url": "https://www.delphiclassics.com/shop/diego-velazquez-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "dinah-craik",
+   "author": "Dinah Craik",
+   "url": "https://www.delphiclassics.com/shop/dinah-craik/",
+   "us_variant": false
+  },
+  {
+   "slug": "dio-chrysostom-2",
+   "author": "Dio Chrysostom",
+   "url": "https://www.delphiclassics.com/shop/dio-chrysostom-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "diodorus-siculus-3",
+   "author": "Diodorus Siculus",
+   "url": "https://www.delphiclassics.com/shop/diodorus-siculus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "diogenes-laertius-3",
+   "author": "Diogenes Laërtius",
+   "url": "https://www.delphiclassics.com/shop/diogenes-laertius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "dionysius-of-halicarnassus-2",
+   "author": "Dionysius of Halicarnassus",
+   "url": "https://www.delphiclassics.com/shop/dionysius-of-halicarnassus-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "donatello",
+   "author": "Donatello",
+   "url": "https://www.delphiclassics.com/shop/donatello/",
+   "us_variant": false
+  },
+  {
+   "slug": "dorothy-l-sayers",
+   "author": "Dorothy L. Sayers",
+   "url": "https://www.delphiclassics.com/shop/dorothy-l-sayers/",
+   "us_variant": false
+  },
+  {
+   "slug": "dorothy-richardson",
+   "author": "Dorothy Richardson",
+   "url": "https://www.delphiclassics.com/shop/dorothy-richardson/",
+   "us_variant": false
+  },
+  {
+   "slug": "dylan-thomas",
+   "author": "Dylan Thomas",
+   "url": "https://www.delphiclassics.com/shop/dylan-thomas/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-f-benson-2",
+   "author": "E. F. Benson",
+   "url": "https://www.delphiclassics.com/shop/e-f-benson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-f-benson-us-version",
+   "author": "E. F. Benson",
+   "url": "https://www.delphiclassics.com/shop/e-f-benson-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "e-m-delafield-2",
+   "author": "E. M. Delafield",
+   "url": "https://www.delphiclassics.com/shop/e-m-delafield-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-m-delafield-us-version",
+   "author": "E. M. Delafield &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/e-m-delafield-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "e-m-forster-2",
+   "author": "E. M. Forster",
+   "url": "https://www.delphiclassics.com/shop/e-m-forster-2/",
+   "us_variant": true
+  },
+  {
+   "slug": "e-m-forster-complete",
+   "author": "E. M. Forster",
+   "url": "https://www.delphiclassics.com/shop/e-m-forster-complete/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-nesbit-2",
+   "author": "E. Nesbit",
+   "url": "https://www.delphiclassics.com/shop/e-nesbit-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-phillips-oppenheim-2",
+   "author": "E. Phillips Oppenheim",
+   "url": "https://www.delphiclassics.com/shop/e-phillips-oppenheim-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-phillips-oppenheim-us-version",
+   "author": "E. Phillips Oppenheim &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/e-phillips-oppenheim-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "e-r-eddison",
+   "author": "E. R. Eddison",
+   "url": "https://www.delphiclassics.com/shop/e-r-eddison/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-t-a-hoffmann",
+   "author": "E. T. A. Hoffmann (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/e-t-a-hoffmann/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-t-a-hoffmann-2",
+   "author": "E. T. A. Hoffmann",
+   "url": "https://www.delphiclassics.com/shop/e-t-a-hoffmann-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "e-w-hornung-2",
+   "author": "E. W. Hornung",
+   "url": "https://www.delphiclassics.com/shop/e-w-hornung-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "earl-derr-biggers",
+   "author": "Earl Derr Biggers",
+   "url": "https://www.delphiclassics.com/shop/earl-derr-biggers/",
+   "us_variant": false
+  },
+  {
+   "slug": "earl-derr-biggers-us-version",
+   "author": "Earl Derr Biggers &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/earl-derr-biggers-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "earl-of-chesterfield",
+   "author": "Earl of Chesterfield",
+   "url": "https://www.delphiclassics.com/shop/earl-of-chesterfield/",
+   "us_variant": false
+  },
+  {
+   "slug": "earl-of-shaftesbury",
+   "author": "Earl of Shaftesbury",
+   "url": "https://www.delphiclassics.com/shop/earl-of-shaftesbury/",
+   "us_variant": false
+  },
+  {
+   "slug": "eastern-treasures-super-set",
+   "author": "Eastern Treasures Super Set",
+   "url": "https://www.delphiclassics.com/shop/eastern-treasures-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "edgar-allan-poe-2",
+   "author": "Edgar Allan Poe",
+   "url": "https://www.delphiclassics.com/shop/edgar-allan-poe-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edgar-allan-poe-poetry-2",
+   "author": "Edgar Allan Poe (poetry)",
+   "url": "https://www.delphiclassics.com/shop/edgar-allan-poe-poetry-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edgar-degas-2",
+   "author": "Edgar Degas",
+   "url": "https://www.delphiclassics.com/shop/edgar-degas-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edgar-rice-burroughs-2",
+   "author": "Edgar Rice Burroughs",
+   "url": "https://www.delphiclassics.com/shop/edgar-rice-burroughs-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edgar-rice-burroughs-us-version",
+   "author": "Edgar Rice Burroughs &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/edgar-rice-burroughs-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "edgar-wallace-2",
+   "author": "Edgar Wallace",
+   "url": "https://www.delphiclassics.com/shop/edgar-wallace-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edgar-wallace-us-version",
+   "author": "Edgar Wallace &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/edgar-wallace-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "edith-wharton-2",
+   "author": "Edith Wharton",
+   "url": "https://www.delphiclassics.com/shop/edith-wharton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edith-wharton-us-version",
+   "author": "Edith Wharton",
+   "url": "https://www.delphiclassics.com/shop/edith-wharton-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "edmund-burke-2",
+   "author": "Edmund Burke",
+   "url": "https://www.delphiclassics.com/shop/edmund-burke-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edmund-spenser",
+   "author": "Edmund Spenser",
+   "url": "https://www.delphiclassics.com/shop/edmund-spenser/",
+   "us_variant": false
+  },
+  {
+   "slug": "edmund-waller",
+   "author": "Edmund Waller",
+   "url": "https://www.delphiclassics.com/shop/edmund-waller/",
+   "us_variant": false
+  },
+  {
+   "slug": "edouard-manet-2",
+   "author": "Édouard Manet",
+   "url": "https://www.delphiclassics.com/shop/edouard-manet-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edvard-munch-2",
+   "author": "Edvard Munch &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/edvard-munch-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edvard-munch-3",
+   "author": "Edvard Munch",
+   "url": "https://www.delphiclassics.com/shop/edvard-munch-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-bulwer-lytton-2",
+   "author": "Edward Bulwer-Lytton",
+   "url": "https://www.delphiclassics.com/shop/edward-bulwer-lytton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-burne-jones",
+   "author": "Edward Burne-Jones",
+   "url": "https://www.delphiclassics.com/shop/edward-burne-jones/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-de-vere",
+   "author": "Edward de Vere",
+   "url": "https://www.delphiclassics.com/shop/edward-de-vere/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-gibbon-2",
+   "author": "Edward Gibbon",
+   "url": "https://www.delphiclassics.com/shop/edward-gibbon-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-lear-2",
+   "author": "Edward Lear",
+   "url": "https://www.delphiclassics.com/shop/edward-lear-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-payson-roe",
+   "author": "Edward Payson Roe",
+   "url": "https://www.delphiclassics.com/shop/edward-payson-roe/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-thomas-2",
+   "author": "Edward Thomas",
+   "url": "https://www.delphiclassics.com/shop/edward-thomas-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "edward-young",
+   "author": "Edward Young",
+   "url": "https://www.delphiclassics.com/shop/edward-young/",
+   "us_variant": false
+  },
+  {
+   "slug": "edwin-arlington-robinson-2",
+   "author": "Edwin Arlington Robinson",
+   "url": "https://www.delphiclassics.com/shop/edwin-arlington-robinson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "egon-schiele",
+   "author": "Egon Schiele",
+   "url": "https://www.delphiclassics.com/shop/egon-schiele/",
+   "us_variant": false
+  },
+  {
+   "slug": "einhard",
+   "author": "Einhard",
+   "url": "https://www.delphiclassics.com/shop/einhard/",
+   "us_variant": false
+  },
+  {
+   "slug": "el-greco-2",
+   "author": "El Greco",
+   "url": "https://www.delphiclassics.com/shop/el-greco-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "eleanor-h-porter",
+   "author": "Eleanor H. Porter",
+   "url": "https://www.delphiclassics.com/shop/eleanor-h-porter/",
+   "us_variant": false
+  },
+  {
+   "slug": "elisabeth-vigee-le-brun",
+   "author": "Élisabeth Vigée Le Brun",
+   "url": "https://www.delphiclassics.com/shop/elisabeth-vigee-le-brun/",
+   "us_variant": false
+  },
+  {
+   "slug": "elizabeth-barrett-browning-2",
+   "author": "Elizabeth Barrett Browning",
+   "url": "https://www.delphiclassics.com/shop/elizabeth-barrett-browning-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "elizabeth-gaskell-2",
+   "author": "Elizabeth Gaskell",
+   "url": "https://www.delphiclassics.com/shop/elizabeth-gaskell-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "elizabeth-inchbald",
+   "author": "Elizabeth Inchbald",
+   "url": "https://www.delphiclassics.com/shop/elizabeth-inchbald/",
+   "us_variant": false
+  },
+  {
+   "slug": "elizabeth-von-arnim-2",
+   "author": "Elizabeth von Arnim",
+   "url": "https://www.delphiclassics.com/shop/elizabeth-von-arnim-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "elizabeth-von-arnim-us-version",
+   "author": "Elizabeth von Arnim &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/elizabeth-von-arnim-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "ella-wheeler-wilcox-2",
+   "author": "Ella Wheeler Wilcox",
+   "url": "https://www.delphiclassics.com/shop/ella-wheeler-wilcox-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ellen-glasgow",
+   "author": "Ellen Glasgow",
+   "url": "https://www.delphiclassics.com/shop/ellen-glasgow/",
+   "us_variant": false
+  },
+  {
+   "slug": "ellen-glasgow-us-version",
+   "author": "Ellen Glasgow",
+   "url": "https://www.delphiclassics.com/shop/ellen-glasgow-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "ellen-wood-2",
+   "author": "Ellen Wood",
+   "url": "https://www.delphiclassics.com/shop/ellen-wood-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "emanuel-swedenborg",
+   "author": "Emanuel Swedenborg",
+   "url": "https://www.delphiclassics.com/shop/emanuel-swedenborg/",
+   "us_variant": false
+  },
+  {
+   "slug": "emile-zola-2",
+   "author": "Émile Zola",
+   "url": "https://www.delphiclassics.com/shop/emile-zola-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "emile-zola-deutsche",
+   "author": "Émile Zola (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/emile-zola-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "emile-zola-francais",
+   "author": "Émile Zola (français)",
+   "url": "https://www.delphiclassics.com/shop/emile-zola-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "emily-dickinson-2",
+   "author": "Emily Dickinson",
+   "url": "https://www.delphiclassics.com/shop/emily-dickinson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "enid-blyton",
+   "author": "Enid Blyton",
+   "url": "https://www.delphiclassics.com/shop/enid-blyton/",
+   "us_variant": false
+  },
+  {
+   "slug": "ennius",
+   "author": "Ennius",
+   "url": "https://www.delphiclassics.com/shop/ennius/",
+   "us_variant": false
+  },
+  {
+   "slug": "epictetus",
+   "author": "Epictetus",
+   "url": "https://www.delphiclassics.com/shop/epictetus/",
+   "us_variant": false
+  },
+  {
+   "slug": "erle-stanley-gardner",
+   "author": "Erle Stanley Gardner",
+   "url": "https://www.delphiclassics.com/shop/erle-stanley-gardner/",
+   "us_variant": false
+  },
+  {
+   "slug": "ernest-bramah-2",
+   "author": "Ernest Bramah",
+   "url": "https://www.delphiclassics.com/shop/ernest-bramah-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ernest-hemingway-2",
+   "author": "Ernest Hemingway",
+   "url": "https://www.delphiclassics.com/shop/ernest-hemingway-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ernest-hemingway-us-version",
+   "author": "Ernest Hemingway",
+   "url": "https://www.delphiclassics.com/shop/ernest-hemingway-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "ernest-thompson-seton",
+   "author": "Ernest Thompson Seton",
+   "url": "https://www.delphiclassics.com/shop/ernest-thompson-seton/",
+   "us_variant": false
+  },
+  {
+   "slug": "ernest-thompson-seton-us-version",
+   "author": "Ernest Thompson Seton",
+   "url": "https://www.delphiclassics.com/shop/ernest-thompson-seton-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "euclid",
+   "author": "Euclid",
+   "url": "https://www.delphiclassics.com/shop/euclid/",
+   "us_variant": false
+  },
+  {
+   "slug": "eugene-delacroix2",
+   "author": "Eugène Delacroix",
+   "url": "https://www.delphiclassics.com/shop/eugene-delacroix2/",
+   "us_variant": false
+  },
+  {
+   "slug": "eugene-oneill",
+   "author": "Eugene O&#8217;Neill",
+   "url": "https://www.delphiclassics.com/shop/eugene-oneill/",
+   "us_variant": false
+  },
+  {
+   "slug": "eugene-oneill-us-version",
+   "author": "Eugene O&#8217;Neill",
+   "url": "https://www.delphiclassics.com/shop/eugene-oneill-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "eugene-sue",
+   "author": "Eugène Sue",
+   "url": "https://www.delphiclassics.com/shop/eugene-sue/",
+   "us_variant": false
+  },
+  {
+   "slug": "eunapius",
+   "author": "Eunapius",
+   "url": "https://www.delphiclassics.com/shop/eunapius/",
+   "us_variant": false
+  },
+  {
+   "slug": "euripides-3",
+   "author": "Euripides",
+   "url": "https://www.delphiclassics.com/shop/euripides-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "eusebius",
+   "author": "Eusebius",
+   "url": "https://www.delphiclassics.com/shop/eusebius/",
+   "us_variant": false
+  },
+  {
+   "slug": "eutropius",
+   "author": "Eutropius",
+   "url": "https://www.delphiclassics.com/shop/eutropius/",
+   "us_variant": false
+  },
+  {
+   "slug": "evelyn-waugh",
+   "author": "Evelyn Waugh",
+   "url": "https://www.delphiclassics.com/shop/evelyn-waugh/",
+   "us_variant": false
+  },
+  {
+   "slug": "ezra-pound-2",
+   "author": "Ezra Pound",
+   "url": "https://www.delphiclassics.com/shop/ezra-pound-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "f-marion-crawford",
+   "author": "F. Marion Crawford",
+   "url": "https://www.delphiclassics.com/shop/f-marion-crawford/",
+   "us_variant": false
+  },
+  {
+   "slug": "f-scott-fitzgerald-2",
+   "author": "F. Scott Fitzgerald",
+   "url": "https://www.delphiclassics.com/shop/f-scott-fitzgerald-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "f-scott-fitzgerald-us-version",
+   "author": "F. Scott Fitzgerald",
+   "url": "https://www.delphiclassics.com/shop/f-scott-fitzgerald-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "ferdowsi",
+   "author": "Ferdowsi",
+   "url": "https://www.delphiclassics.com/shop/ferdowsi/",
+   "us_variant": false
+  },
+  {
+   "slug": "fergus-hume",
+   "author": "Fergus Hume",
+   "url": "https://www.delphiclassics.com/shop/fergus-hume/",
+   "us_variant": false
+  },
+  {
+   "slug": "fjodor-dostojewski-deutsche",
+   "author": "Fjodor Dostojewski (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/fjodor-dostojewski-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "florus",
+   "author": "Florus",
+   "url": "https://www.delphiclassics.com/shop/florus/",
+   "us_variant": false
+  },
+  {
+   "slug": "ford-madox-ford-2",
+   "author": "Ford Madox Ford",
+   "url": "https://www.delphiclassics.com/shop/ford-madox-ford-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ford-madox-ford-us-version",
+   "author": "Ford Madox Ford &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/ford-madox-ford-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "fra-angelico",
+   "author": "Fra Angelico",
+   "url": "https://www.delphiclassics.com/shop/fra-angelico/",
+   "us_variant": false
+  },
+  {
+   "slug": "frances-burney-2",
+   "author": "Frances Burney",
+   "url": "https://www.delphiclassics.com/shop/frances-burney-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "frances-hodgson-burnett-2",
+   "author": "Frances Hodgson Burnett",
+   "url": "https://www.delphiclassics.com/shop/frances-hodgson-burnett-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "frances-trollope-2",
+   "author": "Frances Trollope",
+   "url": "https://www.delphiclassics.com/shop/frances-trollope-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "francesco-petrarch-2",
+   "author": "Francesco Petrarch",
+   "url": "https://www.delphiclassics.com/shop/francesco-petrarch-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "francis-bacon-2",
+   "author": "Francis Bacon",
+   "url": "https://www.delphiclassics.com/shop/francis-bacon-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "francis-stevens",
+   "author": "Francis Stevens",
+   "url": "https://www.delphiclassics.com/shop/francis-stevens/",
+   "us_variant": false
+  },
+  {
+   "slug": "francis-thompson",
+   "author": "Francis Thompson",
+   "url": "https://www.delphiclassics.com/shop/francis-thompson/",
+   "us_variant": false
+  },
+  {
+   "slug": "francisco-de-goya-2",
+   "author": "Francisco de Goya",
+   "url": "https://www.delphiclassics.com/shop/francisco-de-goya-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "francois-de-la-rochefoucauld",
+   "author": "François de La Rochefoucauld",
+   "url": "https://www.delphiclassics.com/shop/francois-de-la-rochefoucauld/",
+   "us_variant": false
+  },
+  {
+   "slug": "francois-rabelais",
+   "author": "François Rabelais",
+   "url": "https://www.delphiclassics.com/shop/francois-rabelais/",
+   "us_variant": false
+  },
+  {
+   "slug": "frank-norris-2",
+   "author": "Frank Norris",
+   "url": "https://www.delphiclassics.com/shop/frank-norris-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "frank-r-stockton-2",
+   "author": "Frank R. Stockton",
+   "url": "https://www.delphiclassics.com/shop/frank-r-stockton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "franz-kafka-deutsche",
+   "author": "Franz Kafka (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/franz-kafka-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "franz-schubert",
+   "author": "Franz Schubert",
+   "url": "https://www.delphiclassics.com/shop/franz-schubert/",
+   "us_variant": false
+  },
+  {
+   "slug": "frederic-chopin",
+   "author": "Frédéric Chopin",
+   "url": "https://www.delphiclassics.com/shop/frederic-chopin/",
+   "us_variant": false
+  },
+  {
+   "slug": "frederick-douglass",
+   "author": "Frederick Douglass",
+   "url": "https://www.delphiclassics.com/shop/frederick-douglass/",
+   "us_variant": false
+  },
+  {
+   "slug": "frederick-m-white",
+   "author": "Frederick M. White",
+   "url": "https://www.delphiclassics.com/shop/frederick-m-white/",
+   "us_variant": false
+  },
+  {
+   "slug": "frederick-marryat-2",
+   "author": "Frederick Marryat",
+   "url": "https://www.delphiclassics.com/shop/frederick-marryat-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "freeman-wills-crofts",
+   "author": "Freeman Wills Crofts",
+   "url": "https://www.delphiclassics.com/shop/freeman-wills-crofts/",
+   "us_variant": false
+  },
+  {
+   "slug": "freeman-wills-crofts-us-version",
+   "author": "Freeman Wills Crofts",
+   "url": "https://www.delphiclassics.com/shop/freeman-wills-crofts-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "french-masters",
+   "author": "French Masters",
+   "url": "https://www.delphiclassics.com/shop/french-masters/",
+   "us_variant": false
+  },
+  {
+   "slug": "frida-kahlo",
+   "author": "Frida Kahlo",
+   "url": "https://www.delphiclassics.com/shop/frida-kahlo/",
+   "us_variant": false
+  },
+  {
+   "slug": "friedrich-engels",
+   "author": "Friedrich Engels",
+   "url": "https://www.delphiclassics.com/shop/friedrich-engels/",
+   "us_variant": false
+  },
+  {
+   "slug": "friedrich-nietzsche-2",
+   "author": "Friedrich Nietzsche",
+   "url": "https://www.delphiclassics.com/shop/friedrich-nietzsche-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "friedrich-schiller-english",
+   "author": "Friedrich Schiller (English)",
+   "url": "https://www.delphiclassics.com/shop/friedrich-schiller-english/",
+   "us_variant": false
+  },
+  {
+   "slug": "friedrich-von-schiller",
+   "author": "Friedrich von Schiller (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/friedrich-von-schiller/",
+   "us_variant": false
+  },
+  {
+   "slug": "frontinus-3",
+   "author": "Frontinus",
+   "url": "https://www.delphiclassics.com/shop/frontinus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "fronto",
+   "author": "Fronto",
+   "url": "https://www.delphiclassics.com/shop/fronto/",
+   "us_variant": false
+  },
+  {
+   "slug": "fulke-greville",
+   "author": "Fulke Greville",
+   "url": "https://www.delphiclassics.com/shop/fulke-greville/",
+   "us_variant": false
+  },
+  {
+   "slug": "fyodor-dostoyevsky-2",
+   "author": "Fyodor Dostoyevsky",
+   "url": "https://www.delphiclassics.com/shop/fyodor-dostoyevsky-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "g-a-henty-2",
+   "author": "G. A. Henty",
+   "url": "https://www.delphiclassics.com/shop/g-a-henty-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "g-k-chesterton",
+   "author": "G. K. Chesterton",
+   "url": "https://www.delphiclassics.com/shop/g-k-chesterton/",
+   "us_variant": false
+  },
+  {
+   "slug": "g-k-chesterton-us-version",
+   "author": "G. K. Chesterton",
+   "url": "https://www.delphiclassics.com/shop/g-k-chesterton-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "g-p-r-james",
+   "author": "G. P. R. James",
+   "url": "https://www.delphiclassics.com/shop/g-p-r-james/",
+   "us_variant": false
+  },
+  {
+   "slug": "gaius-valerius-flaccus",
+   "author": "Gaius Valerius Flaccus",
+   "url": "https://www.delphiclassics.com/shop/gaius-valerius-flaccus/",
+   "us_variant": false
+  },
+  {
+   "slug": "galileo-galilei-2",
+   "author": "Galileo Galilei",
+   "url": "https://www.delphiclassics.com/shop/galileo-galilei-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "garcilaso-de-la-vega",
+   "author": "Garcilaso de la Vega",
+   "url": "https://www.delphiclassics.com/shop/garcilaso-de-la-vega/",
+   "us_variant": false
+  },
+  {
+   "slug": "gaston-leroux",
+   "author": "Gaston Leroux",
+   "url": "https://www.delphiclassics.com/shop/gaston-leroux/",
+   "us_variant": false
+  },
+  {
+   "slug": "geoffrey-chaucer-2",
+   "author": "Geoffrey Chaucer",
+   "url": "https://www.delphiclassics.com/shop/geoffrey-chaucer-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "geoffrey-of-monmouth",
+   "author": "Geoffrey of Monmouth",
+   "url": "https://www.delphiclassics.com/shop/geoffrey-of-monmouth/",
+   "us_variant": false
+  },
+  {
+   "slug": "georg-wilhelm-friedrich-hegel",
+   "author": "Georg Wilhelm Friedrich Hegel",
+   "url": "https://www.delphiclassics.com/shop/georg-wilhelm-friedrich-hegel/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-berkeley",
+   "author": "George Berkeley",
+   "url": "https://www.delphiclassics.com/shop/george-berkeley/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-bernard-shaw-2",
+   "author": "George Bernard Shaw",
+   "url": "https://www.delphiclassics.com/shop/george-bernard-shaw-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-bernard-shaw-us-version",
+   "author": "George Bernard Shaw",
+   "url": "https://www.delphiclassics.com/shop/george-bernard-shaw-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "george-borrow",
+   "author": "George Borrow",
+   "url": "https://www.delphiclassics.com/shop/george-borrow/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-chapman-2",
+   "author": "George Chapman",
+   "url": "https://www.delphiclassics.com/shop/george-chapman-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-crabbe",
+   "author": "George Crabbe",
+   "url": "https://www.delphiclassics.com/shop/george-crabbe/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-du-maurier",
+   "author": "George du Maurier",
+   "url": "https://www.delphiclassics.com/shop/george-du-maurier/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-eliot-2",
+   "author": "George Eliot",
+   "url": "https://www.delphiclassics.com/shop/george-eliot-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-farquhar",
+   "author": "George Farquhar",
+   "url": "https://www.delphiclassics.com/shop/george-farquhar/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-gissing-2",
+   "author": "George Gissing",
+   "url": "https://www.delphiclassics.com/shop/george-gissing-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-griffith",
+   "author": "George Griffith",
+   "url": "https://www.delphiclassics.com/shop/george-griffith/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-herbert-2",
+   "author": "George Herbert",
+   "url": "https://www.delphiclassics.com/shop/george-herbert-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-macdonald-2",
+   "author": "George MacDonald",
+   "url": "https://www.delphiclassics.com/shop/george-macdonald-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-meredith-2",
+   "author": "George Meredith",
+   "url": "https://www.delphiclassics.com/shop/george-meredith-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-moore",
+   "author": "George Moore",
+   "url": "https://www.delphiclassics.com/shop/george-moore/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-moses-horton",
+   "author": "George Moses Horton",
+   "url": "https://www.delphiclassics.com/shop/george-moses-horton/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-orwell-2",
+   "author": "George Orwell",
+   "url": "https://www.delphiclassics.com/shop/george-orwell-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-sand",
+   "author": "George Sand",
+   "url": "https://www.delphiclassics.com/shop/george-sand/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-stubbs",
+   "author": "George Stubbs",
+   "url": "https://www.delphiclassics.com/shop/george-stubbs/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-washington-cable",
+   "author": "George Washington Cable",
+   "url": "https://www.delphiclassics.com/shop/george-washington-cable/",
+   "us_variant": false
+  },
+  {
+   "slug": "george-whyte-melville",
+   "author": "George Whyte-Melville",
+   "url": "https://www.delphiclassics.com/shop/george-whyte-melville/",
+   "us_variant": false
+  },
+  {
+   "slug": "georges-seurat",
+   "author": "Georges Seurat",
+   "url": "https://www.delphiclassics.com/shop/georges-seurat/",
+   "us_variant": false
+  },
+  {
+   "slug": "gerald-of-wales",
+   "author": "Gerald of Wales",
+   "url": "https://www.delphiclassics.com/shop/gerald-of-wales/",
+   "us_variant": false
+  },
+  {
+   "slug": "gerard-manley-hopkins-2",
+   "author": "Gerard Manley Hopkins",
+   "url": "https://www.delphiclassics.com/shop/gerard-manley-hopkins-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "gerard-ter-borch",
+   "author": "Gerard ter Borch",
+   "url": "https://www.delphiclassics.com/shop/gerard-ter-borch/",
+   "us_variant": false
+  },
+  {
+   "slug": "gerrit-dou",
+   "author": "Gerrit Dou",
+   "url": "https://www.delphiclassics.com/shop/gerrit-dou/",
+   "us_variant": false
+  },
+  {
+   "slug": "gertrude-stein",
+   "author": "Gertrude Stein",
+   "url": "https://www.delphiclassics.com/shop/gertrude-stein/",
+   "us_variant": false
+  },
+  {
+   "slug": "giacomo-leopardi",
+   "author": "Giacomo Leopardi",
+   "url": "https://www.delphiclassics.com/shop/giacomo-leopardi/",
+   "us_variant": false
+  },
+  {
+   "slug": "gilbert-and-sullivan-2",
+   "author": "Gilbert and Sullivan",
+   "url": "https://www.delphiclassics.com/shop/gilbert-and-sullivan-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "gildas",
+   "author": "Gildas",
+   "url": "https://www.delphiclassics.com/shop/gildas/",
+   "us_variant": false
+  },
+  {
+   "slug": "giorgione",
+   "author": "Giorgione",
+   "url": "https://www.delphiclassics.com/shop/giorgione/",
+   "us_variant": false
+  },
+  {
+   "slug": "giotto-2",
+   "author": "Giotto",
+   "url": "https://www.delphiclassics.com/shop/giotto-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "giovanni-battista-tiepolo",
+   "author": "Giovanni Battista Tiepolo",
+   "url": "https://www.delphiclassics.com/shop/giovanni-battista-tiepolo/",
+   "us_variant": false
+  },
+  {
+   "slug": "giovanni-bellini-2",
+   "author": "Giovanni Bellini",
+   "url": "https://www.delphiclassics.com/shop/giovanni-bellini-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "giovanni-boccaccio",
+   "author": "Giovanni Boccaccio",
+   "url": "https://www.delphiclassics.com/shop/giovanni-boccaccio/",
+   "us_variant": false
+  },
+  {
+   "slug": "giuseppe-verdi",
+   "author": "Giuseppe Verdi",
+   "url": "https://www.delphiclassics.com/shop/giuseppe-verdi/",
+   "us_variant": false
+  },
+  {
+   "slug": "gnaeus-naevius",
+   "author": "Gnaeus Naevius",
+   "url": "https://www.delphiclassics.com/shop/gnaeus-naevius/",
+   "us_variant": false
+  },
+  {
+   "slug": "gottfried-wilhelm-leibniz",
+   "author": "Gottfried Wilhelm Leibniz",
+   "url": "https://www.delphiclassics.com/shop/gottfried-wilhelm-leibniz/",
+   "us_variant": false
+  },
+  {
+   "slug": "gotthold-ephraim-lessing-deutsche",
+   "author": "Gotthold Ephraim Lessing (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/gotthold-ephraim-lessing-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "grace-livingston-hill",
+   "author": "Grace Livingston Hill",
+   "url": "https://www.delphiclassics.com/shop/grace-livingston-hill/",
+   "us_variant": false
+  },
+  {
+   "slug": "grace-livingston-hill-us-version",
+   "author": "Grace Livingston Hill",
+   "url": "https://www.delphiclassics.com/shop/grace-livingston-hill-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "grant-allen-2",
+   "author": "Grant Allen",
+   "url": "https://www.delphiclassics.com/shop/grant-allen-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "great-composers-super-set",
+   "author": "Great Composers Super Set",
+   "url": "https://www.delphiclassics.com/shop/great-composers-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "gregory-i",
+   "author": "Gregory I",
+   "url": "https://www.delphiclassics.com/shop/gregory-i/",
+   "us_variant": false
+  },
+  {
+   "slug": "gregory-of-nazianzus",
+   "author": "Gregory of Nazianzus",
+   "url": "https://www.delphiclassics.com/shop/gregory-of-nazianzus/",
+   "us_variant": false
+  },
+  {
+   "slug": "gregory-of-nyssa",
+   "author": "Gregory of Nyssa",
+   "url": "https://www.delphiclassics.com/shop/gregory-of-nyssa/",
+   "us_variant": false
+  },
+  {
+   "slug": "gregory-of-tours",
+   "author": "Gregory of Tours",
+   "url": "https://www.delphiclassics.com/shop/gregory-of-tours/",
+   "us_variant": false
+  },
+  {
+   "slug": "guru-granth-sahib",
+   "author": "Guru Granth Sahib",
+   "url": "https://www.delphiclassics.com/shop/guru-granth-sahib/",
+   "us_variant": false
+  },
+  {
+   "slug": "gustav-klimt-2",
+   "author": "Gustav Klimt",
+   "url": "https://www.delphiclassics.com/shop/gustav-klimt-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "gustave-courbet",
+   "author": "Gustave Courbet",
+   "url": "https://www.delphiclassics.com/shop/gustave-courbet/",
+   "us_variant": false
+  },
+  {
+   "slug": "gustave-flaubert-english",
+   "author": "Gustave Flaubert (English)",
+   "url": "https://www.delphiclassics.com/shop/gustave-flaubert-english/",
+   "us_variant": false
+  },
+  {
+   "slug": "gustave-flaubert-francais",
+   "author": "Gustave Flaubert (français)",
+   "url": "https://www.delphiclassics.com/shop/gustave-flaubert-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "gustavo-adolfo-becquer",
+   "author": "Gustavo Adolfo Bécquer",
+   "url": "https://www.delphiclassics.com/shop/gustavo-adolfo-becquer/",
+   "us_variant": false
+  },
+  {
+   "slug": "guy-boothby-2",
+   "author": "Guy Boothby",
+   "url": "https://www.delphiclassics.com/shop/guy-boothby-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "guy-de-maupassant-2",
+   "author": "Guy de Maupassant",
+   "url": "https://www.delphiclassics.com/shop/guy-de-maupassant-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "h-bedford-jones",
+   "author": "H. Bedford-Jones",
+   "url": "https://www.delphiclassics.com/shop/h-bedford-jones/",
+   "us_variant": false
+  },
+  {
+   "slug": "h-c-mcneile-sapper",
+   "author": "H. C. McNeile (Sapper)",
+   "url": "https://www.delphiclassics.com/shop/h-c-mcneile-sapper/",
+   "us_variant": false
+  },
+  {
+   "slug": "h-c-mcneile-sapper-us-version",
+   "author": "H. C. McNeile (Sapper)",
+   "url": "https://www.delphiclassics.com/shop/h-c-mcneile-sapper-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "h-g-wells-2",
+   "author": "H. G. Wells",
+   "url": "https://www.delphiclassics.com/shop/h-g-wells-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "h-g-wells-us-version",
+   "author": "H. G. Wells &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/h-g-wells-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "h-p-lovecraft-2",
+   "author": "H. P. Lovecraft",
+   "url": "https://www.delphiclassics.com/shop/h-p-lovecraft-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "h-rider-haggard",
+   "author": "H. Rider Haggard",
+   "url": "https://www.delphiclassics.com/shop/h-rider-haggard/",
+   "us_variant": false
+  },
+  {
+   "slug": "hafez-2",
+   "author": "Hafez",
+   "url": "https://www.delphiclassics.com/shop/hafez-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hale-white",
+   "author": "Hale White",
+   "url": "https://www.delphiclassics.com/shop/hale-white/",
+   "us_variant": false
+  },
+  {
+   "slug": "hall-caine-2",
+   "author": "Hall Caine",
+   "url": "https://www.delphiclassics.com/shop/hall-caine-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hamlin-garland",
+   "author": "Hamlin Garland",
+   "url": "https://www.delphiclassics.com/shop/hamlin-garland/",
+   "us_variant": false
+  },
+  {
+   "slug": "hans-christian-andersen-2",
+   "author": "Hans Christian Andersen",
+   "url": "https://www.delphiclassics.com/shop/hans-christian-andersen-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hans-christian-andersen-deutsche",
+   "author": "Hans Christian Andersen (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/hans-christian-andersen-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "hans-holbein-the-younger",
+   "author": "Hans Holbein the Younger",
+   "url": "https://www.delphiclassics.com/shop/hans-holbein-the-younger/",
+   "us_variant": false
+  },
+  {
+   "slug": "harriet-beecher-stowe-2",
+   "author": "Harriet Beecher Stowe",
+   "url": "https://www.delphiclassics.com/shop/harriet-beecher-stowe-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "harry-collingwood",
+   "author": "Harry Collingwood",
+   "url": "https://www.delphiclassics.com/shop/harry-collingwood/",
+   "us_variant": false
+  },
+  {
+   "slug": "heinrich-heine-2",
+   "author": "Heinrich Heine",
+   "url": "https://www.delphiclassics.com/shop/heinrich-heine-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "heinrich-heine-deutsche",
+   "author": "Heinrich Heine (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/heinrich-heine-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "heinrich-von-kleist-deutsche",
+   "author": "Heinrich von Kleist (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/heinrich-von-kleist-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "henri-de-toulouse-lautrec",
+   "author": "Henri de Toulouse-Lautrec",
+   "url": "https://www.delphiclassics.com/shop/henri-de-toulouse-lautrec/",
+   "us_variant": false
+  },
+  {
+   "slug": "henri-matisse",
+   "author": "Henri Matisse",
+   "url": "https://www.delphiclassics.com/shop/henri-matisse/",
+   "us_variant": false
+  },
+  {
+   "slug": "henrik-ibsen-2",
+   "author": "Henrik Ibsen",
+   "url": "https://www.delphiclassics.com/shop/henrik-ibsen-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "henry-david-thoreau-2",
+   "author": "Henry David Thoreau",
+   "url": "https://www.delphiclassics.com/shop/henry-david-thoreau-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "henry-fielding-2",
+   "author": "Henry Fielding",
+   "url": "https://www.delphiclassics.com/shop/henry-fielding-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "henry-howard-earl-of-surrey-3",
+   "author": "Henry Howard, Earl of Surrey",
+   "url": "https://www.delphiclassics.com/shop/henry-howard-earl-of-surrey-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "henry-james-2",
+   "author": "Henry James",
+   "url": "https://www.delphiclassics.com/shop/henry-james-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "henry-wadsworth-longfellow-2",
+   "author": "Henry Wadsworth Longfellow",
+   "url": "https://www.delphiclassics.com/shop/henry-wadsworth-longfellow-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "henryk-sienkiewicz-2",
+   "author": "Henryk Sienkiewicz",
+   "url": "https://www.delphiclassics.com/shop/henryk-sienkiewicz-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "heraclitus",
+   "author": "Heraclitus",
+   "url": "https://www.delphiclassics.com/shop/heraclitus/",
+   "us_variant": false
+  },
+  {
+   "slug": "herman-melville-2",
+   "author": "Herman Melville",
+   "url": "https://www.delphiclassics.com/shop/herman-melville-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "herodas",
+   "author": "Herodas",
+   "url": "https://www.delphiclassics.com/shop/herodas/",
+   "us_variant": false
+  },
+  {
+   "slug": "herodian",
+   "author": "Herodian",
+   "url": "https://www.delphiclassics.com/shop/herodian/",
+   "us_variant": false
+  },
+  {
+   "slug": "herodotus-3",
+   "author": "Herodotus",
+   "url": "https://www.delphiclassics.com/shop/herodotus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "hesiod-3",
+   "author": "Hesiod",
+   "url": "https://www.delphiclassics.com/shop/hesiod-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "hieronymus-bosch-2",
+   "author": "Hieronymus Bosch",
+   "url": "https://www.delphiclassics.com/shop/hieronymus-bosch-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hilaire-belloc-2",
+   "author": "Hilaire Belloc &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/hilaire-belloc-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hilaire-belloc-3",
+   "author": "Hilaire Belloc",
+   "url": "https://www.delphiclassics.com/shop/hilaire-belloc-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "hippocrates-3",
+   "author": "Hippocrates",
+   "url": "https://www.delphiclassics.com/shop/hippocrates-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "history-of-art-in-50-paintings-2",
+   "author": "History of Art in 50 Paintings",
+   "url": "https://www.delphiclassics.com/shop/history-of-art-in-50-paintings-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hokusai",
+   "author": "Hokusai",
+   "url": "https://www.delphiclassics.com/shop/hokusai/",
+   "us_variant": false
+  },
+  {
+   "slug": "homer-3",
+   "author": "Homer",
+   "url": "https://www.delphiclassics.com/shop/homer-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "honore-de-balzac-english-2",
+   "author": "Honoré de Balzac (English)",
+   "url": "https://www.delphiclassics.com/shop/honore-de-balzac-english-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "honore-de-balzac-francais",
+   "author": "Honoré de Balzac (français)",
+   "url": "https://www.delphiclassics.com/shop/honore-de-balzac-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "horace-3",
+   "author": "Horace",
+   "url": "https://www.delphiclassics.com/shop/horace-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "horace-walpole-2",
+   "author": "Horace Walpole",
+   "url": "https://www.delphiclassics.com/shop/horace-walpole-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "howard-pyle",
+   "author": "Howard Pyle",
+   "url": "https://www.delphiclassics.com/shop/howard-pyle/",
+   "us_variant": false
+  },
+  {
+   "slug": "hugh-lofting",
+   "author": "Hugh Lofting",
+   "url": "https://www.delphiclassics.com/shop/hugh-lofting/",
+   "us_variant": false
+  },
+  {
+   "slug": "hugh-lofting-us-version",
+   "author": "Hugh Lofting",
+   "url": "https://www.delphiclassics.com/shop/hugh-lofting-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "hugh-walpole-2",
+   "author": "Hugh Walpole",
+   "url": "https://www.delphiclassics.com/shop/hugh-walpole-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "hugh-walpole-us-version",
+   "author": "Hugh Walpole &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/hugh-walpole-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "iamblichus",
+   "author": "Iamblichus",
+   "url": "https://www.delphiclassics.com/shop/iamblichus/",
+   "us_variant": false
+  },
+  {
+   "slug": "ian-fleming-2",
+   "author": "Ian Fleming",
+   "url": "https://www.delphiclassics.com/shop/ian-fleming-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ibycus",
+   "author": "Ibycus",
+   "url": "https://www.delphiclassics.com/shop/ibycus/",
+   "us_variant": false
+  },
+  {
+   "slug": "ida-b-wells",
+   "author": "Ida B. Wells",
+   "url": "https://www.delphiclassics.com/shop/ida-b-wells/",
+   "us_variant": false
+  },
+  {
+   "slug": "immanuel-kant-2",
+   "author": "Immanuel Kant",
+   "url": "https://www.delphiclassics.com/shop/immanuel-kant-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "isaac-rosenberg-2",
+   "author": "Isaac Rosenberg",
+   "url": "https://www.delphiclassics.com/shop/isaac-rosenberg-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "isaeus",
+   "author": "Isaeus",
+   "url": "https://www.delphiclassics.com/shop/isaeus/",
+   "us_variant": false
+  },
+  {
+   "slug": "isocrates-2",
+   "author": "Isocrates",
+   "url": "https://www.delphiclassics.com/shop/isocrates-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ivan-goncharov",
+   "author": "Ivan Goncharov",
+   "url": "https://www.delphiclassics.com/shop/ivan-goncharov/",
+   "us_variant": false
+  },
+  {
+   "slug": "ivan-turgenev-2",
+   "author": "Ivan Turgenev",
+   "url": "https://www.delphiclassics.com/shop/ivan-turgenev-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "izaak-walton",
+   "author": "Izaak Walton",
+   "url": "https://www.delphiclassics.com/shop/izaak-walton/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-d-beresford",
+   "author": "J. D. Beresford",
+   "url": "https://www.delphiclassics.com/shop/j-d-beresford/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-m-barrie-2",
+   "author": "J. M. Barrie",
+   "url": "https://www.delphiclassics.com/shop/j-m-barrie-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-m-barrie-us-version",
+   "author": "J. M. Barrie &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/j-m-barrie-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "j-m-synge",
+   "author": "J. M. Synge",
+   "url": "https://www.delphiclassics.com/shop/j-m-synge/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-m-w-turner-2",
+   "author": "J. M. W. Turner",
+   "url": "https://www.delphiclassics.com/shop/j-m-w-turner-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-meade-falkner",
+   "author": "J. Meade Falkner",
+   "url": "https://www.delphiclassics.com/shop/j-meade-falkner/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-r-r-tolkien",
+   "author": "J. R. R. Tolkien",
+   "url": "https://www.delphiclassics.com/shop/j-r-r-tolkien/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-s-fletcher",
+   "author": "J. S. Fletcher",
+   "url": "https://www.delphiclassics.com/shop/j-s-fletcher/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-s-fletcher-us-version",
+   "author": "J. S. Fletcher &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/j-s-fletcher-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "j-w-von-goethe-deutsche",
+   "author": "J. W. von Goethe (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/j-w-von-goethe-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "j-w-von-goethe-english-2",
+   "author": "J. W. von Goethe (English)",
+   "url": "https://www.delphiclassics.com/shop/j-w-von-goethe-english-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jack-kerouac",
+   "author": "Jack Kerouac",
+   "url": "https://www.delphiclassics.com/shop/jack-kerouac/",
+   "us_variant": false
+  },
+  {
+   "slug": "jack-london-2",
+   "author": "Jack London",
+   "url": "https://www.delphiclassics.com/shop/jack-london-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jacobus-de-voragine",
+   "author": "Jacobus de Voragine",
+   "url": "https://www.delphiclassics.com/shop/jacobus-de-voragine/",
+   "us_variant": false
+  },
+  {
+   "slug": "jacques-futrelle",
+   "author": "Jacques Futrelle",
+   "url": "https://www.delphiclassics.com/shop/jacques-futrelle/",
+   "us_variant": false
+  },
+  {
+   "slug": "jacques-louis-david-2",
+   "author": "Jacques-Louis David",
+   "url": "https://www.delphiclassics.com/shop/jacques-louis-david-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jain-texts",
+   "author": "Jain Texts",
+   "url": "https://www.delphiclassics.com/shop/jain-texts/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-branch-cabell",
+   "author": "James Branch Cabell",
+   "url": "https://www.delphiclassics.com/shop/james-branch-cabell/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-branch-cabell-us-version",
+   "author": "James Branch Cabell",
+   "url": "https://www.delphiclassics.com/shop/james-branch-cabell-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "james-fenimore-cooper-2",
+   "author": "James Fenimore Cooper",
+   "url": "https://www.delphiclassics.com/shop/james-fenimore-cooper-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-hilton",
+   "author": "James Hilton",
+   "url": "https://www.delphiclassics.com/shop/james-hilton/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-hilton-us-version",
+   "author": "James Hilton",
+   "url": "https://www.delphiclassics.com/shop/james-hilton-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "james-joyce-2",
+   "author": "James Joyce",
+   "url": "https://www.delphiclassics.com/shop/james-joyce-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-joyce-us-version",
+   "author": "James Joyce &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/james-joyce-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "james-mcneill-whistler-2",
+   "author": "James McNeill Whistler",
+   "url": "https://www.delphiclassics.com/shop/james-mcneill-whistler-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-russell-lowell-2",
+   "author": "James Russell Lowell",
+   "url": "https://www.delphiclassics.com/shop/james-russell-lowell-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "james-thomson",
+   "author": "James Thomson",
+   "url": "https://www.delphiclassics.com/shop/james-thomson/",
+   "us_variant": false
+  },
+  {
+   "slug": "jan-van-eyck",
+   "author": "Jan van Eyck",
+   "url": "https://www.delphiclassics.com/shop/jan-van-eyck/",
+   "us_variant": false
+  },
+  {
+   "slug": "jane-austen-2",
+   "author": "Jane Austen",
+   "url": "https://www.delphiclassics.com/shop/jane-austen-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jane-porter",
+   "author": "Jane Porter",
+   "url": "https://www.delphiclassics.com/shop/jane-porter/",
+   "us_variant": false
+  },
+  {
+   "slug": "jean-auguste-dominique-ingres",
+   "author": "Jean-Auguste-Dominique Ingres",
+   "url": "https://www.delphiclassics.com/shop/jean-auguste-dominique-ingres/",
+   "us_variant": false
+  },
+  {
+   "slug": "jean-froissart",
+   "author": "Jean Froissart",
+   "url": "https://www.delphiclassics.com/shop/jean-froissart/",
+   "us_variant": false
+  },
+  {
+   "slug": "jean-honore-fragonard",
+   "author": "Jean-Honoré Fragonard",
+   "url": "https://www.delphiclassics.com/shop/jean-honore-fragonard/",
+   "us_variant": false
+  },
+  {
+   "slug": "jean-jacques-rousseau-2",
+   "author": "Jean-Jacques Rousseau",
+   "url": "https://www.delphiclassics.com/shop/jean-jacques-rousseau-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jean-paul-deutsche",
+   "author": "Jean Paul (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/jean-paul-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "jean-racine",
+   "author": "Jean Racine",
+   "url": "https://www.delphiclassics.com/shop/jean-racine/",
+   "us_variant": false
+  },
+  {
+   "slug": "jeffery-farnol",
+   "author": "Jeffery Farnol",
+   "url": "https://www.delphiclassics.com/shop/jeffery-farnol/",
+   "us_variant": false
+  },
+  {
+   "slug": "jeffery-farnol-us-version",
+   "author": "Jeffery Farnol",
+   "url": "https://www.delphiclassics.com/shop/jeffery-farnol-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "jerome",
+   "author": "Jerome",
+   "url": "https://www.delphiclassics.com/shop/jerome/",
+   "us_variant": false
+  },
+  {
+   "slug": "jerome-k-jerome-2",
+   "author": "Jerome K. Jerome",
+   "url": "https://www.delphiclassics.com/shop/jerome-k-jerome-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "joel-chandler-harris",
+   "author": "Joel Chandler Harris",
+   "url": "https://www.delphiclassics.com/shop/joel-chandler-harris/",
+   "us_variant": false
+  },
+  {
+   "slug": "johan-ludvig-runeberg-2",
+   "author": "Johan Ludvig Runeberg",
+   "url": "https://www.delphiclassics.com/shop/johan-ludvig-runeberg-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "johann-sebastian-bach",
+   "author": "Johann Sebastian Bach",
+   "url": "https://www.delphiclassics.com/shop/johann-sebastian-bach/",
+   "us_variant": false
+  },
+  {
+   "slug": "johanna-spyri",
+   "author": "Johanna Spyri",
+   "url": "https://www.delphiclassics.com/shop/johanna-spyri/",
+   "us_variant": false
+  },
+  {
+   "slug": "johannes-vermeer-2",
+   "author": "Johannes Vermeer",
+   "url": "https://www.delphiclassics.com/shop/johannes-vermeer-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-aubrey",
+   "author": "John Aubrey",
+   "url": "https://www.delphiclassics.com/shop/john-aubrey/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-buchan-2",
+   "author": "John Buchan",
+   "url": "https://www.delphiclassics.com/shop/john-buchan-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-buchan-us-version",
+   "author": "John Buchan &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/john-buchan-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-bunyan-2",
+   "author": "John Bunyan",
+   "url": "https://www.delphiclassics.com/shop/john-bunyan-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-burroughs",
+   "author": "John Burroughs",
+   "url": "https://www.delphiclassics.com/shop/john-burroughs/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-calvin",
+   "author": "John Calvin",
+   "url": "https://www.delphiclassics.com/shop/john-calvin/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-chrysostom",
+   "author": "John Chrysostom",
+   "url": "https://www.delphiclassics.com/shop/john-chrysostom/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-clare-2",
+   "author": "John Clare",
+   "url": "https://www.delphiclassics.com/shop/john-clare-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-constable-2",
+   "author": "John Constable",
+   "url": "https://www.delphiclassics.com/shop/john-constable-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-cowper-powys",
+   "author": "John Cowper Powys",
+   "url": "https://www.delphiclassics.com/shop/john-cowper-powys/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-cowper-powys-us-version",
+   "author": "John Cowper Powys",
+   "url": "https://www.delphiclassics.com/shop/john-cowper-powys-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-dewey",
+   "author": "John Dewey",
+   "url": "https://www.delphiclassics.com/shop/john-dewey/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-dewey-us-version",
+   "author": "John Dewey",
+   "url": "https://www.delphiclassics.com/shop/john-dewey-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-donne-2",
+   "author": "John Donne",
+   "url": "https://www.delphiclassics.com/shop/john-donne-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-dos-passos",
+   "author": "John Dos Passos",
+   "url": "https://www.delphiclassics.com/shop/john-dos-passos/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-dos-passos-us-version",
+   "author": "John Dos Passos",
+   "url": "https://www.delphiclassics.com/shop/john-dos-passos-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-dryden-2",
+   "author": "John Dryden",
+   "url": "https://www.delphiclassics.com/shop/john-dryden-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-everett-millais",
+   "author": "John Everett Millais",
+   "url": "https://www.delphiclassics.com/shop/john-everett-millais/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-ford",
+   "author": "John Ford",
+   "url": "https://www.delphiclassics.com/shop/john-ford/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-galsworthy-2",
+   "author": "John Galsworthy",
+   "url": "https://www.delphiclassics.com/shop/john-galsworthy-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-galsworthy-us-version",
+   "author": "John Galsworthy &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/john-galsworthy-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-galt",
+   "author": "John Galt",
+   "url": "https://www.delphiclassics.com/shop/john-galt/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-gay",
+   "author": "John Gay",
+   "url": "https://www.delphiclassics.com/shop/john-gay/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-gower",
+   "author": "John Gower",
+   "url": "https://www.delphiclassics.com/shop/john-gower/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-greenleaf-whittier",
+   "author": "John Greenleaf Whittier",
+   "url": "https://www.delphiclassics.com/shop/john-greenleaf-whittier/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-henry-newman",
+   "author": "John Henry Newman",
+   "url": "https://www.delphiclassics.com/shop/john-henry-newman/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-keats-2",
+   "author": "John Keats",
+   "url": "https://www.delphiclassics.com/shop/john-keats-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-kendrick-bangs",
+   "author": "John Kendrick Bangs",
+   "url": "https://www.delphiclassics.com/shop/john-kendrick-bangs/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-locke-2",
+   "author": "John Locke",
+   "url": "https://www.delphiclassics.com/shop/john-locke-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-lyly",
+   "author": "John Lyly",
+   "url": "https://www.delphiclassics.com/shop/john-lyly/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-masefield",
+   "author": "John Masefield",
+   "url": "https://www.delphiclassics.com/shop/john-masefield/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-masefield-us-version",
+   "author": "John Masefield",
+   "url": "https://www.delphiclassics.com/shop/john-masefield-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-maynard-keynes",
+   "author": "John Maynard Keynes",
+   "url": "https://www.delphiclassics.com/shop/john-maynard-keynes/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-maynard-keynes-us-version",
+   "author": "John Maynard Keynes",
+   "url": "https://www.delphiclassics.com/shop/john-maynard-keynes-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "john-milton-2",
+   "author": "John Milton",
+   "url": "https://www.delphiclassics.com/shop/john-milton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-muir-2",
+   "author": "John Muir",
+   "url": "https://www.delphiclassics.com/shop/john-muir-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-of-damascus",
+   "author": "John of Damascus",
+   "url": "https://www.delphiclassics.com/shop/john-of-damascus/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-of-worcester",
+   "author": "John of Worcester",
+   "url": "https://www.delphiclassics.com/shop/john-of-worcester/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-ohara",
+   "author": "John O&#8217;Hara",
+   "url": "https://www.delphiclassics.com/shop/john-ohara/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-ruskin-2",
+   "author": "John Ruskin",
+   "url": "https://www.delphiclassics.com/shop/john-ruskin-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-singer-sargent-2",
+   "author": "John Singer Sargent",
+   "url": "https://www.delphiclassics.com/shop/john-singer-sargent-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-steinbeck",
+   "author": "John Steinbeck",
+   "url": "https://www.delphiclassics.com/shop/john-steinbeck/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-stuart-mill",
+   "author": "John Stuart Mill",
+   "url": "https://www.delphiclassics.com/shop/john-stuart-mill/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-webster-2",
+   "author": "John Webster",
+   "url": "https://www.delphiclassics.com/shop/john-webster-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-william-waterhouse",
+   "author": "John William Waterhouse",
+   "url": "https://www.delphiclassics.com/shop/john-william-waterhouse/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-wilmot-earl-of-rochester-2",
+   "author": "John Wilmot, Earl of Rochester",
+   "url": "https://www.delphiclassics.com/shop/john-wilmot-earl-of-rochester-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-wyndham",
+   "author": "John Wyndham",
+   "url": "https://www.delphiclassics.com/shop/john-wyndham/",
+   "us_variant": false
+  },
+  {
+   "slug": "john-wyndham-us-version",
+   "author": "John Wyndham",
+   "url": "https://www.delphiclassics.com/shop/john-wyndham-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "johnston-mcculley",
+   "author": "Johnston McCulley",
+   "url": "https://www.delphiclassics.com/shop/johnston-mcculley/",
+   "us_variant": false
+  },
+  {
+   "slug": "johnston-mcculley-us-version",
+   "author": "Johnston McCulley",
+   "url": "https://www.delphiclassics.com/shop/johnston-mcculley-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "jonathan-swift-2",
+   "author": "Jonathan Swift",
+   "url": "https://www.delphiclassics.com/shop/jonathan-swift-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jordan-catala",
+   "author": "Jordan Catala",
+   "url": "https://www.delphiclassics.com/shop/jordan-catala/",
+   "us_variant": false
+  },
+  {
+   "slug": "joris-karl-huysmans",
+   "author": "Joris-Karl Huysmans",
+   "url": "https://www.delphiclassics.com/shop/joris-karl-huysmans/",
+   "us_variant": false
+  },
+  {
+   "slug": "joseph-addison-2",
+   "author": "Joseph Addison",
+   "url": "https://www.delphiclassics.com/shop/joseph-addison-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "joseph-conrad-2",
+   "author": "Joseph Conrad",
+   "url": "https://www.delphiclassics.com/shop/joseph-conrad-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "joseph-roth",
+   "author": "Joseph Roth (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/joseph-roth/",
+   "us_variant": false
+  },
+  {
+   "slug": "josephine-tey",
+   "author": "Josephine Tey",
+   "url": "https://www.delphiclassics.com/shop/josephine-tey/",
+   "us_variant": false
+  },
+  {
+   "slug": "josephus-3",
+   "author": "Josephus",
+   "url": "https://www.delphiclassics.com/shop/josephus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "jules-verne-2",
+   "author": "Jules Verne",
+   "url": "https://www.delphiclassics.com/shop/jules-verne-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "jules-verne-francais",
+   "author": "Jules Verne (français)",
+   "url": "https://www.delphiclassics.com/shop/jules-verne-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "julian",
+   "author": "Julian",
+   "url": "https://www.delphiclassics.com/shop/julian/",
+   "us_variant": false
+  },
+  {
+   "slug": "julius-caesar-3",
+   "author": "Julius Caesar",
+   "url": "https://www.delphiclassics.com/shop/julius-caesar-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "jupiter-hammon",
+   "author": "Jupiter Hammon",
+   "url": "https://www.delphiclassics.com/shop/jupiter-hammon/",
+   "us_variant": false
+  },
+  {
+   "slug": "justin",
+   "author": "Justin",
+   "url": "https://www.delphiclassics.com/shop/justin/",
+   "us_variant": false
+  },
+  {
+   "slug": "juvenal-3",
+   "author": "Juvenal",
+   "url": "https://www.delphiclassics.com/shop/juvenal-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "kabir",
+   "author": "Kabir",
+   "url": "https://www.delphiclassics.com/shop/kabir/",
+   "us_variant": false
+  },
+  {
+   "slug": "kahlil-gibran-2",
+   "author": "Kahlil Gibran",
+   "url": "https://www.delphiclassics.com/shop/kahlil-gibran-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "karl-marx-2",
+   "author": "Karl Marx",
+   "url": "https://www.delphiclassics.com/shop/karl-marx-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "karl-may",
+   "author": "Karl May (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/karl-may/",
+   "us_variant": false
+  },
+  {
+   "slug": "kate-chopin-2",
+   "author": "Kate Chopin",
+   "url": "https://www.delphiclassics.com/shop/kate-chopin-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "katherine-mansfield-2",
+   "author": "Katherine Mansfield",
+   "url": "https://www.delphiclassics.com/shop/katherine-mansfield-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "kazimir-malevich",
+   "author": "Kazimir Malevich",
+   "url": "https://www.delphiclassics.com/shop/kazimir-malevich/",
+   "us_variant": false
+  },
+  {
+   "slug": "kenneth-grahame-2",
+   "author": "Kenneth Grahame",
+   "url": "https://www.delphiclassics.com/shop/kenneth-grahame-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "king-james-i",
+   "author": "King James I",
+   "url": "https://www.delphiclassics.com/shop/king-james-i/",
+   "us_variant": false
+  },
+  {
+   "slug": "l-frank-baum-2",
+   "author": "L. Frank Baum",
+   "url": "https://www.delphiclassics.com/shop/l-frank-baum-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "l-m-montgomery-2",
+   "author": "L. M. Montgomery",
+   "url": "https://www.delphiclassics.com/shop/l-m-montgomery-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "l-m-montgomery-us-version",
+   "author": "L. M. Montgomery &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/l-m-montgomery-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "lafcadio-hearn-2",
+   "author": "Lafcadio Hearn",
+   "url": "https://www.delphiclassics.com/shop/lafcadio-hearn-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "laurence-sterne",
+   "author": "Laurence Sterne",
+   "url": "https://www.delphiclassics.com/shop/laurence-sterne/",
+   "us_variant": false
+  },
+  {
+   "slug": "leigh-hunt-2",
+   "author": "Leigh Hunt",
+   "url": "https://www.delphiclassics.com/shop/leigh-hunt-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "leo-tolstoy-2",
+   "author": "Leo Tolstoy",
+   "url": "https://www.delphiclassics.com/shop/leo-tolstoy-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "leon-tolstoi-francais",
+   "author": "Léon Tolstoï (français)",
+   "url": "https://www.delphiclassics.com/shop/leon-tolstoi-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "leonardo-da-vinci-2",
+   "author": "Leonardo da Vinci",
+   "url": "https://www.delphiclassics.com/shop/leonardo-da-vinci-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "leslie-stephen",
+   "author": "Leslie Stephen",
+   "url": "https://www.delphiclassics.com/shop/leslie-stephen/",
+   "us_variant": false
+  },
+  {
+   "slug": "lew-tolstoi-deutsche",
+   "author": "Lew Tolstoi (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/lew-tolstoi-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "lewis-carroll-2",
+   "author": "Lewis Carroll",
+   "url": "https://www.delphiclassics.com/shop/lewis-carroll-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "li-bai",
+   "author": "Li Bai",
+   "url": "https://www.delphiclassics.com/shop/li-bai/",
+   "us_variant": false
+  },
+  {
+   "slug": "livius-andronicus",
+   "author": "Livius Andronicus",
+   "url": "https://www.delphiclassics.com/shop/livius-andronicus/",
+   "us_variant": false
+  },
+  {
+   "slug": "livy-3",
+   "author": "Livy",
+   "url": "https://www.delphiclassics.com/shop/livy-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "longus-3",
+   "author": "Longus",
+   "url": "https://www.delphiclassics.com/shop/longus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "lord-byron-2",
+   "author": "Lord Byron",
+   "url": "https://www.delphiclassics.com/shop/lord-byron-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "lord-dunsany-2",
+   "author": "Lord Dunsany",
+   "url": "https://www.delphiclassics.com/shop/lord-dunsany-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "lord-dunsany-us-version",
+   "author": "Lord Dunsany &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/lord-dunsany-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "louis-joseph-vance",
+   "author": "Louis Joseph Vance",
+   "url": "https://www.delphiclassics.com/shop/louis-joseph-vance/",
+   "us_variant": false
+  },
+  {
+   "slug": "louis-joseph-vance-us-version",
+   "author": "Louis Joseph Vance",
+   "url": "https://www.delphiclassics.com/shop/louis-joseph-vance-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "louisa-may-alcott-2",
+   "author": "Louisa May Alcott",
+   "url": "https://www.delphiclassics.com/shop/louisa-may-alcott-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "louise-imogen-guiney",
+   "author": "Louise Imogen Guiney",
+   "url": "https://www.delphiclassics.com/shop/louise-imogen-guiney/",
+   "us_variant": false
+  },
+  {
+   "slug": "lucan-3",
+   "author": "Lucan",
+   "url": "https://www.delphiclassics.com/shop/lucan-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "lucian-3",
+   "author": "Lucian",
+   "url": "https://www.delphiclassics.com/shop/lucian-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "lucilius",
+   "author": "Lucilius",
+   "url": "https://www.delphiclassics.com/shop/lucilius/",
+   "us_variant": false
+  },
+  {
+   "slug": "lucretius-3",
+   "author": "Lucretius",
+   "url": "https://www.delphiclassics.com/shop/lucretius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "ludovico-ariosto-2",
+   "author": "Ludovico Ariosto",
+   "url": "https://www.delphiclassics.com/shop/ludovico-ariosto-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ludwig-van-beethoven",
+   "author": "Ludwig van Beethoven",
+   "url": "https://www.delphiclassics.com/shop/ludwig-van-beethoven/",
+   "us_variant": false
+  },
+  {
+   "slug": "luis-de-camoes-2",
+   "author": "Luís de Camões",
+   "url": "https://www.delphiclassics.com/shop/luis-de-camoes-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "lycophron",
+   "author": "Lycophron",
+   "url": "https://www.delphiclassics.com/shop/lycophron/",
+   "us_variant": false
+  },
+  {
+   "slug": "lysias",
+   "author": "Lysias",
+   "url": "https://www.delphiclassics.com/shop/lysias/",
+   "us_variant": false
+  },
+  {
+   "slug": "lytton-strachey-2",
+   "author": "Lytton Strachey",
+   "url": "https://www.delphiclassics.com/shop/lytton-strachey-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "lytton-strachey-us-version",
+   "author": "Lytton Strachey &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/lytton-strachey-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "m-e-braddon-2",
+   "author": "M. E. Braddon",
+   "url": "https://www.delphiclassics.com/shop/m-e-braddon-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "m-p-shiel",
+   "author": "M. P. Shiel",
+   "url": "https://www.delphiclassics.com/shop/m-p-shiel/",
+   "us_variant": false
+  },
+  {
+   "slug": "m-r-james-2",
+   "author": "M. R. James",
+   "url": "https://www.delphiclassics.com/shop/m-r-james-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "manetho",
+   "author": "Manetho",
+   "url": "https://www.delphiclassics.com/shop/manetho/",
+   "us_variant": false
+  },
+  {
+   "slug": "marcel-proust-english-2",
+   "author": "Marcel Proust (English)",
+   "url": "https://www.delphiclassics.com/shop/marcel-proust-english-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "marcel-proust-francais-epub",
+   "author": "Marcel Proust (français)",
+   "url": "https://www.delphiclassics.com/shop/marcel-proust-francais-epub/",
+   "us_variant": false
+  },
+  {
+   "slug": "marco-polo",
+   "author": "Marco Polo",
+   "url": "https://www.delphiclassics.com/shop/marco-polo/",
+   "us_variant": false
+  },
+  {
+   "slug": "marcus-aurelius-3",
+   "author": "Marcus Aurelius",
+   "url": "https://www.delphiclassics.com/shop/marcus-aurelius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "margaret-oliphant-2",
+   "author": "Margaret Oliphant",
+   "url": "https://www.delphiclassics.com/shop/margaret-oliphant-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "margery-kempe",
+   "author": "Margery Kempe",
+   "url": "https://www.delphiclassics.com/shop/margery-kempe/",
+   "us_variant": false
+  },
+  {
+   "slug": "maria-edgeworth-2",
+   "author": "Maria Edgeworth",
+   "url": "https://www.delphiclassics.com/shop/maria-edgeworth-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "marie-corelli-2",
+   "author": "Marie Corelli",
+   "url": "https://www.delphiclassics.com/shop/marie-corelli-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "marjorie-bowen",
+   "author": "Marjorie Bowen",
+   "url": "https://www.delphiclassics.com/shop/marjorie-bowen/",
+   "us_variant": false
+  },
+  {
+   "slug": "marjorie-bowen-us-version",
+   "author": "Marjorie Bowen",
+   "url": "https://www.delphiclassics.com/shop/marjorie-bowen-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "mark-twain-2",
+   "author": "Mark Twain",
+   "url": "https://www.delphiclassics.com/shop/mark-twain-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "martial-3",
+   "author": "Martial",
+   "url": "https://www.delphiclassics.com/shop/martial-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "martin-luther",
+   "author": "Martin Luther",
+   "url": "https://www.delphiclassics.com/shop/martin-luther/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-augusta-ward",
+   "author": "Mary Augusta Ward",
+   "url": "https://www.delphiclassics.com/shop/mary-augusta-ward/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-cassatt",
+   "author": "Mary Cassatt",
+   "url": "https://www.delphiclassics.com/shop/mary-cassatt/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-roberts-rinehart",
+   "author": "Mary Roberts Rinehart",
+   "url": "https://www.delphiclassics.com/shop/mary-roberts-rinehart/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-roberts-rinehart-us-version",
+   "author": "Mary Roberts Rinehart",
+   "url": "https://www.delphiclassics.com/shop/mary-roberts-rinehart-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "mary-robinson",
+   "author": "Mary Robinson",
+   "url": "https://www.delphiclassics.com/shop/mary-robinson/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-shelley-2",
+   "author": "Mary Shelley",
+   "url": "https://www.delphiclassics.com/shop/mary-shelley-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-sidney",
+   "author": "Mary Sidney",
+   "url": "https://www.delphiclassics.com/shop/mary-sidney/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-webb",
+   "author": "Mary Webb",
+   "url": "https://www.delphiclassics.com/shop/mary-webb/",
+   "us_variant": false
+  },
+  {
+   "slug": "mary-wollstonecraft-2",
+   "author": "Mary Wollstonecraft",
+   "url": "https://www.delphiclassics.com/shop/mary-wollstonecraft-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "masaccio",
+   "author": "Masaccio",
+   "url": "https://www.delphiclassics.com/shop/masaccio/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-art",
+   "author": "Masters of Art Super Set",
+   "url": "https://www.delphiclassics.com/shop/masters-of-art/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-gothic-horror",
+   "author": "Masters of Gothic Horror",
+   "url": "https://www.delphiclassics.com/shop/masters-of-gothic-horror/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-the-novella",
+   "author": "Masters of the Novella",
+   "url": "https://www.delphiclassics.com/shop/masters-of-the-novella/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-the-short-story",
+   "author": "Masters of the Short Story I",
+   "url": "https://www.delphiclassics.com/shop/masters-of-the-short-story/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-the-short-story-ii",
+   "author": "Masters of the Short Story II",
+   "url": "https://www.delphiclassics.com/shop/masters-of-the-short-story-ii/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-the-short-story-iii",
+   "author": "Masters of the Short Story III",
+   "url": "https://www.delphiclassics.com/shop/masters-of-the-short-story-iii/",
+   "us_variant": false
+  },
+  {
+   "slug": "masters-of-the-theatre",
+   "author": "Masters of the Theatre",
+   "url": "https://www.delphiclassics.com/shop/masters-of-the-theatre/",
+   "us_variant": false
+  },
+  {
+   "slug": "matsuo-basho-and-the-haikuists",
+   "author": "Matsuo Basho and the Haikuists",
+   "url": "https://www.delphiclassics.com/shop/matsuo-basho-and-the-haikuists/",
+   "us_variant": false
+  },
+  {
+   "slug": "matthew-arnold-2",
+   "author": "Matthew Arnold",
+   "url": "https://www.delphiclassics.com/shop/matthew-arnold-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "matthew-lewis",
+   "author": "Matthew Lewis",
+   "url": "https://www.delphiclassics.com/shop/matthew-lewis/",
+   "us_variant": false
+  },
+  {
+   "slug": "matthew-prior",
+   "author": "Matthew Prior",
+   "url": "https://www.delphiclassics.com/shop/matthew-prior/",
+   "us_variant": false
+  },
+  {
+   "slug": "maurice-leblanc",
+   "author": "Maurice Leblanc",
+   "url": "https://www.delphiclassics.com/shop/maurice-leblanc/",
+   "us_variant": false
+  },
+  {
+   "slug": "maurice-maeterlinck",
+   "author": "Maurice Maeterlinck",
+   "url": "https://www.delphiclassics.com/shop/maurice-maeterlinck/",
+   "us_variant": false
+  },
+  {
+   "slug": "max-brand",
+   "author": "Max Brand",
+   "url": "https://www.delphiclassics.com/shop/max-brand/",
+   "us_variant": false
+  },
+  {
+   "slug": "max-brand-us-version",
+   "author": "Max Brand &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/max-brand-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "maxim-gorky-2",
+   "author": "Maxim Gorky",
+   "url": "https://www.delphiclassics.com/shop/maxim-gorky-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "may-sinclair",
+   "author": "May Sinclair",
+   "url": "https://www.delphiclassics.com/shop/may-sinclair/",
+   "us_variant": false
+  },
+  {
+   "slug": "may-sinclair-us-version",
+   "author": "May Sinclair",
+   "url": "https://www.delphiclassics.com/shop/may-sinclair-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "medieval-library-super-set",
+   "author": "Medieval Library Super Set",
+   "url": "https://www.delphiclassics.com/shop/medieval-library-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "medieval-poetry-collection",
+   "author": "Medieval Poetry Collection",
+   "url": "https://www.delphiclassics.com/shop/medieval-poetry-collection/",
+   "us_variant": false
+  },
+  {
+   "slug": "megaset",
+   "author": "Mega Set",
+   "url": "https://www.delphiclassics.com/shop/megaset/",
+   "us_variant": false
+  },
+  {
+   "slug": "mervyn-peake",
+   "author": "Mervyn Peake",
+   "url": "https://www.delphiclassics.com/shop/mervyn-peake/",
+   "us_variant": false
+  },
+  {
+   "slug": "michael-drayton-2",
+   "author": "Michael Drayton",
+   "url": "https://www.delphiclassics.com/shop/michael-drayton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "michel-de-montaigne-2",
+   "author": "Michel de Montaigne",
+   "url": "https://www.delphiclassics.com/shop/michel-de-montaigne-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "michelangelo-2",
+   "author": "Michelangelo",
+   "url": "https://www.delphiclassics.com/shop/michelangelo-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "miguel-de-cervantes",
+   "author": "Miguel de Cervantes",
+   "url": "https://www.delphiclassics.com/shop/miguel-de-cervantes/",
+   "us_variant": false
+  },
+  {
+   "slug": "miguel-de-cervantes-english-2",
+   "author": "Miguel de Cervantes (English)",
+   "url": "https://www.delphiclassics.com/shop/miguel-de-cervantes-english-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "moliere",
+   "author": "Molière",
+   "url": "https://www.delphiclassics.com/shop/moliere/",
+   "us_variant": false
+  },
+  {
+   "slug": "moliere-francais-epub",
+   "author": "Molière (français)",
+   "url": "https://www.delphiclassics.com/shop/moliere-francais-epub/",
+   "us_variant": false
+  },
+  {
+   "slug": "monsters-a-delphi-anthology",
+   "author": "Monsters: A Delphi Anthology",
+   "url": "https://www.delphiclassics.com/shop/monsters-a-delphi-anthology/",
+   "us_variant": false
+  },
+  {
+   "slug": "montesquieu",
+   "author": "Montesquieu",
+   "url": "https://www.delphiclassics.com/shop/montesquieu/",
+   "us_variant": false
+  },
+  {
+   "slug": "moschus-and-bion",
+   "author": "Moschus and Bion",
+   "url": "https://www.delphiclassics.com/shop/moschus-and-bion/",
+   "us_variant": false
+  },
+  {
+   "slug": "mystery-and-morality-plays",
+   "author": "Mystery and Morality Plays",
+   "url": "https://www.delphiclassics.com/shop/mystery-and-morality-plays/",
+   "us_variant": false
+  },
+  {
+   "slug": "nathaniel-hawthorne-2",
+   "author": "Nathaniel Hawthorne",
+   "url": "https://www.delphiclassics.com/shop/nathaniel-hawthorne-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "natsume-soseki",
+   "author": "Natsume Soseki",
+   "url": "https://www.delphiclassics.com/shop/natsume-soseki/",
+   "us_variant": false
+  },
+  {
+   "slug": "nennius",
+   "author": "Nennius",
+   "url": "https://www.delphiclassics.com/shop/nennius/",
+   "us_variant": false
+  },
+  {
+   "slug": "nevil-shute",
+   "author": "Nevil Shute",
+   "url": "https://www.delphiclassics.com/shop/nevil-shute/",
+   "us_variant": false
+  },
+  {
+   "slug": "niccolo-machiavelli-2",
+   "author": "Niccolò Machiavelli",
+   "url": "https://www.delphiclassics.com/shop/niccolo-machiavelli-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "nicolas-poussin",
+   "author": "Nicolas Poussin",
+   "url": "https://www.delphiclassics.com/shop/nicolas-poussin/",
+   "us_variant": false
+  },
+  {
+   "slug": "nikolai-gogol-2",
+   "author": "Nikolai Gogol",
+   "url": "https://www.delphiclassics.com/shop/nikolai-gogol-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "nikolay-nekrasov-2",
+   "author": "Nikolay Nekrasov",
+   "url": "https://www.delphiclassics.com/shop/nikolay-nekrasov-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "noel-coward",
+   "author": "Noël Coward",
+   "url": "https://www.delphiclassics.com/shop/noel-coward/",
+   "us_variant": false
+  },
+  {
+   "slug": "noel-coward-us-version",
+   "author": "Noël Coward",
+   "url": "https://www.delphiclassics.com/shop/noel-coward-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "noh-plays-japanese-dance-dramas",
+   "author": "Noh Plays – Japanese Dance-Dramas",
+   "url": "https://www.delphiclassics.com/shop/noh-plays-japanese-dance-dramas/",
+   "us_variant": false
+  },
+  {
+   "slug": "nonnus-3",
+   "author": "Nonnus",
+   "url": "https://www.delphiclassics.com/shop/nonnus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "norse-sagas",
+   "author": "Norse Sagas",
+   "url": "https://www.delphiclassics.com/shop/norse-sagas/",
+   "us_variant": false
+  },
+  {
+   "slug": "o-henry-2",
+   "author": "O. Henry",
+   "url": "https://www.delphiclassics.com/shop/o-henry-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "odon-von-horvath",
+   "author": "Ödön von Horváth (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/odon-von-horvath/",
+   "us_variant": false
+  },
+  {
+   "slug": "olaf-stapledon",
+   "author": "Olaf Stapledon",
+   "url": "https://www.delphiclassics.com/shop/olaf-stapledon/",
+   "us_variant": false
+  },
+  {
+   "slug": "oliver-goldsmith-2",
+   "author": "Oliver Goldsmith",
+   "url": "https://www.delphiclassics.com/shop/oliver-goldsmith-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "oliver-wendell-holmes",
+   "author": "Oliver Wendell Holmes",
+   "url": "https://www.delphiclassics.com/shop/oliver-wendell-holmes/",
+   "us_variant": false
+  },
+  {
+   "slug": "omar-khayyam",
+   "author": "Omar Khayyam",
+   "url": "https://www.delphiclassics.com/shop/omar-khayyam/",
+   "us_variant": false
+  },
+  {
+   "slug": "onasander",
+   "author": "Onasander",
+   "url": "https://www.delphiclassics.com/shop/onasander/",
+   "us_variant": false
+  },
+  {
+   "slug": "one-thousand-and-one-nights-2",
+   "author": "One Thousand and One Nights",
+   "url": "https://www.delphiclassics.com/shop/one-thousand-and-one-nights-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "oppian",
+   "author": "Oppian",
+   "url": "https://www.delphiclassics.com/shop/oppian/",
+   "us_variant": false
+  },
+  {
+   "slug": "origen",
+   "author": "Origen",
+   "url": "https://www.delphiclassics.com/shop/origen/",
+   "us_variant": false
+  },
+  {
+   "slug": "orosius",
+   "author": "Orosius",
+   "url": "https://www.delphiclassics.com/shop/orosius/",
+   "us_variant": false
+  },
+  {
+   "slug": "oscar-wilde-2",
+   "author": "Oscar Wilde",
+   "url": "https://www.delphiclassics.com/shop/oscar-wilde-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "otis-adelbert-kline",
+   "author": "Otis Adelbert Kline",
+   "url": "https://www.delphiclassics.com/shop/otis-adelbert-kline/",
+   "us_variant": false
+  },
+  {
+   "slug": "otis-adelbert-kline-us-version",
+   "author": "Otis Adelbert Kline",
+   "url": "https://www.delphiclassics.com/shop/otis-adelbert-kline-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "ouida-2",
+   "author": "Ouida",
+   "url": "https://www.delphiclassics.com/shop/ouida-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "ovid-3",
+   "author": "Ovid",
+   "url": "https://www.delphiclassics.com/shop/ovid-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "owen-wister",
+   "author": "Owen Wister",
+   "url": "https://www.delphiclassics.com/shop/owen-wister/",
+   "us_variant": false
+  },
+  {
+   "slug": "p-c-wren",
+   "author": "P. C. Wren",
+   "url": "https://www.delphiclassics.com/shop/p-c-wren/",
+   "us_variant": false
+  },
+  {
+   "slug": "p-c-wren-us-version",
+   "author": "P. C. Wren",
+   "url": "https://www.delphiclassics.com/shop/p-c-wren-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "p-g-wodehouse",
+   "author": "P. G. Wodehouse",
+   "url": "https://www.delphiclassics.com/shop/p-g-wodehouse/",
+   "us_variant": false
+  },
+  {
+   "slug": "pacuvius",
+   "author": "Pacuvius",
+   "url": "https://www.delphiclassics.com/shop/pacuvius/",
+   "us_variant": false
+  },
+  {
+   "slug": "panyassis",
+   "author": "Panyassis",
+   "url": "https://www.delphiclassics.com/shop/panyassis/",
+   "us_variant": false
+  },
+  {
+   "slug": "paolo-veronese",
+   "author": "Paolo Veronese",
+   "url": "https://www.delphiclassics.com/shop/paolo-veronese/",
+   "us_variant": false
+  },
+  {
+   "slug": "paracelsus",
+   "author": "Paracelsus",
+   "url": "https://www.delphiclassics.com/shop/paracelsus/",
+   "us_variant": false
+  },
+  {
+   "slug": "parthenius",
+   "author": "Parthenius",
+   "url": "https://www.delphiclassics.com/shop/parthenius/",
+   "us_variant": false
+  },
+  {
+   "slug": "patricia-wentworth",
+   "author": "Patricia Wentworth",
+   "url": "https://www.delphiclassics.com/shop/patricia-wentworth/",
+   "us_variant": false
+  },
+  {
+   "slug": "patricia-wentworth-us-version",
+   "author": "Patricia Wentworth",
+   "url": "https://www.delphiclassics.com/shop/patricia-wentworth-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "paul-cezanne2",
+   "author": "Paul Cézanne",
+   "url": "https://www.delphiclassics.com/shop/paul-cezanne2/",
+   "us_variant": false
+  },
+  {
+   "slug": "paul-gauguin-2",
+   "author": "Paul Gauguin",
+   "url": "https://www.delphiclassics.com/shop/paul-gauguin-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "paul-klee-2",
+   "author": "Paul Klee",
+   "url": "https://www.delphiclassics.com/shop/paul-klee-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "paul-laurence-dunbar-2",
+   "author": "Paul Laurence Dunbar",
+   "url": "https://www.delphiclassics.com/shop/paul-laurence-dunbar-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "paul-the-deacon",
+   "author": "Paul the Deacon",
+   "url": "https://www.delphiclassics.com/shop/paul-the-deacon/",
+   "us_variant": false
+  },
+  {
+   "slug": "pausanias-3",
+   "author": "Pausanias",
+   "url": "https://www.delphiclassics.com/shop/pausanias-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "percy-bysshe-shelley-2",
+   "author": "Percy Bysshe Shelley",
+   "url": "https://www.delphiclassics.com/shop/percy-bysshe-shelley-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "persius",
+   "author": "Persius",
+   "url": "https://www.delphiclassics.com/shop/persius/",
+   "us_variant": false
+  },
+  {
+   "slug": "peter-abelard",
+   "author": "Peter Abelard",
+   "url": "https://www.delphiclassics.com/shop/peter-abelard/",
+   "us_variant": false
+  },
+  {
+   "slug": "peter-cheyney",
+   "author": "Peter Cheyney",
+   "url": "https://www.delphiclassics.com/shop/peter-cheyney/",
+   "us_variant": false
+  },
+  {
+   "slug": "peter-cheyney-us-version",
+   "author": "Peter Cheyney",
+   "url": "https://www.delphiclassics.com/shop/peter-cheyney-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "peter-paul-rubens-2",
+   "author": "Peter Paul Rubens",
+   "url": "https://www.delphiclassics.com/shop/peter-paul-rubens-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "petronius-3",
+   "author": "Petronius",
+   "url": "https://www.delphiclassics.com/shop/petronius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "phaedrus",
+   "author": "Phaedrus",
+   "url": "https://www.delphiclassics.com/shop/phaedrus/",
+   "us_variant": false
+  },
+  {
+   "slug": "philip-massinger",
+   "author": "Philip Massinger",
+   "url": "https://www.delphiclassics.com/shop/philip-massinger/",
+   "us_variant": false
+  },
+  {
+   "slug": "phillis-wheatley",
+   "author": "Phillis Wheatley",
+   "url": "https://www.delphiclassics.com/shop/phillis-wheatley/",
+   "us_variant": false
+  },
+  {
+   "slug": "philo-of-alexandria-2",
+   "author": "Philo of Alexandria",
+   "url": "https://www.delphiclassics.com/shop/philo-of-alexandria-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "philostratus",
+   "author": "Philostratus",
+   "url": "https://www.delphiclassics.com/shop/philostratus/",
+   "us_variant": false
+  },
+  {
+   "slug": "piero-della-francesca",
+   "author": "Piero della Francesca",
+   "url": "https://www.delphiclassics.com/shop/piero-della-francesca/",
+   "us_variant": false
+  },
+  {
+   "slug": "pierre-auguste-renoir-2",
+   "author": "Pierre-Auguste Renoir",
+   "url": "https://www.delphiclassics.com/shop/pierre-auguste-renoir-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "piet-mondrian",
+   "author": "Piet Mondrian",
+   "url": "https://www.delphiclassics.com/shop/piet-mondrian/",
+   "us_variant": false
+  },
+  {
+   "slug": "pieter-bruegel-the-elder-2",
+   "author": "Pieter Bruegel the Elder",
+   "url": "https://www.delphiclassics.com/shop/pieter-bruegel-the-elder-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "pietro-perugino",
+   "author": "Pietro Perugino",
+   "url": "https://www.delphiclassics.com/shop/pietro-perugino/",
+   "us_variant": false
+  },
+  {
+   "slug": "pindar-3",
+   "author": "Pindar",
+   "url": "https://www.delphiclassics.com/shop/pindar-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "plato-3",
+   "author": "Plato",
+   "url": "https://www.delphiclassics.com/shop/plato-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "plautus-2",
+   "author": "Plautus",
+   "url": "https://www.delphiclassics.com/shop/plautus-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "pliny-the-elder-3",
+   "author": "Pliny the Elder",
+   "url": "https://www.delphiclassics.com/shop/pliny-the-elder-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "pliny-the-younger-3",
+   "author": "Pliny the Younger",
+   "url": "https://www.delphiclassics.com/shop/pliny-the-younger-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "plotinus-3",
+   "author": "Plotinus",
+   "url": "https://www.delphiclassics.com/shop/plotinus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "plutarch-3",
+   "author": "Plutarch",
+   "url": "https://www.delphiclassics.com/shop/plutarch-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "polyaenus",
+   "author": "Polyaenus",
+   "url": "https://www.delphiclassics.com/shop/polyaenus/",
+   "us_variant": false
+  },
+  {
+   "slug": "polybius-3",
+   "author": "Polybius",
+   "url": "https://www.delphiclassics.com/shop/polybius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "pontormo",
+   "author": "Pontormo",
+   "url": "https://www.delphiclassics.com/shop/pontormo/",
+   "us_variant": false
+  },
+  {
+   "slug": "pope-leo-i",
+   "author": "Pope Leo I",
+   "url": "https://www.delphiclassics.com/shop/pope-leo-i/",
+   "us_variant": false
+  },
+  {
+   "slug": "porphyry",
+   "author": "Porphyry",
+   "url": "https://www.delphiclassics.com/shop/porphyry/",
+   "us_variant": false
+  },
+  {
+   "slug": "proclus",
+   "author": "Proclus",
+   "url": "https://www.delphiclassics.com/shop/proclus/",
+   "us_variant": false
+  },
+  {
+   "slug": "procopius-2",
+   "author": "Procopius",
+   "url": "https://www.delphiclassics.com/shop/procopius-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "propertius-3",
+   "author": "Propertius",
+   "url": "https://www.delphiclassics.com/shop/propertius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "prudentius",
+   "author": "Prudentius",
+   "url": "https://www.delphiclassics.com/shop/prudentius/",
+   "us_variant": false
+  },
+  {
+   "slug": "ptolemy",
+   "author": "Ptolemy",
+   "url": "https://www.delphiclassics.com/shop/ptolemy/",
+   "us_variant": false
+  },
+  {
+   "slug": "pyotr-ilyich-tchaikovsky",
+   "author": "Pyotr Ilyich Tchaikovsky",
+   "url": "https://www.delphiclassics.com/shop/pyotr-ilyich-tchaikovsky/",
+   "us_variant": false
+  },
+  {
+   "slug": "quintilian-3",
+   "author": "Quintilian",
+   "url": "https://www.delphiclassics.com/shop/quintilian-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "quintus-curtius-rufus-2",
+   "author": "Quintus Curtius Rufus",
+   "url": "https://www.delphiclassics.com/shop/quintus-curtius-rufus-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "quintus-smyrnaeus-3",
+   "author": "Quintus Smyrnaeus",
+   "url": "https://www.delphiclassics.com/shop/quintus-smyrnaeus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "r-austin-freeman",
+   "author": "R. Austin Freeman",
+   "url": "https://www.delphiclassics.com/shop/r-austin-freeman/",
+   "us_variant": false
+  },
+  {
+   "slug": "r-austin-freeman-us-version",
+   "author": "R. Austin Freeman &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/r-austin-freeman-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "r-d-blackmore",
+   "author": "R. D. Blackmore",
+   "url": "https://www.delphiclassics.com/shop/r-d-blackmore/",
+   "us_variant": false
+  },
+  {
+   "slug": "r-m-ballantyne",
+   "author": "R. M. Ballantyne",
+   "url": "https://www.delphiclassics.com/shop/r-m-ballantyne/",
+   "us_variant": false
+  },
+  {
+   "slug": "r-s-surtees",
+   "author": "R. S. Surtees",
+   "url": "https://www.delphiclassics.com/shop/r-s-surtees/",
+   "us_variant": false
+  },
+  {
+   "slug": "rabindranath-tagore-2",
+   "author": "Rabindranath Tagore",
+   "url": "https://www.delphiclassics.com/shop/rabindranath-tagore-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "rabindranath-tagore-us-version",
+   "author": "Rabindranath Tagore",
+   "url": "https://www.delphiclassics.com/shop/rabindranath-tagore-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "radclyffe-hall-2",
+   "author": "Radclyffe Hall",
+   "url": "https://www.delphiclassics.com/shop/radclyffe-hall-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "rafael-sabatini-2",
+   "author": "Rafael Sabatini",
+   "url": "https://www.delphiclassics.com/shop/rafael-sabatini-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "rafael-sabatini-us-version",
+   "author": "Rafael Sabatini &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/rafael-sabatini-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "rainer-maria-rilke",
+   "author": "Rainer Maria Rilke",
+   "url": "https://www.delphiclassics.com/shop/rainer-maria-rilke/",
+   "us_variant": false
+  },
+  {
+   "slug": "ralph-waldo-emerson-2",
+   "author": "Ralph Waldo Emerson",
+   "url": "https://www.delphiclassics.com/shop/ralph-waldo-emerson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "raphael-2",
+   "author": "Raphael",
+   "url": "https://www.delphiclassics.com/shop/raphael-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "raphael-holinshed",
+   "author": "Raphael Holinshed",
+   "url": "https://www.delphiclassics.com/shop/raphael-holinshed/",
+   "us_variant": false
+  },
+  {
+   "slug": "raymond-chandler",
+   "author": "Raymond Chandler",
+   "url": "https://www.delphiclassics.com/shop/raymond-chandler/",
+   "us_variant": false
+  },
+  {
+   "slug": "rembrandt-van-rijn-2",
+   "author": "Rembrandt van Rijn",
+   "url": "https://www.delphiclassics.com/shop/rembrandt-van-rijn-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "rene-descartes-2",
+   "author": "René Descartes",
+   "url": "https://www.delphiclassics.com/shop/rene-descartes-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "rhoda-broughton",
+   "author": "Rhoda Broughton",
+   "url": "https://www.delphiclassics.com/shop/rhoda-broughton/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-brinsley-sheridan-2",
+   "author": "Richard Brinsley Sheridan",
+   "url": "https://www.delphiclassics.com/shop/richard-brinsley-sheridan-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-crashaw",
+   "author": "Richard Crashaw",
+   "url": "https://www.delphiclassics.com/shop/richard-crashaw/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-francis-burton-2",
+   "author": "Richard Francis Burton",
+   "url": "https://www.delphiclassics.com/shop/richard-francis-burton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-marsh-2",
+   "author": "Richard Marsh",
+   "url": "https://www.delphiclassics.com/shop/richard-marsh-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-of-devizes",
+   "author": "Richard of Devizes",
+   "url": "https://www.delphiclassics.com/shop/richard-of-devizes/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-wagner",
+   "author": "Richard Wagner (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/richard-wagner/",
+   "us_variant": false
+  },
+  {
+   "slug": "richard-wagner-2",
+   "author": "Richard Wagner",
+   "url": "https://www.delphiclassics.com/shop/richard-wagner-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-bridges",
+   "author": "Robert Bridges",
+   "url": "https://www.delphiclassics.com/shop/robert-bridges/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-bridges-us-version",
+   "author": "Robert Bridges",
+   "url": "https://www.delphiclassics.com/shop/robert-bridges-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "robert-browning-2",
+   "author": "Robert Browning",
+   "url": "https://www.delphiclassics.com/shop/robert-browning-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-burns-2",
+   "author": "Robert Burns",
+   "url": "https://www.delphiclassics.com/shop/robert-burns-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-e-howard",
+   "author": "Robert E. Howard",
+   "url": "https://www.delphiclassics.com/shop/robert-e-howard/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-e-howard-us-version",
+   "author": "Robert E. Howard &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/robert-e-howard-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "robert-frost-2",
+   "author": "Robert Frost",
+   "url": "https://www.delphiclassics.com/shop/robert-frost-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-frost-us-version",
+   "author": "Robert Frost &#8211; US Version",
+   "url": "https://www.delphiclassics.com/shop/robert-frost-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "robert-hugh-benson",
+   "author": "Robert Hugh Benson",
+   "url": "https://www.delphiclassics.com/shop/robert-hugh-benson/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-louis-stevenson-2",
+   "author": "Robert Louis Stevenson",
+   "url": "https://www.delphiclassics.com/shop/robert-louis-stevenson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-southey-2",
+   "author": "Robert Southey",
+   "url": "https://www.delphiclassics.com/shop/robert-southey-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "robert-w-chambers-3",
+   "author": "Robert W. Chambers",
+   "url": "https://www.delphiclassics.com/shop/robert-w-chambers-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "romain-rolland",
+   "author": "Romain Rolland",
+   "url": "https://www.delphiclassics.com/shop/romain-rolland/",
+   "us_variant": false
+  },
+  {
+   "slug": "romance-of-the-three-kingdoms",
+   "author": "Romance of the Three Kingdoms",
+   "url": "https://www.delphiclassics.com/shop/romance-of-the-three-kingdoms/",
+   "us_variant": false
+  },
+  {
+   "slug": "rudyard-kipling",
+   "author": "Rudyard Kipling",
+   "url": "https://www.delphiclassics.com/shop/rudyard-kipling/",
+   "us_variant": false
+  },
+  {
+   "slug": "rudyard-kipling-us-version",
+   "author": "Rudyard Kipling",
+   "url": "https://www.delphiclassics.com/shop/rudyard-kipling-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "rumi-2",
+   "author": "Rumi",
+   "url": "https://www.delphiclassics.com/shop/rumi-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "rupert-brooke-2",
+   "author": "Rupert Brooke",
+   "url": "https://www.delphiclassics.com/shop/rupert-brooke-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "saadi",
+   "author": "Saadi",
+   "url": "https://www.delphiclassics.com/shop/saadi/",
+   "us_variant": false
+  },
+  {
+   "slug": "sabine-baring-gould",
+   "author": "Sabine Baring-Gould",
+   "url": "https://www.delphiclassics.com/shop/sabine-baring-gould/",
+   "us_variant": false
+  },
+  {
+   "slug": "saki-2",
+   "author": "Saki",
+   "url": "https://www.delphiclassics.com/shop/saki-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sallust-3",
+   "author": "Sallust",
+   "url": "https://www.delphiclassics.com/shop/sallust-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "samuel-butler-2",
+   "author": "Samuel Butler",
+   "url": "https://www.delphiclassics.com/shop/samuel-butler-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "samuel-johnson-2",
+   "author": "Samuel Johnson",
+   "url": "https://www.delphiclassics.com/shop/samuel-johnson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "samuel-pepys-2",
+   "author": "Samuel Pepys",
+   "url": "https://www.delphiclassics.com/shop/samuel-pepys-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "samuel-richardson-2",
+   "author": "Samuel Richardson",
+   "url": "https://www.delphiclassics.com/shop/samuel-richardson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "samuel-taylor-coleridge-2",
+   "author": "Samuel Taylor Coleridge",
+   "url": "https://www.delphiclassics.com/shop/samuel-taylor-coleridge-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sandor-petofi",
+   "author": "Sándor Petofi",
+   "url": "https://www.delphiclassics.com/shop/sandor-petofi/",
+   "us_variant": false
+  },
+  {
+   "slug": "sanskrit-epics",
+   "author": "Sanskrit Epics",
+   "url": "https://www.delphiclassics.com/shop/sanskrit-epics/",
+   "us_variant": false
+  },
+  {
+   "slug": "sappho-3",
+   "author": "Sappho",
+   "url": "https://www.delphiclassics.com/shop/sappho-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "sara-teasdale",
+   "author": "Sara Teasdale",
+   "url": "https://www.delphiclassics.com/shop/sara-teasdale/",
+   "us_variant": false
+  },
+  {
+   "slug": "sara-teasdale-us-version",
+   "author": "Sara Teasdale &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/sara-teasdale-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "sarah-orne-jewett",
+   "author": "Sarah Orne Jewett",
+   "url": "https://www.delphiclassics.com/shop/sarah-orne-jewett/",
+   "us_variant": false
+  },
+  {
+   "slug": "sax-rohmer-2",
+   "author": "Sax Rohmer",
+   "url": "https://www.delphiclassics.com/shop/sax-rohmer-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sax-rohmer-us-version",
+   "author": "Sax Rohmer &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/sax-rohmer-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "saxo-grammaticus",
+   "author": "Saxo Grammaticus",
+   "url": "https://www.delphiclassics.com/shop/saxo-grammaticus/",
+   "us_variant": false
+  },
+  {
+   "slug": "seabury-quinn",
+   "author": "Seabury Quinn",
+   "url": "https://www.delphiclassics.com/shop/seabury-quinn/",
+   "us_variant": false
+  },
+  {
+   "slug": "seabury-quinn-us-version",
+   "author": "Seabury Quinn",
+   "url": "https://www.delphiclassics.com/shop/seabury-quinn-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "seneca-the-younger-3",
+   "author": "Seneca the Younger",
+   "url": "https://www.delphiclassics.com/shop/seneca-the-younger-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "septuagint-2",
+   "author": "Septuagint",
+   "url": "https://www.delphiclassics.com/shop/septuagint-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-eight-super-set-2",
+   "author": "Series 08 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-eight-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-eleven-super-set",
+   "author": "Series 11 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-eleven-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-fifteen-super-set",
+   "author": "Series 15 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-fifteen-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-five-super-set-2",
+   "author": "Series 05 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-five-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-four-super-set-2",
+   "author": "Series 04 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-four-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-fourteen-super-set",
+   "author": "Series 14 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-fourteen-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-nine-super-set",
+   "author": "Series 09 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-nine-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-one-super-set-one",
+   "author": "Series 01 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-one-super-set-one/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-seven-super-set-2",
+   "author": "Series 07 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-seven-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-six-super-set-2",
+   "author": "Series 06 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-six-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-ten-super-set",
+   "author": "Series 10 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-ten-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-thirteen-super-set",
+   "author": "Series 13 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-thirteen-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-three-super-set-2",
+   "author": "Series 03 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-three-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-twelve-super-set",
+   "author": "Series 12 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-twelve-super-set/",
+   "us_variant": false
+  },
+  {
+   "slug": "series-two-super-set-2",
+   "author": "Series 02 Super Set",
+   "url": "https://www.delphiclassics.com/shop/series-two-super-set-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sextus-empiricus",
+   "author": "Sextus Empiricus",
+   "url": "https://www.delphiclassics.com/shop/sextus-empiricus/",
+   "us_variant": false
+  },
+  {
+   "slug": "sheridan-le-fanu-2",
+   "author": "Sheridan Le Fanu",
+   "url": "https://www.delphiclassics.com/shop/sheridan-le-fanu-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sherwood-anderson",
+   "author": "Sherwood Anderson",
+   "url": "https://www.delphiclassics.com/shop/sherwood-anderson/",
+   "us_variant": false
+  },
+  {
+   "slug": "sherwood-anderson-us-version",
+   "author": "Sherwood Anderson &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/sherwood-anderson-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "shirley-jackson",
+   "author": "Shirley Jackson",
+   "url": "https://www.delphiclassics.com/shop/shirley-jackson/",
+   "us_variant": false
+  },
+  {
+   "slug": "sidonius-apollinaris-2",
+   "author": "Sidonius Apollinaris",
+   "url": "https://www.delphiclassics.com/shop/sidonius-apollinaris-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "siegfried-sassoon",
+   "author": "Siegfried Sassoon",
+   "url": "https://www.delphiclassics.com/shop/siegfried-sassoon/",
+   "us_variant": false
+  },
+  {
+   "slug": "siegfried-sassoon-us-version",
+   "author": "Siegfried Sassoon",
+   "url": "https://www.delphiclassics.com/shop/siegfried-sassoon-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "sigmund-freud-2",
+   "author": "Sigmund Freud",
+   "url": "https://www.delphiclassics.com/shop/sigmund-freud-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "silius-italicus-3",
+   "author": "Silius Italicus",
+   "url": "https://www.delphiclassics.com/shop/silius-italicus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "simonides",
+   "author": "Simonides",
+   "url": "https://www.delphiclassics.com/shop/simonides/",
+   "us_variant": false
+  },
+  {
+   "slug": "sinclair-lewis",
+   "author": "Sinclair Lewis",
+   "url": "https://www.delphiclassics.com/shop/sinclair-lewis/",
+   "us_variant": false
+  },
+  {
+   "slug": "sinclair-lewis-us-version",
+   "author": "Sinclair Lewis",
+   "url": "https://www.delphiclassics.com/shop/sinclair-lewis-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "sir-arthur-conan-doyle-2",
+   "author": "Sir Arthur Conan Doyle",
+   "url": "https://www.delphiclassics.com/shop/sir-arthur-conan-doyle-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-isaac-newton-2",
+   "author": "Sir Isaac Newton",
+   "url": "https://www.delphiclassics.com/shop/sir-isaac-newton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-joshua-reynolds",
+   "author": "Sir Joshua Reynolds",
+   "url": "https://www.delphiclassics.com/shop/sir-joshua-reynolds/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-philip-sidney-2",
+   "author": "Sir Philip Sidney",
+   "url": "https://www.delphiclassics.com/shop/sir-philip-sidney-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-richard-steele",
+   "author": "Sir Richard Steele",
+   "url": "https://www.delphiclassics.com/shop/sir-richard-steele/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-thomas-malory-2",
+   "author": "Sir Thomas Malory",
+   "url": "https://www.delphiclassics.com/shop/sir-thomas-malory-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-thomas-more",
+   "author": "Sir Thomas More",
+   "url": "https://www.delphiclassics.com/shop/sir-thomas-more/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-thomas-wyatt-2",
+   "author": "Sir Thomas Wyatt",
+   "url": "https://www.delphiclassics.com/shop/sir-thomas-wyatt-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-walter-raleigh-2",
+   "author": "Sir Walter Raleigh",
+   "url": "https://www.delphiclassics.com/shop/sir-walter-raleigh-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "sir-walter-scott-2",
+   "author": "Sir Walter Scott",
+   "url": "https://www.delphiclassics.com/shop/sir-walter-scott-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "slave-narratives",
+   "author": "Slave Narratives",
+   "url": "https://www.delphiclassics.com/shop/slave-narratives/",
+   "us_variant": false
+  },
+  {
+   "slug": "socrates-of-constantinople",
+   "author": "Socrates of Constantinople",
+   "url": "https://www.delphiclassics.com/shop/socrates-of-constantinople/",
+   "us_variant": false
+  },
+  {
+   "slug": "solon-of-athens",
+   "author": "Solon of Athens",
+   "url": "https://www.delphiclassics.com/shop/solon-of-athens/",
+   "us_variant": false
+  },
+  {
+   "slug": "sophocles-3",
+   "author": "Sophocles",
+   "url": "https://www.delphiclassics.com/shop/sophocles-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "soren-kierkegaard",
+   "author": "Søren Kierkegaard",
+   "url": "https://www.delphiclassics.com/shop/soren-kierkegaard/",
+   "us_variant": false
+  },
+  {
+   "slug": "sozomen",
+   "author": "Sozomen",
+   "url": "https://www.delphiclassics.com/shop/sozomen/",
+   "us_variant": false
+  },
+  {
+   "slug": "stanley-j-weyman-2",
+   "author": "Stanley J. Weyman",
+   "url": "https://www.delphiclassics.com/shop/stanley-j-weyman-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "statius-3",
+   "author": "Statius",
+   "url": "https://www.delphiclassics.com/shop/statius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "stendhal-2",
+   "author": "Stendhal",
+   "url": "https://www.delphiclassics.com/shop/stendhal-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "stephen-crane-2",
+   "author": "Stephen Crane",
+   "url": "https://www.delphiclassics.com/shop/stephen-crane-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "stephen-leacock",
+   "author": "Stephen Leacock",
+   "url": "https://www.delphiclassics.com/shop/stephen-leacock/",
+   "us_variant": false
+  },
+  {
+   "slug": "stephen-leacock-us-version",
+   "author": "Stephen Leacock",
+   "url": "https://www.delphiclassics.com/shop/stephen-leacock-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "stesichorus",
+   "author": "Stesichorus",
+   "url": "https://www.delphiclassics.com/shop/stesichorus/",
+   "us_variant": false
+  },
+  {
+   "slug": "strabo-3",
+   "author": "Strabo",
+   "url": "https://www.delphiclassics.com/shop/strabo-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "suetonius-3",
+   "author": "Suetonius",
+   "url": "https://www.delphiclassics.com/shop/suetonius-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "sufi-texts",
+   "author": "Sufi Texts",
+   "url": "https://www.delphiclassics.com/shop/sufi-texts/",
+   "us_variant": false
+  },
+  {
+   "slug": "sulpicius-severus",
+   "author": "Sulpicius Severus",
+   "url": "https://www.delphiclassics.com/shop/sulpicius-severus/",
+   "us_variant": false
+  },
+  {
+   "slug": "sun-tzu",
+   "author": "Sun Tzu",
+   "url": "https://www.delphiclassics.com/shop/sun-tzu/",
+   "us_variant": false
+  },
+  {
+   "slug": "susanna-centlivre",
+   "author": "Susanna Centlivre",
+   "url": "https://www.delphiclassics.com/shop/susanna-centlivre/",
+   "us_variant": false
+  },
+  {
+   "slug": "sylvia-plath",
+   "author": "Sylvia Plath",
+   "url": "https://www.delphiclassics.com/shop/sylvia-plath/",
+   "us_variant": false
+  },
+  {
+   "slug": "t-e-lawrence",
+   "author": "T. E. Lawrence",
+   "url": "https://www.delphiclassics.com/shop/t-e-lawrence/",
+   "us_variant": false
+  },
+  {
+   "slug": "t-e-lawrence-us-version",
+   "author": "T. E. Lawrence",
+   "url": "https://www.delphiclassics.com/shop/t-e-lawrence-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "t-s-eliot-2",
+   "author": "T. S. Eliot",
+   "url": "https://www.delphiclassics.com/shop/t-s-eliot-2/",
+   "us_variant": true
+  },
+  {
+   "slug": "t-s-eliot-3",
+   "author": "T. S. Eliot",
+   "url": "https://www.delphiclassics.com/shop/t-s-eliot-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "tacitus-3",
+   "author": "Tacitus",
+   "url": "https://www.delphiclassics.com/shop/tacitus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "talbot-mundy-2",
+   "author": "Talbot Mundy",
+   "url": "https://www.delphiclassics.com/shop/talbot-mundy-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "talbot-mundy-us-version",
+   "author": "Talbot Mundy &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/talbot-mundy-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "tales-of-adventure",
+   "author": "Tales of Adventure",
+   "url": "https://www.delphiclassics.com/shop/tales-of-adventure/",
+   "us_variant": false
+  },
+  {
+   "slug": "tao-te-ching",
+   "author": "Tao Te Ching",
+   "url": "https://www.delphiclassics.com/shop/tao-te-ching/",
+   "us_variant": false
+  },
+  {
+   "slug": "terence-3",
+   "author": "Terence",
+   "url": "https://www.delphiclassics.com/shop/terence-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "tertullian",
+   "author": "Tertullian",
+   "url": "https://www.delphiclassics.com/shop/tertullian/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-avesta",
+   "author": "The Avesta",
+   "url": "https://www.delphiclassics.com/shop/the-avesta/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-book-of-sindibad",
+   "author": "The Book of Sindibad",
+   "url": "https://www.delphiclassics.com/shop/the-book-of-sindibad/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-brontes-2",
+   "author": "The Brontes",
+   "url": "https://www.delphiclassics.com/shop/the-brontes-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-confederation-poets",
+   "author": "The Confederation Poets",
+   "url": "https://www.delphiclassics.com/shop/the-confederation-poets/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-epic-of-gilgamesh-2",
+   "author": "The Epic of Gilgamesh",
+   "url": "https://www.delphiclassics.com/shop/the-epic-of-gilgamesh-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-four-vedas",
+   "author": "The Four Vedas",
+   "url": "https://www.delphiclassics.com/shop/the-four-vedas/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-harvard-classics",
+   "author": "The Harvard Classics",
+   "url": "https://www.delphiclassics.com/shop/the-harvard-classics/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-kalevala",
+   "author": "The Kalevala",
+   "url": "https://www.delphiclassics.com/shop/the-kalevala/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-kojiki",
+   "author": "The Kojiki",
+   "url": "https://www.delphiclassics.com/shop/the-kojiki/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-mabinogion",
+   "author": "The Mabinogion",
+   "url": "https://www.delphiclassics.com/shop/the-mabinogion/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-pali-canon",
+   "author": "The Pali Canon",
+   "url": "https://www.delphiclassics.com/shop/the-pali-canon/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-quran",
+   "author": "The Quran",
+   "url": "https://www.delphiclassics.com/shop/the-quran/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-tale-of-genji",
+   "author": "The Tale of Genji",
+   "url": "https://www.delphiclassics.com/shop/the-tale-of-genji/",
+   "us_variant": false
+  },
+  {
+   "slug": "the-upanishads",
+   "author": "The Upanishads",
+   "url": "https://www.delphiclassics.com/shop/the-upanishads/",
+   "us_variant": false
+  },
+  {
+   "slug": "theocritus-2",
+   "author": "Theocritus",
+   "url": "https://www.delphiclassics.com/shop/theocritus-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "theodor-fontane-deutsche",
+   "author": "Theodor Fontane (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/theodor-fontane-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "theodor-storm-deutsche",
+   "author": "Theodor Storm (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/theodor-storm-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "theodore-dreiser-2",
+   "author": "Theodore Dreiser",
+   "url": "https://www.delphiclassics.com/shop/theodore-dreiser-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "theodore-dreiser-us-version",
+   "author": "Theodore Dreiser &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/theodore-dreiser-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "theodore-roosevelt",
+   "author": "Theodore Roosevelt",
+   "url": "https://www.delphiclassics.com/shop/theodore-roosevelt/",
+   "us_variant": false
+  },
+  {
+   "slug": "theophrastus",
+   "author": "Theophrastus",
+   "url": "https://www.delphiclassics.com/shop/theophrastus/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-a-kempis",
+   "author": "Thomas à Kempis",
+   "url": "https://www.delphiclassics.com/shop/thomas-a-kempis/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-aquinas",
+   "author": "Thomas Aquinas",
+   "url": "https://www.delphiclassics.com/shop/thomas-aquinas/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-babington-macaulay",
+   "author": "Thomas Babington Macaulay",
+   "url": "https://www.delphiclassics.com/shop/thomas-babington-macaulay/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-browne",
+   "author": "Thomas Browne",
+   "url": "https://www.delphiclassics.com/shop/thomas-browne/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-campbell",
+   "author": "Thomas Campbell",
+   "url": "https://www.delphiclassics.com/shop/thomas-campbell/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-carew",
+   "author": "Thomas Carew",
+   "url": "https://www.delphiclassics.com/shop/thomas-carew/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-carlyle-2",
+   "author": "Thomas Carlyle",
+   "url": "https://www.delphiclassics.com/shop/thomas-carlyle-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-chatterton-2",
+   "author": "Thomas Chatterton",
+   "url": "https://www.delphiclassics.com/shop/thomas-chatterton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-de-quincey-2",
+   "author": "Thomas De Quincey",
+   "url": "https://www.delphiclassics.com/shop/thomas-de-quincey-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-dekker",
+   "author": "Thomas Dekker",
+   "url": "https://www.delphiclassics.com/shop/thomas-dekker/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-eakins",
+   "author": "Thomas Eakins",
+   "url": "https://www.delphiclassics.com/shop/thomas-eakins/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-gainsborough-2",
+   "author": "Thomas Gainsborough",
+   "url": "https://www.delphiclassics.com/shop/thomas-gainsborough-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-gray-2",
+   "author": "Thomas Gray",
+   "url": "https://www.delphiclassics.com/shop/thomas-gray-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-hardy-2",
+   "author": "Thomas Hardy",
+   "url": "https://www.delphiclassics.com/shop/thomas-hardy-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-hardy-poetry-2",
+   "author": "Thomas Hardy (poetry)",
+   "url": "https://www.delphiclassics.com/shop/thomas-hardy-poetry-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-henry-huxley",
+   "author": "Thomas Henry Huxley",
+   "url": "https://www.delphiclassics.com/shop/thomas-henry-huxley/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-hobbes",
+   "author": "Thomas Hobbes",
+   "url": "https://www.delphiclassics.com/shop/thomas-hobbes/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-hood-2",
+   "author": "Thomas Hood",
+   "url": "https://www.delphiclassics.com/shop/thomas-hood-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-hughes",
+   "author": "Thomas Hughes",
+   "url": "https://www.delphiclassics.com/shop/thomas-hughes/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-jefferson",
+   "author": "Thomas Jefferson",
+   "url": "https://www.delphiclassics.com/shop/thomas-jefferson/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-love-peacock",
+   "author": "Thomas Love Peacock",
+   "url": "https://www.delphiclassics.com/shop/thomas-love-peacock/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-mann",
+   "author": "Thomas Mann",
+   "url": "https://www.delphiclassics.com/shop/thomas-mann/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-mann-us-version",
+   "author": "Thomas Mann",
+   "url": "https://www.delphiclassics.com/shop/thomas-mann-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "thomas-middleton-2",
+   "author": "Thomas Middleton",
+   "url": "https://www.delphiclassics.com/shop/thomas-middleton-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-moore-2",
+   "author": "Thomas Moore",
+   "url": "https://www.delphiclassics.com/shop/thomas-moore-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-nashe",
+   "author": "Thomas Nashe",
+   "url": "https://www.delphiclassics.com/shop/thomas-nashe/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-otway",
+   "author": "Thomas Otway",
+   "url": "https://www.delphiclassics.com/shop/thomas-otway/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-paine",
+   "author": "Thomas Paine",
+   "url": "https://www.delphiclassics.com/shop/thomas-paine/",
+   "us_variant": false
+  },
+  {
+   "slug": "thomas-wolfe",
+   "author": "Thomas Wolfe",
+   "url": "https://www.delphiclassics.com/shop/thomas-wolfe/",
+   "us_variant": false
+  },
+  {
+   "slug": "thorne-smith",
+   "author": "Thorne Smith",
+   "url": "https://www.delphiclassics.com/shop/thorne-smith/",
+   "us_variant": false
+  },
+  {
+   "slug": "thucydides-3",
+   "author": "Thucydides",
+   "url": "https://www.delphiclassics.com/shop/thucydides-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "tibullus-3",
+   "author": "Tibullus",
+   "url": "https://www.delphiclassics.com/shop/tibullus-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "tintoretto",
+   "author": "Tintoretto",
+   "url": "https://www.delphiclassics.com/shop/tintoretto/",
+   "us_variant": false
+  },
+  {
+   "slug": "titian-2",
+   "author": "Titian",
+   "url": "https://www.delphiclassics.com/shop/titian-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "tobias-smollett-2",
+   "author": "Tobias Smollett",
+   "url": "https://www.delphiclassics.com/shop/tobias-smollett-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "torquato-tasso-2",
+   "author": "Torquato Tasso",
+   "url": "https://www.delphiclassics.com/shop/torquato-tasso-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "tryphiodorus",
+   "author": "Tryphiodorus",
+   "url": "https://www.delphiclassics.com/shop/tryphiodorus/",
+   "us_variant": false
+  },
+  {
+   "slug": "upton-sinclair",
+   "author": "Upton Sinclair",
+   "url": "https://www.delphiclassics.com/shop/upton-sinclair/",
+   "us_variant": false
+  },
+  {
+   "slug": "upton-sinclair-us-version",
+   "author": "Upton Sinclair",
+   "url": "https://www.delphiclassics.com/shop/upton-sinclair-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "varro-2",
+   "author": "Varro",
+   "url": "https://www.delphiclassics.com/shop/varro-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "velleius-paterculus",
+   "author": "Velleius Paterculus",
+   "url": "https://www.delphiclassics.com/shop/velleius-paterculus/",
+   "us_variant": false
+  },
+  {
+   "slug": "vicente-blasco-ibanez",
+   "author": "Vicente Blasco Ibanez",
+   "url": "https://www.delphiclassics.com/shop/vicente-blasco-ibanez/",
+   "us_variant": false
+  },
+  {
+   "slug": "victor-hugo-2",
+   "author": "Victor Hugo",
+   "url": "https://www.delphiclassics.com/shop/victor-hugo-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "victor-hugo-francais",
+   "author": "Victor Hugo (français)",
+   "url": "https://www.delphiclassics.com/shop/victor-hugo-francais/",
+   "us_variant": false
+  },
+  {
+   "slug": "victorian-explorers-and-travellers",
+   "author": "Victorian Explorers and Travellers",
+   "url": "https://www.delphiclassics.com/shop/victorian-explorers-and-travellers/",
+   "us_variant": false
+  },
+  {
+   "slug": "vincent-van-gogh-2",
+   "author": "Vincent van Gogh",
+   "url": "https://www.delphiclassics.com/shop/vincent-van-gogh-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "virgil-3",
+   "author": "Virgil",
+   "url": "https://www.delphiclassics.com/shop/virgil-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "virginia-woolf-2",
+   "author": "Virginia Woolf",
+   "url": "https://www.delphiclassics.com/shop/virginia-woolf-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "virginia-woolf-us-version",
+   "author": "Virginia Woolf",
+   "url": "https://www.delphiclassics.com/shop/virginia-woolf-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "vita-sackville-west",
+   "author": "Vita Sackville-West",
+   "url": "https://www.delphiclassics.com/shop/vita-sackville-west/",
+   "us_variant": false
+  },
+  {
+   "slug": "vita-sackville-west-us-version",
+   "author": "Vita Sackville-West",
+   "url": "https://www.delphiclassics.com/shop/vita-sackville-west-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "vitruvius",
+   "author": "Vitruvius",
+   "url": "https://www.delphiclassics.com/shop/vitruvius/",
+   "us_variant": false
+  },
+  {
+   "slug": "voltaire-2",
+   "author": "Voltaire",
+   "url": "https://www.delphiclassics.com/shop/voltaire-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "w-b-yeats-2",
+   "author": "W. B. Yeats",
+   "url": "https://www.delphiclassics.com/shop/w-b-yeats-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "w-b-yeats-us-version",
+   "author": "W. B. Yeats",
+   "url": "https://www.delphiclassics.com/shop/w-b-yeats-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "w-e-henley",
+   "author": "W. E. Henley",
+   "url": "https://www.delphiclassics.com/shop/w-e-henley/",
+   "us_variant": false
+  },
+  {
+   "slug": "w-e-johns",
+   "author": "W. E. Johns",
+   "url": "https://www.delphiclassics.com/shop/w-e-johns/",
+   "us_variant": false
+  },
+  {
+   "slug": "w-somerset-maugham-2",
+   "author": "W. Somerset Maugham",
+   "url": "https://www.delphiclassics.com/shop/w-somerset-maugham-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "w-somerset-maugham-us-version",
+   "author": "W. Somerset Maugham &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/w-somerset-maugham-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "w-w-jacobs-2",
+   "author": "W. W. Jacobs",
+   "url": "https://www.delphiclassics.com/shop/w-w-jacobs-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "w-w-jacobs-us-version",
+   "author": "W. W. Jacobs &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/w-w-jacobs-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "walt-whitman",
+   "author": "Walt Whitman",
+   "url": "https://www.delphiclassics.com/shop/walt-whitman/",
+   "us_variant": false
+  },
+  {
+   "slug": "walter-pater-2",
+   "author": "Walter Pater",
+   "url": "https://www.delphiclassics.com/shop/walter-pater-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "walter-savage-landor-2",
+   "author": "Walter Savage Landor",
+   "url": "https://www.delphiclassics.com/shop/walter-savage-landor-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "washington-irving-2",
+   "author": "Washington Irving",
+   "url": "https://www.delphiclassics.com/shop/washington-irving-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "wassily-kandinsky-2",
+   "author": "Wassily Kandinsky",
+   "url": "https://www.delphiclassics.com/shop/wassily-kandinsky-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "wassily-kandinsky-us-version",
+   "author": "Wassily Kandinsky &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/wassily-kandinsky-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "wilfred-owen-2",
+   "author": "Wilfred Owen",
+   "url": "https://www.delphiclassics.com/shop/wilfred-owen-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "wilkie-collins-2",
+   "author": "Wilkie Collins",
+   "url": "https://www.delphiclassics.com/shop/wilkie-collins-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "willa-cather",
+   "author": "Willa Cather",
+   "url": "https://www.delphiclassics.com/shop/willa-cather/",
+   "us_variant": false
+  },
+  {
+   "slug": "willa-cather-us-version",
+   "author": "Willa Cather",
+   "url": "https://www.delphiclassics.com/shop/willa-cather-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "william-black",
+   "author": "William Black",
+   "url": "https://www.delphiclassics.com/shop/william-black/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-blake-2",
+   "author": "William Blake",
+   "url": "https://www.delphiclassics.com/shop/william-blake-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-congreve",
+   "author": "William Congreve",
+   "url": "https://www.delphiclassics.com/shop/william-congreve/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-cowper-2",
+   "author": "William Cowper",
+   "url": "https://www.delphiclassics.com/shop/william-cowper-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-cullen-bryant",
+   "author": "William Cullen Bryant",
+   "url": "https://www.delphiclassics.com/shop/william-cullen-bryant/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-dean-howells-2",
+   "author": "William Dean Howells",
+   "url": "https://www.delphiclassics.com/shop/william-dean-howells-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-drummond-of-hawthornden",
+   "author": "William Drummond of Hawthornden",
+   "url": "https://www.delphiclassics.com/shop/william-drummond-of-hawthornden/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-faulkner",
+   "author": "William Faulkner",
+   "url": "https://www.delphiclassics.com/shop/william-faulkner/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-faulkner-us-version",
+   "author": "William Faulkner",
+   "url": "https://www.delphiclassics.com/shop/william-faulkner-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "william-godwin",
+   "author": "William Godwin",
+   "url": "https://www.delphiclassics.com/shop/william-godwin/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-harrison-ainsworth-2",
+   "author": "William Harrison Ainsworth",
+   "url": "https://www.delphiclassics.com/shop/william-harrison-ainsworth-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-hazlitt-2",
+   "author": "William Hazlitt",
+   "url": "https://www.delphiclassics.com/shop/william-hazlitt-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-henry-hudson",
+   "author": "William Henry Hudson",
+   "url": "https://www.delphiclassics.com/shop/william-henry-hudson/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-hogarth",
+   "author": "William Hogarth",
+   "url": "https://www.delphiclassics.com/shop/william-hogarth/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-hope-hodgson-2",
+   "author": "William Hope Hodgson",
+   "url": "https://www.delphiclassics.com/shop/william-hope-hodgson-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-james",
+   "author": "William James",
+   "url": "https://www.delphiclassics.com/shop/william-james/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-john-locke",
+   "author": "William John Locke",
+   "url": "https://www.delphiclassics.com/shop/william-john-locke/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-john-locke-us-version",
+   "author": "William John Locke",
+   "url": "https://www.delphiclassics.com/shop/william-john-locke-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "william-le-queux",
+   "author": "William Le Queux",
+   "url": "https://www.delphiclassics.com/shop/william-le-queux/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-makepeace-thackeray-2",
+   "author": "William Makepeace Thackeray",
+   "url": "https://www.delphiclassics.com/shop/william-makepeace-thackeray-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-morris-2",
+   "author": "William Morris",
+   "url": "https://www.delphiclassics.com/shop/william-morris-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-of-malmesbury",
+   "author": "William of Malmesbury",
+   "url": "https://www.delphiclassics.com/shop/william-of-malmesbury/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-of-newburgh",
+   "author": "William of Newburgh",
+   "url": "https://www.delphiclassics.com/shop/william-of-newburgh/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-shakespeare-2",
+   "author": "William Shakespeare",
+   "url": "https://www.delphiclassics.com/shop/william-shakespeare-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-shakespeare-deutsche",
+   "author": "William Shakespeare (deutsche)",
+   "url": "https://www.delphiclassics.com/shop/william-shakespeare-deutsche/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-wells-brown",
+   "author": "William Wells Brown",
+   "url": "https://www.delphiclassics.com/shop/william-wells-brown/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-wordsworth-2",
+   "author": "William Wordsworth",
+   "url": "https://www.delphiclassics.com/shop/william-wordsworth-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "william-wycherley",
+   "author": "William Wycherley",
+   "url": "https://www.delphiclassics.com/shop/william-wycherley/",
+   "us_variant": false
+  },
+  {
+   "slug": "winston-churchill",
+   "author": "Winston Churchill",
+   "url": "https://www.delphiclassics.com/shop/winston-churchill/",
+   "us_variant": false
+  },
+  {
+   "slug": "winston-s-churchill",
+   "author": "Winston S. Churchill",
+   "url": "https://www.delphiclassics.com/shop/winston-s-churchill/",
+   "us_variant": false
+  },
+  {
+   "slug": "winston-s-churchill-us-version",
+   "author": "Winston S. Churchill",
+   "url": "https://www.delphiclassics.com/shop/winston-s-churchill-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "wolfgang-amadeus-mozart",
+   "author": "Wolfgang Amadeus Mozart",
+   "url": "https://www.delphiclassics.com/shop/wolfgang-amadeus-mozart/",
+   "us_variant": false
+  },
+  {
+   "slug": "xenophon-3",
+   "author": "Xenophon",
+   "url": "https://www.delphiclassics.com/shop/xenophon-3/",
+   "us_variant": false
+  },
+  {
+   "slug": "zane-grey-2",
+   "author": "Zane Grey",
+   "url": "https://www.delphiclassics.com/shop/zane-grey-2/",
+   "us_variant": false
+  },
+  {
+   "slug": "zane-grey-us-version",
+   "author": "Zane Grey &#8211; US version",
+   "url": "https://www.delphiclassics.com/shop/zane-grey-us-version/",
+   "us_variant": true
+  },
+  {
+   "slug": "zosimus",
+   "author": "Zosimus",
+   "url": "https://www.delphiclassics.com/shop/zosimus/",
+   "us_variant": false
+  }
+ ]
+}

@@ -3,7 +3,9 @@
 import {
   type CanonEntry,
   type CanonResult,
+  type DelphiResult,
   canonCheckList,
+  canonDelphiCoverage,
   canonGutenbergTop100,
   canonNobelLaureates,
 } from '@/common/api';
@@ -11,10 +13,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 
-type CanonId = 'gutenberg' | 'nobel' | 'paste';
+type CanonId = 'gutenberg' | 'nobel' | 'delphi' | 'paste';
 
 function parseCanon(raw: string | null | undefined): CanonId {
-  return raw === 'nobel' || raw === 'paste' ? raw : 'gutenberg';
+  return raw === 'nobel' || raw === 'delphi' || raw === 'paste' ? raw : 'gutenberg';
 }
 
 function entryTitle(e: CanonEntry): string {
@@ -34,10 +36,11 @@ function CanonTabs({ canon }: { canon: CanonId }) {
   const tabs: { id: CanonId; label: string; hint: string }[] = [
     { id: 'gutenberg', label: 'Gutenberg Top 100', hint: 'Live downloads, title-level' },
     { id: 'nobel', label: 'Nobel Laureates', hint: 'Live API, author-level' },
+    { id: 'delphi', label: 'Delphi Editions', hint: 'Catalog snapshot vs owned' },
     { id: 'paste', label: 'Paste a list', hint: 'Your own canon, e.g. Mustich slice' },
   ];
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
       {tabs.map((t) => (
         <Link
           key={t.id}
@@ -58,7 +61,11 @@ function CanonTabs({ canon }: { canon: CanonId }) {
   );
 }
 
-function CoverageBar({ result }: { result: CanonResult }) {
+function CoverageBar({
+  result,
+}: {
+  result: { coverage_pct: number; owned_count: number; missing_count: number; total: number };
+}) {
   return (
     <div className="mb-6 rounded-lg bg-slate-800/60 border border-slate-700 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
@@ -130,21 +137,84 @@ function MissingTable({ rows, showGutenberg }: { rows: CanonEntry[]; showGutenbe
   );
 }
 
+function DelphiMissingTable({ result }: { result: DelphiResult }) {
+  const shopUrl = (editions: { url: string; us_variant: boolean }[]) =>
+    (editions.find((e) => !e.us_variant) ?? editions[0])?.url;
+  return (
+    <>
+      <p className="text-xs text-slate-500 mb-2">
+        Catalog snapshot {result.catalog_date} · {result.catalog_editions} editions ·{' '}
+        {result.owned_library_volumes} Delphi volumes owned
+      </p>
+      <div className="overflow-x-auto rounded-lg border border-slate-700">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-800">
+            <tr>
+              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
+                Missing author
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
+                Editions
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber">
+                Get it
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-700/60">
+            {result.missing.map((a, i) => {
+              const url = shopUrl(a.editions);
+              return (
+                <tr key={`${a.author}-${i}`}>
+                  <td className="px-3 py-2 text-slate-200">{a.author}</td>
+                  <td className="px-3 py-2 text-slate-500 text-xs">
+                    {a.editions.length} edition{a.editions.length === 1 ? '' : 's'}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 text-xs rounded-md bg-amber text-slate-900 font-medium hover:bg-amber/90"
+                      >
+                        Delphi shop
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-500">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
 function CanonPageInner() {
   const searchParams = useSearchParams();
   const canon = parseCanon(searchParams?.get('canon'));
-  const [result, setResult] = useState<CanonResult | null>(null);
+  const [result, setResult] = useState<CanonResult | DelphiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(canon !== 'paste');
   const [paste, setPaste] = useState('');
   const [checking, setChecking] = useState(false);
+
+  const fetchFor = async (c: CanonId): Promise<CanonResult | DelphiResult> => {
+    if (c === 'nobel') return canonNobelLaureates();
+    if (c === 'delphi') return canonDelphiCoverage();
+    return canonGutenbergTop100(100);
+  };
 
   const load = useCallback(async () => {
     if (canon === 'paste') return;
     setLoading(true);
     setError(null);
     try {
-      const res = canon === 'nobel' ? await canonNobelLaureates() : await canonGutenbergTop100(100);
+      const res = await fetchFor(canon);
       if (!res.success) throw new Error(res.error ?? 'Coverage check failed');
       setResult(res);
     } catch (e) {
@@ -162,8 +232,7 @@ function CanonPageInner() {
     let cancelled = false;
     (async () => {
       try {
-        const res =
-          canon === 'nobel' ? await canonNobelLaureates() : await canonGutenbergTop100(100);
+        const res = await fetchFor(canon);
         if (!cancelled) {
           if (!res.success) throw new Error(res.error ?? 'Coverage check failed');
           setResult(res);
@@ -277,19 +346,38 @@ function CanonPageInner() {
           <h2 className="text-lg font-semibold text-slate-200 mb-2">
             Missing ({result.missing_count})
           </h2>
-          <MissingTable rows={result.missing} showGutenberg={canon === 'gutenberg'} />
+          {'catalog_date' in result ? (
+            <DelphiMissingTable result={result as DelphiResult} />
+          ) : (
+            <MissingTable
+              rows={(result as CanonResult).missing}
+              showGutenberg={canon === 'gutenberg'}
+            />
+          )}
           {result.owned.length > 0 && (
             <details className="mt-6">
               <summary className="text-sm text-slate-400 hover:text-amber cursor-pointer">
                 Owned ({result.owned_count}) — show
               </summary>
               <ul className="mt-2 space-y-1">
-                {result.owned.map((e, i) => (
-                  <li key={`${entryTitle(e)}-${i}`} className="text-sm text-slate-400">
-                    {entryTitle(e)}
-                    {entrySub(e) && <span className="text-slate-600"> · {entrySub(e)}</span>}
-                  </li>
-                ))}
+                {'catalog_date' in result
+                  ? (result as DelphiResult).owned.map((a, i) => (
+                      <li key={`${a.author}-${i}`} className="text-sm text-slate-400">
+                        {a.author}
+                        {a.evidence?.length ? (
+                          <span className="text-slate-600">
+                            {' '}
+                            · {a.evidence.map((b) => b.title).join('; ')}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))
+                  : (result as CanonResult).owned.map((e, i) => (
+                      <li key={`${entryTitle(e)}-${i}`} className="text-sm text-slate-400">
+                        {entryTitle(e)}
+                        {entrySub(e) && <span className="text-slate-600"> · {entrySub(e)}</span>}
+                      </li>
+                    ))}
               </ul>
             </details>
           )}
