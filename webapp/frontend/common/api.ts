@@ -556,6 +556,64 @@ export function canonCheckList(items: { title: string; author?: string }[]): Pro
   });
 }
 
+export interface ContentsWork {
+  title: string;
+  href: string;
+  depth: number;
+  is_group: boolean;
+  group?: string;
+}
+
+export interface ContentsResult {
+  success: boolean;
+  operation: string;
+  indexed?: boolean;
+  is_collection?: boolean;
+  book_id?: number;
+  book_title?: string;
+  book_author?: string;
+  work_count?: number;
+  source?: string;
+  works?: ContentsWork[];
+  error?: string;
+  note?: string;
+}
+
+export interface ContentsSearchHit {
+  book_id: number;
+  book_title: string;
+  book_author: string;
+  work_title: string;
+  group?: string;
+}
+
+export async function getBookContents(bookId: number): Promise<ContentsResult> {
+  const response = await fetch(`${getBaseUrl()}/api/contents/contents?book_id=${bookId}`);
+  if (!response.ok) throw new Error(`Contents request failed: ${response.statusText}`);
+  return response.json();
+}
+
+export async function indexBookContents(bookId: number): Promise<ContentsResult> {
+  const response = await fetch(`${getBaseUrl()}/api/contents/index`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ book_id: bookId }),
+  });
+  if (!response.ok) throw new Error(`Index request failed: ${response.statusText}`);
+  return response.json();
+}
+
+export async function searchContents(
+  q: string,
+  limit = 20,
+): Promise<{ success: boolean; query: string; total: number; hits: ContentsSearchHit[] }> {
+  const response = await fetch(
+    `${getBaseUrl()}/api/contents/search?q=${encodeURIComponent(q)}&limit=${limit}`,
+  );
+  if (!response.ok) throw new Error(`Contents search failed: ${response.statusText}`);
+  return response.json();
+}
+
 export async function getSeriesBooks(
   seriesId: number,
   params?: { limit?: number; offset?: number },
