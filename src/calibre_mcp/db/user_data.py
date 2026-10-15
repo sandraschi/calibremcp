@@ -119,6 +119,33 @@ class User(Base):
         return f"<User(id={self.id}, username={self.username}, role={self.role})>"
 
 
+class CollectionIndex(Base):
+    """
+    Contained-works index for omnibus/collection ebooks (Delphi Complete
+    Works etc.), stored outside Calibre's metadata.db.
+
+    Contained works are second-class citizens by design: they are findable
+    (search, canon coverage) but NEVER counted as library books. One row per
+    (book, library); works_json is a list of {title, href, depth, group}.
+    """
+
+    __tablename__ = "collection_index"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    book_id = Column(Integer, nullable=False, index=True)
+    library_path = Column(Text, nullable=False, index=True)
+    book_title = Column(Text, nullable=False, default="")
+    book_author = Column(Text, nullable=False, default="")
+    is_collection = Column(Integer, nullable=False, default=0)  # 1 when work_count >= threshold
+    work_count = Column(Integer, nullable=False, default=0)
+    works_json = Column(Text, nullable=False, default="[]")
+    source = Column(String(16), nullable=False, default="ncx")  # ncx | nav | spine
+    indexed_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self) -> str:
+        return f"<CollectionIndex(book_id={self.book_id}, works={self.work_count})>"
+
+
 class UserDataDB:
     """
     Database service for CalibreMCP-owned user data (SQLite).
