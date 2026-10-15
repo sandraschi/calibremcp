@@ -1,5 +1,5 @@
 
-## [Unreleased] — 2026-10-15 (build night)
+## [1.10.0] — 2026-10-15
 
 ### Added
 - **Canon Coverage page + `canon_coverage` tool** (`/canon`, sidebar → Discover):
