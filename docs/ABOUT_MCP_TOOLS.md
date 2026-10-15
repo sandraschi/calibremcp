@@ -1,6 +1,6 @@
 # About MCP Server Tools
 
-calibre-mcp exposes **31 portmanteau tools** via FastMCP 3.4, giving AI assistants structured, concurrency-safe access to your Calibre library. Tools register at import time via `@mcp.tool` decorators and support simultaneous stdio + HTTP (universal connect).
+calibre-mcp exposes **33 portmanteau tools** via FastMCP 3.4, giving AI assistants structured, concurrency-safe access to your Calibre library. Tools register at import time via `@mcp.tool` decorators and support simultaneous stdio + HTTP (universal connect).
 
 ## What are portmanteau tools?
 
@@ -19,7 +19,7 @@ This keeps the tool list manageable while maintaining full functionality.
 
 | Tool | What it does | Key operations |
 |------|-------------|----------------|
-| `query_books` | Find, list, and retrieve books | `search`, `list`, `by_author`, `by_series` |
+| `query_books` | Find, list, and retrieve books | `search`, `list`, `recent`, `by_author`, `by_series` |
 | `manage_libraries` | Discover, switch, and analyze libraries | `list`, `switch`, `stats`, `discover` |
 | `calibre_metadata_search` | Semantic search over metadata (LanceDB RAG) | `query`, `top_k` |
 | `search_fulltext` | Keyword/phrase search in book content (FTS5) | `query`, `resolve_locations` |
@@ -28,9 +28,11 @@ This keeps the tool list manageable while maintaining full functionality.
 | `rag_index_build` / `rag_retrieve` | Build/search chunk-level FTS→LanceDB index | — |
 | `manage_books` | Add, get details, update, delete books | `add`, `get`, `details`, `update`, `delete` |
 | `manage_metadata` | Update metadata, organize tags, show book info | `update`, `organize_tags`, `show` |
-| `manage_authors` | List, get books by author, stats | `list`, `get_books`, `stats` |
-| `manage_series` | List, create, update, delete series | `list`, `create`, `update`, `delete` |
+| `manage_authors` | List, get books by author, stats | `list` (+`sort_by`/`sort_order`), `get_books`, `stats`, `by_letter` |
+| `manage_series` | List, create, update, delete series | `list` (+`sort_by`/`sort_order`), `create`, `update`, `delete` |
 | `manage_tags` | List, create, merge tags | `list`, `create`, `merge` |
+| `canon_coverage` | Gap analysis vs canon lists | `gutenberg_top100`, `nobel_laureates`, `delphi_coverage`, `check_list`, `list_canons` |
+| `inspect_contents` | Omnibus TOC index (Delphi etc.) | `scan`, `index`, `contents`, `search` |
 | `manage_comments` | CRUD for book comments/descriptions | `create`, `read`, `update`, `delete` |
 | `manage_viewer` | Open/close books in system viewer | `open`, `close`, `open_random` |
 | `manage_publishers` | List, create, update, delete publishers | `list`, `create`, `update`, `delete` |

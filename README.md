@@ -46,7 +46,7 @@ Then ask Claude: *"Find unread sci-fi books"*, *"Open a random Banks novel"*, or
 
 ## What is this?
 
-calibre-mcp bridges your Calibre e-book library and AI assistants (Claude Desktop, Cursor, etc.) via the Model Context Protocol. It reads Calibre's `metadata.db` directly, indexes metadata for semantic search (LanceDB RAG), and exposes 31 portmanteau tools for natural-language library management.
+calibre-mcp bridges your Calibre e-book library and AI assistants (Claude Desktop, Cursor, etc.) via the Model Context Protocol. It reads Calibre's `metadata.db` directly, indexes metadata for semantic search (LanceDB RAG), and exposes 33 portmanteau tools for natural-language library management.
 
 ### Full Architecture & Technology Stack
 
@@ -107,7 +107,7 @@ Together, Calibre Content Server provides the high-performance reading and distr
 | [About Calibre](docs/ABOUT_CALIBRE.md) | What Calibre is, how it stores data, access methods |
 | [About Calibre Web](docs/ABOUT_CALIBRE_WEB.md) | Calibre Content Server (modern SPA) vs calibre-web vs CalibreMCP |
 | [About Plugins](docs/ABOUT_PLUGINS.md) | CalibreMCP Integration plugin, calibreops-bridge, roadmap |
-| [About MCP Tools](docs/ABOUT_MCP_TOOLS.md) | 31 portmanteau tools, architecture, agentic flows |
+| [About MCP Tools](docs/ABOUT_MCP_TOOLS.md) | 33 portmanteau tools, architecture, agentic flows |
 | [About AI Workflows](docs/ABOUT_AI_WORKFLOWS.md) | RAG, FTS, skills, prompts, sampling, agentic chaining |
 
 ## Key links
@@ -138,7 +138,9 @@ npx mcpb install calibre-mcp
 ## Features
 
 - **FastMCP 3.2** — Universal connect (stdio + HTTP), sampling, agentic tool chaining
-- **31 portmanteau tools** — Consolidated operations (search, manage, export, OCR, viewer)
+- **33 portmanteau tools** — Consolidated operations (search, manage, export, OCR, viewer, canon, contents)
+- **Canon Coverage** — Gap analysis vs Gutenberg Top 100, Nobel laureates, Delphi catalog, pasted lists
+- **Collection contents** — Delphi-style omnibus TOC index; contained works searchable, never counted
 - **Metadata RAG (LanceDB)** — Semantic search over title, authors, tags, comments
 - **Full-text chunk RAG** — FTS-driven book content retrieval
 - **Calibre FTS** — Phrase search with PDF page / EPUB spine locations

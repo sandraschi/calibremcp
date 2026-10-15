@@ -414,6 +414,8 @@ Tools consolidate related operations via an \`operation\` parameter:
 | manage_publishers | list, get, get_books, stats |
 | manage_viewer | open, open_file, open_random, get_page |
 | manage_system | status, list_tools |
+| canon_coverage | gutenberg_top100, nobel_laureates, delphi_coverage, check_list, list_canons |
+| inspect_contents | scan, index, contents, search |
 
 List operations support \`query\` + pagination; authors/series/tags/publishers lists also
 support \`sort_by\` (name, book_count) and \`sort_order\` (asc, desc).

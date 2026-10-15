@@ -1,4 +1,52 @@
 
+## [Unreleased] — 2026-10-15 (build night)
+
+### Added
+- **Canon Coverage page + `canon_coverage` tool** (`/canon`, sidebar → Discover):
+  Gutenberg Top 100 (live, title-level, one-click import IDs), Nobel laureates
+  (live API, all 116, author-level), paste-your-own lists (Mustich slices),
+  and **Delphi Editions** (1020-product catalog snapshot vs owned Delphi
+  volumes, author-level, per-author shop links). Missing tables carry
+  buy/source hints; owned lists collapse.
+- **Delphi tab extras**: owned-before-missing tables, A–Z surname filter,
+  cards/list switch, A–Z/Z–A sort, per-row **"Who is that?"** modal with live
+  Wikipedia bio + thumbnail (no invented facts).
+- **Collection contents engine (`inspect_contents`)**: Delphi-style Complete
+  Works omnibuses hide dozens of works in one row — scan (metadata candidates),
+  index (NCX/nav/spine TOC parse, stdlib-only, 25-work threshold), contents,
+  search. Sidecar `collection_index` table; contained works are findable but
+  never counted as library books. Live-proven: Gaskell 69 works, Holmes 125,
+  "wisteria lodge" resolves to its story.
+- **Canon ↔ contents integration**: contained works count as owned in coverage
+  checks with host-volume evidence (closes the Orczy-class blind spot).
+- **Help overhaul**: real markdown rendering (react-markdown + GFM tables),
+  sticky TOC, new tabs — Guides, Ebooks Guide, Copyright & AI (grey libraries,
+  Privatkopie, Books3/gobble, Bartz $1.5B / Kadrey / NYT case table),
+  Content Server, Why E-Reading. Same renderer fixed the help modal too.
+- **New docs**: `CONTENT_SERVER.md` (setup, fallback integration, copy-back
+  watchlist), `EBOOKS_GUIDE.md` (free/commercial/community/bibliography,
+  grey libraries, DIY/jisui scanning, megaprojects), `READING_ESSAY.md`
+  (12-chapter meta essay incl. Buchpreisbindung footgun), `delphi_catalog.json`
+  snapshot. ONBOARDING gained Sharing setup + first-import walkthrough.
+
+### Fixed
+- **`query_books(operation="recent")` crash**: `BookService` never had
+  `get_recent_books` (only the repo did), and the caller assumed Pydantic
+  `.dict()` while the service returns plain dicts. Method added
+  (timestamp-desc, clamped), caller shape-tolerant.
+- **Writes blocked by open GUI**: add/update/delete/metadata went
+  `--library-path`-only and died on the Calibre lock. Shared `calibredb_runner`
+  (direct first, `--with-library` content-server fallback on lock markers,
+  180 s budget); needs `CALIBRE_SERVER_URL` + sharing credentials in `.env`.
+  Live-proven with GUI open (31 MB import, metadata, add+remove).
+- **Sort threads**: `sort_by=name|book_count` + `sort_order` through authors,
+  series, publishers (MCP → REST → frontend); fixed series/publisher table
+  paths silently name-sorting on `book_count` (real count subqueries now).
+- **Taxonomy pages**: shared Cards/List toggle + server-side sort toolbar on
+  authors/series/tags/publishers; URL-driven views.
+- **REST client tool-map**: `canon_coverage` / `inspect_contents` registered in
+  both fallback maps (direct + `module:function` forms).
+
 ## [Unreleased] — 2026-10-09 (assfix)
 
 ### Fixed
