@@ -1,6 +1,7 @@
 'use client';
 
 import { getAuthorsStats, listAuthors, listAuthorsByLetter } from '@/common/api';
+import { TaxonomyList, ViewToggle, parseTaxonomyView } from '@/components/taxonomy/taxonomy-view';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -17,6 +18,9 @@ function AuthorsPageInner() {
   const searchParams = useSearchParams();
   const query = searchParams?.get('query') ?? undefined;
   const letter = searchParams?.get('letter') ?? undefined;
+  const view = parseTaxonomyView(searchParams?.get('view'));
+  const sortBy = searchParams?.get('sort_by') === 'book_count' ? 'book_count' : 'name';
+  const sortOrder = searchParams?.get('sort_order') === 'desc' ? 'desc' : 'asc';
   const page = Math.max(1, Number.parseInt(searchParams?.get('page') ?? '1', 10));
   const limit = 50;
   const offset = (page - 1) * limit;
@@ -42,10 +46,12 @@ function AuthorsPageInner() {
             items: r.items as AuthorRow[],
             total: r.total,
           }))
-        : listAuthors({ query, limit, offset }).then((r) => ({
-            items: r.items as AuthorRow[],
-            total: r.total,
-          }));
+        : listAuthors({ query, limit, offset, sort_by: sortBy, sort_order: sortOrder }).then(
+            (r) => ({
+              items: r.items as AuthorRow[],
+              total: r.total,
+            }),
+          );
     loader
       .then((res) => {
         if (!cancelled) setData(res);
@@ -59,7 +65,7 @@ function AuthorsPageInner() {
     return () => {
       cancelled = true;
     };
-  }, [query, letter, limit, offset]);
+  }, [query, letter, limit, offset, sortBy, sortOrder]);
 
   const statsChips: string[] = [];
   if (stats) {
@@ -76,17 +82,41 @@ function AuthorsPageInner() {
   const hasPrev = page > 1 && !letter;
   const hasNext = page < totalPages && !letter;
 
-  const letterHref = (l: string | null) => {
+  const letterHref = (l: string | null, v: typeof view = view) => {
     const p = new URLSearchParams();
     if (l) p.set('letter', l);
     if (query) p.set('query', query);
+    if (sortBy !== 'name') p.set('sort_by', sortBy);
+    if (sortOrder !== 'asc') p.set('sort_order', sortOrder);
+    if (v !== 'card') p.set('view', v);
     const q = p.toString();
     return q ? `/authors?${q}` : '/authors';
   };
 
+  const pageHref = (pg: number) => {
+    const p = new URLSearchParams();
+    if (pg > 1) p.set('page', String(pg));
+    if (query) p.set('query', query);
+    if (sortBy !== 'name') p.set('sort_by', sortBy);
+    if (sortOrder !== 'asc') p.set('sort_order', sortOrder);
+    if (view !== 'card') p.set('view', view);
+    const q = p.toString();
+    return q ? `/authors?${q}` : '/authors';
+  };
+
+  const inputCls =
+    'px-3 py-1.5 bg-slate-700 border border-slate-600 rounded-md text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber';
+
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-slate-100">Authors</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h1 className="text-3xl font-bold text-slate-100">Authors</h1>
+        <ViewToggle
+          cardHref={letterHref(letter ?? null, 'card')}
+          listHref={letterHref(letter ?? null, 'list')}
+          view={view}
+        />
+      </div>
 
       {statsChips.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4" data-testid="authors-stats">
@@ -127,16 +157,41 @@ function AuthorsPageInner() {
         ))}
       </div>
 
-      <form className="mb-6" action="/authors" method="get">
-        {letter && <input type="hidden" name="letter" value={letter} />}
-        <input
-          type="search"
-          name="query"
-          defaultValue={query}
-          placeholder="Search authors..."
-          className="w-full max-w-md px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
-        />
-      </form>
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <form className="flex-1 min-w-52" action="/authors" method="get">
+          {letter && <input type="hidden" name="letter" value={letter} />}
+          {view !== 'card' && <input type="hidden" name="view" value={view} />}
+          {sortBy !== 'name' && <input type="hidden" name="sort_by" value={sortBy} />}
+          {sortOrder !== 'asc' && <input type="hidden" name="sort_order" value={sortOrder} />}
+          <input
+            type="search"
+            name="query"
+            defaultValue={query}
+            placeholder="Search authors..."
+            className="w-full max-w-md px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber"
+          />
+        </form>
+        {!letter && (
+          <form action="/authors" method="get" className="flex items-center gap-2">
+            {query && <input type="hidden" name="query" value={query} />}
+            {view !== 'card' && <input type="hidden" name="view" value={view} />}
+            <select name="sort_by" defaultValue={sortBy} className={inputCls} title="Sort by">
+              <option value="name">Name</option>
+              <option value="book_count">Book count</option>
+            </select>
+            <select name="sort_order" defaultValue={sortOrder} className={inputCls} title="Order">
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
+            <button
+              type="submit"
+              className="px-3 py-1.5 text-sm rounded-md bg-slate-700 text-slate-200 hover:bg-slate-600"
+            >
+              Sort
+            </button>
+          </form>
+        )}
+      </div>
 
       {loading ? (
         <p className="text-slate-400">Loading authors…</p>
@@ -157,18 +212,31 @@ function AuthorsPageInner() {
             )}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {items.map((a) => (
-              <Link
-                key={a.id}
-                href={`/books?author=${encodeURIComponent(a.name)}`}
-                className="block p-4 rounded-lg bg-slate-800 border border-slate-600 hover:border-amber/50 hover:bg-slate-700 transition-colors"
-              >
-                <span className="text-slate-200 font-medium">{a.name}</span>
-                {a.book_count != null && (
-                  <span className="block text-sm text-slate-500 mt-1">{a.book_count} books</span>
-                )}
-              </Link>
-            ))}
+            {view === 'list' ? (
+              <div className="col-span-full">
+                <TaxonomyList
+                  items={items.map((a) => ({
+                    key: String(a.id),
+                    name: a.name,
+                    meta: a.book_count != null ? `${a.book_count} books` : null,
+                  }))}
+                  getHref={(it) => `/books?author=${encodeURIComponent(it.name)}`}
+                />
+              </div>
+            ) : (
+              items.map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/books?author=${encodeURIComponent(a.name)}`}
+                  className="block p-4 rounded-lg bg-slate-800 border border-slate-600 hover:border-amber/50 hover:bg-slate-700 transition-colors"
+                >
+                  <span className="text-slate-200 font-medium">{a.name}</span>
+                  {a.book_count != null && (
+                    <span className="block text-sm text-slate-500 mt-1">{a.book_count} books</span>
+                  )}
+                </Link>
+              ))
+            )}
           </div>
           {!letter && total > limit && (
             <nav
@@ -181,7 +249,7 @@ function AuthorsPageInner() {
               <div className="flex items-center gap-2">
                 {hasPrev ? (
                   <Link
-                    href={`/authors?page=${page - 1}${query ? `&query=${encodeURIComponent(query)}` : ''}`}
+                    href={pageHref(page - 1)}
                     className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
                   >
                     Previous
@@ -193,7 +261,7 @@ function AuthorsPageInner() {
                 )}
                 {hasNext ? (
                   <Link
-                    href={`/authors?page=${page + 1}${query ? `&query=${encodeURIComponent(query)}` : ''}`}
+                    href={pageHref(page + 1)}
                     className="px-4 py-2 text-sm font-medium rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200"
                   >
                     Next

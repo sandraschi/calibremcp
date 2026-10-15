@@ -12,6 +12,7 @@ import {
   organizeTags,
   renameTag,
 } from '@/common/api';
+import { TaxonomyList, ViewToggle, parseTaxonomyView } from '@/components/taxonomy/taxonomy-view';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
@@ -35,6 +36,7 @@ function TagsPageInner() {
   const sortBy = searchParams?.get('sort_by') === 'book_count' ? 'book_count' : 'name';
   const sortOrder = searchParams?.get('sort_order') === 'desc' ? 'desc' : 'asc';
   const unusedOnly = searchParams?.get('unused_only') === '1';
+  const view = parseTaxonomyView(searchParams?.get('view'));
   const limit = 50;
   const offset = (page - 1) * limit;
 
@@ -122,13 +124,14 @@ function TagsPageInner() {
   const hasPrev = page > 1;
   const hasNext = page < totalPages;
 
-  const pageHref = (p: number) => {
+  const pageHref = (p: number, v: typeof view = view) => {
     const sp = new URLSearchParams();
     if (p > 1) sp.set('page', String(p));
     if (search) sp.set('search', search);
     if (sortBy !== 'name') sp.set('sort_by', sortBy);
     if (sortOrder !== 'asc') sp.set('sort_order', sortOrder);
     if (unusedOnly) sp.set('unused_only', '1');
+    if (v !== 'card') sp.set('view', v);
     const q = sp.toString();
     return q ? `/tags?${q}` : '/tags';
   };
@@ -140,13 +143,21 @@ function TagsPageInner() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-slate-100">Tags</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h1 className="text-3xl font-bold text-slate-100">Tags</h1>
+        <ViewToggle
+          cardHref={pageHref(page, 'card')}
+          listHref={pageHref(page, 'list')}
+          view={view}
+        />
+      </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <form className="flex-1 min-w-52" action="/tags" method="get">
           {sortBy !== 'name' && <input type="hidden" name="sort_by" value={sortBy} />}
           {sortOrder !== 'asc' && <input type="hidden" name="sort_order" value={sortOrder} />}
           {unusedOnly && <input type="hidden" name="unused_only" value="1" />}
+          {view !== 'card' && <input type="hidden" name="view" value={view} />}
           <input
             type="search"
             name="search"
@@ -158,6 +169,7 @@ function TagsPageInner() {
         <form action="/tags" method="get" className="flex items-center gap-2">
           {search && <input type="hidden" name="search" value={search} />}
           {unusedOnly && <input type="hidden" name="unused_only" value="1" />}
+          {view !== 'card' && <input type="hidden" name="view" value={view} />}
           <select name="sort_by" defaultValue={sortBy} className={inputCls} title="Sort by">
             <option value="name">Name</option>
             <option value="book_count">Book count</option>
@@ -399,21 +411,32 @@ function TagsPageInner() {
             {total} tag{total === 1 ? '' : 's'} — click a card to browse its books (IDs shown for
             rename / delete / merge).
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {data.items.map((t) => (
-              <Link
-                key={t.id}
-                href={`/books?tag=${encodeURIComponent(t.name)}`}
-                className="block p-4 rounded-lg bg-slate-800 border border-slate-600 hover:border-amber/50 hover:bg-slate-700 transition-colors"
-              >
-                <span className="text-slate-200 font-medium">{t.name}</span>
-                <span className="block text-xs text-slate-500 mt-1">
-                  ID {t.id}
-                  {t.book_count != null && ` · ${t.book_count} books`}
-                </span>
-              </Link>
-            ))}
-          </div>
+          {view === 'list' ? (
+            <TaxonomyList
+              items={data.items.map((t) => ({
+                key: String(t.id),
+                name: t.name,
+                meta: `ID ${t.id}${t.book_count != null ? ` · ${t.book_count} books` : ''}`,
+              }))}
+              getHref={(it) => `/books?tag=${encodeURIComponent(it.name)}`}
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {data.items.map((t) => (
+                <Link
+                  key={t.id}
+                  href={`/books?tag=${encodeURIComponent(t.name)}`}
+                  className="block p-4 rounded-lg bg-slate-800 border border-slate-600 hover:border-amber/50 hover:bg-slate-700 transition-colors"
+                >
+                  <span className="text-slate-200 font-medium">{t.name}</span>
+                  <span className="block text-xs text-slate-500 mt-1">
+                    ID {t.id}
+                    {t.book_count != null && ` · ${t.book_count} books`}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
           {total > limit && (
             <nav
               className="mt-6 flex flex-wrap items-center justify-center gap-2"
