@@ -10,6 +10,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: start-files-guard
+        name: start files need "start:" in message
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/pre-commit-start-guard.ps1
+        language: system
+        stages: [commit-msg]
+        pass_filenames: false
+        require_serial: true
       - id: biome-web
         name: biome check (webapp)
         entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/pre-commit-biome.ps1
