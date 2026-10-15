@@ -14,10 +14,14 @@ async def list_authors(
     query: str | None = None,
     limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
+    sort_by: str = Query("name", pattern="^(name|book_count)$"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$"),
 ):
-    """List authors with optional search. Cached 60s for dropdown performance."""
+    """List authors with optional search and sorting. Cached 60s for dropdown performance."""
     lib = get_libraries_cache().get("current_library") or ""
-    key = _ttl_key("authors", lib=lib, query=query or "", limit=limit, offset=offset)
+    key = _ttl_key(
+        "authors", lib=lib, query=query or "", limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+    )
     cached = get_ttl_cached(key)
     if cached is not None:
         return cached
@@ -29,6 +33,8 @@ async def list_authors(
                 "query": query,
                 "limit": limit,
                 "offset": offset,
+                "sort_by": sort_by,
+                "sort_order": sort_order,
             },
         )
         set_ttl_cached(key, result)

@@ -15,15 +15,26 @@ async def list_series(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
     letter: str | None = Query(None, description="Filter by first letter"),
+    sort_by: str = Query("name", pattern="^(name|book_count)$"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$"),
 ):
-    """List series with optional search. Cached 60s."""
+    """List series with optional search and sorting. Cached 60s."""
     lib = get_libraries_cache().get("current_library") or ""
-    key = _ttl_key("series", lib=lib, query=query or "", limit=limit, offset=offset, letter=letter or "")
+    key = _ttl_key(
+        "series",
+        lib=lib,
+        query=query or "",
+        limit=limit,
+        offset=offset,
+        letter=letter or "",
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
     cached = get_ttl_cached(key)
     if cached is not None:
         return cached
     try:
-        args = {"operation": "list", "limit": limit, "offset": offset}
+        args = {"operation": "list", "limit": limit, "offset": offset, "sort_by": sort_by, "sort_order": sort_order}
         if query:
             args["query"] = query
         if letter:
