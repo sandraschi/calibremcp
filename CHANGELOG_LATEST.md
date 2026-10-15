@@ -1,14 +1,10 @@
-## Calibre MCP v1.9.0 (2026-09-11)
+## Calibre MCP v1.10.0 (2026-10-15)
 
 ### Highlights
-- **Embedded Web Reader Overlay**: Direct in-app e-book reading inside `BookModal` using Calibre Content Server's native `viewer.js` engine (`http://goliath:8099/`) with full-screen iframe, title header, pop-out to new tab, and exit controls.
-- **Dedicated WebApp Views**:
-  - `/library-health`: Database integrity checks (`PRAGMA integrity_check`), missing covers/formats audit, actionable recommendations, and re-scan controls.
-  - `/duplicates`: Duplicate candidate clusters grouped by title similarity, author match, and ISBN collisions with side-by-side cover and format comparison.
-  - `/reading`: Reading Queue prioritized by rating, author prominence, and series continuity + Reading Analytics (completion metrics, categories breakdown).
-  - `/collections`: Virtual shelves browser with 1-click presets ("5-Star Masterpieces", "Unread Sci-Fi", "Epic Series Starters", "Quick Reads") and custom rule builder.
-- **Hybrid Search (Reciprocal Rank Fusion)**: Added `hybrid_search` operation to `calibre_rag` portmanteau tool, combining Calibre FTS5 lexical rankings (`full-text-search.db`) and LanceDB semantic vector embeddings (`lancedb_calibre`) using RRF with $k=60$.
-- **Incremental LanceDB RAG Sync**: Added `upsert_book_metadata(book_id)` and `remove_book_metadata(book_id)` hooked into `manage_books` (`add`, `update`, `delete`) to keep LanceDB vectors synchronized with the library without full rebuilds.
-- **Physical Bookcase Cataloging**: Camera/photo cataloging of physical bookshelves via local vision OCR and Open Library enrichment (`bookcase_catalog` tool).
-- **Dual WebApp Ecosystem**: Full architectural integration between Calibre Content Server (`:8099`) and CalibreMCP (`:10721` / `:10720`).
-- **Production Artifacts**: Dual-packaged release featuring standalone NSIS installer (`Calibre MCP_1.9.0_x64-setup.exe`) and Claude Desktop bundle (`calibre-mcp-v1.9.0.mcpb`).
+- **Canon Coverage page** (`/canon`): gap analysis vs Gutenberg Top 100 (live), Nobel laureates (all 116, live API), Delphi Classics catalog (1020-edition snapshot), and pasted lists — with buy/source hints and per-author shop links.
+- **Collection contents engine**: Delphi-style Complete Works omnibuses get TOC indexing (69 works in Gaskell, 125 in Holmes) — contained stories are searchable ("wisteria lodge" finds its story) and count toward canon coverage, never as fake books.
+- **Writes with the GUI open**: add/update/delete/metadata automatically route via the Calibre Content Server when it holds the library (`"via": "content_server"`).
+- **Delphi tab extras**: owned-first tables, A–Z filter, cards/list, sort, and "Who is that?" Wikipedia bios.
+- **Help overhaul**: real markdown rendering, new Guides / Ebooks / Copyright & AI / Content Server / Why E-Reading tabs, plus new `CONTENT_SERVER.md`, `EBOOKS_GUIDE.md`, and 12-chapter `READING_ESSAY.md` docs.
+- **Taxonomy upgrades**: Cards/List toggle + Name/Book-count server-side sort on Authors, Series, Tags, Publishers.
+- **Fixes**: `query_books(recent)` crash, honest `book_count` sorting in series/publisher services.
