@@ -304,7 +304,8 @@ if (-not $SkipSidecar -and -not $SkipNsis) {
                 $health = $null
             }
         }
-        if (-not $health) {
+        try {
+            if (-not $health) {
             Write-Fail '/health request failed -- sidecar did not start' `
                 "Could not reach http://127.0.0.1:$Port/health after 90s warmup." `
                 'Check for import errors: run the exe manually in a terminal and inspect stderr. Common causes: missing hiddenimports in .spec, wrong PORT env var, cachetools/joserfc missing.'
