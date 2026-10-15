@@ -3,6 +3,7 @@
 import { listLibraries, switchLibrary } from '@/common/api';
 import {
   Activity,
+  Award,
   BookMarked,
   BookOpen,
   BookmarkCheck,
@@ -74,6 +75,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/rag', label: 'Semantic Search', icon: Sparkles },
       { href: '/collections', label: 'Collections', icon: BookmarkCheck },
       { href: '/curated', label: 'Curated', icon: FlaskConical },
+      { href: '/canon', label: 'Canon Coverage', icon: Award },
       { href: '/reading', label: 'Reading & Priorities', icon: TrendingUp },
       { href: '/import', label: 'Import', icon: Upload },
       { href: '/export', label: 'Export', icon: Download },

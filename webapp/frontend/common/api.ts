@@ -508,6 +508,54 @@ export async function listSeries(params?: {
   };
 }
 
+export interface CanonEntry {
+  title?: string;
+  name?: string;
+  author?: string;
+  year?: number | null;
+  rank?: number | null;
+  gutenberg_id?: number | null;
+  downloads?: number | null;
+  motivation?: string;
+  owned: boolean;
+  evidence?: { id?: number | null; title?: string; name?: string }[];
+}
+
+export interface CanonResult {
+  success: boolean;
+  operation: string;
+  canon: string;
+  total: number;
+  owned_count: number;
+  missing_count: number;
+  coverage_pct: number;
+  owned: CanonEntry[];
+  missing: CanonEntry[];
+  error?: string;
+}
+
+async function fetchCanon(path: string, init?: RequestInit): Promise<CanonResult> {
+  const response = await fetch(`${getBaseUrl()}${path}`, init);
+  if (!response.ok) throw new Error(`Canon request failed: ${response.statusText}`);
+  return response.json();
+}
+
+export function canonGutenbergTop100(limit = 100): Promise<CanonResult> {
+  return fetchCanon(`/api/canon/gutenberg-top100?limit=${limit}`);
+}
+
+export function canonNobelLaureates(): Promise<CanonResult> {
+  return fetchCanon('/api/canon/nobel-laureates');
+}
+
+export function canonCheckList(items: { title: string; author?: string }[]): Promise<CanonResult> {
+  return fetchCanon('/api/canon/check-list', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items }),
+  });
+}
+
 export async function getSeriesBooks(
   seriesId: number,
   params?: { limit?: number; offset?: number },
