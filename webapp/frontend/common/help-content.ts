@@ -154,6 +154,41 @@ Reads never contend: search, browse, RAG, and exports work regardless of what Ca
 Full write-ups: \`docs/Troubleshooting.md\`, \`docs/ONBOARDING.md\`, \`docs/Configuration.md\`.
 `,
   },
+  contentServer: {
+    title: 'Content Server',
+    content: `
+## What it is
+
+The webserver built into the Calibre GUI (Preferences → Sharing over the net).
+On this machine it serves all local libraries with a modern browse/read UI:
+sidebar (Home, Search, Downloaded books, Authors/Series/Formats/Publisher/Rating/Tags/Published,
+Virtual libraries, Settings), Continue-reading and Newly-added cover shelves, a library
+chip chooser, per-user accounts, and an in-browser reader.
+
+## Why it matters here
+
+Only one program may write to \`metadata.db\` directly. When the Calibre GUI is open,
+every calibre-mcp write (add, metadata update, delete, online-metadata apply) automatically
+goes through the Content Server instead — no action needed on your part.
+
+One-time setup: enable Sharing (+ autostart) in Calibre, then put the server URL and the
+sharing username/password into the repo \`.env\` as \`CALIBRE_SERVER_URL\`,
+\`CALIBRE_USERNAME\`, \`CALIBRE_PASSWORD\` and restart the backend.
+
+## How to tell which route was used
+
+Write results report \`"via": "direct"\` (GUI was closed) or
+\`"via": "content_server"\` (GUI was open). Our own imports appear on the server's
+Newly-added shelf within seconds.
+
+## Manual use
+
+Browse/read at the server URL from any device on your network. With
+\`calibredb --with-library <url> --username … --password …\` you get the same
+add/update/delete verbs the tools use — see \`docs/CONTENT_SERVER.md\` for recipes,
+the full fallback table, and the UI ideas we are watching to copy back.
+`,
+  },
   calibre: {
     title: 'About Calibre',
     content: `

@@ -25,6 +25,7 @@
 | Webapp | [`WEBAPP_IMPLEMENTATION_GUIDE.md`](WEBAPP_IMPLEMENTATION_GUIDE.md), [`WEBAPP_RECOMMENDATION.md`](WEBAPP_RECOMMENDATION.md) |
 | MCPB / distribution | [`mcpb-packaging/README.md`](mcpb-packaging/README.md) |
 | Troubleshooting | [`Troubleshooting.md`](Troubleshooting.md), [`VERIFY_SERVER_LOAD.md`](VERIFY_SERVER_LOAD.md) |
+| Content Server setup, integration, watchlist | [`CONTENT_SERVER.md`](CONTENT_SERVER.md), in-app Help → Content Server |
 | Contribute | [`CONTRIBUTING.md`](../CONTRIBUTING.md), [`development/README.md`](development/README.md) |
 
 ---
