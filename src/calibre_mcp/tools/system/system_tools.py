@@ -353,7 +353,7 @@ async def status(level: StatusLevel = StatusLevel.BASIC, focus: str | None = Non
         system_info = {
             "platform": platform.system(),
             "python_version": sys.version,
-            "calibremcp_version": "1.9.0",
+            "calibremcp_version": "1.10.0",
             "timestamp": datetime.now().isoformat(),
         }
 
