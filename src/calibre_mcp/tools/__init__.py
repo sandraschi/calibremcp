@@ -189,6 +189,7 @@ def register_tools(mcp: Any) -> None:
         importlib.import_module("calibre_mcp.tools.publishers")
         importlib.import_module("calibre_mcp.tools.series")
         importlib.import_module("calibre_mcp.tools.tags")
+        importlib.import_module("calibre_mcp.tools.canon")
 
         import_time = time.time() - import_start
         logger.info(f"Metadata/tags/authors loaded in {import_time:.2f}s")
