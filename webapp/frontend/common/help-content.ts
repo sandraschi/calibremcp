@@ -303,8 +303,8 @@ reading queues, one-click reader.
 
 ## The full essay
 
-Ten chapters — mainframes, wilderness years, Kindle detonation, DRM saga, E-ink vs glass,
-psychology, commerce, culture, QoL, and where AI takes it:
+Twelve chapters — mainframes, wilderness years, Kindle detonation, DRM saga, E-ink vs glass,
+psychology, commerce, two readers, bibliophilia, culture, QoL, and where AI takes it:
 [READING_ESSAY.md](https://github.com/sandraschi/calibremcp/blob/master/docs/READING_ESSAY.md).
 
 Talk back: [GitHub Discussions](https://github.com/sandraschi/calibremcp/discussions) for

@@ -163,7 +163,49 @@ never losing your place. Each is minor. Together they are why even paper
 loyalists keep a reader in their bag. Our webapp leans into exactly these:
 search-inside, semantic "books about X", reading queues, one-click reader.
 
-## 10. Where this is going
+## 10. Two readers, one file
+
+An ebook means opposite things at opposite ends of money. Picture a poor
+student in Bangalore: one secondhand Android phone, metered data, no bookshop
+within reach stocking what she needs. For her the ebook is *access itself* —
+a full university library compressed into a device she already owns, priced at
+zero via Gutenberg, IA, or the grey channels. Format snobbery is a luxury she
+cannot afford and does not need; a badly OCR'd PDF that teaches her Python
+beats the printed edition she will never touch.
+
+Picture the opposite: a literature professor with floor-to-ceiling shelves, ten
+out of ten on the bibliophile scale. He will keep buying dead-wood books
+forever — signed firsts, fine press, the smell — and no argument about
+convenience will move him a millimeter, because for him the book was never
+primarily a delivery vehicle for text. It is furniture, memory palace, tribe
+badge, retirement fund.
+
+Both are rational. The file serves the student; the object serves the
+professor. The industry's eternal mistake is designing for one of them while
+lecturing the other. Calibre, bless it, serves both: the same tool that
+dedupes 10,000 grey PDFs also catalogs a first-edition shelf (photograph the
+spines, OCR them into inventory — the poor man's rare-book catalog).
+
+## 11. The beautiful object (bibliophilia, or reading as a rich man's hobby)
+
+Some books are not for reading. A Gutenberg bible leaf, a Kelmscott Chaucer, a
+first-edition *Scarlet Pimpernel* with the dust jacket intact — these are
+sculptures that happen to contain text, and their market behaves like art, not
+publishing: scarcity, provenance, condition, auction drama. First-edition
+collecting is a rich person's hobby the way yacht racing is a sport —
+technically open to all, practically gated by money.
+
+This is worth saying plainly because it defuses the paper-vs-screen holy war:
+the people who will never give up paper *were never arguing about reading*.
+They are arguing about objects, and objects are lovely. Let them have it.
+Meanwhile the illuminated manuscript — the actual pinnacle of the book as
+object, vellum and gold leaf — survives today mostly as *pixels*: the Vatican,
+the BnF's Gallica, the British Library, and Switzerland's e-codices have put
+thousands of them on the web in higher fidelity than any museum vitrine
+allows. The most beautiful books ever made are now ebooks. Nobody planned
+that irony; enjoy it.
+
+## 12. Where this is going
 
 Three currents, no predictions beyond them:
 

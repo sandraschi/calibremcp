@@ -63,6 +63,40 @@ and `media_research_book` query several of them):
 - **Crossref / DOI** — papers and non-fiction with DOIs (pairs with arXiv imports)
 - **ISBNdb** — commercial ISBN database (free tier limited)
 
+## When no ebook exists: scan it yourself
+
+Most of the world's books were never digitized. If yours is one of them, the
+pipeline is: **scan → OCR → clean → import**. Two schools:
+
+- **Non-destructive**: overhead scanner (CZUR-style) or phone rig + flat pages;
+  slower, book survives. Fine for occasional use.
+- ***Jisui* (Japanese 裁断, "cutting")**: guillotine the spine off, sheet-feed
+  the pages, recycle the corpse. Blasphemy to bibliophiles, *by far* the fastest
+  path to a clean scan — hence standard practice in Japan's self-scanning scene.
+  Only for replaceable paperbacks you own, obviously.
+
+Then OCR (Tesseract for Latin scripts, specialized engines for CJK), clean with
+[ScanTailor](https://scantailor.org), and import the result like any other file.
+An hour of scanning beats a lifetime of not having the book.
+
+## Megaprojects & illuminated manuscripts
+
+The heavy digitization lifting is done by institutions, and their output is
+free to browse:
+
+- **Google Books / HathiTrust** — tens of millions of scans; HathiTrust is the
+  library-consortium reading room for them.
+- **Internet Archive** — open stacks + controlled lending at archive.org.
+- **[Gallica (BnF)](https://gallica.bnf.fr)** — France's national digital library, superb for French texts.
+- **[e-codices](https://www.e-codices.ch)** — Swiss medieval manuscripts.
+- **Vatican Library digitization** — illuminated manuscripts online.
+- **British Library digitised manuscripts** — same, English holdings.
+- **[DNB](https://www.dnb.de)** — German publishing record + growing digital access.
+
+The most beautiful books ever made — vellum, gold leaf, marginalia — now live
+as pixels in higher fidelity than any museum vitrine allows. See the essay's
+bibliophilia chapter for the full irony.
+
 ## Formats refresher
 
 EPUB (reflowable, first choice) · KEPUB (Kobo tweaks) · AZW3/KFX (Kindle) ·
