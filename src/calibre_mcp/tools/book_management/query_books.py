@@ -307,10 +307,14 @@ async def query_books(
             from calibre_mcp.services.book_service import book_service
 
             books = book_service.get_recent_books(limit=limit)
+            # BookService._to_response returns plain dicts (not Pydantic
+            # models); accept either shape defensively.
+            items = [b.dict() if hasattr(b, "dict") else b for b in books]
             return {
                 "success": True,
-                "books": [book.dict() for book in books],
-                "total": len(books),
+                "books": items,
+                "items": items,
+                "total": len(items),
                 "limit": limit,
             }
 

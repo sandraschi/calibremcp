@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import or_
+from sqlalchemy import desc, or_
 from sqlalchemy.orm import joinedload
 
 from ..db.database import DatabaseService
@@ -128,6 +128,37 @@ class BookService(BaseService[Book, BookCreate, BookUpdate, BookResponse]):
                 raise NotFoundError(f"Book with ID {book_id} not found")
 
             return self._to_response(book)
+
+    def get_recent_books(self, limit: int = 10) -> list[dict[str, Any]]:
+        """
+        Get the most recently added books, ordered by addition date.
+
+        Args:
+            limit: Maximum number of books to return (clamped to 1-1000)
+
+        Returns:
+            List of book response dicts (same shape as ``_to_response``),
+            most recent first.
+        """
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            limit = 10
+        limit = max(1, min(limit, 1000))
+        with self._get_db_session() as session:
+            books = (
+                session.query(Book)
+                .options(
+                    joinedload(Book.authors),
+                    joinedload(Book.tags),
+                    joinedload(Book.series),
+                    joinedload(Book.data),
+                )
+                .order_by(desc(Book.timestamp))
+                .limit(limit)
+                .all()
+            )
+            return [self._to_response(book) for book in books]
 
     def get_all(
         self,
