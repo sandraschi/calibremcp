@@ -189,12 +189,72 @@ add/update/delete verbs the tools use — see \`docs/CONTENT_SERVER.md\` for rec
 the full fallback table, and the UI ideas we are watching to copy back.
 `,
   },
+  ebooks: {
+    title: 'Ebooks Guide',
+    content: `
+## Free sources
+
+**Project Gutenberg** (70k+ public-domain), **Standard Ebooks** (polished Gutenberg editions),
+**Internet Archive texts**, **Open Library** (borrowable scans + metadata), **Wikisource**,
+**Projekt Gutenberg-DE** and **Zeno.org** for German texts. Our Import page fetches
+Gutenberg books directly from ebook number or URL.
+
+## Commercial stores
+
+Kindle (largest, DRM-friction), Kobo, Google Play Books, Apple Books, Thalia/Hugendubel/ebook.de
+for DE. Prefer **DRM-free** when possible: O'Reilly, No Starch, Manning, Leanpub,
+Smashwords/D2D, Tor/Forge — buy, download, import, done.
+
+## Communities
+
+**MobileRead Forums** (Calibre's nerve center), r/ebooks, Goodreads (+ export your shelves),
+LibraryThing, BookWyrm (federated), Hardcover.app, **ISFDB** for SF/F series data,
+Grand Comics Database for comics.
+
+## Bibliography tools
+
+Open Library API, Google Books API, WorldCat, DNB (German publishing), Library of Congress,
+VIAF, Crossref/DOI. The "Download metadata" button and \`media_research_book\` query several.
+
+Full map with import notes: \`docs/EBOOKS_GUIDE.md\`.
+`,
+  },
   calibre: {
     title: 'About Calibre',
     content: `
 ## What is Calibre?
 
 Calibre is a free, open-source e-book library management application by Kovid Goyal. It organizes, converts, syncs, and manages e-books across devices and formats. Used by millions for personal and institutional libraries.
+
+## History
+
+- **31 Oct 2006** — Sony launches the PRS-500 reader; the same day Kovid Goyal starts
+  **libprs500**, Linux tools for the new device, reverse-engineering Sony's BBeB format
+  with help from the MobileRead forums.
+- **2008** — Renamed **calibre** as it outgrows "a collection of routines" into a full
+  library system with a graphical interface.
+- **The 1.x–6.x years** — Becomes the universal e-book Swiss knife: conversion between
+  nearly all formats, metadata editing, device sync, news fetching, and its own reader.
+- **Content-server era** — The built-in web server turns any library into a browsable,
+  readable website (see the Content Server tab).
+- **June 2026 (9.10)** — The Content Server gets its modern UI + PWA support; the
+  "suspiciously good" redesign we keep stealing ideas from.
+- **Now (9.16, Oct 2026)** — The version this repo integrates with.
+
+Twenty years, one maintainer-led project, no acquisition, no pivot: the reason your
+library still opens.
+
+## Competitors (short list, honestly)
+
+No one covers Calibre's full scope (manage + convert + edit + serve + sync) in one
+open-source app. Partial alternatives by job:
+
+- **Same job, commercial**: Alfa Ebooks Manager (Windows, paid) — the only direct analogue.
+- **Serve a Calibre library**: calibre-web / COPS — companions, not replacements (they sit on your library).
+- **Comics-first servers**: Kavita, Komga, Stump.
+- **Audiobooks**: Audiobookshelf.
+- **Store silos**: Kindle / Kobo / Apple Books apps — reading endpoints, not managers.
+- **Readers only**: KOReader (devices), Thorium, Foliate, SumatraPDF.
 
 ## Library Structure
 
