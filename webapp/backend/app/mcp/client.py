@@ -245,6 +245,7 @@ class MCPClient:
                     "manage_comments": "calibre_mcp.tools.comments.manage_comments",
                     # Canon coverage (gap analysis)
                     "canon_coverage": "calibre_mcp.tools.canon.manage_canon:canon_coverage",
+                    "inspect_contents": "calibre_mcp.tools.contents.manage_contents:inspect_contents",
                     # File operations
                     "manage_files": "calibre_mcp.tools.files.manage_files",
                     # Analysis
@@ -546,6 +547,7 @@ def _preload_tools():
         "manage_comments": "calibre_mcp.tools.comments.manage_comments",
         # Canon coverage (gap analysis)
         "canon_coverage": "calibre_mcp.tools.canon.manage_canon:canon_coverage",
+        "inspect_contents": "calibre_mcp.tools.contents.manage_contents:inspect_contents",
         # File operations
         "manage_files": "calibre_mcp.tools.files.manage_files",
         # Analysis
