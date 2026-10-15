@@ -397,11 +397,15 @@ export async function listAuthors(params?: {
   query?: string;
   limit?: number;
   offset?: number;
+  sort_by?: 'name' | 'book_count';
+  sort_order?: 'asc' | 'desc';
 }): Promise<{ items: AuthorItem[]; total: number }> {
   const searchParams = new URLSearchParams();
   if (params?.query) searchParams.set('query', params.query);
   if (params?.limit) searchParams.set('limit', params.limit.toString());
   if (params?.offset) searchParams.set('offset', params.offset.toString());
+  if (params?.sort_by) searchParams.set('sort_by', params.sort_by);
+  if (params?.sort_order) searchParams.set('sort_order', params.sort_order);
   const response = await fetch(`${getBaseUrl()}/api/authors?${searchParams}`);
   if (!response.ok) throw new Error('Failed to fetch authors');
   const data = await response.json();
@@ -418,6 +422,8 @@ export async function listPublishers(params?: {
   query?: string;
   limit?: number;
   offset?: number;
+  sort_by?: 'name' | 'book_count';
+  sort_order?: 'asc' | 'desc';
 }): Promise<{
   items: PublisherItem[];
   total: number;
@@ -428,6 +434,8 @@ export async function listPublishers(params?: {
   if (params?.query) searchParams.set('query', params.query);
   if (params?.limit) searchParams.set('limit', params.limit.toString());
   if (params?.offset) searchParams.set('offset', params.offset.toString());
+  if (params?.sort_by) searchParams.set('sort_by', params.sort_by);
+  if (params?.sort_order) searchParams.set('sort_order', params.sort_order);
   const response = await fetch(`${getBaseUrl()}/api/publishers?${searchParams}`);
   if (!response.ok) {
     let detail = '';
@@ -462,6 +470,8 @@ export async function listSeries(params?: {
   limit?: number;
   offset?: number;
   letter?: string;
+  sort_by?: 'name' | 'book_count';
+  sort_order?: 'asc' | 'desc';
 }): Promise<{
   items: SeriesItem[];
   total: number;
@@ -473,6 +483,8 @@ export async function listSeries(params?: {
   if (params?.limit) searchParams.set('limit', params.limit.toString());
   if (params?.offset) searchParams.set('offset', params.offset.toString());
   if (params?.letter) searchParams.set('letter', params.letter);
+  if (params?.sort_by) searchParams.set('sort_by', params.sort_by);
+  if (params?.sort_order) searchParams.set('sort_order', params.sort_order);
   const response = await fetch(`${getBaseUrl()}/api/series?${searchParams}`);
   if (!response.ok) {
     let detail = '';
