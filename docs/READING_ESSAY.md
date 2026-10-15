@@ -134,6 +134,11 @@ Follow the money and the last twenty years make sense:
 - **Germany's special case**: the *Buchpreisbindung* (fixed book price law)
   covers ebooks too — no Amazon-style race to the bottom, which is why Thalia
   and Hugendubel are still standing and your local bookshop still exists.
+  But every shield has an edge: fixed prices mean a student, a nurse, anyone
+  neither rich nor stupid, faces the same €24.99 for a new ebook as everyone
+  else — and learns within minutes that Anna has it for free. The law meant to
+  protect German publishers quietly trains price-sensitive readers to leave the
+  legal market entirely. A footgun, painted as consumer protection.
 
 ## 8. Reading in public went private (the culture bit)
 

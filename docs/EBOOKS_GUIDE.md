@@ -89,6 +89,12 @@ No mirror URLs are listed here on purpose: they move constantly, and their
 legality depends on your jurisdiction. Treat grey-library files as exactly what
 they are — convenient, legally grey, and periodically vanishing.
 
+Demand-side honesty: rigid pricing *creates* grey demand. Germany's fixed book
+price (*Buchpreisbindung*) means every reader faces the same €24.99 — including
+readers who are neither rich nor stupid. Some of them buy less; some learn
+about Anna. Publishers lobbying to keep prices fixed while fighting the
+libraries those prices drive readers to is a footgun, not a strategy.
+
 ## Copyright basics for library owners
 
 - Owning a **file** is not owning the **rights**. Reading, limited lending, and
