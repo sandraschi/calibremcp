@@ -34,6 +34,7 @@ number or URL and the file lands in your library with metadata attached.
 | O'Reilly, No Starch, Manning, Leanpub | Tech publishers; largely **DRM-free** — buy, download, import, done |
 | Smashwords / Draft2Digital | Indie/authors-direct; usually DRM-free |
 | Tor/Forge (Macmillan) | Major SFF publisher selling DRM-free ebooks since ~2012 |
+| [Delphi Classics](https://www.delphiclassics.com) | Complete Works editions: entire oeuvres, illustrated, a few dollars each — the canon-building cheat code (proofread; blooper rate near zero) |
 
 Rule of thumb: DRM-free stores import in one step; DRM-locked stores add
 friction by design. Prefer DRM-free when you have the choice.

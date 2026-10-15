@@ -9,6 +9,7 @@ import {
   smartSearch,
 } from '@/common/api';
 import { BookGrid } from '@/components/books/book-grid';
+import { ContentsSearchStrip } from '@/components/books/contents-search';
 import { SearchBar } from '@/components/search/search-bar';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -180,6 +181,7 @@ function KeywordTab() {
               <p>No books found matching your search criteria.</p>
             </div>
           )}
+          {query?.trim() && <ContentsSearchStrip query={query} />}
         </>
       )}
       {!hasSearchParams && (

@@ -208,10 +208,25 @@ function CanonPageInner() {
   return (
     <div className="container mx-auto p-6 max-w-5xl">
       <h1 className="text-3xl font-bold mb-2 text-slate-100">Canon Coverage</h1>
-      <p className="text-sm text-slate-400 mb-6">
+      <p className="text-sm text-slate-400 mb-4">
         What the canon holds that your shelves don&apos;t — the gap finder. Lists are fetched live
         or pasted by you; nothing is invented.
       </p>
+      <div className="mb-6 rounded-lg border border-amber/50 bg-amber-500/10 p-4">
+        <p className="text-sm text-slate-200">
+          <span className="font-semibold text-amber">Building on a budget?</span>{' '}
+          <a
+            href="https://www.delphiclassics.com"
+            target="_blank"
+            rel="noreferrer"
+            className="text-amber hover:underline font-medium"
+          >
+            Delphi Classics Complete Works
+          </a>{' '}
+          — entire oeuvres in single illustrated files for a few dollars each (Gaskell: 69 works in
+          one file). Indexed Delphi volumes count toward your coverage automatically, work by work.
+        </p>
+      </div>
       <CanonTabs canon={canon} />
 
       {canon === 'paste' && (

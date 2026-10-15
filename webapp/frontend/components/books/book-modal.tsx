@@ -17,6 +17,7 @@ import {
 } from '@/common/book-external-links';
 import { AuthorLinks } from '@/components/authors/author-links';
 import { BookManagePanel } from '@/components/books/book-manage-panel';
+import { CollectionWorks } from '@/components/books/collection-works';
 import {
   BookOpen,
   ExternalLink,
@@ -565,6 +566,8 @@ export function BookModal({ book, onClose }: BookModalProps) {
             )}
           </div>
         </div>
+
+        <CollectionWorks bookId={book.id} />
       </div>
 
       {/* Embedded Reader Overlay */}
