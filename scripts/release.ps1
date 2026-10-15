@@ -290,22 +290,26 @@ if (-not $SkipSidecar -and -not $SkipNsis) {
                 'Check the PyInstaller spec file output path matches dist\$BackendExeName.'
         }
 
-        Write-Info "Spawning sidecar on port $Port (20s warmup)..."
+        Write-Info "Spawning sidecar on port $Port (up to 90s warmup; frozen cold boot needs ~30s)..."
         $env:PORT = "$Port"
         Set-Item -Path "Env:$TauriEnvVar" -Value '1'
         $proc = Start-Process $sidecarExe -PassThru -WindowStyle Hidden
-        Start-Sleep -Seconds 20
-
-        try {
-            # /health check
+        $health = $null
+        for ($i = 0; $i -lt 18; $i++) {
+            Start-Sleep -Seconds 5
             try {
                 $health = Invoke-WebRequest "http://127.0.0.1:$Port/health" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+                break
             } catch {
-                Write-Fail '/health request failed -- sidecar did not start' `
-                    "Could not reach http://127.0.0.1:$Port/health after 20s warmup." `
-                    'Check for import errors: run the exe manually in a terminal and inspect stderr. Common causes: missing hiddenimports in .spec, wrong PORT env var, cachetools/joserfc missing.'
+                $health = $null
             }
-            if ($health.StatusCode -ne 200) {
+        }
+        if (-not $health) {
+            Write-Fail '/health request failed -- sidecar did not start' `
+                "Could not reach http://127.0.0.1:$Port/health after 90s warmup." `
+                'Check for import errors: run the exe manually in a terminal and inspect stderr. Common causes: missing hiddenimports in .spec, wrong PORT env var, cachetools/joserfc missing.'
+        }
+        if ($health.StatusCode -ne 200) {
                 Write-Fail "/health returned HTTP $($health.StatusCode)" `
                     'The sidecar started but /health is not returning 200.' `
                     'Check your health endpoint implementation returns status 200 with a JSON body.'
