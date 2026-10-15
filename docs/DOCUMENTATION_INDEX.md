@@ -9,6 +9,7 @@
 | If you want to… | Start here |
 |-----------------|------------|
 | Install (desktop or dev) | [`INSTALL.md`](../INSTALL.md), [`TAURI.md`](TAURI.md) |
+| First run: Sharing setup, first import, ports | [`ONBOARDING.md`](ONBOARDING.md), in-app Help → Guides |
 | Understand what Calibre is and how we use it | [`ABOUT_CALIBRE.md`](ABOUT_CALIBRE.md) |
 | Understand calibre-web and how it relates | [`ABOUT_CALIBRE_WEB.md`](ABOUT_CALIBRE_WEB.md) |
 | Learn about our Calibre plugins and roadmap | [`ABOUT_PLUGINS.md`](ABOUT_PLUGINS.md) |
