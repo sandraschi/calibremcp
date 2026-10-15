@@ -5,7 +5,6 @@ This module provides functionality to update a book's metadata and properties
 in the Calibre library. Uses calibredb CLI or BookService for proper integration.
 """
 
-import asyncio
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -218,24 +217,20 @@ async def update_book_helper(
                 cmd.extend(["--cover", str(cover_path_obj)])
                 updated_fields.append("cover")
 
-            # Execute calibredb command
+            # Execute calibredb command (direct, with content-server fallback
+            # while the GUI holds the library).
             if len(cmd) > 5:  # More than just base command + book_id + library_path
-                logger.debug(f"Executing calibredb command: {' '.join(cmd)}")
+                from .calibredb_runner import run_calibredb
 
-                process = await asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
+                subcmd = [*cmd[1:3], *cmd[5:]]
+                result = await run_calibredb(subcmd, lib_path=str(lib_path))
 
-                stdout, stderr = await process.communicate()
-
-                if process.returncode != 0:
-                    error_msg = stderr.decode("utf-8", errors="replace") if stderr else "Unknown error"
+                if result.returncode != 0:
+                    error_msg = result.stderr or "Unknown error"
                     logger.error(f"calibredb set_metadata failed: {error_msg}")
                     raise MCPServerError(f"Failed to update book metadata: {error_msg}")
 
-                logger.info(f"Successfully updated book {book_id} via calibredb")
+                logger.info(f"Successfully updated book {book_id} via calibredb ({result.via})")
 
         # Use BookService for status and progress updates (custom fields)
         if book_id_int is not None and (status is not None or progress is not None):

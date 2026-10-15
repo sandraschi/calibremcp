@@ -5,7 +5,6 @@ This module provides functionality to add new books to the Calibre library.
 Uses calibredb CLI to properly integrate with Calibre's directory structure and database.
 """
 
-import asyncio
 import shutil
 from pathlib import Path
 from typing import Any
@@ -35,60 +34,6 @@ def _find_calibredb() -> str | None:
 
     logger.warning("calibredb not found in PATH")
     return None
-
-
-_ADD_TIMEOUT_SECONDS = 180
-
-# calibredb stderr markers meaning "another program holds the library"
-# (GUI / calibre-server). In that case --library-path always fails and the
-# only supported route is --with-library against the content server.
-_LIBRARY_LOCK_MARKERS = (
-    "another calibre program",
-    "is running",
-    "database is locked",
-    "could not lock",
-)
-
-
-def _content_server_target() -> tuple[str | None, str | None, str | None]:
-    """Content-server URL + credentials from config (.env).
-
-    Returns (url, username, password); url is None when not configured.
-    """
-    try:
-        config = CalibreConfig.load_config()
-        url = (config.server_url or "").rstrip("/")
-        if not url:
-            return None, None, None
-        return url, config.username, config.password
-    except Exception as e:
-        logger.debug(f"Could not load content-server config: {e}")
-        return None, None, None
-
-
-async def _run_calibredb_add(cmd: list[str]) -> tuple[int, str, str]:
-    """Run one calibredb add invocation. Returns (returncode, stdout, stderr)."""
-    process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    try:
-        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=_ADD_TIMEOUT_SECONDS)
-    except TimeoutError as e:
-        try:
-            process.kill()
-        except ProcessLookupError:
-            pass
-        raise MCPServerError(
-            f"calibredb add timed out after {_ADD_TIMEOUT_SECONDS}s. "
-            "The library may be on a slow/network drive or under heavy load."
-        ) from e
-    return (
-        process.returncode or 0,
-        stdout.decode("utf-8", errors="replace") if stdout else "",
-        stderr.decode("utf-8", errors="replace") if stderr else "",
-    )
 
 
 def _get_library_path(library_path: str | None = None) -> Path:
@@ -244,41 +189,21 @@ async def add_book_helper(
         if convert_to:
             cmd.extend(["--convert", convert_to.upper()])
 
-        via = "direct"
-        logger.debug(f"Executing calibredb command: {' '.join([*cmd, '--library-path', str(lib_path)])}")
+        from .calibredb_runner import run_calibredb
 
-        # Route 1: direct --library-path (fast; fails while the GUI/server
-        # holds the library).
-        returncode, stdout, stderr = await _run_calibredb_add([*cmd, "--library-path", str(lib_path)])
+        # Direct --library-path first; content-server fallback when the GUI
+        # holds the library (shared runner handles both routes + timeout).
+        result = await run_calibredb(cmd[1:], lib_path=str(lib_path))
+        via = result.via
 
-        if returncode != 0 and any(m in stderr.lower() for m in _LIBRARY_LOCK_MARKERS):
-            # Route 2: content server (--with-library). This is the only
-            # supported route while the GUI holds the library open.
-            server_url, username, password = _content_server_target()
-            if not server_url:
-                logger.error(f"calibredb add failed (library locked, no content server configured): {stderr}")
-                raise MCPServerError(
-                    "Failed to add book: library is locked by another Calibre program and no "
-                    "content server is configured. Set CALIBRE_SERVER_URL (plus CALIBRE_USERNAME/ "
-                    f"CALIBRE_PASSWORD if the server needs auth). calibredb said: {stderr or 'Unknown error'}"
-                )
-            server_cmd = [calibredb, "--with-library", server_url]
-            if username:
-                server_cmd += ["--username", username]
-            if password:
-                server_cmd += ["--password", password]
-            logger.info(f"Library locked by running Calibre; retrying add via content server {server_url}")
-            via = "content_server"
-            returncode, stdout, stderr = await _run_calibredb_add([*server_cmd, *cmd[1:]])
-
-        if returncode != 0:
-            error_msg = stderr or "Unknown error"
-            logger.error(f"calibredb add failed with return code {returncode}: {error_msg}")
+        if result.returncode != 0:
+            error_msg = result.stderr or "Unknown error"
+            logger.error(f"calibredb add failed with return code {result.returncode}: {error_msg}")
             raise MCPServerError(f"Failed to add book: {error_msg}")
 
         # Parse output to get book ID
         # calibredb add outputs: "Added book ids: 123" or "Added book id: 123"
-        output = stdout.strip()
+        output = result.stdout.strip()
         logger.debug(f"calibredb output: {output}")
 
         # Extract book ID from output

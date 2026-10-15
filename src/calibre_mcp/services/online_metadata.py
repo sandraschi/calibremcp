@@ -206,56 +206,37 @@ def apply_online_metadata_for_book(
 
         opf_path.write_text(opf_text, encoding="utf-8")
 
-        set_cmd = [
-            calibredb,
-            f"--with-library={library_path}",
-            "set_metadata",
-            str(book_id),
-            str(opf_path),
-        ]
-        try:
-            proc2 = _cmd(
-                set_cmd,
-                timeout=120,
-                encoding="utf-8",
-                errors="replace",
-            )
-        except subprocess.TimeoutExpired:
-            return {"success": False, "error": "Timed out while applying metadata with calibredb."}
-        except OSError as e:
-            return {"success": False, "error": f"Could not run calibredb: {e}"}
+        # Direct --library-path first; content-server fallback while the GUI
+        # holds the library (shared runner; lazy import avoids a
+        # services<->tools import cycle).
+        from ..tools.book_management.calibredb_runner import run_calibredb_sync
 
-        if proc2.returncode != 0:
-            err = (proc2.stderr or proc2.stdout or "").strip()
-            if "Another calibre program" in err or "another calibre program" in err.lower():
-                return {
-                    "success": False,
-                    "error": "Calibre has the library locked. Close the main Calibre app (or disconnect the Content server) and try again.",
-                }
+        try:
+            applied = run_calibredb_sync(
+                ["set_metadata", str(book_id), str(opf_path)],
+                lib_path=library_path,
+                timeout=120,
+            )
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+        if applied.returncode != 0:
+            err = applied.stderr.strip()
             return {"success": False, "error": err or "calibredb set_metadata failed."}
 
         warnings: list[str] = []
         if include_cover and cover_path.is_file() and cover_path.stat().st_size > 64:
-            cover_cmd = [
-                calibredb,
-                f"--with-library={library_path}",
-                "set_metadata",
-                str(book_id),
-                "--field",
-                f"cover:{cover_path}",
-            ]
             try:
-                proc3 = _cmd(
-                    cover_cmd,
+                cover_res = run_calibredb_sync(
+                    ["set_metadata", str(book_id), "--field", f"cover:{cover_path}"],
+                    lib_path=library_path,
                     timeout=90,
-                    encoding="utf-8",
-                    errors="replace",
                 )
-                if proc3.returncode != 0:
-                    w = (proc3.stderr or proc3.stdout or "").strip()
+                if cover_res.returncode != 0:
+                    w = cover_res.stderr.strip()
                     if w:
                         warnings.append(f"Cover was not updated: {w}")
-            except (subprocess.TimeoutExpired, OSError) as e:
+            except Exception as e:
                 warnings.append(f"Cover step skipped: {e}")
 
         msg = "Metadata was updated from online sources."

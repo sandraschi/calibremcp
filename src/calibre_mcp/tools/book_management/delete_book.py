@@ -5,7 +5,6 @@ This module provides functionality to delete a book from the Calibre library.
 Uses calibredb remove CLI or BookService.delete() for proper integration.
 """
 
-import asyncio
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -155,24 +154,20 @@ async def delete_book_helper(
             else:
                 cmd.append("--dont-delete")  # Keep files, only remove from library
 
-            logger.debug(f"Executing calibredb command: {' '.join(cmd)}")
+            from .calibredb_runner import run_calibredb
 
-            # Execute calibredb remove command
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
+            # Direct --library-path first; content-server fallback while the
+            # GUI holds the library (strip the inline lib selector: the
+            # runner appends the right one per route).
+            result = await run_calibredb([*cmd[1:3], *cmd[5:]], lib_path=str(lib_path))
 
-            stdout, stderr = await process.communicate()
-
-            if process.returncode != 0:
-                error_msg = stderr.decode("utf-8", errors="replace") if stderr else "Unknown error"
+            if result.returncode != 0:
+                error_msg = result.stderr or "Unknown error"
                 logger.error(f"calibredb remove failed: {error_msg}")
                 raise MCPServerError(f"Failed to delete book: {error_msg}")
 
             files_deleted = delete_files
-            logger.info(f"Successfully deleted book {book_id} via calibredb")
+            logger.info(f"Successfully deleted book {book_id} via calibredb ({result.via})")
 
         else:
             # Fallback to BookService if calibredb not available
