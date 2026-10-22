@@ -1,5 +1,8 @@
 ## Calibre MCP v1.10.0 (2026-10-15)
 
+### Governance
+- **GitHub hygiene**: legacy `.md` issue templates migrated to issue forms (`bug_report.yml`, `feature_request.yml` — reproducer required), PR template and contributing guide aligned with the fleet standard (`mcp-central-docs/templates/github-hygiene`).
+
 ### Highlights
 - **Canon Coverage page** (`/canon`): gap analysis vs Gutenberg Top 100 (live), Nobel laureates (all 116, live API), Delphi Classics catalog (1020-edition snapshot), and pasted lists — with buy/source hints and per-author shop links.
 - **Collection contents engine**: Delphi-style Complete Works omnibuses get TOC indexing (69 works in Gaskell, 125 in Holmes) — contained stories are searchable ("wisteria lodge" finds its story) and count toward canon coverage, never as fake books.

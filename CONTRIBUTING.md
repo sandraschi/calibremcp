@@ -87,6 +87,8 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
 Before starting work, please:
 - Check existing issues to avoid duplicates
 - Create an issue describing the problem or feature
+- One issue, one request (two features = two issues)
+- Bug reports must include a reproducer: example book (title + author) or exact query, plus the tool response or traceback. The issue forms enforce this.
 - Wait for maintainer approval before starting work
 
 ### 2. Create a Branch
@@ -119,7 +121,11 @@ uv run pytest tests/ --cov=src/calibre_mcp --cov-report=html
 - Push your branch to your fork
 - Create a pull request with a clear description
 - Link to the related issue
+- Keep diffs small and focused (one concern per PR)
+- No stubs presented as implementations
+- Update CHANGELOG_LATEST.md in the same PR
 - Ensure CI checks pass
+- The maintainer merges - don't merge your own PR
 
 ## Code Standards
 

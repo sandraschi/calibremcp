@@ -1,0 +1,53 @@
+# ADAPT: the "Affected books" section is calibre-specific; replace with whatever
+# artifact reproduces bugs in your repo. Keep requiring a reproducer.
+name: Bug report
+description: Something in the library tools does not work
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please **search existing issues first** — duplicates get closed.
+  - type: input
+    id: version
+    attributes:
+      label: calibre-mcp version / commit
+      placeholder: e.g. v2.4.1 or commit hash
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: e.g. Windows 11, Python 3.13, Calibre 8.x
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Called (tool + operation + arguments...).
+        2. Expected ...
+        3. Got ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+      placeholder: What you expected to happen, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: books
+    attributes:
+      label: Affected books / query
+      description: Title + author of an example book, or the exact search query. Without a reproducer, most reports cannot be reproduced.
+      placeholder: "e.g. Dune by Frank Herbert; query: 'author:Herbert'"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Paste the tool response or traceback.
+      render: shell

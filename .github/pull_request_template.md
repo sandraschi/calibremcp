@@ -1,12 +1,15 @@
 # Calibre MCP Pull Request
 
+<!-- Fleet discipline: linked issue first, one concern per PR, small diffs.
+     The maintainer merges — don't merge your own PR. -->
+
 ## Description
 
 [Provide a brief description of the changes in this pull request]
 
 ## Related Issues
 
-- Fixes # [issue number]
+- Closes # [issue number]
 - Related to # [issue number]
 
 ## Type of Change
@@ -21,10 +24,15 @@ Please check the type of change your PR introduces:
 ## Checklist
 
 - [ ] I have read the [Contributing Guidelines](CONTRIBUTING.md)
+- [ ] Linked issue exists (no drive-by features)
 - [ ] My code follows the project's coding standards
+- [ ] Diff is small and focused (one concern per PR)
+- [ ] No stubs presented as implementations
 - [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] `ruff check` passes; webapp touched? `biome ci` and `tsc -b` pass
 - [ ] I have added/updated necessary documentation
-- [ ] All tests pass
+- [ ] CHANGELOG_LATEST.md updated
+- [ ] All tests pass (`uv run pytest tests/ -v`)
 
 ## Testing
 

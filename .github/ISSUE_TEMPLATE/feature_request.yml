@@ -1,0 +1,46 @@
+# ADAPT: the persona dropdown below fits a library tool; replace options with
+# your repo's user types (or drop the field).
+name: Feature request
+description: A capability, source, or workflow you want
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Please **search existing issues first** — one request per issue, so each can be accepted or rejected on its own.
+  - type: input
+    id: summary
+    attributes:
+      label: One-line summary
+      placeholder: e.g. Goodreads sync for read shelves
+    validations:
+      required: true
+  - type: dropdown
+    id: persona
+    attributes:
+      label: Who is this for?
+      options:
+        - Reader (find and read books)
+        - Librarian (curate, tag, dedupe a big library)
+        - Builder (tooling, API, integrations)
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What should it do?
+      placeholder: "Concrete behavior. For an op: name, inputs, outputs. For a source: what it syncs and how often."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why (your use case)
+      placeholder: What are you trying to do with your library that needs this?
+    validations:
+      required: true
+  - type: textarea
+    id: sketch
+    attributes:
+      label: Implementation sketch (optional)
+      description: Anything you already know — API docs, similar existing ops, the metadata fields involved. Homework here gets things built faster.
