@@ -1,51 +1,57 @@
 {
-  "files": {
-    "ignore": [".next/**", "out/**", "node_modules/**", "test-results/**", "*.tsbuildinfo"]
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "style": {
-        "noNonNullAssertion": "off",
-        "useImportType": "off",
-        "useNumberNamespace": "off",
-        "useSelfClosingElements": "off",
-        "noUnusedTemplateLiteral": "off"
-      },
-      "a11y": {
-        "noSvgWithoutTitle": "off",
-        "useSemanticElements": "off",
-        "useButtonType": "off",
-        "noLabelWithoutControl": "off",
-        "useKeyWithClickEvents": "off"
-      },
-      "suspicious": {
-        "noArrayIndexKey": "off",
-        "noGlobalIsNan": "off"
-      },
-      "security": {
-        "noDangerouslySetInnerHtml": "off"
-      },
-      "correctness": {
-        "useExhaustiveDependencies": "off"
-      },
-      "complexity": {
-        "useOptionalChain": "off",
-        "noUselessFragments": "off"
-      }
-    }
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 100
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "trailingCommas": "all"
-    }
-  }
+	"files": {
+		"ignore": [
+			".next/**",
+			"out/**",
+			"node_modules/**",
+			"test-results/**",
+			"*.tsbuildinfo"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"noNonNullAssertion": "off",
+				"useImportType": "off",
+				"useNumberNamespace": "off",
+				"useSelfClosingElements": "off",
+				"noUnusedTemplateLiteral": "off"
+			},
+			"a11y": {
+				"noSvgWithoutTitle": "off",
+				"useSemanticElements": "off",
+				"useButtonType": "off",
+				"noLabelWithoutControl": "off",
+				"useKeyWithClickEvents": "off"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "off",
+				"noGlobalIsNan": "off"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "off"
+			},
+			"correctness": {
+				"useExhaustiveDependencies": "off"
+			},
+			"complexity": {
+				"useOptionalChain": "off",
+				"noUselessFragments": "off"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "space",
+		"indentWidth": 2,
+		"lineWidth": 100
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"trailingCommas": "all"
+		}
+	}
 }
