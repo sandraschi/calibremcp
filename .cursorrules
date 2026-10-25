@@ -43,7 +43,7 @@
 - Design patterns for MCP servers and development
 
 ### Projects (`docs/projects/`)
-- myai, veogen, mywienerlinien, autohotkey
+- myai, veogen, publictransport-mcp, autohotkey
 
 ### Monitoring (`monitoring/`)
 - Prometheus/Grafana/Loki stack
