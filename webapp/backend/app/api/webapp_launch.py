@@ -26,7 +26,7 @@ WEBAPP_LAUNCH_MAP: dict[int, tuple[str, str]] = {
     10718: ("meta_mcp", "start.bat"),
     10720: ("calibre-mcp", "webapp/start.bat"),
     10721: ("calibre-mcp", "webapp/start.bat"),
-    10722: ("mywienerlinien", "start.ps1"),
+    10722: ("publictransport-mcp", "start.ps1"),
     10724: ("mcp-studio", "start.bat"),
     10726: ("games-app", "START_GAMES.ps1"),
     10728: ("ring-mcp", "webapp/run-webapp.bat"),
@@ -65,7 +65,7 @@ def _run_start_script(repo_dir: str, script_rel: str) -> None:
     cmd: list[str]
     if script_path.suffix.lower() == ".ps1":
         cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script_path)]
-        if repo_dir == "mywienerlinien":
+        if repo_dir in ("publictransport-mcp", "publictransport-mcp"):
             cmd.append("start")
     else:
         cmd = ["cmd.exe", "/c", str(script_path)]
