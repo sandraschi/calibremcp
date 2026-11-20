@@ -16,4 +16,4 @@ if (-not (Test-Path $srcPath)) {
 Write-Host "[INFO] Starting backend with PYTHONPATH=$srcPath" -ForegroundColor Green
 Write-Host "[INFO] Set CALIBRE_LOG_ACCESS_VERBOSE=1 to restore per-request access logs" -ForegroundColor Gray
 Set-Location $PSScriptRoot
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 10720
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 10720
