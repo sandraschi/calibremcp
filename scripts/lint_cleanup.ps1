@@ -122,7 +122,7 @@ Set-Content $bt2Py -Value $content -NoNewline
 $main2Py = "$srcDir\calibre_mcp\server\main.py"
 if (Test-Path $main2Py) {
     $content = Get-Content $main2Py -Raw
-    $content = $content -replace 'host="0\.0\.0\.0"', 'host="0.0.0.0"  # noqa: S104'
+    $content = $content -replace 'host="0\.0\.0\.0"', 'host="127.0.0.1"'
     Set-Content $main2Py -Value $content -NoNewline
 }
 

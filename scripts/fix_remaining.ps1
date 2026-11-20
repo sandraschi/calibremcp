@@ -49,7 +49,7 @@ Add-Noqa "$src\calibre_mcp\config_discovery.py" '(?m)pickle\.load\(f\)' 'pickle.
 Add-Noqa "$src\calibre_mcp\tools\user_management\manage_users.py" 'password == "admin123"' 'password == "admin123"  # noqa: S105'
 Add-Noqa "$src\calibre_mcp\tools\user_management\user_manager.py" 'password != "admin123"' 'password != "admin123"  # noqa: S105'
 Add-Noqa "$src\calibre_mcp\tools\base_tool.py" 'exec\(exec_code, exec_globals, local_vars\)' 'exec(exec_code, exec_globals, local_vars)  # noqa: S102'
-Add-Noqa "$src\calibre_mcp\server\main.py" 'host="0\.0\.0\.0"' 'host="0.0.0.0"  # noqa: S104'
+Add-Noqa "$src\calibre_mcp\server\main.py" 'host="0\.0\.0\.0"' 'host="127.0.0.1"'
 Add-Noqa "$src\calibre_mcp\tools\ai\content_analyzer.py" 'hashlib\.md5\(book_content.encode\("utf-8"\)\)\.hexdigest\(\)' 'hashlib.md5(book_content.encode("utf-8")).hexdigest()  # noqa: S324'
 Add-Noqa "$src\calibre_mcp\tools\ai\llm_summarizer.py" 'hashlib\.md5\(chunk\.text\.encode\(\)\)\.hexdigest\(\)' 'hashlib.md5(chunk.text.encode()).hexdigest()  # noqa: S324'
 Add-Noqa "$src\calibre_mcp\tools\viewer\manage_viewer.py" 'random\.choice\(books\)' 'random.choice(books)  # noqa: S311'
